@@ -1,0 +1,40 @@
+name: ci
+on: ["push", "pull_request"]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
+      with:
+        go-version-file: go.mod
+        cache: true
+    - run: make update-licenses
+    - run: make fmt
+    - run: make gomodtidy
+    - uses: dominikh/staticcheck-action@v1.2.0
+      with:
+        version: "2022.1.1"
+        install-go: false
+    - name: Verify repo is up-to-date
+      run: |
+        if [ -n "$(git status --porcelain)" ]; then
+          echo 'Updates required:'
+          git status
+          exit 1
+        fi
+
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
+      with:
+        go-version-file: go.mod
+        cache: true
+    - name: Run tests
+      run: make test
