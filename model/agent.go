@@ -19,9 +19,10 @@ package model
 
 // Agent describes an Elastic APM agent.
 type Agent struct {
-	Name        string
-	Version     string
-	EphemeralID string
+	Name             string
+	Version          string
+	EphemeralID      string
+	ActivationMethod string
 }
 
 func (a *Agent) fields() map[string]any {
@@ -29,5 +30,6 @@ func (a *Agent) fields() map[string]any {
 	agent.maybeSetString("name", a.Name)
 	agent.maybeSetString("version", a.Version)
 	agent.maybeSetString("ephemeral_id", a.EphemeralID)
+	agent.maybeSetString("activation_method", a.ActivationMethod)
 	return map[string]any(agent)
 }
