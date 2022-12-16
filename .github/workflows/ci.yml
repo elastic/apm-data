@@ -13,6 +13,7 @@ jobs:
       with:
         go-version-file: go.mod
         cache: true
+    - run: make generate
     - run: make update-licenses
     - run: make fmt
     - run: make gomodtidy

@@ -7,5 +7,8 @@ fmt:
 gomodtidy:
 	go mod tidy -v
 
+generate:
+	go generate ./...
+
 update-licenses:
 	go run github.com/elastic/go-licenser@v0.4.1 .
