@@ -56,12 +56,6 @@ type Transaction struct {
 	// is subject to removal.
 	DurationSummary SummaryMetric
 
-	// SuccessCount holds an aggregated count of transactions with different
-	// outcomes. A "failure" adds to the Count. A "success" adds to both the
-	// Count and the Sum. An "unknown" has no effect. If Count is zero, it
-	// will be omitted from the output event.
-	SuccessCount SummaryMetric
-
 	Marks          TransactionMarks
 	Message        *Message
 	SpanCount      SpanCount
@@ -95,9 +89,6 @@ func (e *Transaction) fields() map[string]any {
 	transaction.maybeSetMapStr("duration.histogram", e.DurationHistogram.fields())
 	if e.DurationSummary.Count != 0 {
 		transaction.maybeSetMapStr("duration.summary", e.DurationSummary.fields())
-	}
-	if e.SuccessCount.Count != 0 {
-		transaction.maybeSetMapStr("success_count", e.SuccessCount.fields())
 	}
 	transaction.maybeSetString("name", e.Name)
 	transaction.maybeSetString("result", e.Result)

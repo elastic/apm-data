@@ -33,6 +33,12 @@ type Event struct {
 	// Outcome holds the event outcome: "success", "failure", or "unknown".
 	Outcome string
 
+	// SuccessCount holds an aggregated count of transactions with different
+	// outcomes. A "failure" adds to the Count. A "success" adds to both the
+	// Count and the Sum. An "unknown" has no effect. If Count is zero, it
+	// will be omitted from the output event.
+	SuccessCount SummaryMetric
+
 	// Severity holds the numeric severity of the event for log events.
 	Severity int64
 
@@ -48,6 +54,9 @@ type Event struct {
 func (e *Event) fields() map[string]any {
 	var fields mapStr
 	fields.maybeSetString("outcome", e.Outcome)
+	if e.SuccessCount.Count > 0 {
+		fields.maybeSetMapStr("success_count", e.SuccessCount.fields())
+	}
 	fields.maybeSetString("action", e.Action)
 	fields.maybeSetString("dataset", e.Dataset)
 	if e.Severity > 0 {
