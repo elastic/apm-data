@@ -129,16 +129,15 @@ func (c *Consumer) convertLogRecord(
 }
 
 func updateErrorType(m pcommon.Map, event *model.APMEvent) {
-	if event.Error == nil {
-		event.Error = &model.Error{}
-	}
-
-	event.Error.Type = "crash"
+	event.Event.Kind = "event"
+	event.Event.Category = "device"
+	event.Event.Type = "error"
 }
 
 func setErrorLabels(m pcommon.Map, event *model.APMEvent) {
 	var exceptionEscaped bool
 	var exceptionMessage, exceptionStacktrace, exceptionType string
+	var eventName string
 	m.Range(func(k string, v pcommon.Value) bool {
 		switch k {
 		case semconv.AttributeExceptionMessage:
@@ -149,6 +148,8 @@ func setErrorLabels(m pcommon.Map, event *model.APMEvent) {
 			exceptionType = v.Str()
 		case semconv.AttributeExceptionEscaped:
 			exceptionEscaped = v.Bool()
+		case "event.name":
+			eventName = v.Str()
 		default:
 			setLabel(replaceDots(k), event, ifaceAttributeValue(v))
 		}
@@ -165,6 +166,12 @@ func setErrorLabels(m pcommon.Map, event *model.APMEvent) {
 			exceptionEscaped, event.Service.Language.Name,
 		)
 	}
+
+	if event.Error == nil {
+		event.Error = &model.Error{}
+	}
+
+	event.Error.Type = eventName
 }
 
 func setLabels(m pcommon.Map, event *model.APMEvent) {

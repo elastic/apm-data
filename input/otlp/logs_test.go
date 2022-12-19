@@ -129,6 +129,7 @@ func TestConsumerConsumeLogsException(t *testing.T) {
 	record1.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
 	record2 := newLogRecord("bar")
+	record2.Attributes().PutStr("event.name", "crash")
 	record2.Attributes().PutStr("exception.type", "HighLevelException")
 	record2.Attributes().PutStr("exception.message", "MidLevelException: LowLevelException")
 	record2.Attributes().PutStr("exception.stacktrace", `
@@ -179,6 +180,9 @@ Caused by: LowLevelException
 		},
 		Event: model.Event{
 			Severity: int64(plog.SeverityNumberInfo),
+			Kind:     "event",
+			Category: "device",
+			Type:     "error",
 		},
 		Labels:        model.Labels{"key0": {Global: true, Value: "zero"}},
 		NumericLabels: model.NumericLabels{},

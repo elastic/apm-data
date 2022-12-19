@@ -43,6 +43,12 @@ type Event struct {
 	// source publishes more than one type of log or events (e.g. access log,
 	// error log), the dataset is used to specify which one the event comes from.
 	Dataset string
+
+	Kind string
+
+	Category string
+
+	Type string
 }
 
 func (e *Event) fields() map[string]any {
@@ -50,6 +56,9 @@ func (e *Event) fields() map[string]any {
 	fields.maybeSetString("outcome", e.Outcome)
 	fields.maybeSetString("action", e.Action)
 	fields.maybeSetString("dataset", e.Dataset)
+	fields.maybeSetString("kind", e.Kind)
+	fields.maybeSetString("category", e.Category)
+	fields.maybeSetString("Type", e.Type)
 	if e.Severity > 0 {
 		fields.set("severity", e.Severity)
 	}
