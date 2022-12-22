@@ -151,10 +151,13 @@ func setLabels(m pcommon.Map, event *model.APMEvent) {
 	}
 
 	eventName, eventNameOk := m.Get("event.name")
-	if eventNameOk && eventName.Str() == "crash" {
+	if eventNameOk {
 		if event.Error == nil {
 			event.Error = &model.Error{}
 		}
-		event.Event.Category = "device"
+		if eventName.Str() == "crash" {
+			event.Event.Category = "device"
+		}
+		event.Error.Type = eventName.Str()
 	}
 }
