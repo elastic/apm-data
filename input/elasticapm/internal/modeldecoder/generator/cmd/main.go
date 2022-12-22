@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// go:generate go run .
+//go:generate go run .
 
 package main
 
@@ -97,6 +97,7 @@ func generateCode(path string, parsed *generator.Parsed, root []string) {
 	if err := os.WriteFile(out, formatted, 0644); err != nil {
 		panic(err)
 	}
+	log.Printf("generated %s", out)
 }
 
 func generateJSONSchema(pkgpath string, pkg string, parsed *generator.Parsed, root []string) {
@@ -117,5 +118,6 @@ func generateJSONSchema(pkgpath string, pkg string, parsed *generator.Parsed, ro
 		if err := os.WriteFile(out, b.Bytes(), 0644); err != nil {
 			panic(err)
 		}
+		log.Printf("generated %s", out)
 	}
 }

@@ -435,10 +435,11 @@ func (val *metadataService) processNestedSource() error {
 }
 
 func (val *metadataServiceAgent) IsSet() bool {
-	return val.EphemeralID.IsSet() || val.Name.IsSet() || val.Version.IsSet()
+	return val.ActivationMethod.IsSet() || val.EphemeralID.IsSet() || val.Name.IsSet() || val.Version.IsSet()
 }
 
 func (val *metadataServiceAgent) Reset() {
+	val.ActivationMethod.Reset()
 	val.EphemeralID.Reset()
 	val.Name.Reset()
 	val.Version.Reset()
@@ -447,6 +448,9 @@ func (val *metadataServiceAgent) Reset() {
 func (val *metadataServiceAgent) validate() error {
 	if !val.IsSet() {
 		return nil
+	}
+	if val.ActivationMethod.IsSet() && utf8.RuneCountInString(val.ActivationMethod.Val) > 1024 {
+		return fmt.Errorf("'activation_method': validation rule 'maxLength(1024)' violated")
 	}
 	if val.EphemeralID.IsSet() && utf8.RuneCountInString(val.EphemeralID.Val) > 1024 {
 		return fmt.Errorf("'ephemeral_id': validation rule 'maxLength(1024)' violated")
