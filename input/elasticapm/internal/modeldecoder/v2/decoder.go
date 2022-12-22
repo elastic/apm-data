@@ -563,6 +563,9 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 	}
 
 	// Service
+	if from.Service.Agent.ActivationMethod.IsSet() {
+		out.Agent.ActivationMethod = from.Service.Agent.ActivationMethod.Val
+	}
 	if from.Service.Agent.EphemeralID.IsSet() {
 		out.Agent.EphemeralID = from.Service.Agent.EphemeralID.Val
 	}

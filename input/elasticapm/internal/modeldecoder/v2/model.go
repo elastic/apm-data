@@ -535,6 +535,8 @@ type metadataService struct {
 }
 
 type metadataServiceAgent struct {
+	// ActivationMethod of the APM agent capturing information.
+	ActivationMethod nullable.String `json:"activation_method" validate:"maxLength=1024"`
 	// EphemeralID is a free format ID used for metrics correlation by agents
 	EphemeralID nullable.String `json:"ephemeral_id" validate:"maxLength=1024"`
 	// Name of the APM agent capturing information.
