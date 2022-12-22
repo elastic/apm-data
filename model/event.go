@@ -44,10 +44,13 @@ type Event struct {
 	// error log), the dataset is used to specify which one the event comes from.
 	Dataset string
 
+	// The kind of the event. The highest categorization field in the hierarchy.
 	Kind string
 
+	// Event category. The second categorization field in the hierarchy.
 	Category string
 
+	// Event type. The third categorization field in the hierarchy.
 	Type string
 }
 
