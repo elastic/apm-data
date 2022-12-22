@@ -85,13 +85,6 @@ func (c *Consumer) convertInstrumentationLibraryLogs(
 	}
 }
 
-func isError(record plog.LogRecord) bool {
-	_, typeOk := record.Attributes().Get(semconv.AttributeExceptionType)
-	_, messageOk := record.Attributes().Get(semconv.AttributeExceptionMessage)
-	eventName, eventNameOk := record.Attributes().Get("event.name")
-	return typeOk || messageOk || (eventNameOk && eventName.Str() == "crash")
-}
-
 func (c *Consumer) convertLogRecord(
 	record plog.LogRecord,
 	baseEvent model.APMEvent,
@@ -118,26 +111,18 @@ func (c *Consumer) convertLogRecord(
 		event.Span.ID = spanID.HexString()
 	}
 	attrs := record.Attributes()
-	if isError(record) {
+	setLabels(attrs, &event)
+	if event.Error != nil {
 		event.Processor = model.ErrorProcessor
-		setErrorLabels(attrs, &event)
-		updateErrorType(&event)
-	} else {
-		setLabels(attrs, &event)
+		event.Event.Kind = "event"
+		event.Event.Type = "error"
 	}
 	return event
 }
 
-func updateErrorType(event *model.APMEvent) {
-	event.Event.Kind = "event"
-	event.Event.Category = "device"
-	event.Event.Type = "error"
-}
-
-func setErrorLabels(m pcommon.Map, event *model.APMEvent) {
+func setLabels(m pcommon.Map, event *model.APMEvent) {
 	var exceptionEscaped bool
 	var exceptionMessage, exceptionStacktrace, exceptionType string
-	var eventName string
 	m.Range(func(k string, v pcommon.Value) bool {
 		switch k {
 		case semconv.AttributeExceptionMessage:
@@ -148,8 +133,6 @@ func setErrorLabels(m pcommon.Map, event *model.APMEvent) {
 			exceptionType = v.Str()
 		case semconv.AttributeExceptionEscaped:
 			exceptionEscaped = v.Bool()
-		case "event.name":
-			eventName = v.Str()
 		default:
 			setLabel(replaceDots(k), event, ifaceAttributeValue(v))
 		}
@@ -167,16 +150,11 @@ func setErrorLabels(m pcommon.Map, event *model.APMEvent) {
 		)
 	}
 
-	if event.Error == nil {
-		event.Error = &model.Error{}
+	eventName, eventNameOk := m.Get("event.name")
+	if eventNameOk && eventName.Str() == "crash" {
+		if event.Error == nil {
+			event.Error = &model.Error{}
+		}
+		event.Event.Category = "device"
 	}
-
-	event.Error.Type = eventName
-}
-
-func setLabels(m pcommon.Map, event *model.APMEvent) {
-	m.Range(func(k string, v pcommon.Value) bool {
-		setLabel(k, event, ifaceAttributeValue(v))
-		return true
-	})
 }
