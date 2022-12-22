@@ -121,14 +121,14 @@ func (c *Consumer) convertLogRecord(
 	if isError(record) {
 		event.Processor = model.ErrorProcessor
 		setErrorLabels(attrs, &event)
-		updateErrorType(attrs, &event)
+		updateErrorType(&event)
 	} else {
 		setLabels(attrs, &event)
 	}
 	return event
 }
 
-func updateErrorType(m pcommon.Map, event *model.APMEvent) {
+func updateErrorType(event *model.APMEvent) {
 	event.Event.Kind = "event"
 	event.Event.Category = "device"
 	event.Event.Type = "error"
