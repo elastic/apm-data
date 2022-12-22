@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// go:generate go run .
+//go:generate go run .
 
 package main
 
