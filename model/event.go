@@ -33,6 +33,11 @@ type Event struct {
 	// source publishes more than one type of log or events (e.g. access log,
 	// error log), the dataset is used to specify which one the event comes from.
 	Dataset string
+	// SuccessCount holds an aggregated count of events with different outcomes.
+	// A "failure" adds to the Count. A "success" adds to both the Count and the
+	// Sum. An "unknown" has no effect. If Count is zero, it will be omitted
+	// from the output event.
+	SuccessCount SummaryMetric
 	// Duration holds the event duration.
 	//
 	// Duration is only added as a field (`duration`) if greater than zero.
@@ -44,6 +49,9 @@ type Event struct {
 func (e *Event) fields() map[string]any {
 	var fields mapStr
 	fields.maybeSetString("outcome", e.Outcome)
+	if e.SuccessCount.Count > 0 {
+		fields.maybeSetMapStr("success_count", e.SuccessCount.fields())
+	}
 	fields.maybeSetString("action", e.Action)
 	fields.maybeSetString("dataset", e.Dataset)
 	if e.Severity > 0 {

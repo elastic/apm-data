@@ -131,6 +131,8 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 			fieldVal = reflect.ValueOf(values.Str)
 		case reflect.Int, reflect.Int64:
 			fieldVal = reflect.ValueOf(values.Int).Convert(f.Type())
+		case reflect.Float64:
+			fieldVal = reflect.ValueOf(values.Float).Convert(f.Type())
 		case reflect.Slice:
 			var elemVal reflect.Value
 			switch v := f.Interface().(type) {
