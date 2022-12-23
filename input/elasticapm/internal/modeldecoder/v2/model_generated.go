@@ -60,27 +60,24 @@ func (val *metadataRoot) processNestedSource() error {
 }
 
 func (val *metadata) IsSet() bool {
-	return val.Cloud.IsSet() || (len(val.Labels) > 0) || val.Process.IsSet() || val.Service.IsSet() || val.System.IsSet() || val.User.IsSet() || val.Network.IsSet()
+	return (len(val.Labels) > 0) || val.Service.IsSet() || val.Cloud.IsSet() || val.System.IsSet() || val.User.IsSet() || val.Network.IsSet() || val.Process.IsSet()
 }
 
 func (val *metadata) Reset() {
-	val.Cloud.Reset()
 	for k := range val.Labels {
 		delete(val.Labels, k)
 	}
-	val.Process.Reset()
 	val.Service.Reset()
+	val.Cloud.Reset()
 	val.System.Reset()
 	val.User.Reset()
 	val.Network.Reset()
+	val.Process.Reset()
 }
 
 func (val *metadata) validate() error {
 	if !val.IsSet() {
 		return nil
-	}
-	if err := val.Cloud.validate(); err != nil {
-		return errors.Wrapf(err, "cloud")
 	}
 	for k, v := range val.Labels {
 		switch t := v.(type) {
@@ -95,14 +92,14 @@ func (val *metadata) validate() error {
 			return fmt.Errorf("'labels': validation rule 'inputTypesVals(string;bool;number)' violated for key %s", k)
 		}
 	}
-	if err := val.Process.validate(); err != nil {
-		return errors.Wrapf(err, "process")
-	}
 	if err := val.Service.validate(); err != nil {
 		return errors.Wrapf(err, "service")
 	}
 	if !val.Service.IsSet() {
 		return fmt.Errorf("'service' required")
+	}
+	if err := val.Cloud.validate(); err != nil {
+		return errors.Wrapf(err, "cloud")
 	}
 	if err := val.System.validate(); err != nil {
 		return errors.Wrapf(err, "system")
@@ -113,18 +110,18 @@ func (val *metadata) validate() error {
 	if err := val.Network.validate(); err != nil {
 		return errors.Wrapf(err, "network")
 	}
+	if err := val.Process.validate(); err != nil {
+		return errors.Wrapf(err, "process")
+	}
 	return nil
 }
 
 func (val *metadata) processNestedSource() error {
-	if err := val.Cloud.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "cloud")
-	}
-	if err := val.Process.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "process")
-	}
 	if err := val.Service.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "service")
+	}
+	if err := val.Cloud.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "cloud")
 	}
 	if err := val.System.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "system")
@@ -135,6 +132,239 @@ func (val *metadata) processNestedSource() error {
 	if err := val.Network.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "network")
 	}
+	if err := val.Process.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "process")
+	}
+	return nil
+}
+
+func (val *metadataService) IsSet() bool {
+	return val.Agent.IsSet() || val.Environment.IsSet() || val.Framework.IsSet() || val.ID.IsSet() || val.Language.IsSet() || val.Name.IsSet() || val.Node.IsSet() || val.Runtime.IsSet() || val.Version.IsSet()
+}
+
+func (val *metadataService) Reset() {
+	val.Agent.Reset()
+	val.Environment.Reset()
+	val.Framework.Reset()
+	val.ID.Reset()
+	val.Language.Reset()
+	val.Name.Reset()
+	val.Node.Reset()
+	val.Runtime.Reset()
+	val.Version.Reset()
+}
+
+func (val *metadataService) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.Agent.validate(); err != nil {
+		return errors.Wrapf(err, "agent")
+	}
+	if !val.Agent.IsSet() {
+		return fmt.Errorf("'agent' required")
+	}
+	if val.Environment.IsSet() && utf8.RuneCountInString(val.Environment.Val) > 1024 {
+		return fmt.Errorf("'environment': validation rule 'maxLength(1024)' violated")
+	}
+	if err := val.Framework.validate(); err != nil {
+		return errors.Wrapf(err, "framework")
+	}
+	if err := val.Language.validate(); err != nil {
+		return errors.Wrapf(err, "language")
+	}
+	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) < 1 {
+		return fmt.Errorf("'name': validation rule 'minLength(1)' violated")
+	}
+	if val.Name.Val != "" && !patternAlphaNumericExtRegexp.MatchString(val.Name.Val) {
+		return fmt.Errorf("'name': validation rule 'pattern(patternAlphaNumericExt)' violated")
+	}
+	if !val.Name.IsSet() {
+		return fmt.Errorf("'name' required")
+	}
+	if err := val.Node.validate(); err != nil {
+		return errors.Wrapf(err, "node")
+	}
+	if err := val.Runtime.validate(); err != nil {
+		return errors.Wrapf(err, "runtime")
+	}
+	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
+		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *metadataService) processNestedSource() error {
+	if err := val.Agent.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "agent")
+	}
+	if err := val.Framework.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "framework")
+	}
+	if err := val.Language.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "language")
+	}
+	if err := val.Node.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "node")
+	}
+	if err := val.Runtime.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "runtime")
+	}
+	return nil
+}
+
+func (val *metadataServiceAgent) IsSet() bool {
+	return val.ActivationMethod.IsSet() || val.EphemeralID.IsSet() || val.Name.IsSet() || val.Version.IsSet()
+}
+
+func (val *metadataServiceAgent) Reset() {
+	val.ActivationMethod.Reset()
+	val.EphemeralID.Reset()
+	val.Name.Reset()
+	val.Version.Reset()
+}
+
+func (val *metadataServiceAgent) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.ActivationMethod.IsSet() && utf8.RuneCountInString(val.ActivationMethod.Val) > 1024 {
+		return fmt.Errorf("'activation_method': validation rule 'maxLength(1024)' violated")
+	}
+	if val.EphemeralID.IsSet() && utf8.RuneCountInString(val.EphemeralID.Val) > 1024 {
+		return fmt.Errorf("'ephemeral_id': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) < 1 {
+		return fmt.Errorf("'name': validation rule 'minLength(1)' violated")
+	}
+	if !val.Name.IsSet() {
+		return fmt.Errorf("'name' required")
+	}
+	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
+		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
+	}
+	if !val.Version.IsSet() {
+		return fmt.Errorf("'version' required")
+	}
+	return nil
+}
+
+func (val *metadataServiceAgent) processNestedSource() error {
+	return nil
+}
+
+func (val *metadataServiceFramework) IsSet() bool {
+	return val.Name.IsSet() || val.Version.IsSet()
+}
+
+func (val *metadataServiceFramework) Reset() {
+	val.Name.Reset()
+	val.Version.Reset()
+}
+
+func (val *metadataServiceFramework) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
+		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *metadataServiceFramework) processNestedSource() error {
+	return nil
+}
+
+func (val *metadataServiceLanguage) IsSet() bool {
+	return val.Name.IsSet() || val.Version.IsSet()
+}
+
+func (val *metadataServiceLanguage) Reset() {
+	val.Name.Reset()
+	val.Version.Reset()
+}
+
+func (val *metadataServiceLanguage) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
+	}
+	if !val.Name.IsSet() {
+		return fmt.Errorf("'name' required")
+	}
+	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
+		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *metadataServiceLanguage) processNestedSource() error {
+	return nil
+}
+
+func (val *metadataServiceNode) IsSet() bool {
+	return val.Name.IsSet()
+}
+
+func (val *metadataServiceNode) Reset() {
+	val.Name.Reset()
+}
+
+func (val *metadataServiceNode) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+		return fmt.Errorf("'configured_name': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *metadataServiceNode) processNestedSource() error {
+	return nil
+}
+
+func (val *metadataServiceRuntime) IsSet() bool {
+	return val.Name.IsSet() || val.Version.IsSet()
+}
+
+func (val *metadataServiceRuntime) Reset() {
+	val.Name.Reset()
+	val.Version.Reset()
+}
+
+func (val *metadataServiceRuntime) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
+	}
+	if !val.Name.IsSet() {
+		return fmt.Errorf("'name' required")
+	}
+	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
+		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
+	}
+	if !val.Version.IsSet() {
+		return fmt.Errorf("'version' required")
+	}
+	return nil
+}
+
+func (val *metadataServiceRuntime) processNestedSource() error {
 	return nil
 }
 
@@ -325,260 +555,6 @@ func (val *metadataCloudService) validate() error {
 }
 
 func (val *metadataCloudService) processNestedSource() error {
-	return nil
-}
-
-func (val *metadataProcess) IsSet() bool {
-	return (len(val.Argv) > 0) || val.Pid.IsSet() || val.Ppid.IsSet() || val.Title.IsSet()
-}
-
-func (val *metadataProcess) Reset() {
-	val.Argv = val.Argv[:0]
-	val.Pid.Reset()
-	val.Ppid.Reset()
-	val.Title.Reset()
-}
-
-func (val *metadataProcess) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if !val.Pid.IsSet() {
-		return fmt.Errorf("'pid' required")
-	}
-	if val.Title.IsSet() && utf8.RuneCountInString(val.Title.Val) > 1024 {
-		return fmt.Errorf("'title': validation rule 'maxLength(1024)' violated")
-	}
-	return nil
-}
-
-func (val *metadataProcess) processNestedSource() error {
-	return nil
-}
-
-func (val *metadataService) IsSet() bool {
-	return val.Agent.IsSet() || val.Environment.IsSet() || val.Framework.IsSet() || val.ID.IsSet() || val.Language.IsSet() || val.Name.IsSet() || val.Node.IsSet() || val.Runtime.IsSet() || val.Version.IsSet()
-}
-
-func (val *metadataService) Reset() {
-	val.Agent.Reset()
-	val.Environment.Reset()
-	val.Framework.Reset()
-	val.ID.Reset()
-	val.Language.Reset()
-	val.Name.Reset()
-	val.Node.Reset()
-	val.Runtime.Reset()
-	val.Version.Reset()
-}
-
-func (val *metadataService) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if err := val.Agent.validate(); err != nil {
-		return errors.Wrapf(err, "agent")
-	}
-	if !val.Agent.IsSet() {
-		return fmt.Errorf("'agent' required")
-	}
-	if val.Environment.IsSet() && utf8.RuneCountInString(val.Environment.Val) > 1024 {
-		return fmt.Errorf("'environment': validation rule 'maxLength(1024)' violated")
-	}
-	if err := val.Framework.validate(); err != nil {
-		return errors.Wrapf(err, "framework")
-	}
-	if err := val.Language.validate(); err != nil {
-		return errors.Wrapf(err, "language")
-	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
-	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) < 1 {
-		return fmt.Errorf("'name': validation rule 'minLength(1)' violated")
-	}
-	if val.Name.Val != "" && !patternAlphaNumericExtRegexp.MatchString(val.Name.Val) {
-		return fmt.Errorf("'name': validation rule 'pattern(patternAlphaNumericExt)' violated")
-	}
-	if !val.Name.IsSet() {
-		return fmt.Errorf("'name' required")
-	}
-	if err := val.Node.validate(); err != nil {
-		return errors.Wrapf(err, "node")
-	}
-	if err := val.Runtime.validate(); err != nil {
-		return errors.Wrapf(err, "runtime")
-	}
-	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
-		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
-	}
-	return nil
-}
-
-func (val *metadataService) processNestedSource() error {
-	if err := val.Agent.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "agent")
-	}
-	if err := val.Framework.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "framework")
-	}
-	if err := val.Language.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "language")
-	}
-	if err := val.Node.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "node")
-	}
-	if err := val.Runtime.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "runtime")
-	}
-	return nil
-}
-
-func (val *metadataServiceAgent) IsSet() bool {
-	return val.EphemeralID.IsSet() || val.Name.IsSet() || val.Version.IsSet()
-}
-
-func (val *metadataServiceAgent) Reset() {
-	val.EphemeralID.Reset()
-	val.Name.Reset()
-	val.Version.Reset()
-}
-
-func (val *metadataServiceAgent) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.EphemeralID.IsSet() && utf8.RuneCountInString(val.EphemeralID.Val) > 1024 {
-		return fmt.Errorf("'ephemeral_id': validation rule 'maxLength(1024)' violated")
-	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
-	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) < 1 {
-		return fmt.Errorf("'name': validation rule 'minLength(1)' violated")
-	}
-	if !val.Name.IsSet() {
-		return fmt.Errorf("'name' required")
-	}
-	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
-		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
-	}
-	if !val.Version.IsSet() {
-		return fmt.Errorf("'version' required")
-	}
-	return nil
-}
-
-func (val *metadataServiceAgent) processNestedSource() error {
-	return nil
-}
-
-func (val *metadataServiceFramework) IsSet() bool {
-	return val.Name.IsSet() || val.Version.IsSet()
-}
-
-func (val *metadataServiceFramework) Reset() {
-	val.Name.Reset()
-	val.Version.Reset()
-}
-
-func (val *metadataServiceFramework) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
-	}
-	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
-		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
-	}
-	return nil
-}
-
-func (val *metadataServiceFramework) processNestedSource() error {
-	return nil
-}
-
-func (val *metadataServiceLanguage) IsSet() bool {
-	return val.Name.IsSet() || val.Version.IsSet()
-}
-
-func (val *metadataServiceLanguage) Reset() {
-	val.Name.Reset()
-	val.Version.Reset()
-}
-
-func (val *metadataServiceLanguage) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
-	}
-	if !val.Name.IsSet() {
-		return fmt.Errorf("'name' required")
-	}
-	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
-		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
-	}
-	return nil
-}
-
-func (val *metadataServiceLanguage) processNestedSource() error {
-	return nil
-}
-
-func (val *metadataServiceNode) IsSet() bool {
-	return val.Name.IsSet()
-}
-
-func (val *metadataServiceNode) Reset() {
-	val.Name.Reset()
-}
-
-func (val *metadataServiceNode) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'configured_name': validation rule 'maxLength(1024)' violated")
-	}
-	return nil
-}
-
-func (val *metadataServiceNode) processNestedSource() error {
-	return nil
-}
-
-func (val *metadataServiceRuntime) IsSet() bool {
-	return val.Name.IsSet() || val.Version.IsSet()
-}
-
-func (val *metadataServiceRuntime) Reset() {
-	val.Name.Reset()
-	val.Version.Reset()
-}
-
-func (val *metadataServiceRuntime) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
-	}
-	if !val.Name.IsSet() {
-		return fmt.Errorf("'name' required")
-	}
-	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
-		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
-	}
-	if !val.Version.IsSet() {
-		return fmt.Errorf("'version' required")
-	}
-	return nil
-}
-
-func (val *metadataServiceRuntime) processNestedSource() error {
 	return nil
 }
 
@@ -832,6 +808,34 @@ func (val *networkConnection) processNestedSource() error {
 	return nil
 }
 
+func (val *metadataProcess) IsSet() bool {
+	return (len(val.Argv) > 0) || val.Title.IsSet() || val.Pid.IsSet() || val.Ppid.IsSet()
+}
+
+func (val *metadataProcess) Reset() {
+	val.Argv = val.Argv[:0]
+	val.Title.Reset()
+	val.Pid.Reset()
+	val.Ppid.Reset()
+}
+
+func (val *metadataProcess) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Title.IsSet() && utf8.RuneCountInString(val.Title.Val) > 1024 {
+		return fmt.Errorf("'title': validation rule 'maxLength(1024)' violated")
+	}
+	if !val.Pid.IsSet() {
+		return fmt.Errorf("'pid' required")
+	}
+	return nil
+}
+
+func (val *metadataProcess) processNestedSource() error {
+	return nil
+}
+
 func (val *errorRoot) IsSet() bool {
 	return val.Error.IsSet()
 }
@@ -858,43 +862,40 @@ func (val *errorRoot) processNestedSource() error {
 }
 
 func (val *errorEvent) IsSet() bool {
-	return val.Context.IsSet() || val.Culprit.IsSet() || val.Exception.IsSet() || val.ID.IsSet() || val.Log.IsSet() || val.ParentID.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Transaction.IsSet() || val.TransactionID.IsSet()
+	return val.Timestamp.IsSet() || val.Log.IsSet() || val.Culprit.IsSet() || val.ID.IsSet() || val.ParentID.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.Exception.IsSet() || val.Transaction.IsSet() || val.Context.IsSet()
 }
 
 func (val *errorEvent) Reset() {
-	val.Context.Reset()
-	val.Culprit.Reset()
-	val.Exception.Reset()
-	val.ID.Reset()
-	val.Log.Reset()
-	val.ParentID.Reset()
 	val.Timestamp.Reset()
+	val.Log.Reset()
+	val.Culprit.Reset()
+	val.ID.Reset()
+	val.ParentID.Reset()
 	val.TraceID.Reset()
-	val.Transaction.Reset()
 	val.TransactionID.Reset()
+	val.Exception.Reset()
+	val.Transaction.Reset()
+	val.Context.Reset()
 }
 
 func (val *errorEvent) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
-	if err := val.Context.validate(); err != nil {
-		return errors.Wrapf(err, "context")
+	if !val.Exception.IsSet() && !val.Log.IsSet() {
+		return fmt.Errorf("requires at least one of the fields 'exception;log'")
+	}
+	if err := val.Log.validate(); err != nil {
+		return errors.Wrapf(err, "log")
 	}
 	if val.Culprit.IsSet() && utf8.RuneCountInString(val.Culprit.Val) > 1024 {
 		return fmt.Errorf("'culprit': validation rule 'maxLength(1024)' violated")
-	}
-	if err := val.Exception.validate(); err != nil {
-		return errors.Wrapf(err, "exception")
 	}
 	if val.ID.IsSet() && utf8.RuneCountInString(val.ID.Val) > 1024 {
 		return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.ID.IsSet() {
 		return fmt.Errorf("'id' required")
-	}
-	if err := val.Log.validate(); err != nil {
-		return errors.Wrapf(err, "log")
 	}
 	if val.ParentID.IsSet() && utf8.RuneCountInString(val.ParentID.Val) > 1024 {
 		return fmt.Errorf("'parent_id': validation rule 'maxLength(1024)' violated")
@@ -918,75 +919,232 @@ func (val *errorEvent) validate() error {
 			return fmt.Errorf("'trace_id' required when 'parent_id' is set")
 		}
 	}
-	if err := val.Transaction.validate(); err != nil {
-		return errors.Wrapf(err, "transaction")
-	}
 	if val.TransactionID.IsSet() && utf8.RuneCountInString(val.TransactionID.Val) > 1024 {
 		return fmt.Errorf("'transaction_id': validation rule 'maxLength(1024)' violated")
 	}
-	if !val.Exception.IsSet() && !val.Log.IsSet() {
-		return fmt.Errorf("requires at least one of the fields 'exception;log'")
+	if err := val.Exception.validate(); err != nil {
+		return errors.Wrapf(err, "exception")
+	}
+	if err := val.Transaction.validate(); err != nil {
+		return errors.Wrapf(err, "transaction")
+	}
+	if err := val.Context.validate(); err != nil {
+		return errors.Wrapf(err, "context")
 	}
 	return nil
 }
 
 func (val *errorEvent) processNestedSource() error {
-	if err := val.Context.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "context")
+	if err := val.Log.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "log")
 	}
 	if err := val.Exception.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "exception")
 	}
-	if err := val.Log.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "log")
-	}
 	if err := val.Transaction.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "transaction")
+	}
+	if err := val.Context.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "context")
 	}
 	return nil
 }
 
+func (val *errorLog) IsSet() bool {
+	return val.Level.IsSet() || val.LoggerName.IsSet() || val.Message.IsSet() || val.ParamMessage.IsSet() || (len(val.Stacktrace) > 0)
+}
+
+func (val *errorLog) Reset() {
+	val.Level.Reset()
+	val.LoggerName.Reset()
+	val.Message.Reset()
+	val.ParamMessage.Reset()
+	for i := range val.Stacktrace {
+		val.Stacktrace[i].Reset()
+	}
+	val.Stacktrace = val.Stacktrace[:0]
+}
+
+func (val *errorLog) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Level.IsSet() && utf8.RuneCountInString(val.Level.Val) > 1024 {
+		return fmt.Errorf("'level': validation rule 'maxLength(1024)' violated")
+	}
+	if val.LoggerName.IsSet() && utf8.RuneCountInString(val.LoggerName.Val) > 1024 {
+		return fmt.Errorf("'logger_name': validation rule 'maxLength(1024)' violated")
+	}
+	if !val.Message.IsSet() {
+		return fmt.Errorf("'message' required")
+	}
+	if val.ParamMessage.IsSet() && utf8.RuneCountInString(val.ParamMessage.Val) > 1024 {
+		return fmt.Errorf("'param_message': validation rule 'maxLength(1024)' violated")
+	}
+	for _, elem := range val.Stacktrace {
+		if err := elem.validate(); err != nil {
+			return errors.Wrapf(err, "stacktrace")
+		}
+	}
+	return nil
+}
+
+func (val *errorLog) processNestedSource() error {
+	return nil
+}
+
+func (val *stacktraceFrame) IsSet() bool {
+	return (len(val.Vars) > 0) || val.Filename.IsSet() || val.AbsPath.IsSet() || val.Classname.IsSet() || val.ContextLine.IsSet() || val.Function.IsSet() || val.Module.IsSet() || (len(val.PostContext) > 0) || (len(val.PreContext) > 0) || val.LineNumber.IsSet() || val.ColumnNumber.IsSet() || val.LibraryFrame.IsSet()
+}
+
+func (val *stacktraceFrame) Reset() {
+	for k := range val.Vars {
+		delete(val.Vars, k)
+	}
+	val.Filename.Reset()
+	val.AbsPath.Reset()
+	val.Classname.Reset()
+	val.ContextLine.Reset()
+	val.Function.Reset()
+	val.Module.Reset()
+	val.PostContext = val.PostContext[:0]
+	val.PreContext = val.PreContext[:0]
+	val.LineNumber.Reset()
+	val.ColumnNumber.Reset()
+	val.LibraryFrame.Reset()
+}
+
+func (val *stacktraceFrame) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if !val.Classname.IsSet() && !val.Filename.IsSet() {
+		return fmt.Errorf("requires at least one of the fields 'classname;filename'")
+	}
+	return nil
+}
+
+func (val *stacktraceFrame) processNestedSource() error {
+	return nil
+}
+
+func (val *errorException) IsSet() bool {
+	return (len(val.Attributes) > 0) || val.Code.IsSet() || (len(val.Cause) > 0) || (len(val.Stacktrace) > 0) || val.Message.IsSet() || val.Module.IsSet() || val.Type.IsSet() || val.Handled.IsSet()
+}
+
+func (val *errorException) Reset() {
+	for k := range val.Attributes {
+		delete(val.Attributes, k)
+	}
+	val.Code.Reset()
+	for i := range val.Cause {
+		val.Cause[i].Reset()
+	}
+	val.Cause = val.Cause[:0]
+	for i := range val.Stacktrace {
+		val.Stacktrace[i].Reset()
+	}
+	val.Stacktrace = val.Stacktrace[:0]
+	val.Message.Reset()
+	val.Module.Reset()
+	val.Type.Reset()
+	val.Handled.Reset()
+}
+
+func (val *errorException) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if !val.Message.IsSet() && !val.Type.IsSet() {
+		return fmt.Errorf("requires at least one of the fields 'message;type'")
+	}
+	switch t := val.Code.Val.(type) {
+	case string:
+		if utf8.RuneCountInString(t) > 1024 {
+			return fmt.Errorf("'code': validation rule 'maxLength(1024)' violated")
+		}
+	case int:
+	case json.Number:
+		if _, err := t.Int64(); err != nil {
+			return fmt.Errorf("'code': validation rule 'inputTypes(string;int)' violated")
+		}
+	case nil:
+	default:
+		return fmt.Errorf("'code': validation rule 'inputTypes(string;int)' violated ")
+	}
+	for _, elem := range val.Cause {
+		if err := elem.validate(); err != nil {
+			return errors.Wrapf(err, "cause")
+		}
+	}
+	for _, elem := range val.Stacktrace {
+		if err := elem.validate(); err != nil {
+			return errors.Wrapf(err, "stacktrace")
+		}
+	}
+	if val.Module.IsSet() && utf8.RuneCountInString(val.Module.Val) > 1024 {
+		return fmt.Errorf("'module': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
+		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *errorException) processNestedSource() error {
+	return nil
+}
+
+func (val *errorTransactionRef) IsSet() bool {
+	return val.Name.IsSet() || val.Type.IsSet() || val.Sampled.IsSet()
+}
+
+func (val *errorTransactionRef) Reset() {
+	val.Name.Reset()
+	val.Type.Reset()
+	val.Sampled.Reset()
+}
+
+func (val *errorTransactionRef) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
+		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *errorTransactionRef) processNestedSource() error {
+	return nil
+}
+
 func (val *context) IsSet() bool {
-	return val.Cloud.IsSet() || (len(val.Custom) > 0) || val.Message.IsSet() || val.Page.IsSet() || val.Response.IsSet() || val.Request.IsSet() || val.Service.IsSet() || (len(val.Tags) > 0) || val.User.IsSet()
+	return (len(val.Custom) > 0) || (len(val.Tags) > 0) || val.Service.IsSet() || val.Cloud.IsSet() || val.User.IsSet() || val.Page.IsSet() || val.Request.IsSet() || val.Message.IsSet() || val.Response.IsSet()
 }
 
 func (val *context) Reset() {
-	val.Cloud.Reset()
 	for k := range val.Custom {
 		delete(val.Custom, k)
 	}
-	val.Message.Reset()
-	val.Page.Reset()
-	val.Response.Reset()
-	val.Request.Reset()
-	val.Service.Reset()
 	for k := range val.Tags {
 		delete(val.Tags, k)
 	}
+	val.Service.Reset()
+	val.Cloud.Reset()
 	val.User.Reset()
+	val.Page.Reset()
+	val.Request.Reset()
+	val.Message.Reset()
+	val.Response.Reset()
 }
 
 func (val *context) validate() error {
 	if !val.IsSet() {
 		return nil
-	}
-	if err := val.Cloud.validate(); err != nil {
-		return errors.Wrapf(err, "cloud")
-	}
-	if err := val.Message.validate(); err != nil {
-		return errors.Wrapf(err, "message")
-	}
-	if err := val.Page.validate(); err != nil {
-		return errors.Wrapf(err, "page")
-	}
-	if err := val.Response.validate(); err != nil {
-		return errors.Wrapf(err, "response")
-	}
-	if err := val.Request.validate(); err != nil {
-		return errors.Wrapf(err, "request")
-	}
-	if err := val.Service.validate(); err != nil {
-		return errors.Wrapf(err, "service")
 	}
 	for k, v := range val.Tags {
 		switch t := v.(type) {
@@ -1001,394 +1159,52 @@ func (val *context) validate() error {
 			return fmt.Errorf("'tags': validation rule 'inputTypesVals(string;bool;number)' violated for key %s", k)
 		}
 	}
+	if err := val.Service.validate(); err != nil {
+		return errors.Wrapf(err, "service")
+	}
+	if err := val.Cloud.validate(); err != nil {
+		return errors.Wrapf(err, "cloud")
+	}
 	if err := val.User.validate(); err != nil {
 		return errors.Wrapf(err, "user")
+	}
+	if err := val.Page.validate(); err != nil {
+		return errors.Wrapf(err, "page")
+	}
+	if err := val.Request.validate(); err != nil {
+		return errors.Wrapf(err, "request")
+	}
+	if err := val.Message.validate(); err != nil {
+		return errors.Wrapf(err, "message")
+	}
+	if err := val.Response.validate(); err != nil {
+		return errors.Wrapf(err, "response")
 	}
 	return nil
 }
 
 func (val *context) processNestedSource() error {
-	if err := val.Cloud.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "cloud")
-	}
-	if err := val.Message.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "message")
-	}
-	if err := val.Page.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "page")
-	}
-	if err := val.Response.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "response")
-	}
-	if err := val.Request.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "request")
-	}
 	if err := val.Service.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "service")
+	}
+	if err := val.Cloud.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "cloud")
 	}
 	if err := val.User.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "user")
 	}
-	return nil
-}
-
-func (val *contextCloud) IsSet() bool {
-	return val.Origin.IsSet()
-}
-
-func (val *contextCloud) Reset() {
-	val.Origin.Reset()
-}
-
-func (val *contextCloud) validate() error {
-	if !val.IsSet() {
-		return nil
+	if err := val.Page.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "page")
 	}
-	if err := val.Origin.validate(); err != nil {
-		return errors.Wrapf(err, "origin")
+	if err := val.Request.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "request")
 	}
-	return nil
-}
-
-func (val *contextCloud) processNestedSource() error {
-	if err := val.Origin.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "origin")
+	if err := val.Message.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "message")
 	}
-	return nil
-}
-
-func (val *contextCloudOrigin) IsSet() bool {
-	return val.Account.IsSet() || val.Provider.IsSet() || val.Region.IsSet() || val.Service.IsSet()
-}
-
-func (val *contextCloudOrigin) Reset() {
-	val.Account.Reset()
-	val.Provider.Reset()
-	val.Region.Reset()
-	val.Service.Reset()
-}
-
-func (val *contextCloudOrigin) validate() error {
-	if !val.IsSet() {
-		return nil
+	if err := val.Response.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "response")
 	}
-	if err := val.Account.validate(); err != nil {
-		return errors.Wrapf(err, "account")
-	}
-	if err := val.Service.validate(); err != nil {
-		return errors.Wrapf(err, "service")
-	}
-	return nil
-}
-
-func (val *contextCloudOrigin) processNestedSource() error {
-	if err := val.Account.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "account")
-	}
-	if err := val.Service.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "service")
-	}
-	return nil
-}
-
-func (val *contextCloudOriginAccount) IsSet() bool {
-	return val.ID.IsSet()
-}
-
-func (val *contextCloudOriginAccount) Reset() {
-	val.ID.Reset()
-}
-
-func (val *contextCloudOriginAccount) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	return nil
-}
-
-func (val *contextCloudOriginAccount) processNestedSource() error {
-	return nil
-}
-
-func (val *contextCloudOriginService) IsSet() bool {
-	return val.Name.IsSet()
-}
-
-func (val *contextCloudOriginService) Reset() {
-	val.Name.Reset()
-}
-
-func (val *contextCloudOriginService) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	return nil
-}
-
-func (val *contextCloudOriginService) processNestedSource() error {
-	return nil
-}
-
-func (val *contextMessage) IsSet() bool {
-	return val.Age.IsSet() || val.Body.IsSet() || val.Headers.IsSet() || val.Queue.IsSet() || val.RoutingKey.IsSet()
-}
-
-func (val *contextMessage) Reset() {
-	val.Age.Reset()
-	val.Body.Reset()
-	val.Headers.Reset()
-	val.Queue.Reset()
-	val.RoutingKey.Reset()
-}
-
-func (val *contextMessage) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if err := val.Age.validate(); err != nil {
-		return errors.Wrapf(err, "age")
-	}
-	if err := val.Queue.validate(); err != nil {
-		return errors.Wrapf(err, "queue")
-	}
-	return nil
-}
-
-func (val *contextMessage) processNestedSource() error {
-	if err := val.Age.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "age")
-	}
-	if err := val.Queue.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "queue")
-	}
-	return nil
-}
-
-func (val *contextMessageAge) IsSet() bool {
-	return val.Milliseconds.IsSet()
-}
-
-func (val *contextMessageAge) Reset() {
-	val.Milliseconds.Reset()
-}
-
-func (val *contextMessageAge) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	return nil
-}
-
-func (val *contextMessageAge) processNestedSource() error {
-	return nil
-}
-
-func (val *contextMessageQueue) IsSet() bool {
-	return val.Name.IsSet()
-}
-
-func (val *contextMessageQueue) Reset() {
-	val.Name.Reset()
-}
-
-func (val *contextMessageQueue) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
-	}
-	return nil
-}
-
-func (val *contextMessageQueue) processNestedSource() error {
-	return nil
-}
-
-func (val *contextPage) IsSet() bool {
-	return val.Referer.IsSet() || val.URL.IsSet()
-}
-
-func (val *contextPage) Reset() {
-	val.Referer.Reset()
-	val.URL.Reset()
-}
-
-func (val *contextPage) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	return nil
-}
-
-func (val *contextPage) processNestedSource() error {
-	return nil
-}
-
-func (val *contextResponse) IsSet() bool {
-	return val.DecodedBodySize.IsSet() || val.EncodedBodySize.IsSet() || val.Finished.IsSet() || val.Headers.IsSet() || val.HeadersSent.IsSet() || val.StatusCode.IsSet() || val.TransferSize.IsSet()
-}
-
-func (val *contextResponse) Reset() {
-	val.DecodedBodySize.Reset()
-	val.EncodedBodySize.Reset()
-	val.Finished.Reset()
-	val.Headers.Reset()
-	val.HeadersSent.Reset()
-	val.StatusCode.Reset()
-	val.TransferSize.Reset()
-}
-
-func (val *contextResponse) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	return nil
-}
-
-func (val *contextResponse) processNestedSource() error {
-	return nil
-}
-
-func (val *contextRequest) IsSet() bool {
-	return val.Body.IsSet() || (len(val.Cookies) > 0) || (len(val.Env) > 0) || val.Headers.IsSet() || val.HTTPVersion.IsSet() || val.Method.IsSet() || val.Socket.IsSet() || val.URL.IsSet()
-}
-
-func (val *contextRequest) Reset() {
-	val.Body.Reset()
-	for k := range val.Cookies {
-		delete(val.Cookies, k)
-	}
-	for k := range val.Env {
-		delete(val.Env, k)
-	}
-	val.Headers.Reset()
-	val.HTTPVersion.Reset()
-	val.Method.Reset()
-	val.Socket.Reset()
-	val.URL.Reset()
-}
-
-func (val *contextRequest) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	switch val.Body.Val.(type) {
-	case string:
-	case map[string]interface{}:
-	case nil:
-	default:
-		return fmt.Errorf("'body': validation rule 'inputTypes(string;object)' violated ")
-	}
-	if val.HTTPVersion.IsSet() && utf8.RuneCountInString(val.HTTPVersion.Val) > 1024 {
-		return fmt.Errorf("'http_version': validation rule 'maxLength(1024)' violated")
-	}
-	if val.Method.IsSet() && utf8.RuneCountInString(val.Method.Val) > 1024 {
-		return fmt.Errorf("'method': validation rule 'maxLength(1024)' violated")
-	}
-	if !val.Method.IsSet() {
-		return fmt.Errorf("'method' required")
-	}
-	if err := val.Socket.validate(); err != nil {
-		return errors.Wrapf(err, "socket")
-	}
-	if err := val.URL.validate(); err != nil {
-		return errors.Wrapf(err, "url")
-	}
-	return nil
-}
-
-func (val *contextRequest) processNestedSource() error {
-	if err := val.Socket.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "socket")
-	}
-	if err := val.URL.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "url")
-	}
-	return nil
-}
-
-func (val *contextRequestSocket) IsSet() bool {
-	return val.Encrypted.IsSet() || val.RemoteAddress.IsSet()
-}
-
-func (val *contextRequestSocket) Reset() {
-	val.Encrypted.Reset()
-	val.RemoteAddress.Reset()
-}
-
-func (val *contextRequestSocket) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	return nil
-}
-
-func (val *contextRequestSocket) processNestedSource() error {
-	return nil
-}
-
-func (val *contextRequestURL) IsSet() bool {
-	return val.Full.IsSet() || val.Hash.IsSet() || val.Hostname.IsSet() || val.Path.IsSet() || val.Port.IsSet() || val.Protocol.IsSet() || val.Raw.IsSet() || val.Search.IsSet()
-}
-
-func (val *contextRequestURL) Reset() {
-	val.Full.Reset()
-	val.Hash.Reset()
-	val.Hostname.Reset()
-	val.Path.Reset()
-	val.Port.Reset()
-	val.Protocol.Reset()
-	val.Raw.Reset()
-	val.Search.Reset()
-}
-
-func (val *contextRequestURL) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.Full.IsSet() && utf8.RuneCountInString(val.Full.Val) > 1024 {
-		return fmt.Errorf("'full': validation rule 'maxLength(1024)' violated")
-	}
-	if val.Hash.IsSet() && utf8.RuneCountInString(val.Hash.Val) > 1024 {
-		return fmt.Errorf("'hash': validation rule 'maxLength(1024)' violated")
-	}
-	if val.Hostname.IsSet() && utf8.RuneCountInString(val.Hostname.Val) > 1024 {
-		return fmt.Errorf("'hostname': validation rule 'maxLength(1024)' violated")
-	}
-	if val.Path.IsSet() && utf8.RuneCountInString(val.Path.Val) > 1024 {
-		return fmt.Errorf("'pathname': validation rule 'maxLength(1024)' violated")
-	}
-	switch t := val.Port.Val.(type) {
-	case string:
-		if utf8.RuneCountInString(t) > 1024 {
-			return fmt.Errorf("'port': validation rule 'maxLength(1024)' violated")
-		}
-		if _, err := strconv.Atoi(t); err != nil {
-			return fmt.Errorf("'port': validation rule 'targetType(int)' violated")
-		}
-	case int:
-	case json.Number:
-		if _, err := t.Int64(); err != nil {
-			return fmt.Errorf("'port': validation rule 'inputTypes(string;int)' violated")
-		}
-	case nil:
-	default:
-		return fmt.Errorf("'port': validation rule 'inputTypes(string;int)' violated ")
-	}
-	if val.Protocol.IsSet() && utf8.RuneCountInString(val.Protocol.Val) > 1024 {
-		return fmt.Errorf("'protocol': validation rule 'maxLength(1024)' violated")
-	}
-	if val.Raw.IsSet() && utf8.RuneCountInString(val.Raw.Val) > 1024 {
-		return fmt.Errorf("'raw': validation rule 'maxLength(1024)' violated")
-	}
-	if val.Search.IsSet() && utf8.RuneCountInString(val.Search.Val) > 1024 {
-		return fmt.Errorf("'search': validation rule 'maxLength(1024)' violated")
-	}
-	return nil
-}
-
-func (val *contextRequestURL) processNestedSource() error {
 	return nil
 }
 
@@ -1649,175 +1465,363 @@ func (val *contextServiceTarget) processNestedSource() error {
 	return nil
 }
 
-func (val *errorException) IsSet() bool {
-	return (len(val.Attributes) > 0) || val.Code.IsSet() || (len(val.Cause) > 0) || val.Handled.IsSet() || val.Message.IsSet() || val.Module.IsSet() || (len(val.Stacktrace) > 0) || val.Type.IsSet()
+func (val *contextCloud) IsSet() bool {
+	return val.Origin.IsSet()
 }
 
-func (val *errorException) Reset() {
-	for k := range val.Attributes {
-		delete(val.Attributes, k)
-	}
-	val.Code.Reset()
-	for i := range val.Cause {
-		val.Cause[i].Reset()
-	}
-	val.Cause = val.Cause[:0]
-	val.Handled.Reset()
-	val.Message.Reset()
-	val.Module.Reset()
-	for i := range val.Stacktrace {
-		val.Stacktrace[i].Reset()
-	}
-	val.Stacktrace = val.Stacktrace[:0]
-	val.Type.Reset()
+func (val *contextCloud) Reset() {
+	val.Origin.Reset()
 }
 
-func (val *errorException) validate() error {
+func (val *contextCloud) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
-	switch t := val.Code.Val.(type) {
+	if err := val.Origin.validate(); err != nil {
+		return errors.Wrapf(err, "origin")
+	}
+	return nil
+}
+
+func (val *contextCloud) processNestedSource() error {
+	if err := val.Origin.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "origin")
+	}
+	return nil
+}
+
+func (val *contextCloudOrigin) IsSet() bool {
+	return val.Account.IsSet() || val.Provider.IsSet() || val.Region.IsSet() || val.Service.IsSet()
+}
+
+func (val *contextCloudOrigin) Reset() {
+	val.Account.Reset()
+	val.Provider.Reset()
+	val.Region.Reset()
+	val.Service.Reset()
+}
+
+func (val *contextCloudOrigin) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.Account.validate(); err != nil {
+		return errors.Wrapf(err, "account")
+	}
+	if err := val.Service.validate(); err != nil {
+		return errors.Wrapf(err, "service")
+	}
+	return nil
+}
+
+func (val *contextCloudOrigin) processNestedSource() error {
+	if err := val.Account.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "account")
+	}
+	if err := val.Service.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "service")
+	}
+	return nil
+}
+
+func (val *contextCloudOriginAccount) IsSet() bool {
+	return val.ID.IsSet()
+}
+
+func (val *contextCloudOriginAccount) Reset() {
+	val.ID.Reset()
+}
+
+func (val *contextCloudOriginAccount) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	return nil
+}
+
+func (val *contextCloudOriginAccount) processNestedSource() error {
+	return nil
+}
+
+func (val *contextCloudOriginService) IsSet() bool {
+	return val.Name.IsSet()
+}
+
+func (val *contextCloudOriginService) Reset() {
+	val.Name.Reset()
+}
+
+func (val *contextCloudOriginService) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	return nil
+}
+
+func (val *contextCloudOriginService) processNestedSource() error {
+	return nil
+}
+
+func (val *contextPage) IsSet() bool {
+	return val.Referer.IsSet() || val.URL.IsSet()
+}
+
+func (val *contextPage) Reset() {
+	val.Referer.Reset()
+	val.URL.Reset()
+}
+
+func (val *contextPage) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	return nil
+}
+
+func (val *contextPage) processNestedSource() error {
+	return nil
+}
+
+func (val *contextRequest) IsSet() bool {
+	return (len(val.Cookies) > 0) || (len(val.Env) > 0) || val.Body.IsSet() || val.Headers.IsSet() || val.URL.IsSet() || val.HTTPVersion.IsSet() || val.Method.IsSet() || val.Socket.IsSet()
+}
+
+func (val *contextRequest) Reset() {
+	for k := range val.Cookies {
+		delete(val.Cookies, k)
+	}
+	for k := range val.Env {
+		delete(val.Env, k)
+	}
+	val.Body.Reset()
+	val.Headers.Reset()
+	val.URL.Reset()
+	val.HTTPVersion.Reset()
+	val.Method.Reset()
+	val.Socket.Reset()
+}
+
+func (val *contextRequest) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	switch val.Body.Val.(type) {
+	case string:
+	case map[string]interface{}:
+	case nil:
+	default:
+		return fmt.Errorf("'body': validation rule 'inputTypes(string;object)' violated ")
+	}
+	if err := val.URL.validate(); err != nil {
+		return errors.Wrapf(err, "url")
+	}
+	if val.HTTPVersion.IsSet() && utf8.RuneCountInString(val.HTTPVersion.Val) > 1024 {
+		return fmt.Errorf("'http_version': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Method.IsSet() && utf8.RuneCountInString(val.Method.Val) > 1024 {
+		return fmt.Errorf("'method': validation rule 'maxLength(1024)' violated")
+	}
+	if !val.Method.IsSet() {
+		return fmt.Errorf("'method' required")
+	}
+	if err := val.Socket.validate(); err != nil {
+		return errors.Wrapf(err, "socket")
+	}
+	return nil
+}
+
+func (val *contextRequest) processNestedSource() error {
+	if err := val.URL.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "url")
+	}
+	if err := val.Socket.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "socket")
+	}
+	return nil
+}
+
+func (val *contextRequestURL) IsSet() bool {
+	return val.Port.IsSet() || val.Full.IsSet() || val.Hash.IsSet() || val.Hostname.IsSet() || val.Path.IsSet() || val.Protocol.IsSet() || val.Raw.IsSet() || val.Search.IsSet()
+}
+
+func (val *contextRequestURL) Reset() {
+	val.Port.Reset()
+	val.Full.Reset()
+	val.Hash.Reset()
+	val.Hostname.Reset()
+	val.Path.Reset()
+	val.Protocol.Reset()
+	val.Raw.Reset()
+	val.Search.Reset()
+}
+
+func (val *contextRequestURL) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	switch t := val.Port.Val.(type) {
 	case string:
 		if utf8.RuneCountInString(t) > 1024 {
-			return fmt.Errorf("'code': validation rule 'maxLength(1024)' violated")
+			return fmt.Errorf("'port': validation rule 'maxLength(1024)' violated")
+		}
+		if _, err := strconv.Atoi(t); err != nil {
+			return fmt.Errorf("'port': validation rule 'targetType(int)' violated")
 		}
 	case int:
 	case json.Number:
 		if _, err := t.Int64(); err != nil {
-			return fmt.Errorf("'code': validation rule 'inputTypes(string;int)' violated")
+			return fmt.Errorf("'port': validation rule 'inputTypes(string;int)' violated")
 		}
 	case nil:
 	default:
-		return fmt.Errorf("'code': validation rule 'inputTypes(string;int)' violated ")
+		return fmt.Errorf("'port': validation rule 'inputTypes(string;int)' violated ")
 	}
-	for _, elem := range val.Cause {
-		if err := elem.validate(); err != nil {
-			return errors.Wrapf(err, "cause")
-		}
+	if val.Full.IsSet() && utf8.RuneCountInString(val.Full.Val) > 1024 {
+		return fmt.Errorf("'full': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Module.IsSet() && utf8.RuneCountInString(val.Module.Val) > 1024 {
-		return fmt.Errorf("'module': validation rule 'maxLength(1024)' violated")
+	if val.Hash.IsSet() && utf8.RuneCountInString(val.Hash.Val) > 1024 {
+		return fmt.Errorf("'hash': validation rule 'maxLength(1024)' violated")
 	}
-	for _, elem := range val.Stacktrace {
-		if err := elem.validate(); err != nil {
-			return errors.Wrapf(err, "stacktrace")
-		}
+	if val.Hostname.IsSet() && utf8.RuneCountInString(val.Hostname.Val) > 1024 {
+		return fmt.Errorf("'hostname': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
-		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
+	if val.Path.IsSet() && utf8.RuneCountInString(val.Path.Val) > 1024 {
+		return fmt.Errorf("'pathname': validation rule 'maxLength(1024)' violated")
 	}
-	if !val.Message.IsSet() && !val.Type.IsSet() {
-		return fmt.Errorf("requires at least one of the fields 'message;type'")
+	if val.Protocol.IsSet() && utf8.RuneCountInString(val.Protocol.Val) > 1024 {
+		return fmt.Errorf("'protocol': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Raw.IsSet() && utf8.RuneCountInString(val.Raw.Val) > 1024 {
+		return fmt.Errorf("'raw': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Search.IsSet() && utf8.RuneCountInString(val.Search.Val) > 1024 {
+		return fmt.Errorf("'search': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
 }
 
-func (val *errorException) processNestedSource() error {
+func (val *contextRequestURL) processNestedSource() error {
 	return nil
 }
 
-func (val *stacktraceFrame) IsSet() bool {
-	return val.AbsPath.IsSet() || val.Classname.IsSet() || val.ColumnNumber.IsSet() || val.ContextLine.IsSet() || val.Filename.IsSet() || val.Function.IsSet() || val.LibraryFrame.IsSet() || val.LineNumber.IsSet() || val.Module.IsSet() || (len(val.PostContext) > 0) || (len(val.PreContext) > 0) || (len(val.Vars) > 0)
+func (val *contextRequestSocket) IsSet() bool {
+	return val.RemoteAddress.IsSet() || val.Encrypted.IsSet()
 }
 
-func (val *stacktraceFrame) Reset() {
-	val.AbsPath.Reset()
-	val.Classname.Reset()
-	val.ColumnNumber.Reset()
-	val.ContextLine.Reset()
-	val.Filename.Reset()
-	val.Function.Reset()
-	val.LibraryFrame.Reset()
-	val.LineNumber.Reset()
-	val.Module.Reset()
-	val.PostContext = val.PostContext[:0]
-	val.PreContext = val.PreContext[:0]
-	for k := range val.Vars {
-		delete(val.Vars, k)
-	}
+func (val *contextRequestSocket) Reset() {
+	val.RemoteAddress.Reset()
+	val.Encrypted.Reset()
 }
 
-func (val *stacktraceFrame) validate() error {
+func (val *contextRequestSocket) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
-	if !val.Classname.IsSet() && !val.Filename.IsSet() {
-		return fmt.Errorf("requires at least one of the fields 'classname;filename'")
-	}
 	return nil
 }
 
-func (val *stacktraceFrame) processNestedSource() error {
+func (val *contextRequestSocket) processNestedSource() error {
 	return nil
 }
 
-func (val *errorLog) IsSet() bool {
-	return val.Level.IsSet() || val.LoggerName.IsSet() || val.Message.IsSet() || val.ParamMessage.IsSet() || (len(val.Stacktrace) > 0)
+func (val *contextMessage) IsSet() bool {
+	return val.Headers.IsSet() || val.Body.IsSet() || val.Queue.IsSet() || val.RoutingKey.IsSet() || val.Age.IsSet()
 }
 
-func (val *errorLog) Reset() {
-	val.Level.Reset()
-	val.LoggerName.Reset()
-	val.Message.Reset()
-	val.ParamMessage.Reset()
-	for i := range val.Stacktrace {
-		val.Stacktrace[i].Reset()
-	}
-	val.Stacktrace = val.Stacktrace[:0]
+func (val *contextMessage) Reset() {
+	val.Headers.Reset()
+	val.Body.Reset()
+	val.Queue.Reset()
+	val.RoutingKey.Reset()
+	val.Age.Reset()
 }
 
-func (val *errorLog) validate() error {
+func (val *contextMessage) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
-	if val.Level.IsSet() && utf8.RuneCountInString(val.Level.Val) > 1024 {
-		return fmt.Errorf("'level': validation rule 'maxLength(1024)' violated")
+	if err := val.Queue.validate(); err != nil {
+		return errors.Wrapf(err, "queue")
 	}
-	if val.LoggerName.IsSet() && utf8.RuneCountInString(val.LoggerName.Val) > 1024 {
-		return fmt.Errorf("'logger_name': validation rule 'maxLength(1024)' violated")
-	}
-	if !val.Message.IsSet() {
-		return fmt.Errorf("'message' required")
-	}
-	if val.ParamMessage.IsSet() && utf8.RuneCountInString(val.ParamMessage.Val) > 1024 {
-		return fmt.Errorf("'param_message': validation rule 'maxLength(1024)' violated")
-	}
-	for _, elem := range val.Stacktrace {
-		if err := elem.validate(); err != nil {
-			return errors.Wrapf(err, "stacktrace")
-		}
+	if err := val.Age.validate(); err != nil {
+		return errors.Wrapf(err, "age")
 	}
 	return nil
 }
 
-func (val *errorLog) processNestedSource() error {
+func (val *contextMessage) processNestedSource() error {
+	if err := val.Queue.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "queue")
+	}
+	if err := val.Age.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "age")
+	}
 	return nil
 }
 
-func (val *errorTransactionRef) IsSet() bool {
-	return val.Sampled.IsSet() || val.Name.IsSet() || val.Type.IsSet()
+func (val *contextMessageQueue) IsSet() bool {
+	return val.Name.IsSet()
 }
 
-func (val *errorTransactionRef) Reset() {
-	val.Sampled.Reset()
+func (val *contextMessageQueue) Reset() {
 	val.Name.Reset()
-	val.Type.Reset()
 }
 
-func (val *errorTransactionRef) validate() error {
+func (val *contextMessageQueue) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
 	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
-		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
+	return nil
+}
+
+func (val *contextMessageQueue) processNestedSource() error {
+	return nil
+}
+
+func (val *contextMessageAge) IsSet() bool {
+	return val.Milliseconds.IsSet()
+}
+
+func (val *contextMessageAge) Reset() {
+	val.Milliseconds.Reset()
+}
+
+func (val *contextMessageAge) validate() error {
+	if !val.IsSet() {
+		return nil
 	}
 	return nil
 }
 
-func (val *errorTransactionRef) processNestedSource() error {
+func (val *contextMessageAge) processNestedSource() error {
+	return nil
+}
+
+func (val *contextResponse) IsSet() bool {
+	return val.Headers.IsSet() || val.StatusCode.IsSet() || val.TransferSize.IsSet() || val.DecodedBodySize.IsSet() || val.EncodedBodySize.IsSet() || val.Finished.IsSet() || val.HeadersSent.IsSet()
+}
+
+func (val *contextResponse) Reset() {
+	val.Headers.Reset()
+	val.StatusCode.Reset()
+	val.TransferSize.Reset()
+	val.DecodedBodySize.Reset()
+	val.EncodedBodySize.Reset()
+	val.Finished.Reset()
+	val.HeadersSent.Reset()
+}
+
+func (val *contextResponse) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	return nil
+}
+
+func (val *contextResponse) processNestedSource() error {
 	return nil
 }
 
@@ -1924,20 +1928,23 @@ func (val *metricset) processNestedSource() error {
 }
 
 func (val *metricsetSampleValue) IsSet() bool {
-	return val.Type.IsSet() || val.Unit.IsSet() || val.Value.IsSet() || (len(val.Values) > 0) || (len(val.Counts) > 0)
+	return val.Type.IsSet() || val.Unit.IsSet() || (len(val.Values) > 0) || (len(val.Counts) > 0) || val.Value.IsSet()
 }
 
 func (val *metricsetSampleValue) Reset() {
 	val.Type.Reset()
 	val.Unit.Reset()
-	val.Value.Reset()
 	val.Values = val.Values[:0]
 	val.Counts = val.Counts[:0]
+	val.Value.Reset()
 }
 
 func (val *metricsetSampleValue) validate() error {
 	if !val.IsSet() {
 		return nil
+	}
+	if !val.Value.IsSet() && !(len(val.Values) > 0) {
+		return fmt.Errorf("requires at least one of the fields 'value;values'")
 	}
 	if !(len(val.Values) > 0) {
 		if len(val.Counts) > 0 {
@@ -1953,9 +1960,6 @@ func (val *metricsetSampleValue) validate() error {
 		if len(val.Values) > 0 {
 			return fmt.Errorf("'counts' required when 'values' is set")
 		}
-	}
-	if !val.Value.IsSet() && !(len(val.Values) > 0) {
-		return fmt.Errorf("requires at least one of the fields 'value;values'")
 	}
 	return nil
 }
@@ -2043,16 +2047,16 @@ func (val *metricsetServiceRef) processNestedSource() error {
 }
 
 func (val *faas) IsSet() bool {
-	return val.ID.IsSet() || val.Coldstart.IsSet() || val.Execution.IsSet() || val.Trigger.IsSet() || val.Name.IsSet() || val.Version.IsSet()
+	return val.ID.IsSet() || val.Execution.IsSet() || val.Trigger.IsSet() || val.Name.IsSet() || val.Version.IsSet() || val.Coldstart.IsSet()
 }
 
 func (val *faas) Reset() {
 	val.ID.Reset()
-	val.Coldstart.Reset()
 	val.Execution.Reset()
 	val.Trigger.Reset()
 	val.Name.Reset()
 	val.Version.Reset()
+	val.Coldstart.Reset()
 }
 
 func (val *faas) validate() error {
@@ -2118,67 +2122,62 @@ func (val *spanRoot) processNestedSource() error {
 }
 
 func (val *span) IsSet() bool {
-	return val.Action.IsSet() || (len(val.ChildIDs) > 0) || val.Composite.IsSet() || val.Context.IsSet() || val.Duration.IsSet() || val.ID.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || val.OTel.IsSet() || val.ParentID.IsSet() || val.SampleRate.IsSet() || (len(val.Stacktrace) > 0) || val.Start.IsSet() || val.Subtype.IsSet() || val.Sync.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.Type.IsSet() || (len(val.Links) > 0)
+	return val.Timestamp.IsSet() || val.OTel.IsSet() || val.ID.IsSet() || val.TraceID.IsSet() || val.Action.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || (len(val.ChildIDs) > 0) || val.ParentID.IsSet() || (len(val.Links) > 0) || (len(val.Stacktrace) > 0) || val.Type.IsSet() || val.Subtype.IsSet() || val.TransactionID.IsSet() || val.Composite.IsSet() || val.Context.IsSet() || val.Start.IsSet() || val.SampleRate.IsSet() || val.Duration.IsSet() || val.Sync.IsSet()
 }
 
 func (val *span) Reset() {
-	val.Action.Reset()
-	val.ChildIDs = val.ChildIDs[:0]
-	val.Composite.Reset()
-	val.Context.Reset()
-	val.Duration.Reset()
+	val.Timestamp.Reset()
+	val.OTel.Reset()
 	val.ID.Reset()
+	val.TraceID.Reset()
+	val.Action.Reset()
 	val.Name.Reset()
 	val.Outcome.Reset()
-	val.OTel.Reset()
+	val.ChildIDs = val.ChildIDs[:0]
 	val.ParentID.Reset()
-	val.SampleRate.Reset()
-	for i := range val.Stacktrace {
-		val.Stacktrace[i].Reset()
-	}
-	val.Stacktrace = val.Stacktrace[:0]
-	val.Start.Reset()
-	val.Subtype.Reset()
-	val.Sync.Reset()
-	val.Timestamp.Reset()
-	val.TraceID.Reset()
-	val.TransactionID.Reset()
-	val.Type.Reset()
 	for i := range val.Links {
 		val.Links[i].Reset()
 	}
 	val.Links = val.Links[:0]
+	for i := range val.Stacktrace {
+		val.Stacktrace[i].Reset()
+	}
+	val.Stacktrace = val.Stacktrace[:0]
+	val.Type.Reset()
+	val.Subtype.Reset()
+	val.TransactionID.Reset()
+	val.Composite.Reset()
+	val.Context.Reset()
+	val.Start.Reset()
+	val.SampleRate.Reset()
+	val.Duration.Reset()
+	val.Sync.Reset()
 }
 
 func (val *span) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
-	if val.Action.IsSet() && utf8.RuneCountInString(val.Action.Val) > 1024 {
-		return fmt.Errorf("'action': validation rule 'maxLength(1024)' violated")
+	if !val.Start.IsSet() && !val.Timestamp.IsSet() {
+		return fmt.Errorf("requires at least one of the fields 'start;timestamp'")
 	}
-	for _, elem := range val.ChildIDs {
-		if utf8.RuneCountInString(elem) > 1024 {
-			return fmt.Errorf("'child_ids': validation rule 'maxLength(1024)' violated")
-		}
-	}
-	if err := val.Composite.validate(); err != nil {
-		return errors.Wrapf(err, "composite")
-	}
-	if err := val.Context.validate(); err != nil {
-		return errors.Wrapf(err, "context")
-	}
-	if val.Duration.IsSet() && val.Duration.Val < 0 {
-		return fmt.Errorf("'duration': validation rule 'min(0)' violated")
-	}
-	if !val.Duration.IsSet() {
-		return fmt.Errorf("'duration' required")
+	if err := val.OTel.validate(); err != nil {
+		return errors.Wrapf(err, "otel")
 	}
 	if val.ID.IsSet() && utf8.RuneCountInString(val.ID.Val) > 1024 {
 		return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.ID.IsSet() {
 		return fmt.Errorf("'id' required")
+	}
+	if val.TraceID.IsSet() && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
+		return fmt.Errorf("'trace_id': validation rule 'maxLength(1024)' violated")
+	}
+	if !val.TraceID.IsSet() {
+		return fmt.Errorf("'trace_id' required")
+	}
+	if val.Action.IsSet() && utf8.RuneCountInString(val.Action.Val) > 1024 {
+		return fmt.Errorf("'action': validation rule 'maxLength(1024)' violated")
 	}
 	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
@@ -2198,8 +2197,10 @@ func (val *span) validate() error {
 			return fmt.Errorf("'outcome': validation rule 'enum(enumOutcome)' violated")
 		}
 	}
-	if err := val.OTel.validate(); err != nil {
-		return errors.Wrapf(err, "otel")
+	for _, elem := range val.ChildIDs {
+		if utf8.RuneCountInString(elem) > 1024 {
+			return fmt.Errorf("'child_ids': validation rule 'maxLength(1024)' violated")
+		}
 	}
 	if val.ParentID.IsSet() && utf8.RuneCountInString(val.ParentID.Val) > 1024 {
 		return fmt.Errorf("'parent_id': validation rule 'maxLength(1024)' violated")
@@ -2207,22 +2208,15 @@ func (val *span) validate() error {
 	if !val.ParentID.IsSet() {
 		return fmt.Errorf("'parent_id' required")
 	}
+	for _, elem := range val.Links {
+		if err := elem.validate(); err != nil {
+			return errors.Wrapf(err, "links")
+		}
+	}
 	for _, elem := range val.Stacktrace {
 		if err := elem.validate(); err != nil {
 			return errors.Wrapf(err, "stacktrace")
 		}
-	}
-	if val.Subtype.IsSet() && utf8.RuneCountInString(val.Subtype.Val) > 1024 {
-		return fmt.Errorf("'subtype': validation rule 'maxLength(1024)' violated")
-	}
-	if val.TraceID.IsSet() && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
-		return fmt.Errorf("'trace_id': validation rule 'maxLength(1024)' violated")
-	}
-	if !val.TraceID.IsSet() {
-		return fmt.Errorf("'trace_id' required")
-	}
-	if val.TransactionID.IsSet() && utf8.RuneCountInString(val.TransactionID.Val) > 1024 {
-		return fmt.Errorf("'transaction_id': validation rule 'maxLength(1024)' violated")
 	}
 	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
 		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
@@ -2230,314 +2224,49 @@ func (val *span) validate() error {
 	if !val.Type.IsSet() {
 		return fmt.Errorf("'type' required")
 	}
-	for _, elem := range val.Links {
-		if err := elem.validate(); err != nil {
-			return errors.Wrapf(err, "links")
-		}
+	if val.Subtype.IsSet() && utf8.RuneCountInString(val.Subtype.Val) > 1024 {
+		return fmt.Errorf("'subtype': validation rule 'maxLength(1024)' violated")
 	}
-	if !val.Start.IsSet() && !val.Timestamp.IsSet() {
-		return fmt.Errorf("requires at least one of the fields 'start;timestamp'")
+	if val.TransactionID.IsSet() && utf8.RuneCountInString(val.TransactionID.Val) > 1024 {
+		return fmt.Errorf("'transaction_id': validation rule 'maxLength(1024)' violated")
+	}
+	if err := val.Composite.validate(); err != nil {
+		return errors.Wrapf(err, "composite")
+	}
+	if err := val.Context.validate(); err != nil {
+		return errors.Wrapf(err, "context")
+	}
+	if val.Duration.IsSet() && val.Duration.Val < 0 {
+		return fmt.Errorf("'duration': validation rule 'min(0)' violated")
+	}
+	if !val.Duration.IsSet() {
+		return fmt.Errorf("'duration' required")
 	}
 	return nil
 }
 
 func (val *span) processNestedSource() error {
+	if err := val.OTel.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "otel")
+	}
 	if err := val.Composite.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "composite")
 	}
 	if err := val.Context.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "context")
 	}
-	if err := val.OTel.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "otel")
-	}
-	return nil
-}
-
-func (val *spanComposite) IsSet() bool {
-	return val.Count.IsSet() || val.Sum.IsSet() || val.CompressionStrategy.IsSet()
-}
-
-func (val *spanComposite) Reset() {
-	val.Count.Reset()
-	val.Sum.Reset()
-	val.CompressionStrategy.Reset()
-}
-
-func (val *spanComposite) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.Count.IsSet() && val.Count.Val < 2 {
-		return fmt.Errorf("'count': validation rule 'min(2)' violated")
-	}
-	if !val.Count.IsSet() {
-		return fmt.Errorf("'count' required")
-	}
-	if val.Sum.IsSet() && val.Sum.Val < 0 {
-		return fmt.Errorf("'sum': validation rule 'min(0)' violated")
-	}
-	if !val.Sum.IsSet() {
-		return fmt.Errorf("'sum' required")
-	}
-	if !val.CompressionStrategy.IsSet() {
-		return fmt.Errorf("'compression_strategy' required")
-	}
-	return nil
-}
-
-func (val *spanComposite) processNestedSource() error {
-	return nil
-}
-
-func (val *spanContext) IsSet() bool {
-	return val.Database.IsSet() || val.Destination.IsSet() || val.HTTP.IsSet() || val.Message.IsSet() || val.Service.IsSet() || (len(val.Tags) > 0)
-}
-
-func (val *spanContext) Reset() {
-	val.Database.Reset()
-	val.Destination.Reset()
-	val.HTTP.Reset()
-	val.Message.Reset()
-	val.Service.Reset()
-	for k := range val.Tags {
-		delete(val.Tags, k)
-	}
-}
-
-func (val *spanContext) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if err := val.Database.validate(); err != nil {
-		return errors.Wrapf(err, "db")
-	}
-	if err := val.Destination.validate(); err != nil {
-		return errors.Wrapf(err, "destination")
-	}
-	if err := val.HTTP.validate(); err != nil {
-		return errors.Wrapf(err, "http")
-	}
-	if err := val.Message.validate(); err != nil {
-		return errors.Wrapf(err, "message")
-	}
-	if err := val.Service.validate(); err != nil {
-		return errors.Wrapf(err, "service")
-	}
-	for k, v := range val.Tags {
-		switch t := v.(type) {
-		case nil:
-		case string:
-			if utf8.RuneCountInString(t) > 1024 {
-				return fmt.Errorf("'tags': validation rule 'maxLengthVals(1024)' violated")
-			}
-		case bool:
-		case json.Number:
-		default:
-			return fmt.Errorf("'tags': validation rule 'inputTypesVals(string;bool;number)' violated for key %s", k)
-		}
-	}
-	return nil
-}
-
-func (val *spanContext) processNestedSource() error {
-	if err := val.Database.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "db")
-	}
-	if err := val.Destination.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "destination")
-	}
-	if err := val.HTTP.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "http")
-	}
-	if err := val.Message.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "message")
-	}
-	if err := val.Service.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "service")
-	}
-	return nil
-}
-
-func (val *spanContextDatabase) IsSet() bool {
-	return val.Instance.IsSet() || val.Link.IsSet() || val.RowsAffected.IsSet() || val.Statement.IsSet() || val.Type.IsSet() || val.User.IsSet()
-}
-
-func (val *spanContextDatabase) Reset() {
-	val.Instance.Reset()
-	val.Link.Reset()
-	val.RowsAffected.Reset()
-	val.Statement.Reset()
-	val.Type.Reset()
-	val.User.Reset()
-}
-
-func (val *spanContextDatabase) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.Link.IsSet() && utf8.RuneCountInString(val.Link.Val) > 1024 {
-		return fmt.Errorf("'link': validation rule 'maxLength(1024)' violated")
-	}
-	return nil
-}
-
-func (val *spanContextDatabase) processNestedSource() error {
-	return nil
-}
-
-func (val *spanContextDestination) IsSet() bool {
-	return val.Address.IsSet() || val.Port.IsSet() || val.Service.IsSet()
-}
-
-func (val *spanContextDestination) Reset() {
-	val.Address.Reset()
-	val.Port.Reset()
-	val.Service.Reset()
-}
-
-func (val *spanContextDestination) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.Address.IsSet() && utf8.RuneCountInString(val.Address.Val) > 1024 {
-		return fmt.Errorf("'address': validation rule 'maxLength(1024)' violated")
-	}
-	if err := val.Service.validate(); err != nil {
-		return errors.Wrapf(err, "service")
-	}
-	return nil
-}
-
-func (val *spanContextDestination) processNestedSource() error {
-	if err := val.Service.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "service")
-	}
-	return nil
-}
-
-func (val *spanContextDestinationService) IsSet() bool {
-	return val.Name.IsSet() || val.Resource.IsSet() || val.Type.IsSet()
-}
-
-func (val *spanContextDestinationService) Reset() {
-	val.Name.Reset()
-	val.Resource.Reset()
-	val.Type.Reset()
-}
-
-func (val *spanContextDestinationService) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
-		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
-	}
-	if val.Resource.IsSet() && utf8.RuneCountInString(val.Resource.Val) > 1024 {
-		return fmt.Errorf("'resource': validation rule 'maxLength(1024)' violated")
-	}
-	if !val.Resource.IsSet() {
-		return fmt.Errorf("'resource' required")
-	}
-	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
-		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
-	}
-	return nil
-}
-
-func (val *spanContextDestinationService) processNestedSource() error {
-	return nil
-}
-
-func (val *spanContextHTTP) IsSet() bool {
-	return val.Method.IsSet() || val.Request.IsSet() || val.Response.IsSet() || val.StatusCode.IsSet() || val.URL.IsSet()
-}
-
-func (val *spanContextHTTP) Reset() {
-	val.Method.Reset()
-	val.Request.Reset()
-	val.Response.Reset()
-	val.StatusCode.Reset()
-	val.URL.Reset()
-}
-
-func (val *spanContextHTTP) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.Method.IsSet() && utf8.RuneCountInString(val.Method.Val) > 1024 {
-		return fmt.Errorf("'method': validation rule 'maxLength(1024)' violated")
-	}
-	if err := val.Request.validate(); err != nil {
-		return errors.Wrapf(err, "request")
-	}
-	if err := val.Response.validate(); err != nil {
-		return errors.Wrapf(err, "response")
-	}
-	return nil
-}
-
-func (val *spanContextHTTP) processNestedSource() error {
-	if err := val.Request.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "request")
-	}
-	if err := val.Response.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "response")
-	}
-	return nil
-}
-
-func (val *spanContextHTTPRequest) IsSet() bool {
-	return val.ID.IsSet()
-}
-
-func (val *spanContextHTTPRequest) Reset() {
-	val.ID.Reset()
-}
-
-func (val *spanContextHTTPRequest) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	return nil
-}
-
-func (val *spanContextHTTPRequest) processNestedSource() error {
-	return nil
-}
-
-func (val *spanContextHTTPResponse) IsSet() bool {
-	return val.DecodedBodySize.IsSet() || val.EncodedBodySize.IsSet() || val.Headers.IsSet() || val.StatusCode.IsSet() || val.TransferSize.IsSet()
-}
-
-func (val *spanContextHTTPResponse) Reset() {
-	val.DecodedBodySize.Reset()
-	val.EncodedBodySize.Reset()
-	val.Headers.Reset()
-	val.StatusCode.Reset()
-	val.TransferSize.Reset()
-}
-
-func (val *spanContextHTTPResponse) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	return nil
-}
-
-func (val *spanContextHTTPResponse) processNestedSource() error {
 	return nil
 }
 
 func (val *otel) IsSet() bool {
-	return val.SpanKind.IsSet() || (len(val.Attributes) > 0)
+	return (len(val.Attributes) > 0) || val.SpanKind.IsSet()
 }
 
 func (val *otel) Reset() {
-	val.SpanKind.Reset()
 	for k := range val.Attributes {
 		delete(val.Attributes, k)
 	}
+	val.SpanKind.Reset()
 }
 
 func (val *otel) validate() error {
@@ -2583,6 +2312,281 @@ func (val *spanLink) processNestedSource() error {
 	return nil
 }
 
+func (val *spanComposite) IsSet() bool {
+	return val.CompressionStrategy.IsSet() || val.Count.IsSet() || val.Sum.IsSet()
+}
+
+func (val *spanComposite) Reset() {
+	val.CompressionStrategy.Reset()
+	val.Count.Reset()
+	val.Sum.Reset()
+}
+
+func (val *spanComposite) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if !val.CompressionStrategy.IsSet() {
+		return fmt.Errorf("'compression_strategy' required")
+	}
+	if val.Count.IsSet() && val.Count.Val < 2 {
+		return fmt.Errorf("'count': validation rule 'min(2)' violated")
+	}
+	if !val.Count.IsSet() {
+		return fmt.Errorf("'count' required")
+	}
+	if val.Sum.IsSet() && val.Sum.Val < 0 {
+		return fmt.Errorf("'sum': validation rule 'min(0)' violated")
+	}
+	if !val.Sum.IsSet() {
+		return fmt.Errorf("'sum' required")
+	}
+	return nil
+}
+
+func (val *spanComposite) processNestedSource() error {
+	return nil
+}
+
+func (val *spanContext) IsSet() bool {
+	return (len(val.Tags) > 0) || val.Service.IsSet() || val.Message.IsSet() || val.Database.IsSet() || val.Destination.IsSet() || val.HTTP.IsSet()
+}
+
+func (val *spanContext) Reset() {
+	for k := range val.Tags {
+		delete(val.Tags, k)
+	}
+	val.Service.Reset()
+	val.Message.Reset()
+	val.Database.Reset()
+	val.Destination.Reset()
+	val.HTTP.Reset()
+}
+
+func (val *spanContext) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	for k, v := range val.Tags {
+		switch t := v.(type) {
+		case nil:
+		case string:
+			if utf8.RuneCountInString(t) > 1024 {
+				return fmt.Errorf("'tags': validation rule 'maxLengthVals(1024)' violated")
+			}
+		case bool:
+		case json.Number:
+		default:
+			return fmt.Errorf("'tags': validation rule 'inputTypesVals(string;bool;number)' violated for key %s", k)
+		}
+	}
+	if err := val.Service.validate(); err != nil {
+		return errors.Wrapf(err, "service")
+	}
+	if err := val.Message.validate(); err != nil {
+		return errors.Wrapf(err, "message")
+	}
+	if err := val.Database.validate(); err != nil {
+		return errors.Wrapf(err, "db")
+	}
+	if err := val.Destination.validate(); err != nil {
+		return errors.Wrapf(err, "destination")
+	}
+	if err := val.HTTP.validate(); err != nil {
+		return errors.Wrapf(err, "http")
+	}
+	return nil
+}
+
+func (val *spanContext) processNestedSource() error {
+	if err := val.Service.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "service")
+	}
+	if err := val.Message.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "message")
+	}
+	if err := val.Database.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "db")
+	}
+	if err := val.Destination.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "destination")
+	}
+	if err := val.HTTP.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "http")
+	}
+	return nil
+}
+
+func (val *spanContextDatabase) IsSet() bool {
+	return val.Instance.IsSet() || val.Link.IsSet() || val.Statement.IsSet() || val.Type.IsSet() || val.User.IsSet() || val.RowsAffected.IsSet()
+}
+
+func (val *spanContextDatabase) Reset() {
+	val.Instance.Reset()
+	val.Link.Reset()
+	val.Statement.Reset()
+	val.Type.Reset()
+	val.User.Reset()
+	val.RowsAffected.Reset()
+}
+
+func (val *spanContextDatabase) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Link.IsSet() && utf8.RuneCountInString(val.Link.Val) > 1024 {
+		return fmt.Errorf("'link': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *spanContextDatabase) processNestedSource() error {
+	return nil
+}
+
+func (val *spanContextDestination) IsSet() bool {
+	return val.Service.IsSet() || val.Address.IsSet() || val.Port.IsSet()
+}
+
+func (val *spanContextDestination) Reset() {
+	val.Service.Reset()
+	val.Address.Reset()
+	val.Port.Reset()
+}
+
+func (val *spanContextDestination) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.Service.validate(); err != nil {
+		return errors.Wrapf(err, "service")
+	}
+	if val.Address.IsSet() && utf8.RuneCountInString(val.Address.Val) > 1024 {
+		return fmt.Errorf("'address': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *spanContextDestination) processNestedSource() error {
+	if err := val.Service.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "service")
+	}
+	return nil
+}
+
+func (val *spanContextDestinationService) IsSet() bool {
+	return val.Name.IsSet() || val.Resource.IsSet() || val.Type.IsSet()
+}
+
+func (val *spanContextDestinationService) Reset() {
+	val.Name.Reset()
+	val.Resource.Reset()
+	val.Type.Reset()
+}
+
+func (val *spanContextDestinationService) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Resource.IsSet() && utf8.RuneCountInString(val.Resource.Val) > 1024 {
+		return fmt.Errorf("'resource': validation rule 'maxLength(1024)' violated")
+	}
+	if !val.Resource.IsSet() {
+		return fmt.Errorf("'resource' required")
+	}
+	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
+		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *spanContextDestinationService) processNestedSource() error {
+	return nil
+}
+
+func (val *spanContextHTTP) IsSet() bool {
+	return val.Request.IsSet() || val.Method.IsSet() || val.URL.IsSet() || val.Response.IsSet() || val.StatusCode.IsSet()
+}
+
+func (val *spanContextHTTP) Reset() {
+	val.Request.Reset()
+	val.Method.Reset()
+	val.URL.Reset()
+	val.Response.Reset()
+	val.StatusCode.Reset()
+}
+
+func (val *spanContextHTTP) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.Request.validate(); err != nil {
+		return errors.Wrapf(err, "request")
+	}
+	if val.Method.IsSet() && utf8.RuneCountInString(val.Method.Val) > 1024 {
+		return fmt.Errorf("'method': validation rule 'maxLength(1024)' violated")
+	}
+	if err := val.Response.validate(); err != nil {
+		return errors.Wrapf(err, "response")
+	}
+	return nil
+}
+
+func (val *spanContextHTTP) processNestedSource() error {
+	if err := val.Request.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "request")
+	}
+	if err := val.Response.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "response")
+	}
+	return nil
+}
+
+func (val *spanContextHTTPRequest) IsSet() bool {
+	return val.ID.IsSet()
+}
+
+func (val *spanContextHTTPRequest) Reset() {
+	val.ID.Reset()
+}
+
+func (val *spanContextHTTPRequest) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	return nil
+}
+
+func (val *spanContextHTTPRequest) processNestedSource() error {
+	return nil
+}
+
+func (val *spanContextHTTPResponse) IsSet() bool {
+	return val.Headers.IsSet() || val.DecodedBodySize.IsSet() || val.EncodedBodySize.IsSet() || val.StatusCode.IsSet() || val.TransferSize.IsSet()
+}
+
+func (val *spanContextHTTPResponse) Reset() {
+	val.Headers.Reset()
+	val.DecodedBodySize.Reset()
+	val.EncodedBodySize.Reset()
+	val.StatusCode.Reset()
+	val.TransferSize.Reset()
+}
+
+func (val *spanContextHTTPResponse) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	return nil
+}
+
+func (val *spanContextHTTPResponse) processNestedSource() error {
+	return nil
+}
+
 func (val *transactionRoot) IsSet() bool {
 	return val.Transaction.IsSet()
 }
@@ -2609,58 +2613,58 @@ func (val *transactionRoot) processNestedSource() error {
 }
 
 func (val *transaction) IsSet() bool {
-	return val.Context.IsSet() || (len(val.DroppedSpanStats) > 0) || val.Duration.IsSet() || val.FAAS.IsSet() || val.ID.IsSet() || val.Marks.IsSet() || val.Name.IsSet() || val.OTel.IsSet() || val.Outcome.IsSet() || val.ParentID.IsSet() || val.Result.IsSet() || val.Sampled.IsSet() || val.SampleRate.IsSet() || val.Session.IsSet() || val.SpanCount.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.Type.IsSet() || val.UserExperience.IsSet() || (len(val.Links) > 0)
+	return val.Marks.IsSet() || val.Timestamp.IsSet() || val.OTel.IsSet() || (len(val.Links) > 0) || val.TraceID.IsSet() || val.ID.IsSet() || val.ParentID.IsSet() || val.Name.IsSet() || val.Type.IsSet() || val.Result.IsSet() || (len(val.DroppedSpanStats) > 0) || val.Outcome.IsSet() || val.FAAS.IsSet() || val.Session.IsSet() || val.Context.IsSet() || val.UserExperience.IsSet() || val.SpanCount.IsSet() || val.SampleRate.IsSet() || val.Duration.IsSet() || val.Sampled.IsSet()
 }
 
 func (val *transaction) Reset() {
-	val.Context.Reset()
-	for i := range val.DroppedSpanStats {
-		val.DroppedSpanStats[i].Reset()
-	}
-	val.DroppedSpanStats = val.DroppedSpanStats[:0]
-	val.Duration.Reset()
-	val.FAAS.Reset()
-	val.ID.Reset()
 	val.Marks.Reset()
-	val.Name.Reset()
-	val.OTel.Reset()
-	val.Outcome.Reset()
-	val.ParentID.Reset()
-	val.Result.Reset()
-	val.Sampled.Reset()
-	val.SampleRate.Reset()
-	val.Session.Reset()
-	val.SpanCount.Reset()
 	val.Timestamp.Reset()
-	val.TraceID.Reset()
-	val.Type.Reset()
-	val.UserExperience.Reset()
+	val.OTel.Reset()
 	for i := range val.Links {
 		val.Links[i].Reset()
 	}
 	val.Links = val.Links[:0]
+	val.TraceID.Reset()
+	val.ID.Reset()
+	val.ParentID.Reset()
+	val.Name.Reset()
+	val.Type.Reset()
+	val.Result.Reset()
+	for i := range val.DroppedSpanStats {
+		val.DroppedSpanStats[i].Reset()
+	}
+	val.DroppedSpanStats = val.DroppedSpanStats[:0]
+	val.Outcome.Reset()
+	val.FAAS.Reset()
+	val.Session.Reset()
+	val.Context.Reset()
+	val.UserExperience.Reset()
+	val.SpanCount.Reset()
+	val.SampleRate.Reset()
+	val.Duration.Reset()
+	val.Sampled.Reset()
 }
 
 func (val *transaction) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
-	if err := val.Context.validate(); err != nil {
-		return errors.Wrapf(err, "context")
+	if err := val.Marks.validate(); err != nil {
+		return errors.Wrapf(err, "marks")
 	}
-	for _, elem := range val.DroppedSpanStats {
+	if err := val.OTel.validate(); err != nil {
+		return errors.Wrapf(err, "otel")
+	}
+	for _, elem := range val.Links {
 		if err := elem.validate(); err != nil {
-			return errors.Wrapf(err, "dropped_spans_stats")
+			return errors.Wrapf(err, "links")
 		}
 	}
-	if val.Duration.IsSet() && val.Duration.Val < 0 {
-		return fmt.Errorf("'duration': validation rule 'min(0)' violated")
+	if val.TraceID.IsSet() && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
+		return fmt.Errorf("'trace_id': validation rule 'maxLength(1024)' violated")
 	}
-	if !val.Duration.IsSet() {
-		return fmt.Errorf("'duration' required")
-	}
-	if err := val.FAAS.validate(); err != nil {
-		return errors.Wrapf(err, "faas")
+	if !val.TraceID.IsSet() {
+		return fmt.Errorf("'trace_id' required")
 	}
 	if val.ID.IsSet() && utf8.RuneCountInString(val.ID.Val) > 1024 {
 		return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
@@ -2668,14 +2672,25 @@ func (val *transaction) validate() error {
 	if !val.ID.IsSet() {
 		return fmt.Errorf("'id' required")
 	}
-	if err := val.Marks.validate(); err != nil {
-		return errors.Wrapf(err, "marks")
+	if val.ParentID.IsSet() && utf8.RuneCountInString(val.ParentID.Val) > 1024 {
+		return fmt.Errorf("'parent_id': validation rule 'maxLength(1024)' violated")
 	}
 	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
-	if err := val.OTel.validate(); err != nil {
-		return errors.Wrapf(err, "otel")
+	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
+		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
+	}
+	if !val.Type.IsSet() {
+		return fmt.Errorf("'type' required")
+	}
+	if val.Result.IsSet() && utf8.RuneCountInString(val.Result.Val) > 1024 {
+		return fmt.Errorf("'result': validation rule 'maxLength(1024)' violated")
+	}
+	for _, elem := range val.DroppedSpanStats {
+		if err := elem.validate(); err != nil {
+			return errors.Wrapf(err, "dropped_spans_stats")
+		}
 	}
 	if val.Outcome.Val != "" {
 		var matchEnum bool
@@ -2689,14 +2704,17 @@ func (val *transaction) validate() error {
 			return fmt.Errorf("'outcome': validation rule 'enum(enumOutcome)' violated")
 		}
 	}
-	if val.ParentID.IsSet() && utf8.RuneCountInString(val.ParentID.Val) > 1024 {
-		return fmt.Errorf("'parent_id': validation rule 'maxLength(1024)' violated")
-	}
-	if val.Result.IsSet() && utf8.RuneCountInString(val.Result.Val) > 1024 {
-		return fmt.Errorf("'result': validation rule 'maxLength(1024)' violated")
+	if err := val.FAAS.validate(); err != nil {
+		return errors.Wrapf(err, "faas")
 	}
 	if err := val.Session.validate(); err != nil {
 		return errors.Wrapf(err, "session")
+	}
+	if err := val.Context.validate(); err != nil {
+		return errors.Wrapf(err, "context")
+	}
+	if err := val.UserExperience.validate(); err != nil {
+		return errors.Wrapf(err, "experience")
 	}
 	if err := val.SpanCount.validate(); err != nil {
 		return errors.Wrapf(err, "span_count")
@@ -2704,51 +2722,79 @@ func (val *transaction) validate() error {
 	if !val.SpanCount.IsSet() {
 		return fmt.Errorf("'span_count' required")
 	}
-	if val.TraceID.IsSet() && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
-		return fmt.Errorf("'trace_id': validation rule 'maxLength(1024)' violated")
+	if val.Duration.IsSet() && val.Duration.Val < 0 {
+		return fmt.Errorf("'duration': validation rule 'min(0)' violated")
 	}
-	if !val.TraceID.IsSet() {
-		return fmt.Errorf("'trace_id' required")
-	}
-	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
-		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
-	}
-	if !val.Type.IsSet() {
-		return fmt.Errorf("'type' required")
-	}
-	if err := val.UserExperience.validate(); err != nil {
-		return errors.Wrapf(err, "experience")
-	}
-	for _, elem := range val.Links {
-		if err := elem.validate(); err != nil {
-			return errors.Wrapf(err, "links")
-		}
+	if !val.Duration.IsSet() {
+		return fmt.Errorf("'duration' required")
 	}
 	return nil
 }
 
 func (val *transaction) processNestedSource() error {
-	if err := val.Context.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "context")
-	}
-	if err := val.FAAS.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "faas")
-	}
 	if err := val.Marks.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "marks")
 	}
 	if err := val.OTel.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "otel")
 	}
+	if err := val.FAAS.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "faas")
+	}
 	if err := val.Session.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "session")
 	}
-	if err := val.SpanCount.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "span_count")
+	if err := val.Context.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "context")
 	}
 	if err := val.UserExperience.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "experience")
 	}
+	if err := val.SpanCount.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "span_count")
+	}
+	return nil
+}
+
+func (val *transactionMarks) IsSet() bool {
+	return (len(val.Events) > 0)
+}
+
+func (val *transactionMarks) Reset() {
+	for k := range val.Events {
+		delete(val.Events, k)
+	}
+}
+
+func (val *transactionMarks) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	return nil
+}
+
+func (val *transactionMarks) processNestedSource() error {
+	return nil
+}
+
+func (val *transactionMarkEvents) IsSet() bool {
+	return (len(val.Measurements) > 0)
+}
+
+func (val *transactionMarkEvents) Reset() {
+	for k := range val.Measurements {
+		delete(val.Measurements, k)
+	}
+}
+
+func (val *transactionMarkEvents) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	return nil
+}
+
+func (val *transactionMarkEvents) processNestedSource() error {
 	return nil
 }
 
@@ -2853,48 +2899,6 @@ func (val *transactionDroppedSpansDurationSum) processNestedSource() error {
 	return nil
 }
 
-func (val *transactionMarks) IsSet() bool {
-	return (len(val.Events) > 0)
-}
-
-func (val *transactionMarks) Reset() {
-	for k := range val.Events {
-		delete(val.Events, k)
-	}
-}
-
-func (val *transactionMarks) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	return nil
-}
-
-func (val *transactionMarks) processNestedSource() error {
-	return nil
-}
-
-func (val *transactionMarkEvents) IsSet() bool {
-	return (len(val.Measurements) > 0)
-}
-
-func (val *transactionMarkEvents) Reset() {
-	for k := range val.Measurements {
-		delete(val.Measurements, k)
-	}
-}
-
-func (val *transactionMarkEvents) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	return nil
-}
-
-func (val *transactionMarkEvents) processNestedSource() error {
-	return nil
-}
-
 func (val *transactionSession) IsSet() bool {
 	return val.ID.IsSet() || val.Sequence.IsSet()
 }
@@ -2921,29 +2925,6 @@ func (val *transactionSession) validate() error {
 }
 
 func (val *transactionSession) processNestedSource() error {
-	return nil
-}
-
-func (val *transactionSpanCount) IsSet() bool {
-	return val.Dropped.IsSet() || val.Started.IsSet()
-}
-
-func (val *transactionSpanCount) Reset() {
-	val.Dropped.Reset()
-	val.Started.Reset()
-}
-
-func (val *transactionSpanCount) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if !val.Started.IsSet() {
-		return fmt.Errorf("'started' required")
-	}
-	return nil
-}
-
-func (val *transactionSpanCount) processNestedSource() error {
 	return nil
 }
 
@@ -3023,6 +3004,29 @@ func (val *longtaskMetrics) processNestedSource() error {
 	return nil
 }
 
+func (val *transactionSpanCount) IsSet() bool {
+	return val.Dropped.IsSet() || val.Started.IsSet()
+}
+
+func (val *transactionSpanCount) Reset() {
+	val.Dropped.Reset()
+	val.Started.Reset()
+}
+
+func (val *transactionSpanCount) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if !val.Started.IsSet() {
+		return fmt.Errorf("'started' required")
+	}
+	return nil
+}
+
+func (val *transactionSpanCount) processNestedSource() error {
+	return nil
+}
+
 func (val *logRoot) IsSet() bool {
 	return val.Log.IsSet()
 }
@@ -3049,41 +3053,29 @@ func (val *logRoot) processNestedSource() error {
 }
 
 func (val *log) IsSet() bool {
-	return val.Timestamp.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.SpanID.IsSet() || val.Message.IsSet() || val.FAAS.IsSet() || (len(val.Labels) > 0) || val.EcsLogEventFields.IsSet() || val.EcsLogServiceFields.IsSet() || val.EcsLogLogFields.IsSet() || val.EcsLogErrorFields.IsSet() || val.EcsLogProcessFields.IsSet()
+	return (len(val.Labels) > 0) || val.Timestamp.IsSet() || val.EcsLogServiceFields.IsSet() || val.EcsLogErrorFields.IsSet() || val.EcsLogEventFields.IsSet() || val.EcsLogProcessFields.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.SpanID.IsSet() || val.Message.IsSet() || val.FAAS.IsSet() || val.EcsLogLogFields.IsSet()
 }
 
 func (val *log) Reset() {
+	for k := range val.Labels {
+		delete(val.Labels, k)
+	}
 	val.Timestamp.Reset()
+	val.EcsLogServiceFields.Reset()
+	val.EcsLogErrorFields.Reset()
+	val.EcsLogEventFields.Reset()
+	val.EcsLogProcessFields.Reset()
 	val.TraceID.Reset()
 	val.TransactionID.Reset()
 	val.SpanID.Reset()
 	val.Message.Reset()
 	val.FAAS.Reset()
-	for k := range val.Labels {
-		delete(val.Labels, k)
-	}
-	val.EcsLogEventFields.Reset()
-	val.EcsLogServiceFields.Reset()
 	val.EcsLogLogFields.Reset()
-	val.EcsLogErrorFields.Reset()
-	val.EcsLogProcessFields.Reset()
 }
 
 func (val *log) validate() error {
 	if !val.IsSet() {
 		return nil
-	}
-	if val.TraceID.IsSet() && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
-		return fmt.Errorf("'trace.id': validation rule 'maxLength(1024)' violated")
-	}
-	if val.TransactionID.IsSet() && utf8.RuneCountInString(val.TransactionID.Val) > 1024 {
-		return fmt.Errorf("'transaction.id': validation rule 'maxLength(1024)' violated")
-	}
-	if val.SpanID.IsSet() && utf8.RuneCountInString(val.SpanID.Val) > 1024 {
-		return fmt.Errorf("'span.id': validation rule 'maxLength(1024)' violated")
-	}
-	if err := val.FAAS.validate(); err != nil {
-		return errors.Wrapf(err, "faas")
 	}
 	for k, v := range val.Labels {
 		switch t := v.(type) {
@@ -3098,73 +3090,54 @@ func (val *log) validate() error {
 			return fmt.Errorf("'labels': validation rule 'inputTypesVals(string;bool;number)' violated for key %s", k)
 		}
 	}
-	if err := val.EcsLogEventFields.validate(); err != nil {
-		return errors.Wrapf(err, "ecslogeventfields")
-	}
 	if err := val.EcsLogServiceFields.validate(); err != nil {
 		return errors.Wrapf(err, "ecslogservicefields")
-	}
-	if err := val.EcsLogLogFields.validate(); err != nil {
-		return errors.Wrapf(err, "ecsloglogfields")
 	}
 	if err := val.EcsLogErrorFields.validate(); err != nil {
 		return errors.Wrapf(err, "ecslogerrorfields")
 	}
+	if err := val.EcsLogEventFields.validate(); err != nil {
+		return errors.Wrapf(err, "ecslogeventfields")
+	}
 	if err := val.EcsLogProcessFields.validate(); err != nil {
 		return errors.Wrapf(err, "ecslogprocessfields")
+	}
+	if val.TraceID.IsSet() && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
+		return fmt.Errorf("'trace.id': validation rule 'maxLength(1024)' violated")
+	}
+	if val.TransactionID.IsSet() && utf8.RuneCountInString(val.TransactionID.Val) > 1024 {
+		return fmt.Errorf("'transaction.id': validation rule 'maxLength(1024)' violated")
+	}
+	if val.SpanID.IsSet() && utf8.RuneCountInString(val.SpanID.Val) > 1024 {
+		return fmt.Errorf("'span.id': validation rule 'maxLength(1024)' violated")
+	}
+	if err := val.FAAS.validate(); err != nil {
+		return errors.Wrapf(err, "faas")
+	}
+	if err := val.EcsLogLogFields.validate(); err != nil {
+		return errors.Wrapf(err, "ecsloglogfields")
 	}
 	return nil
 }
 
 func (val *log) processNestedSource() error {
-	if err := val.FAAS.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "faas")
-	}
-	if err := val.EcsLogEventFields.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "ecslogeventfields")
-	}
 	if err := val.EcsLogServiceFields.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "ecslogservicefields")
-	}
-	if err := val.EcsLogLogFields.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "ecsloglogfields")
 	}
 	if err := val.EcsLogErrorFields.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "ecslogerrorfields")
 	}
+	if err := val.EcsLogEventFields.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "ecslogeventfields")
+	}
 	if err := val.EcsLogProcessFields.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "ecslogprocessfields")
 	}
-	return nil
-}
-
-func (val *EcsLogEventFields) IsSet() bool {
-	return (len(val.NestedStruct) > 0) || val.EventDataset.IsSet()
-}
-
-func (val *EcsLogEventFields) Reset() {
-	for k := range val.NestedStruct {
-		delete(val.NestedStruct, k)
+	if err := val.FAAS.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "faas")
 	}
-	val.EventDataset.Reset()
-}
-
-func (val *EcsLogEventFields) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.EventDataset.IsSet() && utf8.RuneCountInString(val.EventDataset.Val) > 1024 {
-		return fmt.Errorf("'event.dataset': validation rule 'maxLength(1024)' violated")
-	}
-	return nil
-}
-
-func (val *EcsLogEventFields) processNestedSource() error {
-	if len(val.NestedStruct) == 0 {
-		return nil
-	}
-	if tmpVal, ok := val.NestedStruct["dataset"].(string); ok {
-		val.EventDataset.Set(tmpVal)
+	if err := val.EcsLogLogFields.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "ecsloglogfields")
 	}
 	return nil
 }
@@ -3223,74 +3196,6 @@ func (val *EcsLogServiceFields) processNestedSource() error {
 	return nil
 }
 
-func (val *EcsLogLogFields) IsSet() bool {
-	return (len(val.NestedStruct) > 0) || val.Level.IsSet() || val.Logger.IsSet() || val.OriginFileName.IsSet() || val.OriginFileLine.IsSet() || val.OriginFunction.IsSet()
-}
-
-func (val *EcsLogLogFields) Reset() {
-	for k := range val.NestedStruct {
-		delete(val.NestedStruct, k)
-	}
-	val.Level.Reset()
-	val.Logger.Reset()
-	val.OriginFileName.Reset()
-	val.OriginFileLine.Reset()
-	val.OriginFunction.Reset()
-}
-
-func (val *EcsLogLogFields) validate() error {
-	if !val.IsSet() {
-		return nil
-	}
-	if val.Level.IsSet() && utf8.RuneCountInString(val.Level.Val) > 1024 {
-		return fmt.Errorf("'log.level': validation rule 'maxLength(1024)' violated")
-	}
-	if val.Logger.IsSet() && utf8.RuneCountInString(val.Logger.Val) > 1024 {
-		return fmt.Errorf("'log.logger': validation rule 'maxLength(1024)' violated")
-	}
-	if val.OriginFileName.IsSet() && utf8.RuneCountInString(val.OriginFileName.Val) > 1024 {
-		return fmt.Errorf("'log.origin.file.name': validation rule 'maxLength(1024)' violated")
-	}
-	return nil
-}
-
-func (val *EcsLogLogFields) processNestedSource() error {
-	if len(val.NestedStruct) == 0 {
-		return nil
-	}
-	if tmpVal, ok := val.NestedStruct["level"].(string); ok {
-		val.Level.Set(tmpVal)
-	}
-	if tmpVal, ok := val.NestedStruct["logger"].(string); ok {
-		val.Logger.Set(tmpVal)
-	}
-	if tmpVal, ok := val.NestedStruct["origin"].(map[string]interface{}); ok {
-		if tmpVal, ok := tmpVal["file"].(map[string]interface{}); ok {
-			if tmpVal, ok := tmpVal["name"].(string); ok {
-				val.OriginFileName.Set(tmpVal)
-			}
-		}
-	}
-	if tmpVal, ok := val.NestedStruct["origin"].(map[string]interface{}); ok {
-		if tmpVal, ok := tmpVal["file"].(map[string]interface{}); ok {
-			if tmpVal, ok := tmpVal["line"].(json.Number); ok {
-				tmpVal, err := tmpVal.Int64()
-				if err != nil {
-					return err
-				}
-				newVal := int(tmpVal)
-				val.OriginFileLine.Set(newVal)
-			}
-		}
-	}
-	if tmpVal, ok := val.NestedStruct["origin"].(map[string]interface{}); ok {
-		if tmpVal, ok := tmpVal["function"].(string); ok {
-			val.OriginFunction.Set(tmpVal)
-		}
-	}
-	return nil
-}
-
 func (val *EcsLogErrorFields) IsSet() bool {
 	return (len(val.NestedStruct) > 0) || val.ErrorType.IsSet() || val.ErrorMessage.IsSet() || val.ErrorStacktrace.IsSet()
 }
@@ -3327,6 +3232,37 @@ func (val *EcsLogErrorFields) processNestedSource() error {
 	return nil
 }
 
+func (val *EcsLogEventFields) IsSet() bool {
+	return (len(val.NestedStruct) > 0) || val.EventDataset.IsSet()
+}
+
+func (val *EcsLogEventFields) Reset() {
+	for k := range val.NestedStruct {
+		delete(val.NestedStruct, k)
+	}
+	val.EventDataset.Reset()
+}
+
+func (val *EcsLogEventFields) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.EventDataset.IsSet() && utf8.RuneCountInString(val.EventDataset.Val) > 1024 {
+		return fmt.Errorf("'event.dataset': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *EcsLogEventFields) processNestedSource() error {
+	if len(val.NestedStruct) == 0 {
+		return nil
+	}
+	if tmpVal, ok := val.NestedStruct["dataset"].(string); ok {
+		val.EventDataset.Set(tmpVal)
+	}
+	return nil
+}
+
 func (val *EcsLogProcessFields) IsSet() bool {
 	return (len(val.NestedStruct) > 0) || val.ProcessThreadName.IsSet()
 }
@@ -3355,6 +3291,74 @@ func (val *EcsLogProcessFields) processNestedSource() error {
 	if tmpVal, ok := val.NestedStruct["thread"].(map[string]interface{}); ok {
 		if tmpVal, ok := tmpVal["name"].(string); ok {
 			val.ProcessThreadName.Set(tmpVal)
+		}
+	}
+	return nil
+}
+
+func (val *EcsLogLogFields) IsSet() bool {
+	return (len(val.NestedStruct) > 0) || val.Level.IsSet() || val.Logger.IsSet() || val.OriginFileName.IsSet() || val.OriginFunction.IsSet() || val.OriginFileLine.IsSet()
+}
+
+func (val *EcsLogLogFields) Reset() {
+	for k := range val.NestedStruct {
+		delete(val.NestedStruct, k)
+	}
+	val.Level.Reset()
+	val.Logger.Reset()
+	val.OriginFileName.Reset()
+	val.OriginFunction.Reset()
+	val.OriginFileLine.Reset()
+}
+
+func (val *EcsLogLogFields) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.Level.IsSet() && utf8.RuneCountInString(val.Level.Val) > 1024 {
+		return fmt.Errorf("'log.level': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Logger.IsSet() && utf8.RuneCountInString(val.Logger.Val) > 1024 {
+		return fmt.Errorf("'log.logger': validation rule 'maxLength(1024)' violated")
+	}
+	if val.OriginFileName.IsSet() && utf8.RuneCountInString(val.OriginFileName.Val) > 1024 {
+		return fmt.Errorf("'log.origin.file.name': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *EcsLogLogFields) processNestedSource() error {
+	if len(val.NestedStruct) == 0 {
+		return nil
+	}
+	if tmpVal, ok := val.NestedStruct["level"].(string); ok {
+		val.Level.Set(tmpVal)
+	}
+	if tmpVal, ok := val.NestedStruct["logger"].(string); ok {
+		val.Logger.Set(tmpVal)
+	}
+	if tmpVal, ok := val.NestedStruct["origin"].(map[string]interface{}); ok {
+		if tmpVal, ok := tmpVal["file"].(map[string]interface{}); ok {
+			if tmpVal, ok := tmpVal["name"].(string); ok {
+				val.OriginFileName.Set(tmpVal)
+			}
+		}
+	}
+	if tmpVal, ok := val.NestedStruct["origin"].(map[string]interface{}); ok {
+		if tmpVal, ok := tmpVal["function"].(string); ok {
+			val.OriginFunction.Set(tmpVal)
+		}
+	}
+	if tmpVal, ok := val.NestedStruct["origin"].(map[string]interface{}); ok {
+		if tmpVal, ok := tmpVal["file"].(map[string]interface{}); ok {
+			if tmpVal, ok := tmpVal["line"].(json.Number); ok {
+				tmpVal, err := tmpVal.Int64()
+				if err != nil {
+					return err
+				}
+				newVal := int(tmpVal)
+				val.OriginFileLine.Set(newVal)
+			}
 		}
 	}
 	return nil

@@ -19,37 +19,31 @@ package model
 
 // HTTP holds information about an HTTP request and/or response.
 type HTTP struct {
-	Version  string
 	Request  *HTTPRequest
 	Response *HTTPResponse
+	Version  string
 }
 
 // HTTPRequest holds information about an HTTP request.
 type HTTPRequest struct {
+	Body     interface{}
+	Headers  map[string]any // Non-ECS field.
+	Env      map[string]any // Non-ECS field.
+	Cookies  map[string]any // Non-ECS field.
 	ID       string
 	Method   string
 	Referrer string
-	Body     interface{}
-
-	// Non-ECS fields:
-
-	Headers map[string]any
-	Env     map[string]any
-	Cookies map[string]any
 }
 
 // HTTPResponse holds information about an HTTP response.
 type HTTPResponse struct {
-	StatusCode int
-
-	// Non-ECS fields:
-
-	Headers         map[string]any
-	Finished        *bool
-	HeadersSent     *bool
-	TransferSize    *int
-	EncodedBodySize *int
-	DecodedBodySize *int
+	Headers         map[string]any // Non-ECS field.
+	Finished        *bool          // Non-ECS field.
+	HeadersSent     *bool          // Non-ECS field.
+	TransferSize    *int           // Non-ECS field.
+	EncodedBodySize *int           // Non-ECS field.
+	DecodedBodySize *int           // Non-ECS field.
+	StatusCode      int
 }
 
 func (h *HTTP) fields() map[string]any {

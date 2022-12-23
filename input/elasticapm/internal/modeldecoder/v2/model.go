@@ -65,45 +65,43 @@ type logRoot struct {
 // other structs
 
 type context struct {
-	// Cloud holds fields related to the cloud or infrastructure the events
-	// are coming from.
-	Cloud contextCloud `json:"cloud"`
 	// Custom can contain additional metadata to be stored with the event.
 	// The format is unspecified and can be deeply nested objects.
 	// The information will not be indexed or searchable in Elasticsearch.
 	Custom map[string]any `json:"custom"`
-	// Message holds details related to message receiving and publishing
-	// if the captured event integrates with a messaging system
-	Message contextMessage `json:"message"`
-	// Page holds information related to the current page and page referers.
-	// It is only sent from RUM agents.
-	Page contextPage `json:"page"`
-	// Response describes the HTTP response information in case the event was
-	// created as a result of an HTTP request.
-	Response contextResponse `json:"response"`
-	// Request describes the HTTP request information in case the event was
-	// created as a result of an HTTP request.
-	Request contextRequest `json:"request"`
-	// Service related information can be sent per event. Information provided
-	// here will override the more generic information retrieved from metadata,
-	// missing service fields will be retrieved from the metadata information.
-	Service contextService `json:"service"`
 	// Tags are a flat mapping of user-defined tags. On the agent side, tags
 	// are called labels. Allowed value types are string, boolean and number
 	// values. Tags are indexed and searchable.
 	Tags map[string]any `json:"tags" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	// Service related information can be sent per event. Information provided
+	// here will override the more generic information retrieved from metadata,
+	// missing service fields will be retrieved from the metadata information.
+	Service contextService `json:"service"`
+	// Cloud holds fields related to the cloud or infrastructure the events
+	// are coming from.
+	Cloud contextCloud `json:"cloud"`
 	// User holds information about the correlated user for this event. If
 	// user data are provided here, all user related information from metadata
 	// is ignored, otherwise the metadata's user information will be stored
 	// with the event.
 	User user `json:"user"`
+	// Page holds information related to the current page and page referers.
+	// It is only sent from RUM agents.
+	Page contextPage `json:"page"`
+	// Request describes the HTTP request information in case the event was
+	// created as a result of an HTTP request.
+	Request contextRequest `json:"request"`
+	// Message holds details related to message receiving and publishing
+	// if the captured event integrates with a messaging system
+	Message contextMessage `json:"message"`
+	// Response describes the HTTP response information in case the event was
+	// created as a result of an HTTP request.
+	Response contextResponse `json:"response"`
 }
 
 type faas struct {
 	// A unique identifier of the invoked serverless function.
 	ID nullable.String `json:"id"`
-	// Indicates whether a function invocation was a cold start or not.
-	Coldstart nullable.Bool `json:"coldstart"`
 	// The request id of the function invocation.
 	Execution nullable.String `json:"execution"`
 	// Trigger attributes.
@@ -112,6 +110,8 @@ type faas struct {
 	Name nullable.String `json:"name"`
 	// The lambda function version.
 	Version nullable.String `json:"version"`
+	// Indicates whether a function invocation was a cold start or not.
+	Coldstart nullable.Bool `json:"coldstart"`
 }
 
 type trigger struct {
@@ -152,21 +152,21 @@ type contextCloudOriginService struct {
 }
 
 type contextMessage struct {
+	// Headers received with the message, similar to HTTP request headers.
+	Headers nullable.HTTPHeader `json:"headers"`
+	// Body of the received message, similar to an HTTP request body
+	Body nullable.String `json:"body"`
+	// Queue holds information about the message queue where the message is received.
+	Queue contextMessageQueue `json:"queue"`
+	// RoutingKey holds the optional routing key of the received message as set
+	// on the queuing system, such as in RabbitMQ.
+	RoutingKey nullable.String `json:"routing_key"`
 	// Age of the message. If the monitored messaging framework provides a
 	// timestamp for the message, agents may use it. Otherwise, the sending
 	// agent can add a timestamp in milliseconds since the Unix epoch to the
 	// message's metadata to be retrieved by the receiving agent. If a
 	// timestamp is not available, agents should omit this field.
 	Age contextMessageAge `json:"age"`
-	// Body of the received message, similar to an HTTP request body
-	Body nullable.String `json:"body"`
-	// Headers received with the message, similar to HTTP request headers.
-	Headers nullable.HTTPHeader `json:"headers"`
-	// Queue holds information about the message queue where the message is received.
-	Queue contextMessageQueue `json:"queue"`
-	// RoutingKey holds the optional routing key of the received message as set
-	// on the queuing system, such as in RabbitMQ.
-	RoutingKey nullable.String `json:"routing_key"`
 }
 
 type contextMessageAge struct {
@@ -187,17 +187,19 @@ type contextPage struct {
 }
 
 type contextRequest struct {
-	// Body only contais the request bod, not the query string information.
-	// It can either be a dictionary (for standard HTTP requests) or a raw
-	// request body.
-	Body nullable.Interface `json:"body" validate:"inputTypes=string;object"`
 	// Cookies used by the request, parsed as key-value objects.
 	Cookies map[string]any `json:"cookies"`
 	// Env holds environment variable information passed to the monitored service.
 	Env map[string]any `json:"env"`
+	// Body only contais the request bod, not the query string information.
+	// It can either be a dictionary (for standard HTTP requests) or a raw
+	// request body.
+	Body nullable.Interface `json:"body" validate:"inputTypes=string;object"`
 	// Headers includes any HTTP headers sent by the requester. Cookies will
 	// be taken by headers if supplied.
 	Headers nullable.HTTPHeader `json:"headers"`
+	// URL holds information sucha as the raw URL, scheme, host and path.
+	URL contextRequestURL `json:"url"`
 	// HTTPVersion holds information about the used HTTP version.
 	HTTPVersion nullable.String `json:"http_version" validate:"maxLength=1024"`
 	// Method holds information about the method of the HTTP request.
@@ -205,11 +207,11 @@ type contextRequest struct {
 	// Socket holds information related to the recorded request,
 	// such as whether or not data were encrypted and the remote address.
 	Socket contextRequestSocket `json:"socket"`
-	// URL holds information sucha as the raw URL, scheme, host and path.
-	URL contextRequestURL `json:"url"`
 }
 
 type contextRequestURL struct {
+	// Port of the request, e.g. '443'. Can be sent as string or int.
+	Port nullable.Interface `json:"port" validate:"inputTypes=string;int,targetType=int,maxLength=1024"`
 	// Full, possibly agent-assembled URL of the request,
 	// e.g. https://example.com:443/search?q=elasticsearch#top.
 	Full nullable.String `json:"full" validate:"maxLength=1024"`
@@ -219,8 +221,6 @@ type contextRequestURL struct {
 	Hostname nullable.String `json:"hostname" validate:"maxLength=1024"`
 	// Path of the request, e.g. '/search'
 	Path nullable.String `json:"pathname" validate:"maxLength=1024"`
-	// Port of the request, e.g. '443'. Can be sent as string or int.
-	Port nullable.Interface `json:"port" validate:"inputTypes=string;int,targetType=int,maxLength=1024"`
 	// Protocol information for the recorded request, e.g. 'https:'.
 	Protocol nullable.String `json:"protocol" validate:"maxLength=1024"`
 	// Raw unparsed URL of the HTTP request line,
@@ -234,30 +234,30 @@ type contextRequestURL struct {
 }
 
 type contextRequestSocket struct {
-	// Encrypted indicates whether a request was sent as TLS/HTTPS request.
-	// DEPRECATED: this field will be removed in a future release.
-	Encrypted nullable.Bool `json:"encrypted"`
 	// RemoteAddress holds the network address sending the request. It should
 	// be obtained through standard APIs and not be parsed from any headers
 	// like 'Forwarded'.
 	RemoteAddress nullable.String `json:"remote_address"`
+	// Encrypted indicates whether a request was sent as TLS/HTTPS request.
+	// DEPRECATED: this field will be removed in a future release.
+	Encrypted nullable.Bool `json:"encrypted"`
 }
 
 type contextResponse struct {
+	// Headers holds the http headers sent in the http response.
+	Headers nullable.HTTPHeader `json:"headers"`
+	// StatusCode sent in the http response.
+	StatusCode nullable.Int `json:"status_code"`
+	// TransferSize holds the total size of the payload.
+	TransferSize nullable.Int `json:"transfer_size"`
 	// DecodedBodySize holds the size of the decoded payload.
 	DecodedBodySize nullable.Int `json:"decoded_body_size"`
 	// EncodedBodySize holds the size of the encoded payload.
 	EncodedBodySize nullable.Int `json:"encoded_body_size"`
 	// Finished indicates whether the response was finished or not.
 	Finished nullable.Bool `json:"finished"`
-	// Headers holds the http headers sent in the http response.
-	Headers nullable.HTTPHeader `json:"headers"`
 	// HeadersSent indicates whether http headers were sent.
 	HeadersSent nullable.Bool `json:"headers_sent"`
-	// StatusCode sent in the http response.
-	StatusCode nullable.Int `json:"status_code"`
-	// TransferSize holds the total size of the payload.
-	TransferSize nullable.Int `json:"transfer_size"`
 }
 
 type contextService struct {
@@ -291,11 +291,11 @@ type contextService struct {
 }
 
 type contextServiceTarget struct {
+	_ struct{} `validate:"requiredAnyOf=type;name"`
 	// Immutable name of the target service for the event
 	Name nullable.String `json:"name"`
 	// Immutable type of the target service for the event
 	Type nullable.String `json:"type"`
-	_    struct{}        `validate:"requiredAnyOf=type;name"`
 }
 
 type contextServiceOrigin struct {
@@ -345,35 +345,36 @@ type contextServiceRuntime struct {
 // errorEvent represents an error or a logged error message,
 // captured by an APM agent in a monitored service.
 type errorEvent struct {
-	// Context holds arbitrary contextual information for the event.
-	Context context `json:"context"`
-	// Culprit identifies the function call which was the primary perpetrator
-	// of this event.
-	Culprit nullable.String `json:"culprit" validate:"maxLength=1024"`
-	// Exception holds information about the original error.
-	// The information is language specific.
-	Exception errorException `json:"exception"`
-	// ID holds the hex encoded 128 random bits ID of the event.
-	ID nullable.String `json:"id" validate:"required,maxLength=1024"`
-	// Log holds additional information added when the error is logged.
-	Log errorLog `json:"log"`
-	// ParentID holds the hex encoded 64 random bits ID of the parent
-	// transaction or span.
-	ParentID nullable.String `json:"parent_id" validate:"requiredIfAny=transaction_id;trace_id,maxLength=1024"`
+	_ struct{} `validate:"requiredAnyOf=exception;log"`
 	// Timestamp holds the recorded time of the event, UTC based and formatted
 	// as microseconds since Unix epoch.
 	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
+	// Log holds additional information added when the error is logged.
+	Log errorLog `json:"log"`
+	// Culprit identifies the function call which was the primary perpetrator
+	// of this event.
+	Culprit nullable.String `json:"culprit" validate:"maxLength=1024"`
+	// ID holds the hex encoded 128 random bits ID of the event.
+	ID nullable.String `json:"id" validate:"required,maxLength=1024"`
+	// ParentID holds the hex encoded 64 random bits ID of the parent
+	// transaction or span.
+	ParentID nullable.String `json:"parent_id" validate:"requiredIfAny=transaction_id;trace_id,maxLength=1024"`
 	// TraceID holds the hex encoded 128 random bits ID of the correlated trace.
 	TraceID nullable.String `json:"trace_id" validate:"requiredIfAny=transaction_id;parent_id,maxLength=1024"`
-	// Transaction holds information about the correlated transaction.
-	Transaction errorTransactionRef `json:"transaction"`
 	// TransactionID holds the hex encoded 64 random bits ID of the correlated
 	// transaction.
 	TransactionID nullable.String `json:"transaction_id" validate:"maxLength=1024"`
-	_             struct{}        `validate:"requiredAnyOf=exception;log"`
+	// Exception holds information about the original error.
+	// The information is language specific.
+	Exception errorException `json:"exception"`
+	// Transaction holds information about the correlated transaction.
+	Transaction errorTransactionRef `json:"transaction"`
+	// Context holds arbitrary contextual information for the event.
+	Context context `json:"context"`
 }
 
 type errorException struct {
+	_ struct{} `validate:"requiredAnyOf=message;type"`
 	// Attributes of the exception.
 	Attributes map[string]any `json:"attributes"`
 	// Code that is set when the error happened, e.g. database error code.
@@ -382,17 +383,16 @@ type errorException struct {
 	// exceptions. The chain starts with the outermost exception, followed
 	// by its cause, and so on.
 	Cause []errorException `json:"cause"`
-	// Handled indicates whether the error was caught in the code or not.
-	Handled nullable.Bool `json:"handled"`
+	// Stacktrace information of the captured exception.
+	Stacktrace []stacktraceFrame `json:"stacktrace"`
 	// Message contains the originally captured error message.
 	Message nullable.String `json:"message"`
 	// Module describes the exception type's module namespace.
 	Module nullable.String `json:"module" validate:"maxLength=1024"`
-	// Stacktrace information of the captured exception.
-	Stacktrace []stacktraceFrame `json:"stacktrace"`
 	// Type of the exception.
 	Type nullable.String `json:"type" validate:"maxLength=1024"`
-	_    struct{}        `validate:"requiredAnyOf=message;type"`
+	// Handled indicates whether the error was caught in the code or not.
+	Handled nullable.Bool `json:"handled"`
 }
 
 type errorLog struct {
@@ -414,10 +414,6 @@ type errorLog struct {
 }
 
 type errorTransactionRef struct {
-	// Sampled indicates whether or not the full information for a transaction
-	// is captured. If a transaction is unsampled no spans and less context
-	// information will be reported.
-	Sampled nullable.Bool `json:"sampled"`
 	// Name is the generic designation of a transaction in the scope of a
 	// single service, eg: 'GET /users/:id'.
 	Name nullable.String `json:"name" validate:"maxLength=1024"`
@@ -425,18 +421,20 @@ type errorTransactionRef struct {
 	// specific relevance within the service's domain,
 	// eg: 'request', 'backgroundjob'.
 	Type nullable.String `json:"type" validate:"maxLength=1024"`
+	// Sampled indicates whether or not the full information for a transaction
+	// is captured. If a transaction is unsampled no spans and less context
+	// information will be reported.
+	Sampled nullable.Bool `json:"sampled"`
 }
 
 type metadata struct {
-	// Cloud metadata about where the monitored service is running.
-	Cloud metadataCloud `json:"cloud"`
 	// Labels are a flat mapping of user-defined tags. Allowed value types are
 	// string, boolean and number values. Labels are indexed and searchable.
 	Labels map[string]any `json:"labels" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
-	// Process metadata about the monitored service.
-	Process metadataProcess `json:"process"`
 	// Service metadata about the monitored service.
 	Service metadataService `json:"service" validate:"required"`
+	// Cloud metadata about where the monitored service is running.
+	Cloud metadataCloud `json:"cloud"`
 	// System metadata
 	System metadataSystem `json:"system"`
 	// User metadata, which can be overwritten on a per event basis.
@@ -444,6 +442,8 @@ type metadata struct {
 	// Network holds information about the network over which the
 	// monitored service is communicating.
 	Network network `json:"network"`
+	// Process metadata about the monitored service.
+	Process metadataProcess `json:"process"`
 }
 
 type metadataCloud struct {
@@ -501,12 +501,12 @@ type metadataCloudService struct {
 type metadataProcess struct {
 	// Argv holds the command line arguments used to start this process.
 	Argv []string `json:"argv"`
+	// Title is the process title. It can be the same as process name.
+	Title nullable.String `json:"title" validate:"maxLength=1024"`
 	// PID holds the process ID of the service.
 	Pid nullable.Int `json:"pid" validate:"required"`
 	// Ppid holds the parent process ID of the service.
 	Ppid nullable.Int `json:"ppid"`
-	// Title is the process title. It can be the same as process name.
-	Title nullable.String `json:"title" validate:"maxLength=1024"`
 }
 
 type metadataService struct {
@@ -535,6 +535,8 @@ type metadataService struct {
 }
 
 type metadataServiceAgent struct {
+	// ActivationMethod of the APM agent capturing information.
+	ActivationMethod nullable.String `json:"activation_method" validate:"maxLength=1024"`
 	// EphemeralID is a free format ID used for metrics correlation by agents
 	EphemeralID nullable.String `json:"ephemeral_id" validate:"maxLength=1024"`
 	// Name of the APM agent capturing information.
@@ -649,6 +651,8 @@ type metricset struct {
 }
 
 type metricsetSampleValue struct {
+	// At least one of value or values must be specified.
+	_ struct{} `validate:"requiredAnyOf=value;values"`
 	// Type holds an optional metric type: gauge, counter, or histogram.
 	//
 	// If Type is unknown, it will be ignored.
@@ -662,9 +666,6 @@ type metricsetSampleValue struct {
 	//
 	// If Unit is unknown, it will be ignored.
 	Unit nullable.String `json:"unit"`
-
-	// Value holds the value of a single metric sample.
-	Value nullable.Float64 `json:"value"`
 
 	// Values holds the bucket values for histogram metrics.
 	//
@@ -680,9 +681,8 @@ type metricsetSampleValue struct {
 	// specified with the same number of elements, and with the
 	// same order.
 	Counts []int64 `json:"counts" validate:"requiredIfAny=values,minVals=0"`
-
-	// At least one of value or values must be specified.
-	_ struct{} `validate:"requiredAnyOf=value;values"`
+	// Value holds the value of a single metric sample.
+	Value nullable.Float64 `json:"value"`
 }
 
 type metricsetSpanRef struct {
@@ -709,78 +709,77 @@ type metricsetServiceRef struct {
 }
 
 type span struct {
+	_ struct{} `validate:"requiredAnyOf=start;timestamp"`
+	// Timestamp holds the recorded time of the event, UTC based and formatted
+	// as microseconds since Unix epoch
+	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
+	// OTel contains unmapped OpenTelemetry attributes.
+	OTel otel `json:"otel"`
+	// ID holds the hex encoded 64 random bits ID of the event.
+	ID nullable.String `json:"id" validate:"required,maxLength=1024"`
+	// TraceID holds the hex encoded 128 random bits ID of the correlated trace.
+	TraceID nullable.String `json:"trace_id" validate:"required,maxLength=1024"`
 	// Action holds the specific kind of event within the sub-type represented
 	// by the span (e.g. query, connect)
 	Action nullable.String `json:"action" validate:"maxLength=1024"`
-	// ChildIDs holds a list of successor transactions and/or spans.
-	ChildIDs []string `json:"child_ids" validate:"maxLength=1024"`
-	// Composite holds details on a group of spans represented by a single one.
-	Composite spanComposite `json:"composite"`
-	// Context holds arbitrary contextual information for the event.
-	Context spanContext `json:"context"`
-	// Duration of the span in milliseconds. When the span is a composite one,
-	// duration is the gross duration, including "whitespace" in between spans.
-	Duration nullable.Float64 `json:"duration" validate:"required,min=0"`
-	// ID holds the hex encoded 64 random bits ID of the event.
-	ID nullable.String `json:"id" validate:"required,maxLength=1024"`
 	// Name is the generic designation of a span in the scope of a transaction.
 	Name nullable.String `json:"name" validate:"required,maxLength=1024"`
 	// Outcome of the span: success, failure, or unknown. Outcome may be one of
 	// a limited set of permitted values describing the success or failure of
 	// the span. It can be used for calculating error rates for outgoing requests.
 	Outcome nullable.String `json:"outcome" validate:"enum=enumOutcome"`
-	// OTel contains unmapped OpenTelemetry attributes.
-	OTel otel `json:"otel"`
+	// ChildIDs holds a list of successor transactions and/or spans.
+	ChildIDs []string `json:"child_ids" validate:"maxLength=1024"`
 	// ParentID holds the hex encoded 64 random bits ID of the parent
 	// transaction or span.
 	ParentID nullable.String `json:"parent_id" validate:"required,maxLength=1024"`
-	// SampleRate applied to the monitored service at the time where this span
-	// was recorded.
-	SampleRate nullable.Float64 `json:"sample_rate"`
+	// Links holds links to other spans, potentially in other traces.
+	Links []spanLink `json:"links"`
 	// Stacktrace connected to this span event.
 	Stacktrace []stacktraceFrame `json:"stacktrace"`
-	// Start is the offset relative to the transaction's timestamp identifying
-	// the start of the span, in milliseconds.
-	Start nullable.Float64 `json:"start"`
-	// Subtype is a further sub-division of the type (e.g. postgresql, elasticsearch)
-	Subtype nullable.String `json:"subtype" validate:"maxLength=1024"`
-	// Sync indicates whether the span was executed synchronously or asynchronously.
-	Sync nullable.Bool `json:"sync"`
-	// Timestamp holds the recorded time of the event, UTC based and formatted
-	// as microseconds since Unix epoch
-	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
-	// TraceID holds the hex encoded 128 random bits ID of the correlated trace.
-	TraceID nullable.String `json:"trace_id" validate:"required,maxLength=1024"`
-	// TransactionID holds the hex encoded 64 random bits ID of the correlated
-	// transaction.
-	TransactionID nullable.String `json:"transaction_id" validate:"maxLength=1024"`
 	// Type holds the span's type, and can have specific keywords
 	// within the service's domain (eg: 'request', 'backgroundjob', etc)
 	Type nullable.String `json:"type" validate:"required,maxLength=1024"`
-	// Links holds links to other spans, potentially in other traces.
-	Links []spanLink `json:"links"`
-
-	_ struct{} `validate:"requiredAnyOf=start;timestamp"`
+	// Subtype is a further sub-division of the type (e.g. postgresql, elasticsearch)
+	Subtype nullable.String `json:"subtype" validate:"maxLength=1024"`
+	// TransactionID holds the hex encoded 64 random bits ID of the correlated
+	// transaction.
+	TransactionID nullable.String `json:"transaction_id" validate:"maxLength=1024"`
+	// Composite holds details on a group of spans represented by a single one.
+	Composite spanComposite `json:"composite"`
+	// Context holds arbitrary contextual information for the event.
+	Context spanContext `json:"context"`
+	// Start is the offset relative to the transaction's timestamp identifying
+	// the start of the span, in milliseconds.
+	Start nullable.Float64 `json:"start"`
+	// SampleRate applied to the monitored service at the time where this span
+	// was recorded.
+	SampleRate nullable.Float64 `json:"sample_rate"`
+	// Duration of the span in milliseconds. When the span is a composite one,
+	// duration is the gross duration, including "whitespace" in between spans.
+	Duration nullable.Float64 `json:"duration" validate:"required,min=0"`
+	// Sync indicates whether the span was executed synchronously or asynchronously.
+	Sync nullable.Bool `json:"sync"`
 }
 
 type spanContext struct {
+	// Tags are a flat mapping of user-defined tags. On the agent side, tags
+	// are called labels. Allowed value types are string, boolean and number
+	// values. Tags are indexed and searchable.
+	Tags map[string]any `json:"tags" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	// Service related information can be sent per span. Information provided
+	// here will override the more generic information retrieved from metadata,
+	// missing service fields will be retrieved from the metadata information.
+	Service contextService `json:"service"`
+	// Message holds details related to message receiving and publishing
+	// if the captured event integrates with a messaging system
+	Message contextMessage `json:"message"`
 	// Database contains contextual data for database spans
 	Database spanContextDatabase `json:"db"`
 	// Destination contains contextual data about the destination of spans
 	Destination spanContextDestination `json:"destination"`
 	// HTTP contains contextual information when the span concerns an HTTP request.
 	HTTP spanContextHTTP `json:"http"`
-	// Message holds details related to message receiving and publishing
-	// if the captured event integrates with a messaging system
-	Message contextMessage `json:"message"`
-	// Service related information can be sent per span. Information provided
-	// here will override the more generic information retrieved from metadata,
-	// missing service fields will be retrieved from the metadata information.
-	Service contextService `json:"service"`
-	// Tags are a flat mapping of user-defined tags. On the agent side, tags
-	// are called labels. Allowed value types are string, boolean and number
-	// values. Tags are indexed and searchable.
-	Tags map[string]any `json:"tags" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 }
 
 type spanContextDatabase struct {
@@ -788,17 +787,19 @@ type spanContextDatabase struct {
 	Instance nullable.String `json:"instance"`
 	// Link to the database server.
 	Link nullable.String `json:"link" validate:"maxLength=1024"`
-	// RowsAffected shows the number of rows affected by the statement.
-	RowsAffected nullable.Int `json:"rows_affected"`
 	// Statement of the recorded database event, e.g. query.
 	Statement nullable.String `json:"statement"`
 	// Type of the recorded database event., e.g. sql, cassandra, hbase, redis.
 	Type nullable.String `json:"type"`
 	// User is the username with which the database is accessed.
 	User nullable.String `json:"user"`
+	// RowsAffected shows the number of rows affected by the statement.
+	RowsAffected nullable.Int `json:"rows_affected"`
 }
 
 type spanContextDestination struct {
+	// Service describes the destination service
+	Service spanContextDestinationService `json:"service"`
 	// Address is the destination network address:
 	// hostname (e.g. 'localhost'),
 	// FQDN (e.g. 'elastic.co'),
@@ -807,8 +808,6 @@ type spanContextDestination struct {
 	Address nullable.String `json:"address" validate:"maxLength=1024"`
 	// Port is the destination network port (e.g. 443)
 	Port nullable.Int `json:"port"`
-	// Service describes the destination service
-	Service spanContextDestinationService `json:"service"`
 }
 
 type spanContextDestinationService struct {
@@ -827,18 +826,18 @@ type spanContextDestinationService struct {
 }
 
 type spanContextHTTP struct {
-	// Method holds information about the method of the HTTP request.
-	Method nullable.String `json:"method" validate:"maxLength=1024"`
 	// Request describes the HTTP request information.
 	Request spanContextHTTPRequest `json:"request"`
+	// Method holds information about the method of the HTTP request.
+	Method nullable.String `json:"method" validate:"maxLength=1024"`
+	// URL is the raw url of the correlating HTTP request.
+	URL nullable.String `json:"url"`
 	// Response describes the HTTP response information in case the event was
 	// created as a result of an HTTP request.
 	Response spanContextHTTPResponse `json:"response"`
 	// Deprecated: Use Response.StatusCode instead.
 	// StatusCode sent in the http response.
 	StatusCode nullable.Int `json:"status_code"`
-	// URL is the raw url of the correlating HTTP request.
-	URL nullable.String `json:"url"`
 }
 
 type spanContextHTTPRequest struct {
@@ -847,12 +846,12 @@ type spanContextHTTPRequest struct {
 }
 
 type spanContextHTTPResponse struct {
+	// Headers holds the http headers sent in the http response.
+	Headers nullable.HTTPHeader `json:"headers"`
 	// DecodedBodySize holds the size of the decoded payload.
 	DecodedBodySize nullable.Int `json:"decoded_body_size"`
 	// EncodedBodySize holds the size of the encoded payload.
 	EncodedBodySize nullable.Int `json:"encoded_body_size"`
-	// Headers holds the http headers sent in the http response.
-	Headers nullable.HTTPHeader `json:"headers"`
 	// StatusCode sent in the http response.
 	StatusCode nullable.Int `json:"status_code"`
 	// TransferSize holds the total size of the payload.
@@ -860,22 +859,19 @@ type spanContextHTTPResponse struct {
 }
 
 type stacktraceFrame struct {
+	_ struct{} `validate:"requiredAnyOf=classname;filename"`
+	// Vars is a flat mapping of local variables of the frame.
+	Vars map[string]any `json:"vars"`
+	// Filename is the relative name of the frame's file.
+	Filename nullable.String `json:"filename"`
 	// AbsPath is the absolute path of the frame's file.
 	AbsPath nullable.String `json:"abs_path"`
 	// Classname of the frame.
 	Classname nullable.String `json:"classname"`
-	// ColumnNumber of the frame.
-	ColumnNumber nullable.Int `json:"colno"`
 	// ContextLine is the line from the frame's file.
 	ContextLine nullable.String `json:"context_line"`
-	// Filename is the relative name of the frame's file.
-	Filename nullable.String `json:"filename"`
 	// Function represented by the frame.
 	Function nullable.String `json:"function"`
-	// LibraryFrame indicates whether the frame is from a third party library.
-	LibraryFrame nullable.Bool `json:"library_frame"`
-	// LineNumber of the frame.
-	LineNumber nullable.Int `json:"lineno"`
 	// Module to which the frame belongs to.
 	Module nullable.String `json:"module"`
 	// PostContext is a slice of code lines immediately before the line
@@ -884,87 +880,101 @@ type stacktraceFrame struct {
 	// PreContext is a slice of code lines immediately after the line
 	// from the frame's file.
 	PreContext []string `json:"pre_context"`
-	// Vars is a flat mapping of local variables of the frame.
-	Vars map[string]any `json:"vars"`
-	_    struct{}       `validate:"requiredAnyOf=classname;filename"`
+	// LineNumber of the frame.
+	LineNumber nullable.Int `json:"lineno"`
+	// ColumnNumber of the frame.
+	ColumnNumber nullable.Int `json:"colno"`
+	// LibraryFrame indicates whether the frame is from a third party library.
+	LibraryFrame nullable.Bool `json:"library_frame"`
 }
 
 type spanComposite struct {
+	// A string value indicating which compression strategy was used. The valid
+	// values are `exact_match` and `same_kind`.
+	CompressionStrategy nullable.String `json:"compression_strategy" validate:"required"`
 	// Count is the number of compressed spans the composite span represents.
 	// The minimum count is 2, as a composite span represents at least two spans.
 	Count nullable.Int `json:"count" validate:"required,min=2"`
 	// Sum is the durations of all compressed spans this composite span
 	// represents in milliseconds.
 	Sum nullable.Float64 `json:"sum" validate:"required,min=0"`
-	// A string value indicating which compression strategy was used. The valid
-	// values are `exact_match` and `same_kind`.
-	CompressionStrategy nullable.String `json:"compression_strategy" validate:"required"`
 }
 
 type transaction struct {
-	// Context holds arbitrary contextual information for the event.
-	Context context `json:"context"`
-	// DroppedSpanStats holds information about spans that were dropped
-	// (for example due to transaction_max_spans or exit_span_min_duration).
-	DroppedSpanStats []transactionDroppedSpanStats `json:"dropped_spans_stats"`
-	// Duration how long the transaction took to complete, in milliseconds
-	// with 3 decimal points.
-	Duration nullable.Float64 `json:"duration" validate:"required,min=0"`
-	// FAAS holds fields related to Function as a Service events.
-	FAAS faas `json:"faas"`
-	// ID holds the hex encoded 64 random bits ID of the event.
-	ID nullable.String `json:"id" validate:"required,maxLength=1024"`
 	// Marks capture the timing of a significant event during the lifetime of
 	// a transaction. Marks are organized into groups and can be set by the
 	// user or the agent. Marks are only reported by RUM agents.
 	Marks transactionMarks `json:"marks"`
+	// Timestamp holds the recorded time of the event, UTC based and formatted
+	// as microseconds since Unix epoch
+	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
+	// OTel contains unmapped OpenTelemetry attributes.
+	OTel otel `json:"otel"`
+	// Links holds links to other spans, potentially in other traces.
+	Links []spanLink `json:"links"`
+	// TraceID holds the hex encoded 128 random bits ID of the correlated trace.
+	TraceID nullable.String `json:"trace_id" validate:"required,maxLength=1024"`
+	// ID holds the hex encoded 64 random bits ID of the event.
+	ID nullable.String `json:"id" validate:"required,maxLength=1024"`
+	// ParentID holds the hex encoded 64 random bits ID of the parent
+	// transaction or span.
+	ParentID nullable.String `json:"parent_id" validate:"maxLength=1024"`
 	// Name is the generic designation of a transaction in the scope of a
 	// single service, eg: 'GET /users/:id'.
 	Name nullable.String `json:"name" validate:"maxLength=1024"`
-	// OTel contains unmapped OpenTelemetry attributes.
-	OTel otel `json:"otel"`
+	// Type expresses the transaction's type as keyword that has specific
+	// relevance within the service's domain, eg: 'request', 'backgroundjob'.
+	Type nullable.String `json:"type" validate:"required,maxLength=1024"`
+	// Result of the transaction. For HTTP-related transactions, this should
+	// be the status code formatted like 'HTTP 2xx'.
+	Result nullable.String `json:"result" validate:"maxLength=1024"`
+	// DroppedSpanStats holds information about spans that were dropped
+	// (for example due to transaction_max_spans or exit_span_min_duration).
+	DroppedSpanStats []transactionDroppedSpanStats `json:"dropped_spans_stats"`
 	// Outcome of the transaction with a limited set of permitted values,
 	// describing the success or failure of the transaction from the service's
 	// perspective. It is used for calculating error rates for incoming requests.
 	// Permitted values: success, failure, unknown.
 	Outcome nullable.String `json:"outcome" validate:"enum=enumOutcome"`
-	// ParentID holds the hex encoded 64 random bits ID of the parent
-	// transaction or span.
-	ParentID nullable.String `json:"parent_id" validate:"maxLength=1024"`
-	// Result of the transaction. For HTTP-related transactions, this should
-	// be the status code formatted like 'HTTP 2xx'.
-	Result nullable.String `json:"result" validate:"maxLength=1024"`
-	// Sampled indicates whether or not the full information for a transaction
-	// is captured. If a transaction is unsampled no spans and less context
-	// information will be reported.
-	Sampled nullable.Bool `json:"sampled"`
+	// FAAS holds fields related to Function as a Service events.
+	FAAS faas `json:"faas"`
+	// Session holds optional transaction session information for RUM.
+	Session transactionSession `json:"session"`
+	// Context holds arbitrary contextual information for the event.
+	Context context `json:"context"`
+	// UserExperience holds metrics for measuring real user experience.
+	// This information is only sent by RUM agents.
+	UserExperience transactionUserExperience `json:"experience"`
+	// SpanCount counts correlated spans.
+	SpanCount transactionSpanCount `json:"span_count" validate:"required"`
 	// SampleRate applied to the monitored service at the time where this transaction
 	// was recorded. Allowed values are [0..1]. A SampleRate <1 indicates that
 	// not all spans are recorded.
 	SampleRate nullable.Float64 `json:"sample_rate"`
-	// Session holds optional transaction session information for RUM.
-	Session transactionSession `json:"session"`
-	// SpanCount counts correlated spans.
-	SpanCount transactionSpanCount `json:"span_count" validate:"required"`
-	// Timestamp holds the recorded time of the event, UTC based and formatted
-	// as microseconds since Unix epoch
-	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
-	// TraceID holds the hex encoded 128 random bits ID of the correlated trace.
-	TraceID nullable.String `json:"trace_id" validate:"required,maxLength=1024"`
-	// Type expresses the transaction's type as keyword that has specific
-	// relevance within the service's domain, eg: 'request', 'backgroundjob'.
-	Type nullable.String `json:"type" validate:"required,maxLength=1024"`
-	// UserExperience holds metrics for measuring real user experience.
-	// This information is only sent by RUM agents.
-	UserExperience transactionUserExperience `json:"experience"`
-	// Links holds links to other spans, potentially in other traces.
-	Links []spanLink `json:"links"`
+	// Duration how long the transaction took to complete, in milliseconds
+	// with 3 decimal points.
+	Duration nullable.Float64 `json:"duration" validate:"required,min=0"`
+	// Sampled indicates whether or not the full information for a transaction
+	// is captured. If a transaction is unsampled no spans and less context
+	// information will be reported.
+	Sampled nullable.Bool `json:"sampled"`
 }
 
 type log struct {
+	// Labels are a flat mapping of user-defined key-value pairs.
+	Labels map[string]any `json:"labels" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 	// Timestamp holds the recorded time of the event, UTC based and formatted
 	// as microseconds since Unix epoch
 	Timestamp nullable.TimeMicrosUnix `json:"@timestamp"`
+	// Below embedded fields are added to enable supporting both nested and flat JSON.
+	// This is achieved by generating code using static analysis of these structs.
+	// The logic parses JSON tag of each struct field to produce a code which, at runtime,
+	// checks the nested map to retrieve the required value for each field.
+	EcsLogServiceFields
+	EcsLogErrorFields
+	EcsLogEventFields
+	EcsLogProcessFields
+
 	// TraceID holds the ID of the correlated trace.
 	TraceID nullable.String `json:"trace.id" validate:"maxLength=1024"`
 	// TransactionID holds the ID of the correlated transaction.
@@ -977,19 +987,11 @@ type log struct {
 	Message nullable.String `json:"message"`
 	// FAAS holds fields related to Function as a Service events.
 	FAAS faas `json:"faas"`
-	// Labels are a flat mapping of user-defined key-value pairs.
-	Labels map[string]any `json:"labels" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
-
 	// Below embedded fields are added to enable supporting both nested and flat JSON.
 	// This is achieved by generating code using static analysis of these structs.
 	// The logic parses JSON tag of each struct field to produce a code which, at runtime,
 	// checks the nested map to retrieve the required value for each field.
-
-	EcsLogEventFields
-	EcsLogServiceFields
 	EcsLogLogFields
-	EcsLogErrorFields
-	EcsLogProcessFields
 }
 
 // EcsLogEventFields holds event.* fields for supporting ECS logging format and enables
@@ -1033,11 +1035,11 @@ type EcsLogLogFields struct {
 	// OriginFileName represents the filename containing the sourcecode where the log
 	// originated.
 	OriginFileName nullable.String `json:"log.origin.file.name" validate:"maxLength=1024"`
+	// OriginFunction represents the function name where the log originated.
+	OriginFunction nullable.String `json:"log.origin.function"`
 	// OriginFileLine represents the line number in the file containing the sourcecode
 	// where the log originated.
 	OriginFileLine nullable.Int `json:"log.origin.file.line"`
-	// OriginFunction represents the function name where the log originated.
-	OriginFunction nullable.String `json:"log.origin.function"`
 }
 
 // EcsLogServiceFields holds service.* fields for supporting ECS logging format and
@@ -1058,10 +1060,10 @@ type EcsLogServiceFields struct {
 }
 
 type otel struct {
-	// SpanKind holds the incoming OpenTelemetry span kind.
-	SpanKind nullable.String `json:"span_kind"`
 	// Attributes hold the unmapped OpenTelemetry attributes.
 	Attributes map[string]interface{} `json:"attributes"`
+	// SpanKind holds the incoming OpenTelemetry span kind.
+	SpanKind nullable.String `json:"span_kind"`
 }
 
 type transactionSession struct {

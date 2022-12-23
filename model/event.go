@@ -25,30 +25,25 @@ import (
 //
 // https://www.elastic.co/guide/en/ecs/current/ecs-event.html
 type Event struct {
-	// Duration holds the event duration.
-	//
-	// Duration is only added as a field (`duration`) if greater than zero.
-	Duration time.Duration
-
-	// Outcome holds the event outcome: "success", "failure", or "unknown".
-	Outcome string
-
 	// SuccessCount holds an aggregated count of events with different outcomes.
 	// A "failure" adds to the Count. A "success" adds to both the Count and the
 	// Sum. An "unknown" has no effect. If Count is zero, it will be omitted
 	// from the output event.
 	SuccessCount SummaryMetric
-
-	// Severity holds the numeric severity of the event for log events.
-	Severity int64
-
+	// Outcome holds the event outcome: "success", "failure", or "unknown".
+	Outcome string
 	// Action holds the action captured by the event for log events.
 	Action string
-
 	// Dataset holds the the dataset which produces the events. If an event
 	// source publishes more than one type of log or events (e.g. access log,
 	// error log), the dataset is used to specify which one the event comes from.
 	Dataset string
+	// Duration holds the event duration.
+	//
+	// Duration is only added as a field (`duration`) if greater than zero.
+	Duration time.Duration
+	// Severity holds the numeric severity of the event for log events.
+	Severity int64
 }
 
 func (e *Event) fields() map[string]any {

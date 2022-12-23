@@ -35,8 +35,8 @@ type Log struct {
 
 // LogOrigin holds information about the origin of the log.
 type LogOrigin struct {
-	File         LogOriginFile
 	FunctionName string
+	File         LogOriginFile
 }
 
 // LogOriginFile holds information about the file and the line of the origin of the log.

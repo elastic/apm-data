@@ -26,27 +26,25 @@ var (
 // transaction, span, and error events (i.e. transaction.id), as well as
 // internal metrics such as breakdowns (i.e. including transaction.name).
 type Transaction struct {
-	ID string
-
-	// Name holds the transaction name: "GET /foo", etc.
-	Name string
-
+	SpanCount      SpanCount
+	UserExperience *UserExperience
+	Custom         map[string]any
+	Marks          TransactionMarks
+	Message        *Message
 	// Type holds the transaction type: "request", "message", etc.
 	Type string
-
+	// Name holds the transaction name: "GET /foo", etc.
+	Name string
 	// Result holds the transaction result: "HTTP 2xx", "OK", "Error", etc.
 	Result string
-
-	// Sampled holds the transaction's sampling decision.
-	//
-	// If Sampled is false, then it will be omitted from the output event.
-	Sampled bool
-
+	ID     string
 	// DurationHistogram holds a transaction duration histogram,
 	// with bucket values measured in microseconds, for transaction
 	// duration metrics.
 	DurationHistogram Histogram
-
+	// DroppedSpanStats holds a list of the spans that were dropped by an
+	// agent; not indexed.
+	DroppedSpansStats []DroppedSpanStats
 	// DurationSummary holds an aggregated transaction duration summary,
 	// for service metrics. The DurationSummary.Sum field has microsecond
 	// resolution.
@@ -55,22 +53,14 @@ type Transaction struct {
 	// preview. Do not use this field without discussion, as the field mapping
 	// is subject to removal.
 	DurationSummary SummaryMetric
-
-	Marks          TransactionMarks
-	Message        *Message
-	SpanCount      SpanCount
-	Custom         map[string]any
-	UserExperience *UserExperience
-
-	// DroppedSpanStats holds a list of the spans that were dropped by an
-	// agent; not indexed.
-	DroppedSpansStats []DroppedSpanStats
-
 	// RepresentativeCount holds the approximate number of
 	// transactions that this transaction represents for aggregation.
 	// This is used for scaling metrics.
 	RepresentativeCount float64
-
+	// Sampled holds the transaction's sampling decision.
+	//
+	// If Sampled is false, then it will be omitted from the output event.
+	Sampled bool
 	// Root indicates whether or not the transaction is the trace root.
 	//
 	// If Root is false, it will be omitted from the output event.

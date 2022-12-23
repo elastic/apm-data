@@ -28,10 +28,10 @@ type URL struct {
 	Scheme   string
 	Full     string
 	Domain   string
-	Port     int
 	Path     string
 	Query    string
 	Fragment string
+	Port     int
 }
 
 func ParseURL(original, defaultHostname, defaultScheme string) URL {

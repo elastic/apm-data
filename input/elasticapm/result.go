@@ -22,22 +22,19 @@ import (
 )
 
 type Result struct {
-	// Accepted holds the number of valid events accepted.
-	Accepted int
-
-	// TooLarge holds the number of events that were rejected due
-	// to exceeding the event size limit.
-	TooLarge int
-
-	// Invalid holds the number of events that were rejected due
-	// to being invalid, excluding those that are counted by TooLarge.
-	Invalid int
-
+	errorsSpace [5]error
 	// Errors holds a limited number of errors that occurred while
 	// processing the event stream. If the limit is reached, the
 	// counters above are still incremented.
-	Errors      []error
-	errorsSpace [5]error
+	Errors []error
+	// Accepted holds the number of valid events accepted.
+	Accepted int
+	// TooLarge holds the number of events that were rejected due
+	// to exceeding the event size limit.
+	TooLarge int
+	// Invalid holds the number of events that were rejected due
+	// to being invalid, excluding those that are counted by TooLarge.
+	Invalid int
 }
 
 func (r *Result) addError(err error) {
@@ -58,9 +55,9 @@ func (r *Result) addError(err error) {
 }
 
 type InvalidInputError struct {
-	TooLarge bool
 	Message  string
 	Document string
+	TooLarge bool
 }
 
 func (e *InvalidInputError) Error() string {

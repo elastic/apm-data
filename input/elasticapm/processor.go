@@ -71,16 +71,14 @@ type Processor struct {
 
 // Config holds configuration for Processor constructors.
 type Config struct {
-	// MaxEventSize holds the maximum event size, in bytes.
-	MaxEventSize int
-
 	// Semaphore holds a channel to which Processor.HandleStream
 	// will send an item before proceeding, to limit concurrency.
 	Semaphore chan struct{}
-
 	// Logger holds a logger for the processor. If Logger is nil,
 	// then no logging will be performed.
 	Logger *zap.Logger
+	// MaxEventSize holds the maximum event size, in bytes.
+	MaxEventSize int
 }
 
 // NewProcessor returns a new Processor for processing an event stream from

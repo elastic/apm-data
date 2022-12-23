@@ -20,11 +20,10 @@ package model
 // SpanLink represents a link between two span events,
 // possibly (but not necessarily) in different traces.
 type SpanLink struct {
-	// Span holds information about the linked span event.
-	Span Span
-
 	// Trace holds information about the trace of the linked span event.
 	Trace Trace
+	// Span holds information about the linked span event.
+	Span Span
 }
 
 func (l *SpanLink) fields() map[string]any {

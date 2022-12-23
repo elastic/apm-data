@@ -39,12 +39,10 @@ const (
 
 // Metricset describes a set of metrics and associated metadata.
 type Metricset struct {
-	// Samples holds the metrics in the set.
-	Samples []MetricsetSample
-
 	// Name holds an optional name for the metricset.
 	Name string
-
+	// Samples holds the metrics in the set.
+	Samples []MetricsetSample
 	// DocCount holds the document count for pre-aggregated metrics.
 	//
 	// See https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-doc-count-field.html
@@ -57,12 +55,10 @@ type MetricsetSample struct {
 	//
 	// If Type is unspecified or invalid, it will be ignored.
 	Type MetricType
-
 	// Name holds the metric name.
 	//
 	// Name is required.
 	Name string
-
 	// Unit holds an optional unit:
 	//
 	// - "percent" (value is in the range [0,1])
@@ -71,18 +67,15 @@ type MetricsetSample struct {
 	//
 	// If Unit is unspecified or invalid, it will be ignored.
 	Unit string
-
+	// Histogram holds bucket values and counts for histogram metrics.
+	Histogram
+	// SummaryMetric holds a combined count and sum of aggregated
+	// measurements.
+	SummaryMetric
 	// Value holds the metric value for single-value metrics.
 	//
 	// If Counts and Values are specified, then Value will be ignored.
 	Value float64
-
-	// Histogram holds bucket values and counts for histogram metrics.
-	Histogram
-
-	// SummaryMetric holds a combined count and sum of aggregated
-	// measurements.
-	SummaryMetric
 }
 
 // Histogram holds bucket values and counts for a histogram metric.
