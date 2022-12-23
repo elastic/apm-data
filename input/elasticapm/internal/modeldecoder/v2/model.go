@@ -987,6 +987,10 @@ type log struct {
 	Message nullable.String `json:"message"`
 	// FAAS holds fields related to Function as a Service events.
 	FAAS faas `json:"faas"`
+	// Below embedded fields are added to enable supporting both nested and flat JSON.
+	// This is achieved by generating code using static analysis of these structs.
+	// The logic parses JSON tag of each struct field to produce a code which, at runtime,
+	// checks the nested map to retrieve the required value for each field.
 	EcsLogLogFields
 }
 
