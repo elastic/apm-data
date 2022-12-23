@@ -34,59 +34,53 @@ const (
 //
 // Exactly one of the event fields should be non-nil.
 type APMEvent struct {
-	// DataStream optionally holds data stream identifiers.
-	DataStream DataStream
-
-	Event       Event
-	Agent       Agent
-	Observer    Observer
-	Container   Container
-	Kubernetes  Kubernetes
-	Service     Service
-	Process     Process
-	Device      Device
-	Host        Host
-	User        User
-	UserAgent   UserAgent
-	Client      Client
-	Source      Source
-	Destination Destination
-	Cloud       Cloud
-	Network     Network
-	Session     Session
-	URL         URL
-	Processor   Processor
-	Trace       Trace
-	Parent      Parent
-	Child       Child
-	HTTP        HTTP
-	FAAS        FAAS
-	Log         Log
-
 	// Timestamp holds the event timestamp.
 	//
 	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html#field-timestamp
 	Timestamp time.Time
-
+	Span      *Span
+	// NumericLabels holds the numeric (scaled_float) labels to apply to the event.
+	// Supports slice values.
+	NumericLabels NumericLabels
 	// Labels holds the string (keyword) labels to apply to the event, stored as
 	// keywords. Supports slice values.
 	//
 	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html#field-labels
-	Labels Labels
-
-	// NumericLabels holds the numeric (scaled_float) labels to apply to the event.
-	// Supports slice values.
-	NumericLabels NumericLabels
-
+	Labels      Labels
+	Transaction *Transaction
+	Metricset   *Metricset
+	Error       *Error
+	Cloud       Cloud
+	Service     Service
+	FAAS        FAAS
+	Network     Network
+	Container   Container
+	User        User
+	Device      Device
+	Kubernetes  Kubernetes
+	Observer    Observer
+	// DataStream optionally holds data stream identifiers.
+	DataStream DataStream
+	Agent      Agent
+	Processor  Processor
+	HTTP       HTTP
+	UserAgent  UserAgent
+	Parent     Parent
 	// Message holds the message for log events.
 	//
 	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html#field-message
-	Message string
-
-	Transaction *Transaction
-	Span        *Span
-	Metricset   *Metricset
-	Error       *Error
+	Message     string
+	Trace       Trace
+	Host        Host
+	URL         URL
+	Log         Log
+	Source      Source
+	Client      Client
+	Child       Child
+	Destination Destination
+	Session     Session
+	Process     Process
+	Event       Event
 }
 
 // TODO(axw) remove this and generate the JSON encoding directly.

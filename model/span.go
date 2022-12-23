@@ -27,35 +27,26 @@ var (
 )
 
 type Span struct {
-	ID string
-
-	// Name holds the span name: "SELECT FROM table_name", etc.
-	Name string
-
-	// Type holds the span type: "external", "db", etc.
-	Type string
-
+	Message            *Message
+	Composite          *Composite
+	DestinationService *DestinationService
+	DB                 *DB
+	Sync               *bool
 	// Kind holds the span kind: "CLIENT", "SERVER", "PRODUCER", "CONSUMER" and "INTERNAL".
 	Kind string
-
-	// Subtype holds the span subtype: "http", "sql", etc.
-	Subtype string
-
 	// Action holds the span action: "query", "execute", etc.
 	Action string
-
+	// Subtype holds the span subtype: "http", "sql", etc.
+	Subtype string
+	ID      string
+	// Type holds the span type: "external", "db", etc.
+	Type string
+	// Name holds the span name: "SELECT FROM table_name", etc.
+	Name       string
+	Stacktrace Stacktrace
+	Links      []SpanLink
 	// SelfTime holds the aggregated span durations, for breakdown metrics.
 	SelfTime AggregatedDuration
-
-	Message    *Message
-	Stacktrace Stacktrace
-	Sync       *bool
-	Links      []SpanLink
-
-	DB                 *DB
-	DestinationService *DestinationService
-	Composite          *Composite
-
 	// RepresentativeCount holds the approximate number of spans that
 	// this span represents for aggregation. This will only be set when
 	// the sampling rate is known, and is used for scaling metrics.
@@ -64,12 +55,12 @@ type Span struct {
 
 // DB contains information related to a database query of a span event
 type DB struct {
+	RowsAffected *int
 	Instance     string
 	Statement    string
 	Type         string
 	UserName     string
 	Link         string
-	RowsAffected *int
 }
 
 // DestinationService contains information about the destination service of a span event
@@ -84,9 +75,9 @@ type DestinationService struct {
 
 // Composite holds details on a group of spans compressed into one.
 type Composite struct {
+	CompressionStrategy string
 	Count               int
 	Sum                 float64 // milliseconds
-	CompressionStrategy string
 }
 
 func (db *DB) fields() map[string]any {

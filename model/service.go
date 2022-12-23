@@ -20,16 +20,15 @@ package model
 // Service bundles together information related to the monitored service and
 // the agent used for monitoring
 type Service struct {
-	Name        string
-	Version     string
-	Environment string
+	Origin      *ServiceOrigin
+	Target      *ServiceTarget
 	Language    Language
 	Runtime     Runtime
 	Framework   Framework
+	Name        string
+	Version     string
+	Environment string
 	Node        ServiceNode
-
-	Origin *ServiceOrigin
-	Target *ServiceTarget
 }
 
 // ServiceOrigin holds information about the service that originated a

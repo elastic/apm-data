@@ -29,8 +29,8 @@ import (
 // Based on net/http.maxBytesReader.
 type LimitedReader struct {
 	R   io.Reader
-	N   int64
 	err error
+	N   int64
 }
 
 // Read implements the standard Read interface, returning an

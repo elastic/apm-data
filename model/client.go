@@ -23,12 +23,10 @@ import (
 
 // Client holds information about the client of a request.
 type Client struct {
-	// Domain holds the client's domain (FQDN).
-	Domain string
-
 	// IP holds the client's IP address.
 	IP netip.Addr
-
+	// Domain holds the client's domain (FQDN).
+	Domain string
 	// Port holds the client's IP port.
 	Port int
 }
