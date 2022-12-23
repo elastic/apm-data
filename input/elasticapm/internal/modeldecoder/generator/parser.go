@@ -174,7 +174,7 @@ func parse(pkg *packages.Package, parsed *Parsed) error {
 					fieldComments := make(map[string]string)
 					if st, ok := typeSpec.Type.(*ast.StructType); ok {
 						for _, f := range st.Fields.List {
-							if f.Doc != nil && len(f.Doc.Text()) > 0 {
+							if f.Doc != nil && len(f.Doc.Text()) > 0 && len(f.Names) > 0 {
 								fieldComments[f.Names[0].Name] = trimComment(f.Doc.Text())
 							}
 						}

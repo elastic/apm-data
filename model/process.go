@@ -18,13 +18,13 @@
 package model
 
 type Process struct {
-	Pid         int
 	Ppid        *int
+	Thread      ProcessThread
 	Title       string
-	Argv        []string
 	CommandLine string
 	Executable  string
-	Thread      ProcessThread
+	Argv        []string
+	Pid         int
 }
 
 func (p *Process) fields() map[string]any {
@@ -47,8 +47,8 @@ func (p *Process) fields() map[string]any {
 
 // ProcessThread represents the thread information.
 type ProcessThread struct {
-	ID   int
 	Name string
+	ID   int
 }
 
 func (t *ProcessThread) fields() map[string]any {

@@ -39,9 +39,8 @@ type ConsumerConfig struct {
 // Consumer transforms OpenTelemetry data to the Elastic APM data model,
 // sending each payload as a batch to the configured BatchProcessor.
 type Consumer struct {
-	stats consumerStats
-
 	config ConsumerConfig
+	stats  consumerStats
 }
 
 // NewConsumer returns a new Consumer with the given configuration.

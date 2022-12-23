@@ -20,24 +20,22 @@ package model
 type Stacktrace []*StacktraceFrame
 
 type StacktraceFrame struct {
-	AbsPath      string
-	Filename     string
-	Classname    string
-	Lineno       *int
-	Colno        *int
-	ContextLine  string
-	Module       string
-	Function     string
-	LibraryFrame bool
-	Vars         map[string]any
-	PreContext   []string
-	PostContext  []string
-
+	Vars                map[string]any
+	Lineno              *int
+	Colno               *int
+	Filename            string
+	Classname           string
+	ContextLine         string
+	Module              string
+	Function            string
+	AbsPath             string
+	SourcemapError      string
+	Original            Original
+	PreContext          []string
+	PostContext         []string
+	LibraryFrame        bool
+	SourcemapUpdated    bool
 	ExcludeFromGrouping bool
-
-	SourcemapUpdated bool
-	SourcemapError   string
-	Original         Original
 }
 
 type Original struct {

@@ -23,17 +23,14 @@ import (
 
 // Source holds information about the source of a network exchange.
 type Source struct {
-	// Domain holds the client's domain (FQDN).
-	Domain string
-
 	// IP holds the client's IP address.
 	IP netip.Addr
-
-	// Port holds the client's IP port.
-	Port int
-
 	// NAT holds the translated source based NAT sessions.
 	NAT *NAT
+	// Domain holds the client's domain (FQDN).
+	Domain string
+	// Port holds the client's IP port.
+	Port int
 }
 
 func (s *Source) fields() map[string]any {
