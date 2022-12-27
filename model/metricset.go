@@ -41,6 +41,11 @@ const (
 type Metricset struct {
 	// Name holds an optional name for the metricset.
 	Name string
+	// Interval holds the time period the metricset samples represent.
+	//
+	// The value is formatted in seconds, or minutes with the unit suffixed.
+	// Some examples include: `10s`, `1m`, `60m`.
+	Interval string
 	// Samples holds the metrics in the set.
 	Samples []MetricsetSample
 	// DocCount holds the document count for pre-aggregated metrics.
@@ -142,6 +147,7 @@ func (me *Metricset) setFields(fields *mapStr) {
 		fields.set("_doc_count", me.DocCount)
 	}
 	fields.maybeSetString("metricset.name", me.Name)
+	fields.maybeSetString("metricset.interval", me.Interval)
 
 	var metricDescriptions mapStr
 	for _, sample := range me.Samples {
