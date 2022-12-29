@@ -37,14 +37,13 @@ func NewNDJSONStreamDecoder(r io.Reader, maxLineLength int) *NDJSONStreamDecoder
 
 // NDJSONStreamDecoder decodes a stream of ND-JSON lines from an io.Reader.
 type NDJSONStreamDecoder struct {
-	bufioReader *bufio.Reader
-	lineReader  *LineReader
-
-	isEOF            bool
 	latestError      error
+	bufioReader      *bufio.Reader
+	lineReader       *LineReader
+	decoder          *jsoniter.Decoder
 	latestLine       []byte
 	latestLineReader bytes.Reader
-	decoder          *jsoniter.Decoder
+	isEOF            bool
 }
 
 // Reset sets sr's underlying io.Reader to r, and resets any reading/decoding state.

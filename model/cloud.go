@@ -20,6 +20,7 @@ package model
 // Cloud holds information about the cloud computing environment
 // in which a service is running.
 type Cloud struct {
+	Origin           *CloudOrigin
 	AccountID        string
 	AccountName      string
 	AvailabilityZone string
@@ -31,8 +32,6 @@ type Cloud struct {
 	Provider         string
 	Region           string
 	ServiceName      string
-
-	Origin *CloudOrigin
 }
 
 type CloudOrigin struct {

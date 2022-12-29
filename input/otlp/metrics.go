@@ -84,18 +84,13 @@ func (c *Consumer) convertResourceMetrics(resourceMetrics pmetric.ResourceMetric
 
 // OTel specification : https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/system-metrics.md
 type apmMetricsBuilder struct {
-	// Host CPU metrics
-	cpuCount                 int // from system.cpu.utilization's cpu attribute
+	jvmGCTime                map[string]apmMetricValue
+	jvmGCCount               map[string]apmMetricValue
+	jvmMemory                map[jvmMemoryKey]apmMetricValue
 	nonIdleCPUUtilizationSum apmMetricValue
-
-	// Host memory metrics
-	freeMemoryBytes apmMetricValue
-	usedMemoryBytes apmMetricValue
-
-	// JVM metrics
-	jvmGCTime  map[string]apmMetricValue
-	jvmGCCount map[string]apmMetricValue
-	jvmMemory  map[jvmMemoryKey]apmMetricValue
+	freeMemoryBytes          apmMetricValue
+	usedMemoryBytes          apmMetricValue
+	cpuCount                 int
 }
 
 func newAPMMetricsBuilder() *apmMetricsBuilder {

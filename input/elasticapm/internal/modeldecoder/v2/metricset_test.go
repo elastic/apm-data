@@ -76,6 +76,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		if key == "DocCount" ||
 			key == "Name" ||
 			key == "TimeseriesInstanceID" ||
+			key == "Interval" ||
 			// test Samples separately
 			strings.HasPrefix(key, "Samples") {
 			return true

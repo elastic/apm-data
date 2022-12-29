@@ -22,27 +22,21 @@ import (
 )
 
 type Host struct {
+	// OS holds information about the operating system running on the host.
+	OS OS
 	// Hostname holds the detected hostname of the host.
 	Hostname string
-
 	// Name holds the user-defined name of the host, or the
 	// detected hostname.
 	Name string
-
 	// ID holds a unique ID for the host.
 	ID string
-
 	// Architecture holds the host machine architecture.
 	Architecture string
-
 	// Type holds the host type, e.g. cloud instance machine type.
 	Type string
-
 	// IP holds the IP addresses of the host.
 	IP []netip.Addr
-
-	// OS holds information about the operating system running on the host.
-	OS OS
 }
 
 func (h *Host) fields() map[string]any {
