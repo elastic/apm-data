@@ -112,3 +112,33 @@ func TestNDStreamReaderReadAhead(t *testing.T) {
 		}
 	}
 }
+
+func TestNDStreamDecoderTrailing(t *testing.T) {
+	dec := NewNDJSONStreamDecoder(strings.NewReader(`{"key":"value1"}junk`+"\n"), 100)
+
+	var out struct{ Key string }
+	require.NoError(t, dec.Decode(&out))
+	assert.Equal(t, "value1", out.Key)
+
+	dec.Reset(strings.NewReader(`{"key":"value2"}junk` + "\n"))
+	err := dec.Decode(&out)
+	require.NoError(t, err)
+	assert.Equal(t, "value2", out.Key)
+}
+
+func BenchmarkNDStreamDecoder(b *testing.B) {
+	b.RunParallel(func(pb *testing.PB) {
+		r := strings.NewReader("")
+		dec := NewNDJSONStreamDecoder(r, 100)
+		for pb.Next() {
+			dec.Reset(strings.NewReader("\"string\"\n"))
+			var out interface{}
+			if err := dec.Decode(&out); err != nil {
+				b.Fatal(err)
+			}
+			if out != "string" {
+				b.Fatalf("expected \"string\", got %v", out)
+			}
+		}
+	})
+}
