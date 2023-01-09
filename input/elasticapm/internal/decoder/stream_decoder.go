@@ -21,8 +21,6 @@ import (
 	"bufio"
 	"bytes"
 	"io"
-
-	jsoniter "github.com/json-iterator/go"
 )
 
 // NewNDJSONStreamDecoder returns a new NDJSONStreamDecoder which decodes
@@ -31,7 +29,6 @@ func NewNDJSONStreamDecoder(r io.Reader, maxLineLength int) *NDJSONStreamDecoder
 	var dec NDJSONStreamDecoder
 	dec.bufioReader = bufio.NewReaderSize(r, maxLineLength)
 	dec.lineReader = NewLineReader(dec.bufioReader, maxLineLength)
-	dec.resetDecoder()
 	return &dec
 }
 
@@ -40,7 +37,6 @@ type NDJSONStreamDecoder struct {
 	latestError      error
 	bufioReader      *bufio.Reader
 	lineReader       *LineReader
-	decoder          *jsoniter.Decoder
 	latestLine       []byte
 	latestLineReader bytes.Reader
 	isEOF            bool
@@ -55,10 +51,6 @@ func (dec *NDJSONStreamDecoder) Reset(r io.Reader) {
 	dec.resetLatestLineReader()
 }
 
-func (dec *NDJSONStreamDecoder) resetDecoder() {
-	dec.decoder = json.NewDecoder(&dec.latestLineReader)
-}
-
 // Decode decodes the next line into v.
 func (dec *NDJSONStreamDecoder) Decode(v interface{}) error {
 	defer dec.resetLatestLineReader()
@@ -68,9 +60,12 @@ func (dec *NDJSONStreamDecoder) Decode(v interface{}) error {
 	if len(dec.latestLine) == 0 || (dec.latestError != nil && !dec.isEOF) {
 		return dec.latestError
 	}
-	if err := dec.decoder.Decode(v); err != nil {
-		dec.resetDecoder() // clear out decoding state
-		return JSONDecodeError("data read error: " + err.Error())
+
+	iter := json.BorrowIterator(dec.latestLine)
+	defer json.ReturnIterator(iter)
+	iter.ReadVal(v)
+	if iter.Error != nil && iter.Error != io.EOF {
+		return JSONDecodeError("data read error: " + iter.Error.Error())
 	}
 	return dec.latestError // this might be io.EOF
 }
