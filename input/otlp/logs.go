@@ -40,6 +40,7 @@ import (
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
+	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 	"go.uber.org/zap"
 
 	"github.com/elastic/apm-data/model"
@@ -109,15 +110,54 @@ func (c *Consumer) convertLogRecord(
 		}
 		event.Span.ID = spanID.HexString()
 	}
-	if attrs := record.Attributes(); attrs.Len() > 0 {
-		setLabels(attrs, &event)
+	attrs := record.Attributes()
+	setLabels(attrs, &event)
+	if event.Error != nil {
+		event.Processor = model.ErrorProcessor
+		event.Event.Kind = "event"
+		event.Event.Type = "error"
 	}
 	return event
 }
 
 func setLabels(m pcommon.Map, event *model.APMEvent) {
+	var exceptionEscaped bool
+	var exceptionMessage, exceptionStacktrace, exceptionType string
 	m.Range(func(k string, v pcommon.Value) bool {
-		setLabel(k, event, ifaceAttributeValue(v))
+		switch k {
+		case semconv.AttributeExceptionMessage:
+			exceptionMessage = v.Str()
+		case semconv.AttributeExceptionStacktrace:
+			exceptionStacktrace = v.Str()
+		case semconv.AttributeExceptionType:
+			exceptionType = v.Str()
+		case semconv.AttributeExceptionEscaped:
+			exceptionEscaped = v.Bool()
+		default:
+			setLabel(replaceDots(k), event, ifaceAttributeValue(v))
+		}
 		return true
 	})
+
+	if exceptionMessage != "" || exceptionType != "" {
+		// Per OpenTelemetry semantic conventions:
+		//   `At least one of the following sets of attributes is required:
+		//   - exception.type
+		//   - exception.message`
+		event.Error = convertOpenTelemetryExceptionSpanEvent(
+			exceptionType, exceptionMessage, exceptionStacktrace,
+			exceptionEscaped, event.Service.Language.Name,
+		)
+	}
+
+	eventName, eventNameOk := m.Get("event.name")
+	if eventNameOk {
+		if event.Error == nil {
+			event.Error = &model.Error{}
+		}
+		if eventName.Str() == "crash" {
+			event.Event.Category = "device"
+		}
+		event.Error.Type = eventName.Str()
+	}
 }
