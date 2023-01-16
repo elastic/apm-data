@@ -112,41 +112,24 @@ func (c *Consumer) convertLogRecord(
 	}
 	attrs := record.Attributes()
 	setLabels(attrs, &event)
-	if event.Error != nil {
-		event.Processor = model.ErrorProcessor
-		event.Event.Kind = "event"
-		event.Event.Type = "error"
-	}
+	convertErrorLogRecord(attrs, &event)
 	return event
 }
 
-func setLabels(m pcommon.Map, event *model.APMEvent) {
-	var exceptionEscaped bool
-	var exceptionMessage, exceptionStacktrace, exceptionType string
-	m.Range(func(k string, v pcommon.Value) bool {
-		switch k {
-		case semconv.AttributeExceptionMessage:
-			exceptionMessage = v.Str()
-		case semconv.AttributeExceptionStacktrace:
-			exceptionStacktrace = v.Str()
-		case semconv.AttributeExceptionType:
-			exceptionType = v.Str()
-		case semconv.AttributeExceptionEscaped:
-			exceptionEscaped = v.Bool()
-		default:
-			setLabel(replaceDots(k), event, ifaceAttributeValue(v))
-		}
-		return true
-	})
+func convertErrorLogRecord(m pcommon.Map, event *model.APMEvent) {
+	exceptionMessage, exceptionMessageOk := m.Get(semconv.AttributeExceptionMessage)
+	exceptionType, exceptionTypeOk := m.Get(semconv.AttributeExceptionType)
 
-	if exceptionMessage != "" || exceptionType != "" {
+	if exceptionMessageOk && exceptionTypeOk {
+		exceptionStacktrace, _ := m.Get(semconv.AttributeExceptionStacktrace)
+		exceptionEscaped, _ := m.Get(semconv.AttributeExceptionEscaped)
 		// Per OpenTelemetry semantic conventions:
 		//   `At least one of the following sets of attributes is required:
 		//   - exception.type
 		//   - exception.message`
 		event.Error = convertOpenTelemetryExceptionSpanEvent(
-			exceptionType, exceptionMessage, exceptionStacktrace,
-			exceptionEscaped, event.Service.Language.Name,
+			exceptionType.Str(), exceptionMessage.Str(), exceptionStacktrace.Str(),
+			exceptionEscaped.Bool(), event.Service.Language.Name,
 		)
 	}
 
@@ -160,4 +143,24 @@ func setLabels(m pcommon.Map, event *model.APMEvent) {
 		}
 		event.Error.Type = eventName.Str()
 	}
+
+	if event.Error != nil {
+		event.Processor = model.ErrorProcessor
+		event.Event.Kind = "event"
+		event.Event.Type = "error"
+	}
+}
+
+func setLabels(m pcommon.Map, event *model.APMEvent) {
+	m.Range(func(k string, v pcommon.Value) bool {
+		switch k {
+		case semconv.AttributeExceptionMessage:
+		case semconv.AttributeExceptionStacktrace:
+		case semconv.AttributeExceptionType:
+		case semconv.AttributeExceptionEscaped:
+		default:
+			setLabel(replaceDots(k), event, ifaceAttributeValue(v))
+		}
+		return true
+	})
 }
