@@ -184,10 +184,7 @@ Caused by: LowLevelException
 			Category: "device",
 			Type:     "error",
 		},
-		Labels: model.Labels{
-			"key0":       {Global: true, Value: "zero"},
-			"event_name": {Value: "crash"},
-		},
+		Labels:        model.Labels{"key0": {Global: true, Value: "zero"}},
 		NumericLabels: model.NumericLabels{},
 		Processor:     model.ErrorProcessor,
 		Message:       "bar",

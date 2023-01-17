@@ -111,37 +111,49 @@ func (c *Consumer) convertLogRecord(
 		event.Span.ID = spanID.HexString()
 	}
 	attrs := record.Attributes()
-	setLabels(attrs, &event)
-	convertErrorLogRecord(attrs, &event)
-	return event
-}
 
-func convertErrorLogRecord(m pcommon.Map, event *model.APMEvent) {
-	exceptionMessage, exceptionMessageOk := m.Get(semconv.AttributeExceptionMessage)
-	exceptionType, exceptionTypeOk := m.Get(semconv.AttributeExceptionType)
+	var exceptionMessage string
+	var exceptionStacktrace string
+	var exceptionType string
+	var exceptionEscaped bool
+	var eventName string
+	attrs.Range(func(k string, v pcommon.Value) bool {
+		switch k {
+		case semconv.AttributeExceptionMessage:
+			exceptionMessage = v.Str()
+		case semconv.AttributeExceptionStacktrace:
+			exceptionStacktrace = v.Str()
+		case semconv.AttributeExceptionType:
+			exceptionType = v.Str()
+		case semconv.AttributeExceptionEscaped:
+			exceptionEscaped = v.Bool()
+		case "event.name":
+			eventName = v.Str()
+		default:
+			setLabel(replaceDots(k), &event, ifaceAttributeValue(v))
+		}
+		return true
+	})
 
-	if exceptionMessageOk && exceptionTypeOk {
-		exceptionStacktrace, _ := m.Get(semconv.AttributeExceptionStacktrace)
-		exceptionEscaped, _ := m.Get(semconv.AttributeExceptionEscaped)
+	if exceptionMessage != "" && exceptionType != "" {
 		// Per OpenTelemetry semantic conventions:
 		//   `At least one of the following sets of attributes is required:
 		//   - exception.type
 		//   - exception.message`
 		event.Error = convertOpenTelemetryExceptionSpanEvent(
-			exceptionType.Str(), exceptionMessage.Str(), exceptionStacktrace.Str(),
-			exceptionEscaped.Bool(), event.Service.Language.Name,
+			exceptionType, exceptionMessage, exceptionStacktrace,
+			exceptionEscaped, event.Service.Language.Name,
 		)
 	}
 
-	eventName, eventNameOk := m.Get("event.name")
-	if eventNameOk {
+	if eventName != "" {
 		if event.Error == nil {
 			event.Error = &model.Error{}
 		}
-		if eventName.Str() == "crash" {
+		if eventName == "crash" {
 			event.Event.Category = "device"
 		}
-		event.Error.Type = eventName.Str()
+		event.Error.Type = eventName
 	}
 
 	if event.Error != nil {
@@ -149,18 +161,13 @@ func convertErrorLogRecord(m pcommon.Map, event *model.APMEvent) {
 		event.Event.Kind = "event"
 		event.Event.Type = "error"
 	}
+
+	return event
 }
 
 func setLabels(m pcommon.Map, event *model.APMEvent) {
 	m.Range(func(k string, v pcommon.Value) bool {
-		switch k {
-		case semconv.AttributeExceptionMessage:
-		case semconv.AttributeExceptionStacktrace:
-		case semconv.AttributeExceptionType:
-		case semconv.AttributeExceptionEscaped:
-		default:
-			setLabel(replaceDots(k), event, ifaceAttributeValue(v))
-		}
+		setLabel(replaceDots(k), event, ifaceAttributeValue(v))
 		return true
 	})
 }
