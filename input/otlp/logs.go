@@ -117,6 +117,7 @@ func (c *Consumer) convertLogRecord(
 	var exceptionType string
 	var exceptionEscaped bool
 	var eventName string
+	var eventDomain string
 	attrs.Range(func(k string, v pcommon.Value) bool {
 		switch k {
 		case semconv.AttributeExceptionMessage:
@@ -129,6 +130,8 @@ func (c *Consumer) convertLogRecord(
 			exceptionEscaped = v.Bool()
 		case "event.name":
 			eventName = v.Str()
+		case "event.domain":
+			eventDomain = v.Str()
 		default:
 			setLabel(replaceDots(k), &event, ifaceAttributeValue(v))
 		}
@@ -146,14 +149,14 @@ func (c *Consumer) convertLogRecord(
 		)
 	}
 
-	if eventName != "" {
+	if eventName == "crash" {
 		if event.Error == nil {
 			event.Error = &model.Error{}
 		}
-		if eventName == "crash" {
-			event.Event.Category = "device"
-		}
-		event.Error.Type = eventName
+		event.Error.Type = "crash"
+	}
+	if eventDomain == "device" {
+		event.Event.Category = "device"
 	}
 
 	if event.Error != nil {
