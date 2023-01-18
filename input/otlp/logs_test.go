@@ -130,6 +130,7 @@ func TestConsumerConsumeLogsException(t *testing.T) {
 
 	record2 := newLogRecord("bar")
 	record2.Attributes().PutStr("event.name", "crash")
+	record2.Attributes().PutStr("event.domain", "device")
 	record2.Attributes().PutStr("exception.type", "HighLevelException")
 	record2.Attributes().PutStr("exception.message", "MidLevelException: LowLevelException")
 	record2.Attributes().PutStr("exception.stacktrace", `
