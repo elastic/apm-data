@@ -40,6 +40,7 @@ import (
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
+	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 	"go.uber.org/zap"
 
 	"github.com/elastic/apm-data/model"
@@ -109,15 +110,67 @@ func (c *Consumer) convertLogRecord(
 		}
 		event.Span.ID = spanID.HexString()
 	}
-	if attrs := record.Attributes(); attrs.Len() > 0 {
-		setLabels(attrs, &event)
+	attrs := record.Attributes()
+
+	var exceptionMessage string
+	var exceptionStacktrace string
+	var exceptionType string
+	var exceptionEscaped bool
+	var eventName string
+	var eventDomain string
+	attrs.Range(func(k string, v pcommon.Value) bool {
+		switch k {
+		case semconv.AttributeExceptionMessage:
+			exceptionMessage = v.Str()
+		case semconv.AttributeExceptionStacktrace:
+			exceptionStacktrace = v.Str()
+		case semconv.AttributeExceptionType:
+			exceptionType = v.Str()
+		case semconv.AttributeExceptionEscaped:
+			exceptionEscaped = v.Bool()
+		case "event.name":
+			eventName = v.Str()
+		case "event.domain":
+			eventDomain = v.Str()
+		default:
+			setLabel(replaceDots(k), &event, ifaceAttributeValue(v))
+		}
+		return true
+	})
+
+	if exceptionMessage != "" && exceptionType != "" {
+		// Per OpenTelemetry semantic conventions:
+		//   `At least one of the following sets of attributes is required:
+		//   - exception.type
+		//   - exception.message`
+		event.Error = convertOpenTelemetryExceptionSpanEvent(
+			exceptionType, exceptionMessage, exceptionStacktrace,
+			exceptionEscaped, event.Service.Language.Name,
+		)
 	}
+
+	if eventName == "crash" {
+		if event.Error == nil {
+			event.Error = &model.Error{}
+		}
+		event.Error.Type = "crash"
+	}
+	if eventDomain == "device" {
+		event.Event.Category = "device"
+	}
+
+	if event.Error != nil {
+		event.Processor = model.ErrorProcessor
+		event.Event.Kind = "event"
+		event.Event.Type = "error"
+	}
+
 	return event
 }
 
 func setLabels(m pcommon.Map, event *model.APMEvent) {
 	m.Range(func(k string, v pcommon.Value) bool {
-		setLabel(k, event, ifaceAttributeValue(v))
+		setLabel(replaceDots(k), event, ifaceAttributeValue(v))
 		return true
 	})
 }

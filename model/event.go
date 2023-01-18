@@ -33,6 +33,16 @@ type Event struct {
 	// source publishes more than one type of log or events (e.g. access log,
 	// error log), the dataset is used to specify which one the event comes from.
 	Dataset string
+
+	// Kind holds the kind of the event. The highest categorization field in the hierarchy.
+	Kind string
+
+	// Category holds the event category. The second categorization field in the hierarchy.
+	Category string
+
+	// Type holds the event type. The third categorization field in the hierarchy.
+	Type string
+
 	// SuccessCount holds an aggregated count of events with different outcomes.
 	// A "failure" adds to the Count. A "success" adds to both the Count and the
 	// Sum. An "unknown" has no effect. If Count is zero, it will be omitted
@@ -54,6 +64,9 @@ func (e *Event) fields() map[string]any {
 	}
 	fields.maybeSetString("action", e.Action)
 	fields.maybeSetString("dataset", e.Dataset)
+	fields.maybeSetString("kind", e.Kind)
+	fields.maybeSetString("category", e.Category)
+	fields.maybeSetString("Type", e.Type)
 	if e.Severity > 0 {
 		fields.set("severity", e.Severity)
 	}
