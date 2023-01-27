@@ -66,7 +66,7 @@ func (e *Event) fields() map[string]any {
 	fields.maybeSetString("dataset", e.Dataset)
 	fields.maybeSetString("kind", e.Kind)
 	fields.maybeSetString("category", e.Category)
-	fields.maybeSetString("Type", e.Type)
+	fields.maybeSetString("type", e.Type)
 	if e.Severity > 0 {
 		fields.set("severity", e.Severity)
 	}
