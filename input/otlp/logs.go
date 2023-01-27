@@ -132,6 +132,8 @@ func (c *Consumer) convertLogRecord(
 			eventName = v.Str()
 		case "event.domain":
 			eventDomain = v.Str()
+		case "session.id":
+			event.Session.ID = v.Str()
 		default:
 			setLabel(replaceDots(k), &event, ifaceAttributeValue(v))
 		}
