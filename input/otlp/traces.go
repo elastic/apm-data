@@ -797,6 +797,7 @@ func parseSamplerAttributes(samplerType, samplerParam pcommon.Value, event *mode
 			}
 		}
 	default:
+		event.Transaction.RepresentativeCount = 0
 		event.Labels.Set("sampler_type", samplerType)
 		switch samplerParam.Type() {
 		case pcommon.ValueTypeBool:
