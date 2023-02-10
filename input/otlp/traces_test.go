@@ -99,21 +99,48 @@ func TestOutcome(t *testing.T) {
 	test(t, "failure", "Error", ptrace.StatusCodeError)
 }
 
+// func TestRepresentativeCountFromTracestateHeader(t *testing.T) {
+// 	assert.Equal(t, 1.0, otlp.GetRepresentativeCountFromTracestateHeader("invalid_trace_state"))
+// 	assert.Equal(t, 4.0, otlp.GetRepresentativeCountFromTracestateHeader("es=s:0.5,ot=p:2;r:62;k1:13,xy=w"))
+// 	assert.Equal(t, 256.0, otlp.GetRepresentativeCountFromTracestateHeader("esx:0.5,ot=p:8;r:62;k1:13,xy=w"))
+// 	assert.Equal(t, math.Pow(2.0, 62), otlp.GetRepresentativeCountFromTracestateHeader("ot=p:62"))
+// 	assert.Equal(t, 0.0, otlp.GetRepresentativeCountFromTracestateHeader("ot=p:63"))
+// }
+
 func TestRepresentativeCount(t *testing.T) {
 	traces, spans := newTracesSpans()
 	otelSpan1 := spans.Spans().AppendEmpty()
 	otelSpan1.SetTraceID(pcommon.TraceID{1})
 	otelSpan1.SetSpanID(pcommon.SpanID{2})
+	otelSpan1.TraceState().FromRaw("esx:0.5,ot=p:8;r:62;k1:13,xy=w")
 	otelSpan2 := spans.Spans().AppendEmpty()
 	otelSpan2.SetTraceID(pcommon.TraceID{1})
-	otelSpan2.SetSpanID(pcommon.SpanID{2})
-	otelSpan2.SetParentSpanID(pcommon.SpanID{3})
+	otelSpan2.SetSpanID(pcommon.SpanID{3})
+	otelSpan2.SetParentSpanID(pcommon.SpanID{2})
+	otelSpan2.TraceState().FromRaw("esx:0.5,ot=p:63;r:62;k1:13,xy=w")
+	otelSpan3 := spans.Spans().AppendEmpty()
+	otelSpan3.SetTraceID(pcommon.TraceID{1})
+	otelSpan3.SetSpanID(pcommon.SpanID{4})
+	otelSpan3.SetParentSpanID(pcommon.SpanID{2})
+	otelSpan3.TraceState().FromRaw("esx:0.5,ot=p:0;r:62;k1:13,xy=w")
+	otelSpan4 := spans.Spans().AppendEmpty()
+	otelSpan4.SetTraceID(pcommon.TraceID{1})
+	otelSpan4.SetSpanID(pcommon.SpanID{5})
+	otelSpan4.SetParentSpanID(pcommon.SpanID{2})
+	otelSpan4.TraceState().FromRaw("esx:0.5")
+	otelSpan5 := spans.Spans().AppendEmpty()
+	otelSpan5.SetTraceID(pcommon.TraceID{1})
+	otelSpan5.SetSpanID(pcommon.SpanID{6})
+	otelSpan5.SetParentSpanID(pcommon.SpanID{2})
 
 	batch := transformTraces(t, traces)
-	require.Len(t, batch, 2)
+	require.Len(t, batch, 5)
 
-	assert.Equal(t, 1.0, batch[0].Transaction.RepresentativeCount)
-	assert.Equal(t, 1.0, batch[1].Span.RepresentativeCount)
+	assert.Equal(t, 256.0, batch[0].Transaction.RepresentativeCount)
+	assert.Equal(t, 0.0, batch[1].Span.RepresentativeCount)
+	assert.Equal(t, 1.0, batch[2].Span.RepresentativeCount)
+	assert.Equal(t, 1.0, batch[3].Span.RepresentativeCount)
+	assert.Equal(t, 1.0, batch[4].Span.RepresentativeCount)
 }
 
 func TestHTTPTransactionURL(t *testing.T) {
