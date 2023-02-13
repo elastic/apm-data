@@ -250,6 +250,11 @@ func DecodeNestedLog(d decoder.Decoder, input *modeldecoder.Input, batch *model.
 	return err
 }
 
+func DecodeTelemetry(d decoder.Decoder, input *modeldecoder.Input, batch *model.Batch) error {
+	var err error
+	return err
+}
+
 func decodeMetadata(decFn func(d decoder.Decoder, m *metadataRoot) error, d decoder.Decoder, out *model.APMEvent) error {
 	m := fetchMetadataRoot()
 	defer releaseMetadataRoot(m)
