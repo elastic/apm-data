@@ -17,5 +17,10 @@
 
 package model
 
+var (
+	// TelemetryProcessor is the Processor value that should be assigned to telemetry events.
+	TelemetryProcessor = Processor{Name: "telemetry", Event: "telemetry"}
+)
+
 type Telemetry struct {
 }

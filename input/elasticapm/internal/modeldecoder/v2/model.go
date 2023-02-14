@@ -1086,6 +1086,7 @@ type transactionMarks struct {
 }
 
 type telemetry struct {
+	// telemetry capture timestamp
 	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
 	// agent effective configuration as key-value map
 	Attributes map[string]interface{} `json:"effective_config"`

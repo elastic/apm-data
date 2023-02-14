@@ -10,6 +10,7 @@
       ]
     },
     "timestamp": {
+      "description": "telemetry capture timestamp",
       "type": [
         "null",
         "integer"
