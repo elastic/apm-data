@@ -72,6 +72,11 @@ var (
 			return &logRoot{}
 		},
 	}
+	telemetryRootPool = sync.Pool{
+		New: func() interface{} {
+			return &telemetryRoot{}
+		},
+	}
 )
 
 var (
@@ -133,6 +138,15 @@ func fetchLogRoot() *logRoot {
 func releaseLogRoot(root *logRoot) {
 	root.Reset()
 	logRootPool.Put(root)
+}
+
+func fetchTelemetryRoot() *telemetryRoot {
+	return telemetryRootPool.Get().(*telemetryRoot)
+}
+
+func releaseTelemetryRoot(root *telemetryRoot) {
+	//telemetryRoot.Reset()
+	//telemetryRootPool.Put(telemetryRoot)
 }
 
 // DecodeMetadata decodes metadata from d, updating out.
@@ -250,6 +264,9 @@ func DecodeNestedLog(d decoder.Decoder, input *modeldecoder.Input, batch *model.
 	return err
 }
 
+// DecodeTelemetry decodes a transaction from d, appending it to batch.
+//
+// DecodeTelemetry should be used when the stream in the decoder contains the `telemetry` key
 func DecodeTelemetry(d decoder.Decoder, input *modeldecoder.Input, batch *model.Batch) error {
 	var err error
 	return err

@@ -1,0 +1,19 @@
+{
+  "$id": "docs/spec/v2/telemetry",
+  "type": "object",
+  "properties": {
+    "effective_config": {
+      "description": "agent effective configuration as key-value map",
+      "type": [
+        "null",
+        "object"
+      ]
+    },
+    "timestamp": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    }
+  }
+}

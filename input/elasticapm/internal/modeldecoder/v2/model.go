@@ -62,6 +62,11 @@ type logRoot struct {
 	Log log `json:"log" validate:"required"`
 }
 
+// telemetryRoot requires a telemetry event to be present
+type telemetryRoot struct {
+	Telemetry telemetry `json:"telemetry" validate:"required"`
+}
+
 // other structs
 
 type context struct {
@@ -1078,6 +1083,12 @@ type transactionSession struct {
 
 type transactionMarks struct {
 	Events map[string]transactionMarkEvents `json:"-"`
+}
+
+type telemetry struct {
+	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
+	// agent effective configuration as key-value map
+	Attributes map[string]interface{} `json:"effective_config"`
 }
 
 func (m *transactionMarks) UnmarshalJSON(data []byte) error {

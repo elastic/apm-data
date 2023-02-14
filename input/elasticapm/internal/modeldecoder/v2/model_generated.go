@@ -3363,3 +3363,50 @@ func (val *EcsLogLogFields) processNestedSource() error {
 	}
 	return nil
 }
+
+func (val *telemetryRoot) IsSet() bool {
+	return val.Telemetry.IsSet()
+}
+
+func (val *telemetryRoot) Reset() {
+	val.Telemetry.Reset()
+}
+
+func (val *telemetryRoot) validate() error {
+	if err := val.Telemetry.validate(); err != nil {
+		return errors.Wrapf(err, "telemetry")
+	}
+	if !val.Telemetry.IsSet() {
+		return fmt.Errorf("'telemetry' required")
+	}
+	return nil
+}
+
+func (val *telemetryRoot) processNestedSource() error {
+	if err := val.Telemetry.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "telemetry")
+	}
+	return nil
+}
+
+func (val *telemetry) IsSet() bool {
+	return val.Timestamp.IsSet() || (len(val.Attributes) > 0)
+}
+
+func (val *telemetry) Reset() {
+	val.Timestamp.Reset()
+	for k := range val.Attributes {
+		delete(val.Attributes, k)
+	}
+}
+
+func (val *telemetry) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	return nil
+}
+
+func (val *telemetry) processNestedSource() error {
+	return nil
+}
