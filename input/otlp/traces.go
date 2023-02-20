@@ -1064,7 +1064,11 @@ func schemeDefaultPort(scheme string) int {
 //	https://opentelemetry.io/docs/reference/specification/trace/tracestate-probability-sampling/#p-value
 //
 // to calculate the adjusted count (i.e. representative count)
+//
+// If the p-value is missing or invalid in the tracestate we assume
+// a sampling rate of 100% and a representative count of 1.
 func getRepresentativeCountFromTracestateHeader(tracestace string) float64 {
+	// Default p-value is 0, leading to a default representative count of 1.
 	var p uint64 = 0
 
 	otValue := getValueForKeyInString(tracestace, "ot", ',', '=')
@@ -1076,7 +1080,6 @@ func getRepresentativeCountFromTracestateHeader(tracestace string) float64 {
 			p, _ = strconv.ParseUint(pValue, 10, 6)
 		}
 	}
-
 
 	if p > 62 {
 		return 0.0
