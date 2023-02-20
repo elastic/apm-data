@@ -99,14 +99,6 @@ func TestOutcome(t *testing.T) {
 	test(t, "failure", "Error", ptrace.StatusCodeError)
 }
 
-// func TestRepresentativeCountFromTracestateHeader(t *testing.T) {
-// 	assert.Equal(t, 1.0, otlp.GetRepresentativeCountFromTracestateHeader("invalid_trace_state"))
-// 	assert.Equal(t, 4.0, otlp.GetRepresentativeCountFromTracestateHeader("es=s:0.5,ot=p:2;r:62;k1:13,xy=w"))
-// 	assert.Equal(t, 256.0, otlp.GetRepresentativeCountFromTracestateHeader("esx:0.5,ot=p:8;r:62;k1:13,xy=w"))
-// 	assert.Equal(t, math.Pow(2.0, 62), otlp.GetRepresentativeCountFromTracestateHeader("ot=p:62"))
-// 	assert.Equal(t, 0.0, otlp.GetRepresentativeCountFromTracestateHeader("ot=p:63"))
-// }
-
 func TestRepresentativeCount(t *testing.T) {
 	traces, spans := newTracesSpans()
 	otelSpan1 := spans.Spans().AppendEmpty()
