@@ -1065,7 +1065,7 @@ func schemeDefaultPort(scheme string) int {
 //
 // to calculate the adjusted count (i.e. representative count)
 func getRepresentativeCountFromTracestateHeader(tracestace string) float64 {
-	var p float64 = 0.0
+	var p uint64 = 0
 
 	otValue := getValueForKeyInString(tracestace, "ot", ',', '=')
 
@@ -1073,19 +1073,19 @@ func getRepresentativeCountFromTracestateHeader(tracestace string) float64 {
 		pValue := getValueForKeyInString(otValue, "p", ';', ':')
 
 		if pValue != "" {
-			p, _ = strconv.ParseFloat(pValue, 64)
+			p, _ = strconv.ParseUint(pValue, 10, 6)
 		}
 	}
 
-	if p < 0.0 {
+	if p < 0 {
 		return 1.0
 	}
 
-	if p > 62.0 {
+	if p > 62 {
 		return 0.0
 	}
 
-	return math.Pow(2, p)
+	return math.Pow(2, float64(p))
 }
 
 func getValueForKeyInString(str string, key string, separator rune, assignChar rune) string {
