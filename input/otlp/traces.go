@@ -37,6 +37,7 @@ package otlp
 import (
 	"context"
 	"fmt"
+	"math"
 	"net"
 	"net/netip"
 	"net/url"
@@ -138,6 +139,7 @@ func (c *Consumer) convertSpan(
 	// therefore start a transaction whenever span kind == consumer.
 	name := otelSpan.Name()
 	spanID := otelSpan.SpanID().HexString()
+	representativeCount := getRepresentativeCountFromTracestateHeader(otelSpan.TraceState().AsRaw())
 	event := baseEvent
 	initEventLabels(&event)
 	event.Timestamp = startTime.Add(timeDelta)
@@ -148,16 +150,18 @@ func (c *Consumer) convertSpan(
 	if root || otelSpan.Kind() == ptrace.SpanKindServer || otelSpan.Kind() == ptrace.SpanKindConsumer {
 		event.Processor = model.TransactionProcessor
 		event.Transaction = &model.Transaction{
-			ID:      spanID,
-			Name:    name,
-			Sampled: true,
+			ID:                  spanID,
+			Name:                name,
+			Sampled:             true,
+			RepresentativeCount: representativeCount,
 		}
 		TranslateTransaction(otelSpan.Attributes(), otelSpan.Status(), otelLibrary, &event)
 	} else {
 		event.Processor = model.SpanProcessor
 		event.Span = &model.Span{
-			ID:   spanID,
-			Name: name,
+			ID:                  spanID,
+			Name:                name,
+			RepresentativeCount: representativeCount,
 		}
 		TranslateSpan(otelSpan.Kind(), otelSpan.Attributes(), &event)
 	}
@@ -397,8 +401,6 @@ func TranslateTransaction(
 	if samplerType != (pcommon.Value{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate span metrics.
 		parseSamplerAttributes(samplerType, samplerParam, event)
-	} else {
-		event.Transaction.RepresentativeCount = 1
 	}
 
 	if event.Transaction.Result == "" {
@@ -779,8 +781,6 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 	if samplerType != (pcommon.Value{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate transaction metrics.
 		parseSamplerAttributes(samplerType, samplerParam, event)
-	} else {
-		event.Span.RepresentativeCount = 1
 	}
 }
 
@@ -797,6 +797,7 @@ func parseSamplerAttributes(samplerType, samplerParam pcommon.Value, event *mode
 			}
 		}
 	default:
+		event.Transaction.RepresentativeCount = 0
 		event.Labels.Set("sampler_type", samplerType)
 		switch samplerParam.Type() {
 		case pcommon.ValueTypeBool:
@@ -1055,4 +1056,56 @@ func schemeDefaultPort(scheme string) int {
 		return 443
 	}
 	return 0
+}
+
+// parses traceparent header, which is expected to be in the W3C Trace-Context
+// and searches for the p-value as specified in
+//
+//	https://opentelemetry.io/docs/reference/specification/trace/tracestate-probability-sampling/#p-value
+//
+// to calculate the adjusted count (i.e. representative count)
+//
+// If the p-value is missing or invalid in the tracestate we assume
+// a sampling rate of 100% and a representative count of 1.
+func getRepresentativeCountFromTracestateHeader(tracestace string) float64 {
+	// Default p-value is 0, leading to a default representative count of 1.
+	var p uint64 = 0
+
+	otValue := getValueForKeyInString(tracestace, "ot", ',', '=')
+
+	if otValue != "" {
+		pValue := getValueForKeyInString(otValue, "p", ';', ':')
+
+		if pValue != "" {
+			p, _ = strconv.ParseUint(pValue, 10, 6)
+		}
+	}
+
+	if p > 62 {
+		return 0.0
+	}
+
+	return math.Pow(2, float64(p))
+}
+
+func getValueForKeyInString(str string, key string, separator rune, assignChar rune) string {
+	for {
+		str = strings.TrimSpace(str)
+		if str == "" {
+			break
+		}
+		kv := str
+		if sepIdx := strings.IndexRune(str, separator); sepIdx != -1 {
+			kv = strings.TrimSpace(str[:sepIdx])
+			str = str[sepIdx+1:]
+		} else {
+			str = ""
+		}
+		equal := strings.IndexRune(kv, assignChar)
+		if equal != -1 && kv[:equal] == key {
+			return kv[equal+1:]
+		}
+	}
+
+	return ""
 }
