@@ -1077,9 +1077,6 @@ func getRepresentativeCountFromTracestateHeader(tracestace string) float64 {
 		}
 	}
 
-	if p < 0 {
-		return 1.0
-	}
 
 	if p > 62 {
 		return 0.0
