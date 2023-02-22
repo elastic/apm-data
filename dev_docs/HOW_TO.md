@@ -32,7 +32,7 @@ Adding a new intake field requires changes to both apm-data and apm-server repos
         - Otherwise, modify `fields.yml`.
    3. Update apmpackage changelog `apmpackage/apm/changelog.yml`
 
-### 3. Test your changes (in apm-server)
+### 3. Test your changes with system test (in apm-server)
 
 Modify apm-server system test to ensure the field works end-to-end.
 
@@ -45,8 +45,11 @@ Modify apm-server system test to ensure the field works end-to-end.
 3. System tests should fail as the received Elasticsearch documents do not match the expected documents because of the new field. If it doesn't fail, check the code.
 4. Run `make update check-approvals` to review and accept the changes in the Elasticsearch documents.
 
+### 4. Test your changes manually
 
-### 4. Finalize PRs
+See [apm-server TESTING.md](https://github.com/elastic/apm-server/blob/main/dev_docs/TESTING.md#manual-testing)
+
+### 5. Finalize PRs
 
 1. Create a PR in apm-data, and have it reviewed and merged.
 2. In apm-server, bump apm-data dependency.
@@ -78,7 +81,7 @@ Mapping an OTel field is similar to adding a field to Intake.
 
 1. Same as [How to add a new intake field](#how-to-add-a-new-intake-field)
 
-### 3. Test your changes (in apm-server)
+### 3. Test your changes with system test (in apm-server)
 
 Modify apm-server system test to ensure the field works end-to-end.
 
@@ -88,7 +91,11 @@ Modify apm-server system test to ensure the field works end-to-end.
 3. System tests should fail as the received Elasticsearch documents do not match the expected documents because of the new field. If it doesn't fail, check the code.
 4. Run `make update check-approvals` to review and accept the changes in the Elasticsearch documents.
 
-### 4. Finalize PRs
+### 4. Test your changes manually
+
+See [apm-server TESTING.md](https://github.com/elastic/apm-server/blob/main/dev_docs/TESTING.md#manual-testing)
+
+### 5. Finalize PRs
 1. Same as [How to add a new intake field](#how-to-add-a-new-intake-field)
 
 ### Example PR:
