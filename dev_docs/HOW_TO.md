@@ -1,3 +1,5 @@
+# How To
+
 ## How to add a new intake field
 
 Adding a new intake field requires changes to both apm-data and apm-server repositories. 
