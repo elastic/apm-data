@@ -9,7 +9,7 @@ Adding a new intake field requires changes to both apm-data and apm-server repos
 1. Add the new field to modeldecoder `model.go` such that the field is parsed from JSON.
    - Intake v2: [input/elasticapm/internal/modeldecoder/v2/model.go](/input/elasticapm/internal/modeldecoder/v2/model.go)
    - RUM v3: [input/elasticapm/internal/modeldecoder/rumv3/model.go](/input/elasticapm/internal/modeldecoder/rumv3/model.go)
-2. Run `make generate` to generate the corresponding `model_generated.go` from the modified `model.go` in step 1.
+2. Run `make generate` to generate the corresponding `model_generated.go` and JSON specification from the modified `model.go` in step 1.
 3. Run `make update-licenses` to add license header to `model_generated.go` generated in step 2.
 4. Add the new field to the corresponding file in `model/`, e.g. `span.go`.
    1. Add the field to the struct.
