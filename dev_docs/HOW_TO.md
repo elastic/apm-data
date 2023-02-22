@@ -27,7 +27,9 @@ Adding a new intake field requires changes to both apm-data and apm-server repos
          make update
 2. Modify [apmpackage](https://github.com/elastic/apm-server/tree/main/apmpackage) to add the field to Elasticsearch mapping.
    1. Find the corresponding data stream directory in `apmpackage/apm/data_stream/`.
-   2. Add the field under the YAML file under `fields/` in the data stream directory, e.g. `apmpackage/apm/data_stream/traces/fields/fields.yml`.
+   2. Add the field to the YAML file in the data stream fields directory, e.g. `apmpackage/apm/data_stream/traces/fields/`.
+        - Modify `ecs.yml`, if the field is defined in [ECS](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html).
+        - Otherwise, modify `fields.yml`.
    3. Update apmpackage changelog `apmpackage/apm/changelog.yml`
 
 ### 3. Test your changes (in apm-server)
