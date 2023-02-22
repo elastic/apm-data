@@ -32,7 +32,8 @@ Adding a new intake field requires changes to both apm-data and apm-server repos
    2. Add the field to the YAML file in the data stream fields directory, e.g. `apmpackage/apm/data_stream/traces/fields/`.
         - Modify `ecs.yml`, if the field is defined in [ECS](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html).
         - Otherwise, modify `fields.yml`.
-   3. Update apmpackage changelog `apmpackage/apm/changelog.yml`
+   3. In case any changes to ingest pipelines and ILM policies are needed, they are inside the `apmpackage/apm/data_stream/<data_stream_name>/elasticsearch/` directory.
+   4. Update apmpackage changelog `apmpackage/apm/changelog.yml`.
 
 ### 3. Test your changes with system test (in apm-server)
 
