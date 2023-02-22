@@ -82,7 +82,7 @@ Mapping an OTel field is similar to adding a field to Intake.
 
 ### 2. Make changes in [apm-server](https://github.com/elastic/apm-server/)
 
-1. Same as [How to add a new intake field](#how-to-add-a-new-intake-field)
+See the instructions in the same section under [How to add a new intake field](#how-to-add-a-new-intake-field)
 
 ### 3. Test your changes with system test (in apm-server)
 

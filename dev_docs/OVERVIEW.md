@@ -15,3 +15,5 @@
 2. The input model will then be decoded and translated to the internal model `APMEvent`.
 3. The `APMEvent` is used throughout APM server for all processing and aggregation.
 4. At last, it will be serialized into JSON and indexed into Elasticsearch.
+
+(All of the above is done in batches.)
