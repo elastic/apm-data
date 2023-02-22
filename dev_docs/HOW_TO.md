@@ -103,4 +103,4 @@ See [apm-server TESTING.md](https://github.com/elastic/apm-server/blob/main/dev_
 
 ### Example PR:
 - [apm-server PR](https://github.com/elastic/apm-server/pull/8334)
-  - PR was done before apm-data repo was split from apm-server
+  - PR was done before apm-data repo was extracted from apm-server.
