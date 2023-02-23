@@ -456,7 +456,7 @@ func mapToAgentModel(from contextServiceAgent, out *model.Agent) {
 }
 
 func mapToSpanModel(from *span, event *model.APMEvent) {
-	out := &model.Span{}
+	out := &model.Span{Type: "unknown"}
 	event.Span = out
 	event.Processor = model.SpanProcessor
 
@@ -464,7 +464,9 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 	if !from.Action.IsSet() && !from.Subtype.IsSet() {
 		sep := "."
 		before, after, ok := strings.Cut(from.Type.Val, sep)
-		out.Type = before
+		if before != "" {
+			out.Type = before
+		}
 		if ok {
 			out.Subtype, out.Action, _ = strings.Cut(after, sep)
 		}
@@ -623,7 +625,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 }
 
 func mapToTransactionModel(from *transaction, event *model.APMEvent) {
-	out := &model.Transaction{}
+	out := &model.Transaction{Type: "unknown"}
 	event.Transaction = out
 	event.Processor = model.TransactionProcessor
 

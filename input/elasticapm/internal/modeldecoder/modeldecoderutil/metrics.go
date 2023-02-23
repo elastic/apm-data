@@ -51,6 +51,9 @@ func SetInternalMetrics(event *model.APMEvent) bool {
 			}
 		}
 	}
+	if haveMetrics {
+		event.Metricset.Name = "span_breakdown"
+	}
 	event.Metricset.Samples = nil
 	return haveMetrics
 }
