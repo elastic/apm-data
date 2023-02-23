@@ -660,7 +660,7 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 }
 
 func mapToMetricsetModel(from *metricset, event *model.APMEvent) bool {
-	event.Metricset = &model.Metricset{}
+	event.Metricset = &model.Metricset{Name: "app"}
 	event.Processor = model.MetricsetProcessor
 
 	if !from.Timestamp.Val.IsZero() {
@@ -1096,6 +1096,9 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 	if len(from.Links) > 0 {
 		mapSpanLinks(from.Links, &out.Links)
 	}
+	if out.Type == "" {
+		out.Type = "unknown"
+	}
 }
 
 func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
@@ -1326,6 +1329,9 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 			event.Span = &model.Span{}
 		}
 		mapSpanLinks(from.Links, &event.Span.Links)
+	}
+	if out.Type == "" {
+		out.Type = "unknown"
 	}
 }
 
