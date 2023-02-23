@@ -236,7 +236,9 @@ func TestDecodeMetricsetInternal(t *testing.T) {
 	assert.Equal(t, model.Batch{{
 		Timestamp: time.Unix(0, 0).UTC(),
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{},
+		Metricset: &model.Metricset{
+			Name: "span_breakdown",
+		},
 		Transaction: &model.Transaction{
 			Name: "transaction_name",
 			Type: "transaction_type",
@@ -289,7 +291,9 @@ func TestDecodeMetricsetServiceName(t *testing.T) {
 	assert.Equal(t, model.Batch{{
 		Timestamp: time.Unix(0, 0).UTC(),
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{},
+		Metricset: &model.Metricset{
+			Name: "span_breakdown",
+		},
 		Service: model.Service{
 			Name:        "ow_service_name",
 			Environment: "service_environment",
@@ -347,7 +351,9 @@ func TestDecodeMetricsetServiceNameAndVersion(t *testing.T) {
 	assert.Equal(t, model.Batch{{
 		Timestamp: time.Unix(0, 0).UTC(),
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{},
+		Metricset: &model.Metricset{
+			Name: "span_breakdown",
+		},
 		Service: model.Service{
 			Name:        "ow_service_name",
 			Version:     "ow_service_version",
@@ -405,7 +411,9 @@ func TestDecodeMetricsetServiceVersion(t *testing.T) {
 	assert.Equal(t, model.Batch{{
 		Timestamp: time.Unix(0, 0).UTC(),
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{},
+		Metricset: &model.Metricset{
+			Name: "span_breakdown",
+		},
 		Service: model.Service{
 			Name:        "service_name",
 			Version:     "service_version",

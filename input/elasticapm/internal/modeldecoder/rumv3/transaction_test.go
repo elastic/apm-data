@@ -402,4 +402,22 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			"d": {Value: float64(12315124131.12315124131)},
 		}, out.NumericLabels)
 	})
+	t.Run("transaction.type", func(t *testing.T) {
+		var input transaction
+		var out model.APMEvent
+		mapToTransactionModel(&input, &out)
+		assert.Equal(t, model.Transaction{
+			Type:                "unknown",
+			Sampled:             true,
+			RepresentativeCount: 1,
+		}, *out.Transaction)
+	})
+	t.Run("span.type", func(t *testing.T) {
+		var input span
+		var out model.APMEvent
+		mapToSpanModel(&input, &out)
+		assert.Equal(t, model.Span{
+			Type: "unknown",
+		}, *out.Span)
+	})
 }
