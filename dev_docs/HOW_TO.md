@@ -28,11 +28,12 @@ Adding a new intake field requires changes to both apm-data and apm-server repos
          go mod edit -replace=github.com/elastic/apm-data=/path/to/your/apm-data
          make update
 2. Modify [apmpackage](https://github.com/elastic/apm-server/tree/main/apmpackage) to add the field to Elasticsearch mapping.
-   1. Find the corresponding data stream directory in `apmpackage/apm/data_stream/`.
+   1. Find the corresponding data stream directory in `apmpackage/apm/data_stream/`. If the field applies to multiple data streams (e.g. field `service.name`), make sure all the corresponding data streams are updated. 
    2. Add the field to the YAML file in the data stream fields directory, e.g. `apmpackage/apm/data_stream/traces/fields/`.
         - Modify `ecs.yml`, if the field is defined in [ECS](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html).
         - Otherwise, modify `fields.yml`.
    3. In case any changes to ingest pipelines and ILM policies are needed, they are inside the `apmpackage/apm/data_stream/<data_stream_name>/elasticsearch/` directory.
+        - The common pipelines are defined in [apmpackage/cmd/genpackage/pipelines.go](https://github.com/elastic/apm-server/blob/main/apmpackage/cmd/genpackage/pipelines.go) and injected at package build (`make build-package`) time.
    4. Update apmpackage changelog `apmpackage/apm/changelog.yml`.
 
 ### 3. Test your changes with system test (in apm-server)
@@ -59,7 +60,7 @@ See [apm-server TESTING.md](https://github.com/elastic/apm-server/blob/main/dev_
    - Run
 
          go mod edit -dropreplace=github.com/elastic/apm-data
-         go get github.com/elastic/apm-data@<merged_git_commit_hash>
+         go get github.com/elastic/apm-data@main
          make update
 3. Create a PR in apm-server.
 
