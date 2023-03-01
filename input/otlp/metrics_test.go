@@ -141,6 +141,7 @@ func TestConsumeMetrics(t *testing.T) {
 		Timestamp: timestamp0,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{Name: "gauge_metric", Value: 1, Type: "gauge"},
 				{Name: "sum_metric", Value: 7, Type: "counter"},
@@ -168,6 +169,7 @@ func TestConsumeMetrics(t *testing.T) {
 		Timestamp: timestamp1,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{Name: "gauge_metric", Value: 4, Type: "gauge"},
 			},
@@ -179,6 +181,7 @@ func TestConsumeMetrics(t *testing.T) {
 		Timestamp: timestamp1,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{Name: "gauge_metric", Value: 2.3, Type: "gauge"},
 				{Name: "sum_metric", Value: 8.9, Type: "counter"},
@@ -191,6 +194,7 @@ func TestConsumeMetrics(t *testing.T) {
 		Timestamp: timestamp1,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{Name: "gauge_metric", Value: 5.6, Type: "gauge"},
 				{Name: "sum_metric", Value: 11.12, Type: "counter"},
@@ -203,6 +207,7 @@ func TestConsumeMetrics(t *testing.T) {
 		Timestamp: timestamp1,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{Name: "sum_metric", Value: 10, Type: "counter"},
 			},
@@ -312,6 +317,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
@@ -327,6 +333,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
@@ -342,6 +349,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
@@ -357,6 +365,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
@@ -372,6 +381,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
@@ -387,6 +397,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
@@ -402,6 +413,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
@@ -417,6 +429,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
@@ -432,6 +445,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
@@ -447,6 +461,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
@@ -462,6 +477,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
@@ -477,6 +493,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
@@ -491,6 +508,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "system.cpu.total.norm.pct",
@@ -535,6 +553,7 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "system.memory.usage",
@@ -550,6 +569,7 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "system.memory.usage",
@@ -564,6 +584,7 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "system.memory.actual.free",
@@ -635,6 +656,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "runtime.jvm.gc.time",
@@ -655,6 +677,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "jvm.gc.time",
@@ -673,6 +696,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "runtime.jvm.memory.area",
@@ -687,6 +711,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "jvm.memory.heap.used",
@@ -701,6 +726,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "runtime.jvm.memory.area",
@@ -716,6 +742,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "jvm.memory.heap.pool.used",
@@ -730,6 +757,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "process.runtime.jvm.memory.limit",
@@ -745,6 +773,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
+			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "jvm.memory.heap.pool.max",

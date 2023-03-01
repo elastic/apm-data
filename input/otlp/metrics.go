@@ -305,7 +305,7 @@ func (c *Consumer) convertScopeMetrics(
 		for _, s := range ms.samples {
 			metrs = append(metrs, s)
 		}
-		event.Metricset = &model.Metricset{Samples: metrs}
+		event.Metricset = &model.Metricset{Samples: metrs, Name: "app"}
 		if ms.attributes.Len() > 0 {
 			initEventLabels(&event)
 			ms.attributes.Range(func(k string, v pcommon.Value) bool {
