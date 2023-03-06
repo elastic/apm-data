@@ -71,7 +71,7 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 		event.DataStream.Dataset = errorsDataset
 	case model.LogProcessor:
 		event.DataStream.Type = logsType
-		event.DataStream.Dataset = appLogsDataset
+		event.DataStream.Dataset = getAppLogsDataset(event)
 	case model.MetricsetProcessor:
 		event.DataStream.Type = metricsType
 		event.DataStream.Dataset = metricsetDataset(event)
@@ -85,6 +85,15 @@ func isRUMAgentName(agentName string) bool {
 		return true
 	}
 	return false
+}
+
+func getAppLogsDataset(event *model.APMEvent) string {
+	if event.Service.Name == "" {
+		return appLogsDataset
+	}
+
+	suffix := normalizeServiceName(event.Service.Name)
+	return fmt.Sprintf("%s.%s", appLogsDataset, suffix)
 }
 
 func metricsetDataset(event *model.APMEvent) string {
