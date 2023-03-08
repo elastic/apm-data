@@ -70,6 +70,11 @@ func TestSetDataStream(t *testing.T) {
 	}, {
 		input: model.APMEvent{
 			Processor: model.LogProcessor,
+		},
+		output: model.DataStream{Type: "logs", Dataset: "apm.app.unknown", Namespace: "custom"},
+	}, {
+		input: model.APMEvent{
+			Processor: model.LogProcessor,
 			Service:   model.Service{Name: "service-name"},
 		},
 		output: model.DataStream{Type: "logs", Dataset: "apm.app.service_name", Namespace: "custom"},
