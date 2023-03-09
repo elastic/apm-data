@@ -68,14 +68,26 @@ func TestSetDataStream(t *testing.T) {
 		input:  model.APMEvent{Processor: model.ErrorProcessor},
 		output: model.DataStream{Type: "logs", Dataset: "apm.error", Namespace: "custom"},
 	}, {
-		input:  model.APMEvent{Processor: model.LogProcessor},
-		output: model.DataStream{Type: "logs", Dataset: "apm.app", Namespace: "custom"},
+		input: model.APMEvent{
+			Processor: model.LogProcessor,
+		},
+		output: model.DataStream{Type: "logs", Dataset: "apm.app.unknown", Namespace: "custom"},
+	}, {
+		input: model.APMEvent{
+			Processor: model.LogProcessor,
+			Service:   model.Service{Name: "service-name"},
+		},
+		output: model.DataStream{Type: "logs", Dataset: "apm.app.service_name", Namespace: "custom"},
 	}, {
 		input:  model.APMEvent{Processor: model.ErrorProcessor, Agent: model.Agent{Name: "iOS/swift"}},
 		output: model.DataStream{Type: "logs", Dataset: "apm.error", Namespace: "custom"},
 	}, {
-		input:  model.APMEvent{Processor: model.LogProcessor, Agent: model.Agent{Name: "iOS/swift"}},
-		output: model.DataStream{Type: "logs", Dataset: "apm.app", Namespace: "custom"},
+		input: model.APMEvent{
+			Processor: model.LogProcessor,
+			Agent:     model.Agent{Name: "iOS/swift"},
+			Service:   model.Service{Name: "service-name"},
+		},
+		output: model.DataStream{Type: "logs", Dataset: "apm.app.service_name", Namespace: "custom"},
 	}, {
 		input: model.APMEvent{
 			Agent:       model.Agent{Name: "rum-js"},

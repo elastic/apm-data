@@ -26,9 +26,10 @@ import (
 )
 
 const (
-	logsType       = "logs"
-	appLogsDataset = "apm.app"
-	errorsDataset  = "apm.error"
+	logsType              = "logs"
+	logDefaultServiceName = "unknown"
+	appLogsDataset        = "apm.app"
+	errorsDataset         = "apm.error"
 
 	metricsType            = "metrics"
 	appMetricsDataset      = "apm.app"
@@ -71,7 +72,7 @@ func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 		event.DataStream.Dataset = errorsDataset
 	case model.LogProcessor:
 		event.DataStream.Type = logsType
-		event.DataStream.Dataset = appLogsDataset
+		event.DataStream.Dataset = getAppLogsDataset(event)
 	case model.MetricsetProcessor:
 		event.DataStream.Type = metricsType
 		event.DataStream.Dataset = metricsetDataset(event)
@@ -85,6 +86,19 @@ func isRUMAgentName(agentName string) bool {
 		return true
 	}
 	return false
+}
+
+func getAppLogsDataset(event *model.APMEvent) string {
+	serviceName := event.Service.Name
+	if serviceName == "" {
+		serviceName = logDefaultServiceName
+	}
+	var dataset strings.Builder
+	dataset.WriteString(appLogsDataset)
+	dataset.WriteByte('.')
+	dataset.WriteString(normalizeServiceName(serviceName))
+
+	return dataset.String()
 }
 
 func metricsetDataset(event *model.APMEvent) string {
