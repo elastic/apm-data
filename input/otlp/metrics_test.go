@@ -578,24 +578,6 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 				},
 			},
 		},
-	}, {
-		Agent:     agent,
-		Service:   service,
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
-			Name: "app",
-			Samples: []model.MetricsetSample{
-				{
-					Name:  "system.memory.actual.free",
-					Value: 4773351424,
-				},
-				{
-					Name:  "system.memory.total",
-					Value: 8337129472,
-				},
-			},
-		},
 	}}
 
 	eventsMatch(t, expected, events)
