@@ -608,15 +608,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	metricSlice := scopeMetrics.Metrics()
 
 	timestamp := time.Unix(123, 0).UTC()
-	addInt64Sum := func(name string, value int64, attributes map[string]interface{}) {
-		metric := metricSlice.AppendEmpty()
-		metric.SetName(name)
-		sum := metric.SetEmptySum()
-		dp := sum.DataPoints().AppendEmpty()
-		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
-		dp.SetIntValue(value)
-		dp.Attributes().FromRaw(attributes)
-	}
+
 	addInt64Gauge := func(name string, value int64, attributes map[string]interface{}) {
 		metric := metricSlice.AppendEmpty()
 		metric.SetName(name)
@@ -626,131 +618,34 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		dp.SetIntValue(value)
 		dp.Attributes().FromRaw(attributes)
 	}
-	addInt64Sum("runtime.jvm.gc.time", 9, map[string]interface{}{
-		"gc": "G1 Young Generation",
-	})
-	addInt64Sum("runtime.jvm.gc.count", 2, map[string]interface{}{
-		"gc": "G1 Young Generation",
-	})
-	addInt64Gauge("runtime.jvm.memory.area", 42, map[string]interface{}{
-		"area": "heap",
-		"type": "used",
-	})
-	addInt64Gauge("runtime.jvm.memory.area", 24, map[string]interface{}{
-		"area": "heap",
-		"type": "used",
-		"pool": "eden",
-	})
+	addInt64Histogram := func(name string, counts []uint64, values []float64, attributes map[string]interface{}) {
+		metric := metricSlice.AppendEmpty()
+		metric.SetName(name)
+		histogram := metric.SetEmptyHistogram()
+		dp := histogram.DataPoints().AppendEmpty()
+		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
+		dp.BucketCounts().Append(1, 1, 2, 3)
+		dp.ExplicitBounds().Append(0.5, 1.5, 2.5)
+		dp.Attributes().FromRaw(attributes)
+	}
+
 	addInt64Gauge("process.runtime.jvm.memory.limit", 20000, map[string]interface{}{
 		"type": "heap",
 		"pool": "G1 Eden Space",
+	})
+
+	// JVM metrics convention with 'process.runtime.jvm' prefix
+	// defined in https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/runtime-environment-metrics.md#jvm-metrics
+
+	addInt64Histogram("process.runtime.jvm.gc.duration", []uint64{1, 2, 3}, []float64{4, 5, 6}, map[string]interface{}{
+		"gc":     "G1 Young Generation",
+		"action": "end of minor GC",
 	})
 
 	events, _ := transformMetrics(t, metrics)
 	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
 	agent := model.Agent{Name: "otlp", Version: "unknown"}
 	expected := []model.APMEvent{{
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"gc": {Value: "G1 Young Generation"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
-			Name: "app",
-			Samples: []model.MetricsetSample{
-				{
-					Name:  "runtime.jvm.gc.time",
-					Type:  "counter",
-					Value: 9,
-				},
-				{
-					Name:  "runtime.jvm.gc.count",
-					Type:  "counter",
-					Value: 2,
-				},
-			},
-		},
-	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"name": {Value: "G1 Young Generation"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
-			Name: "app",
-			Samples: []model.MetricsetSample{
-				{
-					Name:  "jvm.gc.time",
-					Value: 9,
-				},
-				{
-					Name:  "jvm.gc.count",
-					Value: 2,
-				},
-			},
-		},
-	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"area": {Value: "heap"}, "type": {Value: "used"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
-			Name: "app",
-			Samples: []model.MetricsetSample{
-				{
-					Name:  "runtime.jvm.memory.area",
-					Type:  "gauge",
-					Value: 42,
-				},
-			},
-		},
-	}, {
-		Agent:     agent,
-		Service:   service,
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
-			Name: "app",
-			Samples: []model.MetricsetSample{
-				{
-					Name:  "jvm.memory.heap.used",
-					Value: 42,
-				},
-			},
-		},
-	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"area": {Value: "heap"}, "type": {Value: "used"}, "pool": {Value: "eden"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
-			Name: "app",
-			Samples: []model.MetricsetSample{
-				{
-					Name:  "runtime.jvm.memory.area",
-					Type:  "gauge",
-					Value: 24,
-				},
-			},
-		},
-	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"name": {Value: "eden"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
-			Name: "app",
-			Samples: []model.MetricsetSample{
-				{
-					Name:  "jvm.memory.heap.pool.used",
-					Value: 24,
-				},
-			},
-		},
-	}, {
 		Agent:     agent,
 		Service:   service,
 		Labels:    model.Labels{"type": {Value: "heap"}, "pool": {Value: "G1 Eden Space"}},
@@ -769,15 +664,19 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	}, {
 		Agent:     agent,
 		Service:   service,
-		Labels:    model.Labels{"name": {Value: "G1 Eden Space"}},
+		Labels:    model.Labels{"action": {Value: "end of minor GC"}, "gc": {Value: "G1 Young Generation"}},
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Name: "app",
 			Samples: []model.MetricsetSample{
 				{
-					Name:  "jvm.memory.heap.pool.max",
-					Value: 20000,
+					Name: "process.runtime.jvm.gc.duration",
+					Type: "histogram",
+					Histogram: model.Histogram{
+						Counts: []int64{1, 1, 2, 3},
+						Values: []float64{0.25, 1, 2, 2.5},
+					},
 				},
 			},
 		},
