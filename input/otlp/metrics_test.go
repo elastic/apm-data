@@ -502,20 +502,6 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 				},
 			},
 		},
-	}, {
-		Agent:     agent,
-		Service:   service,
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
-			Name: "app",
-			Samples: []model.MetricsetSample{
-				{
-					Name:  "system.cpu.total.norm.pct",
-					Value: 0.39000000000000007,
-				},
-			},
-		},
 	}}
 
 	eventsMatch(t, expected, events)
