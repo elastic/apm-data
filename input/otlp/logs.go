@@ -167,6 +167,12 @@ func (c *Consumer) convertLogRecord(
 		event.Event.Type = "error"
 	}
 
+	if eventName == "lifecycle" {
+		event.Processor = model.LogProcessor
+		event.Event.Kind = "event"
+		event.Event.Type = "lifecycle"
+	}
+
 	return event
 }
 
