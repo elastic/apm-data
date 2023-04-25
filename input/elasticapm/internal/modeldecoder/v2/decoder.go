@@ -1063,8 +1063,17 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 	if from.ParentID.IsSet() {
 		event.Parent.ID = from.ParentID.Val
 	}
-	if from.SampleRate.IsSet() && from.SampleRate.Val > 0 {
-		out.RepresentativeCount = 1 / from.SampleRate.Val
+	if from.SampleRate.IsSet() {
+		if from.SampleRate.Val > 0 {
+			out.RepresentativeCount = 1 / from.SampleRate.Val
+		}
+	} else {
+		// NOTE: we don't know the sample rate, so we need to make an assumption.
+		//
+		// Agents never send spans for non-sampled transactions, so assuming a
+		// representative count of 1 (i.e. sampling rate of 100%) may be invalid; but
+		// this is more useful than producing no metrics at all (i.e. assuming 0).
+		out.RepresentativeCount = 1
 	}
 	if len(from.Stacktrace) > 0 {
 		out.Stacktrace = make(model.Stacktrace, len(from.Stacktrace))
