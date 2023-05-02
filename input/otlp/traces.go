@@ -36,6 +36,7 @@ package otlp
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"math"
 	"net"
@@ -125,7 +126,7 @@ func (c *Consumer) convertSpan(
 	root := otelSpan.ParentSpanID().IsEmpty()
 	var parentID string
 	if !root {
-		parentID = otelSpan.ParentSpanID().HexString()
+		parentID = hexSpanID(otelSpan.ParentSpanID())
 	}
 
 	startTime := otelSpan.StartTimestamp().AsTime()
@@ -138,12 +139,12 @@ func (c *Consumer) convertSpan(
 	// now, we assume that the majority of consumption is passive, and
 	// therefore start a transaction whenever span kind == consumer.
 	name := otelSpan.Name()
-	spanID := otelSpan.SpanID().HexString()
+	spanID := hexSpanID(otelSpan.SpanID())
 	representativeCount := getRepresentativeCountFromTracestateHeader(otelSpan.TraceState().AsRaw())
 	event := baseEvent
 	initEventLabels(&event)
 	event.Timestamp = startTime.Add(timeDelta)
-	event.Trace.ID = otelSpan.TraceID().HexString()
+	event.Trace.ID = hexTraceID(otelSpan.TraceID())
 	event.Event.Duration = duration
 	event.Event.Outcome = spanStatusOutcome(otelSpan.Status())
 	event.Parent.ID = parentID
@@ -243,7 +244,8 @@ func TranslateTransaction(
 				event.Source.Port = int(v.Int())
 			case semconv.AttributeNetHostPort:
 				netHostPort = int(v.Int())
-			case "rpc.grpc.status_code":
+			case semconv.AttributeRPCGRPCStatusCode:
+				foundSpanType = rpcSpan
 				event.Transaction.Result = codes.Code(v.Int()).String()
 			default:
 				setLabel(k, event, ifaceAttributeValue(v))
@@ -326,9 +328,9 @@ func TranslateTransaction(
 			// attributes, and rely on the operation name like we do with
 			// Elastic APM agents.
 			case semconv.AttributeRPCSystem:
-				event.Transaction.Type = "request"
+				foundSpanType = rpcSpan
 			case semconv.AttributeRPCGRPCStatusCode:
-				event.Transaction.Type = "request"
+				foundSpanType = rpcSpan
 			case semconv.AttributeRPCService:
 			case semconv.AttributeRPCMethod:
 
@@ -352,7 +354,7 @@ func TranslateTransaction(
 
 	if event.Transaction.Type == "" {
 		switch foundSpanType {
-		case httpSpan:
+		case httpSpan, rpcSpan:
 			event.Transaction.Type = "request"
 		case messagingSpan:
 			event.Transaction.Type = "messaging"
@@ -497,8 +499,9 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				foundSpanType = httpSpan
 			case semconv.AttributeNetPeerPort, "peer.port":
 				netPeerPort = int(v.Int())
-			case "rpc.grpc.status_code":
-				// Ignored for spans.
+			case semconv.AttributeRPCGRPCStatusCode:
+				rpcSystem = "grpc"
+				foundSpanType = rpcSpan
 			default:
 				setLabel(k, event, v.Int())
 			}
@@ -965,10 +968,24 @@ func translateSpanLinks(out *model.APMEvent, in ptrace.SpanLinkSlice) {
 	for i := 0; i < n; i++ {
 		link := in.At(i)
 		out.Span.Links[i] = model.SpanLink{
-			Span:  model.Span{ID: link.SpanID().HexString()},
-			Trace: model.Trace{ID: link.TraceID().HexString()},
+			Span:  model.Span{ID: hexSpanID(link.SpanID())},
+			Trace: model.Trace{ID: hexTraceID(link.TraceID())},
 		}
 	}
+}
+
+func hexSpanID(id pcommon.SpanID) string {
+	if id.IsEmpty() {
+		return ""
+	}
+	return hex.EncodeToString(id[:])
+}
+
+func hexTraceID(id pcommon.TraceID) string {
+	if id.IsEmpty() {
+		return ""
+	}
+	return hex.EncodeToString(id[:])
 }
 
 func replaceDots(s string) string {
