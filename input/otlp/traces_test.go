@@ -1377,13 +1377,13 @@ func TestGRPCTransactionFromNodejsSDK(t *testing.T) {
 			assert.Equal(t, "request", event.Transaction.Type)
 		}
 		test(t, map[string]interface{}{
-			"rpc.grpc.status_code": codes.Unavailable,
+			"rpc.grpc.status_code": int64(codes.Unavailable),
 		})
 	})
 
 	t.Run("span transformation", func(t *testing.T) {
 		event := transformSpanWithAttributes(t, map[string]interface{}{
-			"rpc.grpc.status_code": codes.Unavailable,
+			"rpc.grpc.status_code": int64(codes.Unavailable),
 		})
 		assert.Equal(t, "external", event.Span.Type)
 		assert.Equal(t, "grpc", event.Span.Subtype)

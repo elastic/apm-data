@@ -19,7 +19,6 @@ package v2
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -64,7 +63,9 @@ func TestJSONSchema(t *testing.T) {
 	// read and organize schemas
 	schemas := map[string]string{}
 	err = filepath.Walk(schemaDir, func(p string, info os.FileInfo, err error) error {
-		fmt.Println(err)
+		if err != nil {
+			return err
+		}
 		if info.IsDir() {
 			return nil
 		}
