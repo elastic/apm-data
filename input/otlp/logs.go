@@ -157,20 +157,17 @@ func (c *Consumer) convertLogRecord(
 		}
 		event.Error.Type = "crash"
 	}
+
 	if eventDomain == "device" {
 		event.Event.Category = "device"
+		event.Event.Kind = "event"
+		event.Event.Type = eventName
 	}
 
 	if event.Error != nil {
 		event.Processor = model.ErrorProcessor
 		event.Event.Kind = "event"
 		event.Event.Type = "error"
-	}
-
-	if eventName == "lifecycle" {
-		event.Processor = model.LogProcessor
-		event.Event.Kind = "event"
-		event.Event.Type = "lifecycle"
 	}
 
 	return event
