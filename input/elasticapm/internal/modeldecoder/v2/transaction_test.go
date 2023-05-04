@@ -499,6 +499,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			}
 			input.OTel.Attributes = attrs
 			input.OTel.SpanKind.Reset()
+			input.Type.Reset()
 
 			mapToTransactionModel(&input, &event)
 			assert.Equal(t, "request", event.Transaction.Type)

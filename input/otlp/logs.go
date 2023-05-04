@@ -36,6 +36,7 @@ package otlp
 
 import (
 	"context"
+	"encoding/hex"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -102,13 +103,13 @@ func (c *Consumer) convertLogRecord(
 		}
 	}
 	if traceID := record.TraceID(); !traceID.IsEmpty() {
-		event.Trace.ID = traceID.HexString()
+		event.Trace.ID = hex.EncodeToString(traceID[:])
 	}
 	if spanID := record.SpanID(); !spanID.IsEmpty() {
 		if event.Span == nil {
 			event.Span = &model.Span{}
 		}
-		event.Span.ID = spanID.HexString()
+		event.Span.ID = hex.EncodeToString(spanID[:])
 	}
 	attrs := record.Attributes()
 
