@@ -72,7 +72,7 @@ type SpanCount struct {
 	Started *int
 }
 
-func (e *Transaction) fields() map[string]any {
+func (e *Transaction) fields(processor Processor) map[string]any {
 	var transaction mapStr
 	transaction.maybeSetString("id", e.ID)
 	transaction.maybeSetString("type", e.Type)
@@ -105,12 +105,14 @@ func (e *Transaction) fields() map[string]any {
 	if e.RepresentativeCount > 0 {
 		transaction.set("representative_count", e.RepresentativeCount)
 	}
-	var dss []map[string]any
-	for _, v := range e.DroppedSpansStats {
-		dss = append(dss, v.fields())
-	}
-	if len(dss) > 0 {
-		transaction.set("dropped_spans_stats", dss)
+	if processor == MetricsetProcessor {
+		var dss []map[string]any
+		for _, v := range e.DroppedSpansStats {
+			dss = append(dss, v.fields())
+		}
+		if len(dss) > 0 {
+			transaction.set("dropped_spans_stats", dss)
+		}
 	}
 	return map[string]any(transaction)
 }
