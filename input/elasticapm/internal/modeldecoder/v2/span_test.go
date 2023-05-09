@@ -195,11 +195,11 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		input.SampleRate.Set(0.25)
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, 4.0, out.Span.RepresentativeCount)
-		// sample rate is not set
+		// sample rate is not set, default representative count should be 1
 		out.Span.RepresentativeCount = 0.0
 		input.SampleRate.Reset()
 		mapToSpanModel(&input, &out)
-		assert.Equal(t, 0.0, out.Span.RepresentativeCount)
+		assert.Equal(t, 1.0, out.Span.RepresentativeCount)
 		// sample rate is set to 0
 		input.SampleRate.Set(0)
 		mapToSpanModel(&input, &out)
