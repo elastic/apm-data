@@ -87,7 +87,7 @@ type APMEvent struct {
 func (e *APMEvent) fields() map[string]any {
 	var fields mapStr
 	if e.Transaction != nil {
-		fields.maybeSetMapStr("transaction", e.Transaction.fields())
+		fields.maybeSetMapStr("transaction", e.Transaction.fields(e.Processor))
 	}
 	if e.Span != nil {
 		fields.maybeSetMapStr("span", e.Span.fields())
