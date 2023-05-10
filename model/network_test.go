@@ -26,7 +26,7 @@ import (
 func TestNetworkTransform(t *testing.T) {
 	tests := []struct {
 		Network Network
-		Output  map[string]any
+		Output  any
 	}{
 		{
 			Network: Network{},
@@ -61,7 +61,7 @@ func TestNetworkTransform(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output := test.Network.fields()
-		assert.Equal(t, test.Output, output)
+		output := transformAPMEvent(APMEvent{Network: test.Network})
+		assert.Equal(t, test.Output, output["network"])
 	}
 }
