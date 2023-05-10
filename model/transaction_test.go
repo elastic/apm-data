@@ -39,6 +39,7 @@ func TestTransactionTransform(t *testing.T) {
 	duration := 65980 * time.Microsecond
 
 	tests := []struct {
+		Processor   Processor
 		Transaction Transaction
 		Output      map[string]any
 		Msg         string
@@ -137,6 +138,46 @@ func TestTransactionTransform(t *testing.T) {
 				"type":       "tx",
 				"result":     "tx result",
 				"span_count": map[string]any{"started": 14.0, "dropped": 5.0},
+				"sampled":    true,
+				"root":       true,
+			},
+			Msg: "Full Event With Dropped Spans Statistics",
+		},
+		{
+			Processor: MetricsetProcessor,
+			Transaction: Transaction{
+				ID:        id,
+				Name:      name,
+				Type:      "tx",
+				Result:    "tx result",
+				Sampled:   true,
+				SpanCount: SpanCount{Started: &startedSpans, Dropped: &dropped},
+				DroppedSpansStats: []DroppedSpanStats{
+					{
+						DestinationServiceResource: "mysql://server:3306",
+						Outcome:                    "success",
+						Duration: AggregatedDuration{
+							Count: 5,
+							Sum:   duration,
+						},
+					},
+					{
+						DestinationServiceResource: "http://elasticsearch:9200",
+						Outcome:                    "unknown",
+						Duration: AggregatedDuration{
+							Count: 15,
+							Sum:   duration,
+						},
+					},
+				},
+				Root: true,
+			},
+			Output: map[string]any{
+				"id":         id,
+				"name":       "mytransaction",
+				"type":       "tx",
+				"result":     "tx result",
+				"span_count": map[string]any{"started": 14.0, "dropped": 5.0},
 				"dropped_spans_stats": []any{
 					map[string]any{
 						"destination_service_resource": "mysql://server:3306",
@@ -152,15 +193,20 @@ func TestTransactionTransform(t *testing.T) {
 				"sampled": true,
 				"root":    true,
 			},
-			Msg: "Full Event With Dropped Spans Statistics",
+			Msg: "Full Event With Dropped Spans Statistics using the MetricsetProcessor processor",
 		},
 	}
 
 	for idx, test := range tests {
-		m := transformAPMEvent(APMEvent{
+		event := APMEvent{
 			Processor:   TransactionProcessor,
 			Transaction: &test.Transaction,
-		})
+		}
+		emptyProc := Processor{}
+		if test.Processor != emptyProc {
+			event.Processor = test.Processor
+		}
+		m := transformAPMEvent(event)
 		assert.Equal(t, test.Output, m["transaction"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }
