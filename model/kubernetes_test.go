@@ -28,7 +28,7 @@ func TestKubernetesTransform(t *testing.T) {
 
 	tests := []struct {
 		Kubernetes Kubernetes
-		Output     map[string]any
+		Output     any
 	}{
 		{
 			Kubernetes: Kubernetes{},
@@ -53,7 +53,7 @@ func TestKubernetesTransform(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output := test.Kubernetes.fields()
-		assert.Equal(t, test.Output, output)
+		output := transformAPMEvent(APMEvent{Kubernetes: test.Kubernetes})
+		assert.Equal(t, test.Output, output["kubernetes"])
 	}
 }

@@ -28,9 +28,6 @@ func TestSpanLinkFields(t *testing.T) {
 		Input    SpanLink
 		Expected map[string]any
 	}{{
-		Input:    SpanLink{},
-		Expected: nil,
-	}, {
 		Input: SpanLink{
 			Span: Span{ID: "span_id"},
 		},
@@ -55,7 +52,7 @@ func TestSpanLinkFields(t *testing.T) {
 		},
 	}}
 	for _, test := range tests {
-		output := test.Input.fields()
-		assert.Equal(t, test.Expected, output)
+		output := transformAPMEvent(APMEvent{Span: &Span{Links: []SpanLink{test.Input}}})
+		assert.Equal(t, []any{test.Expected}, output["span"].(map[string]any)["links"])
 	}
 }

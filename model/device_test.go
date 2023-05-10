@@ -26,7 +26,7 @@ import (
 func TestDeviceFields(t *testing.T) {
 	tests := []struct {
 		Device Device
-		Output map[string]any
+		Output any
 	}{
 		{
 			Device: Device{},
@@ -53,7 +53,7 @@ func TestDeviceFields(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output := test.Device.fields()
-		assert.Equal(t, test.Output, output)
+		output := transformAPMEvent(APMEvent{Device: test.Device})
+		assert.Equal(t, test.Output, output["device"])
 	}
 }

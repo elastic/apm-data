@@ -26,7 +26,7 @@ import (
 func TestCloudFields(t *testing.T) {
 	tests := []struct {
 		Cloud  Cloud
-		Output map[string]any
+		Output any
 	}{
 		{
 			Cloud:  Cloud{},
@@ -69,7 +69,7 @@ func TestCloudFields(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output := test.Cloud.fields()
-		assert.Equal(t, test.Output, output)
+		output := transformAPMEvent(APMEvent{Cloud: test.Cloud})
+		assert.Equal(t, test.Output, output["cloud"])
 	}
 }
