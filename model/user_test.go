@@ -31,7 +31,7 @@ func TestUserFields(t *testing.T) {
 
 	tests := []struct {
 		User   User
-		Output map[string]any
+		Output any
 	}{
 		{
 			User:   User{},
@@ -54,7 +54,7 @@ func TestUserFields(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output := test.User.fields()
-		assert.Equal(t, test.Output, output)
+		output := transformAPMEvent(APMEvent{User: test.User})
+		assert.Equal(t, test.Output, output["user"])
 	}
 }

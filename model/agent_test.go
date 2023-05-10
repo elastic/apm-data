@@ -30,18 +30,18 @@ const (
 func TestAgentFields(t *testing.T) {
 	tests := []struct {
 		Agent  Agent
-		Fields map[string]any
+		Output any
 	}{
 		{
 			Agent:  Agent{},
-			Fields: nil,
+			Output: nil,
 		},
 		{
 			Agent: Agent{
 				Name:    agentName,
 				Version: agentVersion,
 			},
-			Fields: map[string]any{
+			Output: map[string]any{
 				"name":    "elastic-node",
 				"version": "1.0.0",
 			},
@@ -49,6 +49,7 @@ func TestAgentFields(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Equal(t, test.Fields, test.Agent.fields())
+		out := transformAPMEvent(APMEvent{Agent: test.Agent})
+		assert.Equal(t, test.Output, out["agent"])
 	}
 }

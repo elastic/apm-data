@@ -28,7 +28,7 @@ func TestContainerTransform(t *testing.T) {
 
 	tests := []struct {
 		Container Container
-		Output    map[string]any
+		Output    any
 	}{
 		{
 			Container: Container{},
@@ -57,7 +57,7 @@ func TestContainerTransform(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output := test.Container.fields()
-		assert.Equal(t, test.Output, output)
+		output := transformAPMEvent(APMEvent{Container: test.Container})
+		assert.Equal(t, test.Output, output["container"])
 	}
 }

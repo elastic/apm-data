@@ -26,7 +26,7 @@ import (
 func TestUserAgentFields(t *testing.T) {
 	tests := []struct {
 		UserAgent UserAgent
-		Output    map[string]any
+		Output    any
 	}{{
 		UserAgent: UserAgent{},
 		Output:    nil,
@@ -39,7 +39,7 @@ func TestUserAgentFields(t *testing.T) {
 	}}
 
 	for _, test := range tests {
-		output := test.UserAgent.fields()
-		assert.Equal(t, test.Output, output)
+		output := transformAPMEvent(APMEvent{UserAgent: test.UserAgent})
+		assert.Equal(t, test.Output, output["user_agent"])
 	}
 }

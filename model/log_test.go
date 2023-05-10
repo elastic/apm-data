@@ -26,7 +26,7 @@ import (
 func TestLogTransform(t *testing.T) {
 	tests := []struct {
 		Log    Log
-		Output map[string]any
+		Output any
 	}{
 		{
 			Log:    Log{},
@@ -61,7 +61,7 @@ func TestLogTransform(t *testing.T) {
 					"function": "testFunc",
 					"file": map[string]any{
 						"name": "testFile",
-						"line": 12,
+						"line": 12.0,
 					},
 				},
 			},
@@ -69,7 +69,7 @@ func TestLogTransform(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output := test.Log.fields()
-		assert.Equal(t, test.Output, output)
+		output := transformAPMEvent(APMEvent{Log: test.Log})
+		assert.Equal(t, test.Output, output["log"])
 	}
 }

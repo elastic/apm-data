@@ -27,15 +27,11 @@ func TestProcessTransform(t *testing.T) {
 	processTitle := "node"
 	commandLine := "node run.js"
 	executablePath := "/usr/bin/node"
-	argv := []string{
-		"node",
-		"server.js",
-	}
 
 	ppid := 456
 	tests := []struct {
 		Process Process
-		Output  map[string]any
+		Output  any
 	}{
 		{
 			Process: Process{},
@@ -46,7 +42,7 @@ func TestProcessTransform(t *testing.T) {
 				Pid:         123,
 				Ppid:        &ppid,
 				Title:       processTitle,
-				Argv:        argv,
+				Argv:        []string{"node", "server.js"},
 				CommandLine: commandLine,
 				Executable:  executablePath,
 				Thread: ProcessThread{
@@ -55,16 +51,16 @@ func TestProcessTransform(t *testing.T) {
 				},
 			},
 			Output: map[string]any{
-				"pid": 123,
+				"pid": 123.0,
 				"parent": map[string]any{
-					"pid": 456,
+					"pid": 456.0,
 				},
 				"title":        processTitle,
-				"args":         argv,
+				"args":         []any{"node", "server.js"},
 				"command_line": commandLine,
 				"executable":   executablePath,
 				"thread": map[string]any{
-					"id":   1,
+					"id":   1.0,
 					"name": "testThread",
 				},
 			},
@@ -72,7 +68,7 @@ func TestProcessTransform(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		output := test.Process.fields()
-		assert.Equal(t, test.Output, output)
+		output := transformAPMEvent(APMEvent{Process: test.Process})
+		assert.Equal(t, test.Output, output["process"])
 	}
 }
