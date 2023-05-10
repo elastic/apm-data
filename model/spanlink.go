@@ -25,10 +25,3 @@ type SpanLink struct {
 	// Span holds information about the linked span event.
 	Span Span
 }
-
-func (l *SpanLink) fields() map[string]any {
-	var fields mapStr
-	fields.maybeSetMapStr("span", l.Span.fields())
-	fields.maybeSetMapStr("trace", l.Trace.fields())
-	return map[string]any(fields)
-}

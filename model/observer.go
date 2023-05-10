@@ -27,12 +27,3 @@ type Observer struct {
 	Type     string
 	Version  string
 }
-
-func (o *Observer) Fields() map[string]any {
-	var fields mapStr
-	fields.maybeSetString("hostname", o.Hostname)
-	fields.maybeSetString("name", o.Name)
-	fields.maybeSetString("type", o.Type)
-	fields.maybeSetString("version", o.Version)
-	return map[string]any(fields)
-}

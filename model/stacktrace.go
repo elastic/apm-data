@@ -17,6 +17,8 @@
 
 package model
 
+import "github.com/elastic/apm-data/model/internal/modeljson"
+
 type Stacktrace []*StacktraceFrame
 
 type StacktraceFrame struct {
@@ -48,66 +50,51 @@ type Original struct {
 	LibraryFrame bool
 }
 
-func (st Stacktrace) transform() []map[string]any {
-	if len(st) == 0 {
-		return nil
+func (s *StacktraceFrame) toModelJSON(out *modeljson.StacktraceFrame) {
+	*out = modeljson.StacktraceFrame{
+		Filename:            s.Filename,
+		Classname:           s.Classname,
+		AbsPath:             s.AbsPath,
+		Module:              s.Module,
+		Function:            s.Function,
+		Vars:                s.Vars,
+		LibraryFrame:        s.LibraryFrame,
+		ExcludeFromGrouping: s.ExcludeFromGrouping,
 	}
-	frames := make([]map[string]any, len(st))
-	for i, frame := range st {
-		frames[i] = frame.transform()
+
+	if len(s.PreContext) != 0 || len(s.PostContext) != 0 {
+		out.Context = &modeljson.StacktraceFrameContext{
+			Pre:  s.PreContext,
+			Post: s.PostContext,
+		}
 	}
-	return frames
-}
 
-func (s *StacktraceFrame) transform() map[string]any {
-	var m mapStr
-	m.maybeSetString("filename", s.Filename)
-	m.maybeSetString("classname", s.Classname)
-	m.maybeSetString("abs_path", s.AbsPath)
-	m.maybeSetString("module", s.Module)
-	m.maybeSetString("function", s.Function)
-	m.maybeSetMapStr("vars", s.Vars)
-
-	if s.LibraryFrame {
-		m.set("library_frame", s.LibraryFrame)
+	if s.Lineno != nil || s.Colno != nil || s.ContextLine != "" {
+		out.Line = &modeljson.StacktraceFrameLine{
+			Number:  s.Lineno,
+			Column:  s.Colno,
+			Context: s.ContextLine,
+		}
 	}
-	m.set("exclude_from_grouping", s.ExcludeFromGrouping)
 
-	var context mapStr
-	if len(s.PreContext) > 0 {
-		context.set("pre", s.PreContext)
+	sourcemap := modeljson.StacktraceFrameSourcemap{
+		Updated: s.SourcemapUpdated,
+		Error:   s.SourcemapError,
 	}
-	if len(s.PostContext) > 0 {
-		context.set("post", s.PostContext)
+	if sourcemap != (modeljson.StacktraceFrameSourcemap{}) {
+		out.Sourcemap = &sourcemap
 	}
-	m.maybeSetMapStr("context", map[string]any(context))
 
-	var line mapStr
-	line.maybeSetIntptr("number", s.Lineno)
-	line.maybeSetIntptr("column", s.Colno)
-	line.maybeSetString("context", s.ContextLine)
-	m.maybeSetMapStr("line", map[string]any(line))
-
-	var sm mapStr
+	orig := modeljson.StacktraceFrameOriginal{LibraryFrame: s.Original.LibraryFrame}
 	if s.SourcemapUpdated {
-		sm.set("updated", true)
+		orig.Filename = s.Original.Filename
+		orig.Classname = s.Original.Classname
+		orig.AbsPath = s.Original.AbsPath
+		orig.Function = s.Original.Function
+		orig.Colno = s.Original.Colno
+		orig.Lineno = s.Original.Lineno
 	}
-	sm.maybeSetString("error", s.SourcemapError)
-	m.maybeSetMapStr("sourcemap", map[string]any(sm))
-
-	var orig mapStr
-	if s.Original.LibraryFrame {
-		orig.set("library_frame", s.Original.LibraryFrame)
+	if orig != (modeljson.StacktraceFrameOriginal{}) {
+		out.Original = &orig
 	}
-	if s.SourcemapUpdated {
-		orig.maybeSetString("filename", s.Original.Filename)
-		orig.maybeSetString("classname", s.Original.Classname)
-		orig.maybeSetString("abs_path", s.Original.AbsPath)
-		orig.maybeSetString("function", s.Original.Function)
-		orig.maybeSetIntptr("colno", s.Original.Colno)
-		orig.maybeSetIntptr("lineno", s.Original.Lineno)
-	}
-	m.maybeSetMapStr("original", map[string]any(orig))
-
-	return map[string]any(m)
 }

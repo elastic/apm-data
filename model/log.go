@@ -44,17 +44,3 @@ type LogOriginFile struct {
 	Name string
 	Line int
 }
-
-func (e Log) fields() map[string]any {
-	var fields, origin, file mapStr
-	fields.maybeSetString("level", e.Level)
-	fields.maybeSetString("logger", e.Logger)
-	origin.maybeSetString("function", e.Origin.FunctionName)
-	file.maybeSetString("name", e.Origin.File.Name)
-	if e.Origin.File.Line > 0 {
-		file.set("line", e.Origin.File.Line)
-	}
-	origin.maybeSetMapStr("file", map[string]any(file))
-	fields.maybeSetMapStr("origin", map[string]any(origin))
-	return map[string]any(fields)
-}

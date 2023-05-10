@@ -32,14 +32,9 @@ func TestMetricset(t *testing.T) {
 		Msg       string
 	}{
 		{
-			Metricset: &Metricset{},
-			Output:    map[string]any{},
-			Msg:       "Payload with empty metric.",
-		},
-		{
 			Metricset: &Metricset{Name: "raj"},
 			Output: map[string]any{
-				"metricset.name": "raj",
+				"metricset": map[string]any{"name": "raj"},
 			},
 			Msg: "Payload with metricset name.",
 		},
@@ -51,11 +46,17 @@ func TestMetricset(t *testing.T) {
 				},
 			},
 			Output: map[string]any{
-				"a.counter":  612.0,
-				"some.gauge": 9.16,
-				"_metric_descriptions": map[string]any{
-					"a.counter":  map[string]any{},
-					"some.gauge": map[string]any{},
+				"metricset": map[string]any{
+					"samples": []any{
+						map[string]any{
+							"name":  "a.counter",
+							"value": 612.0,
+						},
+						map[string]any{
+							"name":  "some.gauge",
+							"value": 9.16,
+						},
+					},
 				},
 			},
 			Msg: "Payload with valid metric.",
@@ -66,6 +67,7 @@ func TestMetricset(t *testing.T) {
 			},
 			Output: map[string]any{
 				"_doc_count": 6.0,
+				"metricset":  map[string]any{},
 			},
 			Msg: "_doc_count",
 		},
@@ -102,29 +104,31 @@ func TestMetricset(t *testing.T) {
 				},
 			},
 			Output: map[string]any{
-				"latency_histogram": map[string]any{
-					"counts": []any{1.0, 2.0, 3.0},
-					"values": []any{1.1, 2.2, 3.3},
-				},
-				"request_summary": map[string]any{
-					"sum":         123.456,
-					"value_count": 10.0,
-				},
-				"just_type": 123.0,
-				"just_unit": 0.99,
-				"_metric_descriptions": map[string]any{
-					"latency_histogram": map[string]any{
-						"type": "histogram",
-						"unit": "s",
-					},
-					"request_summary": map[string]any{
-						"type": "summary",
-					},
-					"just_type": map[string]any{
-						"type": "counter",
-					},
-					"just_unit": map[string]any{
-						"unit": "percent",
+				"metricset": map[string]any{
+					"samples": []any{
+						map[string]any{
+							"name":   "latency_histogram",
+							"type":   "histogram",
+							"unit":   "s",
+							"counts": []any{1.0, 2.0, 3.0},
+							"values": []any{1.1, 2.2, 3.3},
+						},
+						map[string]any{
+							"name":        "request_summary",
+							"type":        "summary",
+							"sum":         123.456,
+							"value_count": 10.0,
+						},
+						map[string]any{
+							"name":  "just_type",
+							"type":  "counter",
+							"value": 123.0,
+						},
+						map[string]any{
+							"name":  "just_unit",
+							"unit":  "percent",
+							"value": 0.99,
+						},
 					},
 				},
 			},
@@ -154,9 +158,9 @@ func TestTransformMetricsetTransaction(t *testing.T) {
 		Metricset: &Metricset{Name: "transaction"},
 	})
 	assert.Equal(t, map[string]any{
-		"@timestamp":     "0001-01-01T00:00:00.000Z",
-		"processor":      map[string]any{"name": "metric", "event": "metric"},
-		"metricset.name": "transaction",
+		"@timestamp": "0001-01-01T00:00:00.000Z",
+		"processor":  map[string]any{"name": "metric", "event": "metric"},
+		"metricset":  map[string]any{"name": "transaction"},
 		"transaction": map[string]any{
 			"name":   "transaction_name",
 			"type":   "transaction_type",
@@ -190,9 +194,9 @@ func TestTransformMetricsetSpan(t *testing.T) {
 		Metricset: &Metricset{Name: "span"},
 	})
 	assert.Equal(t, map[string]any{
-		"@timestamp":     "0001-01-01T00:00:00.000Z",
-		"processor":      map[string]any{"name": "metric", "event": "metric"},
-		"metricset.name": "span",
+		"@timestamp": "0001-01-01T00:00:00.000Z",
+		"processor":  map[string]any{"name": "metric", "event": "metric"},
+		"metricset":  map[string]any{"name": "span"},
 		"span": map[string]any{
 			"type":    "span_type",
 			"subtype": "span_subtype",

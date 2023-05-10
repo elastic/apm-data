@@ -47,27 +47,3 @@ type LongtaskMetrics struct {
 	// Max holds the maximum longtask duration.
 	Max float64
 }
-
-func (u *UserExperience) Fields() map[string]any {
-	if u == nil {
-		return nil
-	}
-	var fields mapStr
-	if u.CumulativeLayoutShift >= 0 {
-		fields.set("cls", u.CumulativeLayoutShift)
-	}
-	if u.FirstInputDelay >= 0 {
-		fields.set("fid", u.FirstInputDelay)
-	}
-	if u.TotalBlockingTime >= 0 {
-		fields.set("tbt", u.TotalBlockingTime)
-	}
-	if u.Longtask.Count >= 0 {
-		fields.set("longtask", map[string]any{
-			"count": u.Longtask.Count,
-			"sum":   u.Longtask.Sum,
-			"max":   u.Longtask.Max,
-		})
-	}
-	return map[string]any(fields)
-}

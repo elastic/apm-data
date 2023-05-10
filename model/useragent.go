@@ -26,10 +26,3 @@ type UserAgent struct {
 	// User-Agent string can be parsed by ingest node.
 	Name string
 }
-
-func (u *UserAgent) fields() map[string]any {
-	var fields mapStr
-	fields.maybeSetString("original", u.Original)
-	fields.maybeSetString("name", u.Name)
-	return map[string]any(fields)
-}
