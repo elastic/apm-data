@@ -29,21 +29,21 @@ func TestClientFields(t *testing.T) {
 		domain string
 		ip     netip.Addr
 		port   int
-		out    map[string]any
+		out    any
 	}{
 		"Empty":  {out: nil},
 		"IPv4":   {ip: netip.MustParseAddr("192.0.0.1"), out: map[string]any{"ip": "192.0.0.1"}},
 		"IPv6":   {ip: netip.MustParseAddr("2001:db8::68"), out: map[string]any{"ip": "2001:db8::68"}},
-		"Port":   {port: 123, out: map[string]any{"port": 123}},
+		"Port":   {port: 123, out: map[string]any{"port": 123.0}},
 		"Domain": {domain: "testing.invalid", out: map[string]any{"domain": "testing.invalid"}},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c := Client{
+			out := transformAPMEvent(APMEvent{Client: Client{
 				Domain: tc.domain,
 				IP:     tc.ip,
 				Port:   tc.port,
-			}
-			assert.Equal(t, tc.out, c.fields())
+			}})
+			assert.Equal(t, tc.out, out["client"])
 		})
 	}
 }
