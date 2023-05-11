@@ -462,18 +462,6 @@ func (v *ContainerImage) MarshalFastJSON(w *fastjson.Writer) error {
 	return nil
 }
 
-func (v *DataStream) MarshalFastJSON(w *fastjson.Writer) error {
-	w.RawByte('{')
-	w.RawString("\"dataset\":")
-	w.String(v.Dataset)
-	w.RawString(",\"namespace\":")
-	w.String(v.Namespace)
-	w.RawString(",\"type\":")
-	w.String(v.Type)
-	w.RawByte('}')
-	return nil
-}
-
 func (v *Destination) MarshalFastJSON(w *fastjson.Writer) error {
 	w.RawByte('{')
 	first := true
@@ -619,11 +607,17 @@ func (v *Document) MarshalFastJSON(w *fastjson.Writer) error {
 			firstErr = err
 		}
 	}
-	if !v.DataStream.isZero() {
-		w.RawString(",\"data_stream\":")
-		if err := v.DataStream.MarshalFastJSON(w); err != nil && firstErr == nil {
-			firstErr = err
-		}
+	if v.DataStreamDataset != "" {
+		w.RawString(",\"data_stream.dataset\":")
+		w.String(v.DataStreamDataset)
+	}
+	if v.DataStreamNamespace != "" {
+		w.RawString(",\"data_stream.namespace\":")
+		w.String(v.DataStreamNamespace)
+	}
+	if v.DataStreamType != "" {
+		w.RawString(",\"data_stream.type\":")
+		w.String(v.DataStreamType)
 	}
 	if v.Destination != nil {
 		w.RawString(",\"destination\":")
@@ -2581,7 +2575,7 @@ func (v *Source) MarshalFastJSON(w *fastjson.Writer) error {
 		}
 		w.String(v.Domain)
 	}
-	if v.IP != "" {
+	if !v.IP.isZero() {
 		const prefix = ",\"ip\":"
 		if first {
 			first = false
@@ -2589,7 +2583,9 @@ func (v *Source) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.String(v.IP)
+		if err := v.IP.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
 	}
 	if !v.NAT.isZero() {
 		const prefix = ",\"nat\":"
@@ -2618,13 +2614,16 @@ func (v *Source) MarshalFastJSON(w *fastjson.Writer) error {
 }
 
 func (v *NAT) MarshalFastJSON(w *fastjson.Writer) error {
+	var firstErr error
 	w.RawByte('{')
-	if v.IP != "" {
+	if !v.IP.isZero() {
 		w.RawString("\"ip\":")
-		w.String(v.IP)
+		if err := v.IP.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
 	}
 	w.RawByte('}')
-	return nil
+	return firstErr
 }
 
 func (v *Span) MarshalFastJSON(w *fastjson.Writer) error {

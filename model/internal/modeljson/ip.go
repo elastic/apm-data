@@ -17,12 +17,23 @@
 
 package modeljson
 
-type DataStream struct {
-	Type      string `json:"type"`
-	Dataset   string `json:"dataset"`
-	Namespace string `json:"namespace"`
+import (
+	"net/netip"
+
+	"go.elastic.co/fastjson"
+)
+
+type IP netip.Addr
+
+func (i *IP) isZero() bool {
+	return !((*netip.Addr)(i)).IsValid()
 }
 
-func (ds DataStream) isZero() bool {
-	return ds == DataStream{}
+func (i *IP) MarshalFastJSON(w *fastjson.Writer) error {
+	var space [32]byte
+	addr := (*netip.Addr)(i)
+	w.RawByte('"')
+	w.RawBytes(addr.AppendTo(space[:0]))
+	w.RawByte('"')
+	return nil
 }

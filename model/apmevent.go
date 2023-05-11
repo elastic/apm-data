@@ -112,12 +112,14 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 	}
 
 	doc := modeljson.Document{
-		Timestamp:     modeljson.Time(e.Timestamp),
-		DataStream:    modeljson.DataStream(e.DataStream),
-		Processor:     modeljson.Processor(e.Processor),
-		Labels:        labels,
-		NumericLabels: numericLabels,
-		Message:       e.Message,
+		Timestamp:           modeljson.Time(e.Timestamp),
+		DataStreamType:      e.DataStream.Type,
+		DataStreamDataset:   e.DataStream.Dataset,
+		DataStreamNamespace: e.DataStream.Namespace,
+		Processor:           modeljson.Processor(e.Processor),
+		Labels:              labels,
+		NumericLabels:       numericLabels,
+		Message:             e.Message,
 	}
 
 	var transaction modeljson.Transaction
@@ -261,12 +263,13 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 	user := modeljson.User(e.User)
 	setNonZero(&doc.User, &user)
 
-	source := modeljson.Source{Domain: e.Source.Domain, Port: e.Source.Port}
-	if e.Source.IP.IsValid() {
-		source.IP = e.Source.IP.String()
+	source := modeljson.Source{
+		IP:     modeljson.IP(e.Source.IP),
+		Domain: e.Source.Domain,
+		Port:   e.Source.Port,
 	}
-	if e.Source.NAT != nil && e.Source.NAT.IP.IsValid() {
-		source.NAT.IP = e.Source.NAT.IP.String()
+	if e.Source.NAT != nil {
+		source.NAT.IP = modeljson.IP(e.Source.NAT.IP)
 	}
 	setNonZero(&doc.Source, &source)
 

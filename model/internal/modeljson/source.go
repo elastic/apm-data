@@ -18,14 +18,14 @@
 package modeljson
 
 type Source struct {
-	IP     string `json:"ip,omitempty"`
+	IP     IP     `json:"ip,omitempty"`
 	Domain string `json:"domain,omitempty"`
 	NAT    NAT    `json:"nat,omitempty"`
 	Port   int    `json:"port,omitempty"`
 }
 
 type NAT struct {
-	IP string `json:"ip,omitempty"`
+	IP IP `json:"ip,omitempty"`
 }
 
 func (n NAT) isZero() bool {
