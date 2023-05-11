@@ -27,35 +27,8 @@ type Process struct {
 	Pid         int
 }
 
-func (p *Process) fields() map[string]any {
-	var proc mapStr
-	if p.Pid != 0 {
-		proc.set("pid", p.Pid)
-	}
-	if p.Ppid != nil {
-		proc.set("parent", map[string]any{"pid": *p.Ppid})
-	}
-	if len(p.Argv) > 0 {
-		proc.set("args", p.Argv)
-	}
-	proc.maybeSetString("title", p.Title)
-	proc.maybeSetString("command_line", p.CommandLine)
-	proc.maybeSetString("executable", p.Executable)
-	proc.maybeSetMapStr("thread", p.Thread.fields())
-	return map[string]any(proc)
-}
-
 // ProcessThread represents the thread information.
 type ProcessThread struct {
 	Name string
 	ID   int
-}
-
-func (t *ProcessThread) fields() map[string]any {
-	var fields mapStr
-	if t.ID != 0 {
-		fields.set("id", t.ID)
-	}
-	fields.maybeSetString("name", t.Name)
-	return map[string]any(fields)
 }

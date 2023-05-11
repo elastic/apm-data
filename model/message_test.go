@@ -22,30 +22,33 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestMessaging_Fields(t *testing.T) {
-	var m *Message
-	require.Nil(t, m.Fields())
-
-	m = &Message{}
-	require.Nil(t, m.Fields())
-
 	ageMillis := 1577958057123
-	m = &Message{
-		QueueName:  "orders",
-		RoutingKey: "a_routing_key",
-		Body:       "order confirmed",
-		Headers:    http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
-		AgeMillis:  &ageMillis,
-	}
-	outp := map[string]any{
+	out := transformAPMEvent(APMEvent{
+		Transaction: &Transaction{
+			Message: &Message{
+				QueueName:  "orders",
+				RoutingKey: "a_routing_key",
+				Body:       "order confirmed",
+				Headers:    http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
+				AgeMillis:  &ageMillis,
+			},
+		},
+	})
+
+	transaction := out["transaction"].(map[string]any)
+	assert.Equal(t, map[string]any{
 		"queue":       map[string]any{"name": "orders"},
 		"routing_key": "a_routing_key",
 		"body":        "order confirmed",
-		"headers":     http.Header{"Internal": []string{"false"}, "Services": []string{"user", "order"}},
-		"age":         map[string]any{"ms": 1577958057123},
-	}
-	assert.Equal(t, outp, m.Fields())
+		"headers": map[string]any{
+			"Internal": []any{"false"},
+			"Services": []any{"user", "order"},
+		},
+		"age": map[string]any{
+			"ms": 1577958057123.0,
+		},
+	}, transaction["message"])
 }

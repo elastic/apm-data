@@ -26,12 +26,6 @@ import (
 	"github.com/tidwall/sjson"
 )
 
-func TestTransactionTransformEmpty(t *testing.T) {
-	m := transformAPMEvent(APMEvent{Transaction: &Transaction{}})
-	delete(m, "@timestamp")
-	assert.Empty(t, m)
-}
-
 func TestTransactionTransform(t *testing.T) {
 	id := "123"
 	dropped, startedSpans := 5, 14

@@ -23,12 +23,3 @@ type User struct {
 	Email  string
 	Name   string
 }
-
-func (u *User) fields() map[string]any {
-	var user mapStr
-	user.maybeSetString("domain", u.Domain)
-	user.maybeSetString("id", u.ID)
-	user.maybeSetString("email", u.Email)
-	user.maybeSetString("name", u.Name)
-	return map[string]any(user)
-}

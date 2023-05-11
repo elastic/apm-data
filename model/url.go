@@ -77,19 +77,3 @@ func truncate(s string) string {
 	}
 	return s
 }
-
-// fields returns map[string]any holding transformed data for attribute url.
-func (url *URL) fields() map[string]any {
-	var fields mapStr
-	fields.maybeSetString("full", url.Full)
-	fields.maybeSetString("fragment", url.Fragment)
-	fields.maybeSetString("domain", url.Domain)
-	fields.maybeSetString("path", url.Path)
-	if url.Port > 0 {
-		fields.set("port", url.Port)
-	}
-	fields.maybeSetString("original", url.Original)
-	fields.maybeSetString("scheme", url.Scheme)
-	fields.maybeSetString("query", url.Query)
-	return map[string]any(fields)
-}

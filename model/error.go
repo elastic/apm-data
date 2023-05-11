@@ -17,6 +17,8 @@
 
 package model
 
+import "github.com/elastic/apm-data/model/internal/modeljson"
+
 var (
 	// ErrorProcessor is the Processor value that should be assigned to error events.
 	ErrorProcessor = Processor{Name: "error", Event: "error"}
@@ -60,65 +62,55 @@ type ErrorLog struct {
 	Stacktrace   Stacktrace
 }
 
-func (e *Error) fields() map[string]any {
-	var errorFields mapStr
-	errorFields.maybeSetString("id", e.ID)
+func (e *Error) toModelJSON(out *modeljson.Error) {
+	*out = modeljson.Error{
+		ID:          e.ID,
+		GroupingKey: e.GroupingKey,
+		Culprit:     e.Culprit,
+		Message:     e.Message,
+		Type:        e.Type,
+		StackTrace:  e.StackTrace,
+		Custom:      customFields(e.Custom),
+	}
 	if e.Exception != nil {
-		exceptionFields := e.Exception.appendFields(nil, 0)
-		errorFields.set("exception", exceptionFields)
+		out.Exception = &modeljson.Exception{}
+		e.Exception.toModelJSON(out.Exception)
 	}
-	errorFields.maybeSetString("message", e.Message)
-	errorFields.maybeSetString("type", e.Type)
-	errorFields.maybeSetMapStr("log", e.logFields())
-	errorFields.maybeSetString("culprit", e.Culprit)
-	errorFields.maybeSetMapStr("custom", customFields(e.Custom))
-	errorFields.maybeSetString("grouping_key", e.GroupingKey)
-	errorFields.maybeSetString("stack_trace", e.StackTrace)
-	return map[string]any(errorFields)
+	if e.Log != nil {
+		out.Log = &modeljson.ErrorLog{
+			Message:      e.Log.Message,
+			ParamMessage: e.Log.ParamMessage,
+			LoggerName:   e.Log.LoggerName,
+			Level:        e.Log.Level,
+		}
+		if n := len(e.Log.Stacktrace); n > 0 {
+			out.Log.Stacktrace = make([]modeljson.StacktraceFrame, n)
+			for i, frame := range e.Log.Stacktrace {
+				frame.toModelJSON(&out.Log.Stacktrace[i])
+			}
+		}
+	}
 }
 
-func (e *Error) logFields() map[string]any {
-	if e.Log == nil {
-		return nil
+func (e *Exception) toModelJSON(out *modeljson.Exception) {
+	*out = modeljson.Exception{
+		Message:    e.Message,
+		Module:     e.Module,
+		Code:       e.Code,
+		Attributes: e.Attributes,
+		Type:       e.Type,
+		Handled:    e.Handled,
 	}
-	var log mapStr
-	log.maybeSetString("message", e.Log.Message)
-	log.maybeSetString("param_message", e.Log.ParamMessage)
-	log.maybeSetString("logger_name", e.Log.LoggerName)
-	log.maybeSetString("level", e.Log.Level)
-	if st := e.Log.Stacktrace.transform(); len(st) > 0 {
-		log.set("stacktrace", st)
-	}
-	return map[string]any(log)
-}
-
-func (e *Exception) appendFields(out []map[string]any, parentOffset int) []map[string]any {
-	offset := len(out)
-	var fields mapStr
-	fields.maybeSetString("message", e.Message)
-	fields.maybeSetString("module", e.Module)
-	fields.maybeSetString("type", e.Type)
-	fields.maybeSetString("code", e.Code)
-	fields.maybeSetBool("handled", e.Handled)
-	if offset > parentOffset+1 {
-		// The parent of an exception in the resulting slice is at the offset
-		// indicated by the `parent` field (0 index based), or the preceding
-		// exception in the slice if the `parent` field is not set.
-		fields.set("parent", parentOffset)
-	}
-	if e.Attributes != nil {
-		fields.set("attributes", e.Attributes)
+	if n := len(e.Cause); n > 0 {
+		out.Cause = make([]modeljson.Exception, n)
+		for i, cause := range e.Cause {
+			cause.toModelJSON(&out.Cause[i])
+		}
 	}
 	if n := len(e.Stacktrace); n > 0 {
-		frames := make([]map[string]any, n)
+		out.Stacktrace = make([]modeljson.StacktraceFrame, n)
 		for i, frame := range e.Stacktrace {
-			frames[i] = frame.transform()
+			frame.toModelJSON(&out.Stacktrace[i])
 		}
-		fields.set("stacktrace", frames)
 	}
-	out = append(out, map[string]any(fields))
-	for _, cause := range e.Cause {
-		out = cause.appendFields(out, offset)
-	}
-	return out
 }

@@ -22,9 +22,3 @@ type Trace struct {
 	// ID holds a unique identifier of the trace.
 	ID string
 }
-
-func (t *Trace) fields() map[string]any {
-	var fields mapStr
-	fields.maybeSetString("id", t.ID)
-	return map[string]any(fields)
-}

@@ -24,12 +24,3 @@ type Agent struct {
 	EphemeralID      string
 	ActivationMethod string
 }
-
-func (a *Agent) fields() map[string]any {
-	var agent mapStr
-	agent.maybeSetString("name", a.Name)
-	agent.maybeSetString("version", a.Version)
-	agent.maybeSetString("ephemeral_id", a.EphemeralID)
-	agent.maybeSetString("activation_method", a.ActivationMethod)
-	return map[string]any(agent)
-}

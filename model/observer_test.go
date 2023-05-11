@@ -23,32 +23,25 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestObserverFields(t *testing.T) {
-	tests := []struct {
-		Observer Observer
-		Fields   map[string]any
-	}{
-		{
-			Observer: Observer{},
-			Fields:   nil,
-		},
-		{
-			Observer: Observer{
-				Hostname: "observer_hostname",
-				Name:     "observer_name",
-				Type:     "observer_type",
-				Version:  "observer_version",
-			},
-			Fields: map[string]any{
-				"hostname": "observer_hostname",
-				"name":     "observer_name",
-				"type":     "observer_type",
-				"version":  "observer_version",
-			},
-		},
-	}
+func TestObserverOmitempty(t *testing.T) {
+	output := transformAPMEvent(APMEvent{})
+	assert.NotContains(t, output, "observer")
+}
 
-	for _, test := range tests {
-		assert.Equal(t, test.Fields, test.Observer.Fields())
-	}
+func TestObserverFields(t *testing.T) {
+	output := transformAPMEvent(APMEvent{
+		Observer: Observer{
+			Hostname: "observer_hostname",
+			Name:     "observer_name",
+			Type:     "observer_type",
+			Version:  "observer_version",
+		},
+	})
+
+	assert.Equal(t, map[string]any{
+		"hostname": "observer_hostname",
+		"name":     "observer_name",
+		"type":     "observer_type",
+		"version":  "observer_version",
+	}, output["observer"])
 }

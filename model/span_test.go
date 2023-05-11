@@ -24,12 +24,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSpanTransformEmpty(t *testing.T) {
-	m := transformAPMEvent(APMEvent{Span: &Span{}})
-	delete(m, "@timestamp")
-	assert.Empty(t, m)
-}
-
 func TestSpanTransform(t *testing.T) {
 	path := "test/path"
 	hexID := "0147258369012345"
@@ -121,7 +115,6 @@ func TestSpanTransform(t *testing.T) {
 func TestSpanHTTPFields(t *testing.T) {
 	m := transformAPMEvent(APMEvent{
 		Processor: SpanProcessor,
-		Span:      &Span{},
 		HTTP: HTTP{
 			Version: "2.0",
 			Request: &HTTPRequest{

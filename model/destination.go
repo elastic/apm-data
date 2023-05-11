@@ -17,29 +17,8 @@
 
 package model
 
-import (
-	"net"
-)
-
 // Destination holds information about the destination of a request.
 type Destination struct {
 	Address string
 	Port    int
-}
-
-func (d *Destination) fields() map[string]any {
-	var fields mapStr
-	if fields.maybeSetString("address", d.Address) {
-		// Copy destination.address to destination.ip if it's a valid IP.
-		//
-		// TODO(axw) move this to a "convert" ingest processor once we
-		// have a high enough minimum supported Elasticsearch version.
-		if ip := net.ParseIP(d.Address); ip != nil {
-			fields.set("ip", d.Address)
-		}
-	}
-	if d.Port > 0 {
-		fields.set("port", d.Port)
-	}
-	return map[string]any(fields)
 }

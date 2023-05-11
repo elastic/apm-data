@@ -15,45 +15,14 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package modeljson
 
-type mapStr map[string]any
-
-func (m *mapStr) set(k string, v interface{}) {
-	if *m == nil {
-		*m = make(mapStr)
-	}
-	(*m)[k] = v
-}
-
-func (m *mapStr) maybeSetString(k, v string) bool {
-	if v != "" {
-		m.set(k, v)
-		return true
-	}
-	return false
-}
-
-func (m *mapStr) maybeSetBool(k string, v *bool) bool {
-	if v != nil {
-		m.set(k, *v)
-		return true
-	}
-	return false
-}
-
-func (m *mapStr) maybeSetIntptr(k string, v *int) bool {
-	if v != nil {
-		m.set(k, *v)
-		return true
-	}
-	return false
-}
-
-func (m *mapStr) maybeSetMapStr(k string, v map[string]any) bool {
-	if len(v) > 0 {
-		m.set(k, v)
-		return true
-	}
-	return false
+type Host struct {
+	OS           *OS      `json:"os,omitempty"`
+	Hostname     string   `json:"hostname,omitempty"`
+	Name         string   `json:"name,omitempty"`
+	ID           string   `json:"id,omitempty"`
+	Architecture string   `json:"architecture,omitempty"`
+	Type         string   `json:"type,omitempty"`
+	IP           []string `json:"ip,omitempty"`
 }

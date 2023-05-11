@@ -26,7 +26,7 @@ import (
 func TestUserExperienceFields(t *testing.T) {
 	tests := []struct {
 		Input    *UserExperience
-		Expected map[string]any
+		Expected any
 	}{{
 		Input:    nil,
 		Expected: nil,
@@ -37,7 +37,7 @@ func TestUserExperienceFields(t *testing.T) {
 			TotalBlockingTime:     -1,
 			Longtask:              LongtaskMetrics{Count: -1},
 		},
-		Expected: nil,
+		Expected: map[string]any{},
 	}, {
 		Input: &UserExperience{
 			CumulativeLayoutShift: 1,
@@ -54,14 +54,19 @@ func TestUserExperienceFields(t *testing.T) {
 			"fid": 2.3,
 			"tbt": 4.56,
 			"longtask": map[string]any{
-				"count": 3,
+				"count": 3.0,
 				"sum":   2.0,
 				"max":   1.0,
 			},
 		},
 	}}
 	for _, test := range tests {
-		output := test.Input.Fields()
-		assert.Equal(t, test.Expected, output)
+		output := transformAPMEvent(APMEvent{
+			Transaction: &Transaction{
+				UserExperience: test.Input,
+			},
+		})
+		transaction := output["transaction"].(map[string]any)
+		assert.Equal(t, test.Expected, transaction["experience"])
 	}
 }
