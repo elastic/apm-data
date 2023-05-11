@@ -33,33 +33,8 @@ type Source struct {
 	Port int
 }
 
-func (s *Source) fields() map[string]any {
-	var fields mapStr
-	fields.maybeSetString("domain", s.Domain)
-	if s.IP.IsValid() {
-		fields.set("ip", s.IP.String())
-	}
-	if s.Port > 0 {
-		fields.set("port", s.Port)
-	}
-	if s.NAT != nil {
-		if nat := s.NAT.fields(); len(nat) > 0 {
-			fields.set("nat", nat)
-		}
-	}
-	return map[string]any(fields)
-}
-
 // NAT holds information about the translated source of a network exchange.
 type NAT struct {
 	// IP holds the translated IP address.
 	IP netip.Addr
-}
-
-func (n *NAT) fields() map[string]any {
-	var fields mapStr
-	if n.IP.IsValid() {
-		fields.set("ip", n.IP.String())
-	}
-	return map[string]any(fields)
 }

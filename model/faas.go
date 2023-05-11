@@ -27,15 +27,3 @@ type FAAS struct {
 	Name             string
 	Version          string
 }
-
-func (f *FAAS) fields() map[string]any {
-	var fields mapStr
-	fields.maybeSetString("id", f.ID)
-	fields.maybeSetBool("coldstart", f.Coldstart)
-	fields.maybeSetString("execution", f.Execution)
-	fields.maybeSetString("trigger.type", f.TriggerType)
-	fields.maybeSetString("trigger.request_id", f.TriggerRequestID)
-	fields.maybeSetString("name", f.Name)
-	fields.maybeSetString("version", f.Version)
-	return map[string]any(fields)
-}

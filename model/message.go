@@ -19,6 +19,8 @@ package model
 
 import (
 	"net/http"
+
+	"github.com/elastic/apm-data/model/internal/modeljson"
 )
 
 // Message holds information about a recorded message, such as the message body and meta information
@@ -30,23 +32,12 @@ type Message struct {
 	RoutingKey string
 }
 
-// Fields returns a MapStr holding the transformed message information
-func (m *Message) Fields() map[string]any {
-	if m == nil {
-		return nil
+func (m *Message) toModelJSON(out *modeljson.Message) {
+	*out = modeljson.Message{
+		Body:       m.Body,
+		Headers:    m.Headers,
+		Age:        modeljson.MessageAge{Millis: m.AgeMillis},
+		Queue:      modeljson.MessageQueue{Name: m.QueueName},
+		RoutingKey: m.RoutingKey,
 	}
-	var fields mapStr
-	if m.QueueName != "" {
-		fields.set("queue", map[string]any{"name": m.QueueName})
-	}
-	if m.AgeMillis != nil {
-		fields.set("age", map[string]any{"ms": *m.AgeMillis})
-	}
-	if len(m.Headers) > 0 {
-		fields.set("headers", m.Headers)
-	}
-	fields.maybeSetString("body", m.Body)
-	fields.maybeSetString("routing_key", m.RoutingKey)
-
-	return map[string]any(fields)
 }

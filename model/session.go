@@ -28,14 +28,3 @@ type Session struct {
 	// ID is empty.
 	Sequence int
 }
-
-func (s *Session) fields() map[string]any {
-	if s.ID == "" {
-		return nil
-	}
-	out := map[string]any{"id": s.ID}
-	if s.Sequence > 0 {
-		out["sequence"] = s.Sequence
-	}
-	return out
-}

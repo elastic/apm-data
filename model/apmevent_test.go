@@ -19,11 +19,13 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/netip"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.elastic.co/fastjson"
 )
 
 func TestAPMEventFields(t *testing.T) {
@@ -89,13 +91,12 @@ func TestAPMEventFields(t *testing.T) {
 				"e": {Value: float64(1234)},
 				"f": {Values: []float64{1234, 12311}},
 			},
-			Message:     "bottle",
-			Transaction: &Transaction{},
-			Timestamp:   time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600)),
-			Processor:   Processor{Name: "processor_name", Event: "processor_event"},
-			Trace:       Trace{ID: traceID},
-			Parent:      Parent{ID: parentID},
-			Child:       Child{ID: []string{"child_1", "child_2"}},
+			Message:   "bottle",
+			Timestamp: time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600)),
+			Processor: Processor{Name: "processor_name", Event: "processor_event"},
+			Trace:     Trace{ID: traceID},
+			Parent:    Parent{ID: parentID},
+			Child:     Child{ID: []string{"child_1", "child_2"}},
 			HTTP: HTTP{
 				Request: &HTTPRequest{
 					Method: httpRequestMethod,
@@ -183,20 +184,26 @@ func TestAPMEventFields(t *testing.T) {
 				},
 			},
 			"faas": map[string]any{
-				"id":                 "faasID",
-				"coldstart":          true,
-				"execution":          "execution",
-				"trigger.type":       "http",
-				"trigger.request_id": "abc123",
-				"name":               "faasName",
-				"version":            "1.0.0",
+				"id":        "faasID",
+				"coldstart": true,
+				"execution": "execution",
+				"trigger": map[string]any{
+					"type":       "http",
+					"request_id": "abc123",
+				},
+				"name":    "faasName",
+				"version": "1.0.0",
 			},
 			"cloud": map[string]any{
 				"origin": map[string]any{
-					"account.id":   "accountID",
-					"provider":     "aws",
-					"region":       "us-west-1",
-					"service.name": "serviceName",
+					"account": map[string]any{
+						"id": "accountID",
+					},
+					"provider": "aws",
+					"region":   "us-west-1",
+					"service": map[string]any{
+						"name": "serviceName",
+					},
 				},
 			},
 		},
@@ -217,11 +224,94 @@ func TestAPMEventFields(t *testing.T) {
 	}
 }
 
+func BenchmarkMarshalFastJSON(b *testing.B) {
+	input := APMEvent{
+		Agent: Agent{
+			Name:    "agent_name",
+			Version: "agent_version",
+		},
+		Observer:  Observer{Type: "observer_type"},
+		Container: Container{ID: "container_id"},
+		Service: Service{
+			Name: "service_name",
+			Node: ServiceNode{Name: "service_node_name"},
+			Origin: &ServiceOrigin{
+				ID:      "abc123",
+				Name:    "service_origin_name",
+				Version: "1.0",
+			},
+		},
+		Host: Host{
+			Hostname: "hostname",
+			Name:     "host_name",
+		},
+		Client: Client{Domain: "client.domain"},
+		Source: Source{
+			IP:   netip.MustParseAddr("127.0.0.1"),
+			Port: 1234,
+			NAT: &NAT{
+				IP: netip.MustParseAddr("10.10.10.10"),
+			},
+		},
+		Destination: Destination{Address: "destination_address", Port: 1234},
+		Process:     Process{Pid: 1234},
+		User:        User{ID: "user_id", Email: "user_email"},
+		Event:       Event{Outcome: "success", Duration: time.Microsecond},
+		Session:     Session{ID: "session_id"},
+		URL:         URL{Original: "url"},
+		Labels: map[string]LabelValue{
+			"a": {Value: "b"},
+			"c": {Value: "true"},
+			"d": {Values: []string{"true", "false"}},
+		},
+		NumericLabels: map[string]NumericLabelValue{
+			"e": {Value: float64(1234)},
+			"f": {Values: []float64{1234, 12311}},
+		},
+		Message:   "bottle",
+		Timestamp: time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600)),
+		Processor: Processor{Name: "processor_name", Event: "processor_event"},
+		Trace:     Trace{ID: "trace_id"},
+		Parent:    Parent{ID: "parent_id"},
+		Child:     Child{ID: []string{"child_1", "child_2"}},
+		HTTP: HTTP{
+			Request: &HTTPRequest{
+				Method: "GET",
+				Body:   "foo bar baz",
+			},
+		},
+		FAAS: FAAS{
+			ID:               "faasID",
+			Execution:        "execution",
+			TriggerType:      "http",
+			TriggerRequestID: "abc123",
+			Name:             "faasName",
+			Version:          "1.0.0",
+		},
+		Cloud: Cloud{
+			Origin: &CloudOrigin{
+				AccountID:   "accountID",
+				Provider:    "aws",
+				Region:      "us-west-1",
+				ServiceName: "serviceName",
+			},
+		},
+	}
+
+	var w fastjson.Writer
+	for i := 0; i < b.N; i++ {
+		w.Reset()
+		if err := input.MarshalFastJSON(&w); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func transformAPMEvent(in APMEvent) map[string]any {
 	var decoded map[string]any
 	encoded := marshalJSONAPMEvent(in)
 	if err := json.Unmarshal(encoded, &decoded); err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to decode %q: %w", encoded, err))
 	}
 	return decoded
 }

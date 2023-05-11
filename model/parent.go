@@ -22,9 +22,3 @@ type Parent struct {
 	// ID holds the ID of the parent event.
 	ID string
 }
-
-func (p *Parent) fields() map[string]any {
-	var fields mapStr
-	fields.maybeSetString("id", p.ID)
-	return map[string]any(fields)
-}

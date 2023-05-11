@@ -38,23 +38,3 @@ type Host struct {
 	// IP holds the IP addresses of the host.
 	IP []netip.Addr
 }
-
-func (h *Host) fields() map[string]any {
-	if h == nil {
-		return nil
-	}
-	var fields mapStr
-	fields.maybeSetString("hostname", h.Hostname)
-	fields.maybeSetString("name", h.Name)
-	fields.maybeSetString("architecture", h.Architecture)
-	fields.maybeSetString("type", h.Type)
-	if len(h.IP) > 0 {
-		ips := make([]string, len(h.IP))
-		for i, ip := range h.IP {
-			ips[i] = ip.String()
-		}
-		fields.set("ip", ips)
-	}
-	fields.maybeSetMapStr("os", h.OS.fields())
-	return map[string]any(fields)
-}

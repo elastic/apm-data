@@ -19,6 +19,8 @@ package model
 
 import (
 	"time"
+
+	"github.com/elastic/apm-data/model/internal/modeljson"
 )
 
 // Event holds information about an event, in ECS terms.
@@ -56,22 +58,16 @@ type Event struct {
 	Severity int64
 }
 
-func (e *Event) fields() map[string]any {
-	var fields mapStr
-	fields.maybeSetString("outcome", e.Outcome)
-	if e.SuccessCount.Count > 0 {
-		fields.maybeSetMapStr("success_count", e.SuccessCount.fields())
+func (e *Event) toModelJSON(out *modeljson.Event) {
+	*out = modeljson.Event{
+		Outcome:      e.Outcome,
+		Action:       e.Action,
+		Dataset:      e.Dataset,
+		Kind:         e.Kind,
+		Category:     e.Category,
+		Type:         e.Type,
+		SuccessCount: modeljson.SummaryMetric(e.SuccessCount),
+		Duration:     e.Duration.Nanoseconds(),
+		Severity:     e.Severity,
 	}
-	fields.maybeSetString("action", e.Action)
-	fields.maybeSetString("dataset", e.Dataset)
-	fields.maybeSetString("kind", e.Kind)
-	fields.maybeSetString("category", e.Category)
-	fields.maybeSetString("type", e.Type)
-	if e.Severity > 0 {
-		fields.set("severity", e.Severity)
-	}
-	if e.Duration > 0 {
-		fields.set("duration", e.Duration.Nanoseconds())
-	}
-	return map[string]any(fields)
 }

@@ -36,7 +36,7 @@ func TestServiceTransform(t *testing.T) {
 
 	tests := []struct {
 		Service Service
-		Fields  map[string]any
+		Fields  any
 	}{
 		{
 			Service: Service{},
@@ -126,6 +126,7 @@ func TestServiceTransform(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Equal(t, test.Fields, test.Service.Fields())
+		output := transformAPMEvent(APMEvent{Service: test.Service})
+		assert.Equal(t, test.Fields, output["service"])
 	}
 }

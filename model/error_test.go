@@ -39,7 +39,6 @@ func baseLog() *ErrorLog {
 func TestHandleExceptionTree(t *testing.T) {
 	event := APMEvent{
 		Error: &Error{
-			ID: "id",
 			Exception: &Exception{
 				Message: "message0",
 				Type:    "type0",
@@ -72,46 +71,26 @@ func TestHandleExceptionTree(t *testing.T) {
 	}
 
 	m := transformAPMEvent(event)
-	_ = m
-	/*
-		exceptionField, err := beatEvent.Fields.GetValue("error.exception")
-
-		require.NoError(t, err)
-		assert.Equal(t, []map[string]any{{
-			"message": "message0",
-			"stacktrace": []map[string]any{{
-				"exclude_from_grouping": false,
-				"filename":              "file0",
-			}},
-			"type": "type0",
-		}, {
-			"message": "message1",
-			"type":    "type1",
-		}, {
-			"message": "message2",
-			"type":    "type2",
-			"parent":  0,
-		}, {
-			"message": "message3",
-			"type":    "type3",
-		}, {
-			"message": "message4",
-			"type":    "type4",
-		}, {
-			"message": "message5",
-			"type":    "type5",
-			"parent":  3,
-		}, {
-			"message": "message6",
-			"type":    "type6",
-			"parent":  0,
-		}}, exceptionField)
-	*/
-}
-
-func TestErrorFieldsEmpty(t *testing.T) {
-	m := transformAPMEvent(APMEvent{Error: &Error{}})
-	_ = m
+	assert.Equal(t, map[string]any{
+		"exception": []any{
+			map[string]any{
+				"message": "message0",
+				"type":    "type0",
+				"stacktrace": []any{
+					map[string]any{
+						"filename":              "file0",
+						"exclude_from_grouping": false,
+					},
+				},
+			},
+			map[string]any{"message": "message1", "type": "type1"},
+			map[string]any{"message": "message2", "type": "type2", "parent": 0.0},
+			map[string]any{"message": "message3", "type": "type3"},
+			map[string]any{"message": "message4", "type": "type4"},
+			map[string]any{"message": "message5", "type": "type5", "parent": 3.0},
+			map[string]any{"message": "message6", "type": "type6", "parent": 0.0},
+		},
+	}, m["error"])
 }
 
 func TestErrorFields(t *testing.T) {

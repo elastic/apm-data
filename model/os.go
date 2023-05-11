@@ -37,13 +37,3 @@ type OS struct {
 	// If the OS you’re dealing with is not in the list, the field should not be populated.
 	Type string
 }
-
-func (o *OS) fields() map[string]any {
-	var fields mapStr
-	fields.maybeSetString("name", o.Name)
-	fields.maybeSetString("version", o.Version)
-	fields.maybeSetString("platform", o.Platform)
-	fields.maybeSetString("full", o.Full)
-	fields.maybeSetString("type", o.Type)
-	return map[string]any(fields)
-}

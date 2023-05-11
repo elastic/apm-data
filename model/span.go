@@ -19,6 +19,8 @@ package model
 
 import (
 	"time"
+
+	"github.com/elastic/apm-data/model/internal/modeljson"
 )
 
 var (
@@ -80,80 +82,73 @@ type Composite struct {
 	Sum                 float64 // milliseconds
 }
 
-func (db *DB) fields() map[string]any {
-	if db == nil {
-		return nil
+func (db *DB) toModelJSON(out *modeljson.DB) {
+	*out = modeljson.DB{
+		Instance:     db.Instance,
+		Statement:    db.Statement,
+		Type:         db.Type,
+		Link:         db.Link,
+		RowsAffected: db.RowsAffected,
+		User:         modeljson.DBUser{Name: db.UserName},
 	}
-	var fields, user mapStr
-	fields.maybeSetString("instance", db.Instance)
-	fields.maybeSetString("statement", db.Statement)
-	fields.maybeSetString("type", db.Type)
-	fields.maybeSetString("link", db.Link)
-	fields.maybeSetIntptr("rows_affected", db.RowsAffected)
-	if user.maybeSetString("name", db.UserName) {
-		fields.set("user", map[string]any(user))
-	}
-	return map[string]any(fields)
 }
 
-func (d *DestinationService) fields() map[string]any {
-	if d == nil {
-		return nil
-	}
-	var fields mapStr
-	fields.maybeSetString("type", d.Type)
-	fields.maybeSetString("name", d.Name)
-	fields.maybeSetString("resource", d.Resource)
-	fields.maybeSetMapStr("response_time", d.ResponseTime.fields())
-	return map[string]any(fields)
-}
-
-func (c *Composite) fields() map[string]any {
-	if c == nil {
-		return nil
-	}
-	var fields mapStr
+func (c *Composite) toModelJSON(out *modeljson.SpanComposite) {
 	sumDuration := time.Duration(c.Sum * float64(time.Millisecond))
-	fields.set("sum", map[string]any{"us": int(sumDuration.Microseconds())})
-	fields.set("count", c.Count)
-	fields.set("compression_strategy", c.CompressionStrategy)
-
-	return map[string]any(fields)
+	*out = modeljson.SpanComposite{
+		CompressionStrategy: c.CompressionStrategy,
+		Count:               c.Count,
+		Sum:                 modeljson.SpanCompositeSum{US: sumDuration.Microseconds()},
+	}
 }
 
-func (e *Span) fields() map[string]any {
-	var span mapStr
-	span.maybeSetString("name", e.Name)
-	span.maybeSetString("type", e.Type)
-	span.maybeSetString("id", e.ID)
-	span.maybeSetString("kind", e.Kind)
-	span.maybeSetString("subtype", e.Subtype)
-	span.maybeSetString("action", e.Action)
-	span.maybeSetBool("sync", e.Sync)
-	span.maybeSetMapStr("db", e.DB.fields())
-	span.maybeSetMapStr("message", e.Message.Fields())
-	span.maybeSetMapStr("composite", e.Composite.fields())
-	if destinationServiceFields := e.DestinationService.fields(); len(destinationServiceFields) > 0 {
-		destinationMap, ok := span["destination"].(map[string]any)
-		if !ok {
-			destinationMap = make(map[string]any)
-			span.set("destination", destinationMap)
+func (e *Span) toModelJSON(out *modeljson.Span) {
+	*out = modeljson.Span{
+		ID:                  e.ID,
+		Name:                e.Name,
+		Type:                e.Type,
+		Subtype:             e.Subtype,
+		Action:              e.Action,
+		Kind:                e.Kind,
+		Sync:                e.Sync,
+		RepresentativeCount: e.RepresentativeCount,
+		SelfTime:            modeljson.AggregatedDuration(e.SelfTime),
+	}
+	if e.DB != nil {
+		out.DB = &modeljson.DB{}
+		e.DB.toModelJSON(out.DB)
+	}
+	if e.Message != nil {
+		out.Message = &modeljson.Message{}
+		e.Message.toModelJSON(out.Message)
+	}
+	if e.Composite != nil {
+		out.Composite = &modeljson.SpanComposite{}
+		e.Composite.toModelJSON(out.Composite)
+	}
+	if e.DestinationService != nil {
+		out.Destination = &modeljson.SpanDestination{
+			Service: modeljson.SpanDestinationService{
+				Type:         e.DestinationService.Type,
+				Name:         e.DestinationService.Name,
+				Resource:     e.DestinationService.Resource,
+				ResponseTime: modeljson.AggregatedDuration(e.DestinationService.ResponseTime),
+			},
 		}
-		destinationMap["service"] = destinationServiceFields
 	}
-	if st := e.Stacktrace.transform(); len(st) > 0 {
-		span.set("stacktrace", st)
-	}
-	span.maybeSetMapStr("self_time", e.SelfTime.fields())
 	if n := len(e.Links); n > 0 {
-		links := make([]map[string]any, n)
+		out.Links = make([]modeljson.SpanLink, n)
 		for i, link := range e.Links {
-			links[i] = link.fields()
+			out.Links[i] = modeljson.SpanLink{
+				Trace: modeljson.SpanLinkTrace{ID: link.Trace.ID},
+				Span:  modeljson.SpanLinkSpan{ID: link.Span.ID},
+			}
 		}
-		span.set("links", links)
 	}
-	if e.RepresentativeCount > 0 {
-		span.set("representative_count", e.RepresentativeCount)
+	if n := len(e.Stacktrace); n > 0 {
+		out.Stacktrace = make([]modeljson.StacktraceFrame, n)
+		for i, frame := range e.Stacktrace {
+			frame.toModelJSON(&out.Stacktrace[i])
+		}
 	}
-	return map[string]any(span)
 }

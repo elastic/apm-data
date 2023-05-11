@@ -35,16 +35,3 @@ type DeviceModel struct {
 	// Identifier holds the machine readable identifier of the device model.
 	Identifier string
 }
-
-func (d *Device) fields() map[string]any {
-	var fields mapStr
-	fields.maybeSetString("id", d.ID)
-
-	var model mapStr
-	model.maybeSetString("name", d.Model.Name)
-	model.maybeSetString("identifier", d.Model.Identifier)
-	fields.maybeSetMapStr("model", map[string]any(model))
-
-	fields.maybeSetString("manufacturer", d.Manufacturer)
-	return map[string]any(fields)
-}

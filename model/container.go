@@ -24,16 +24,3 @@ type Container struct {
 	ImageName string
 	ImageTag  string
 }
-
-func (c *Container) fields() map[string]any {
-	var container mapStr
-	container.maybeSetString("name", c.Name)
-	container.maybeSetString("id", c.ID)
-	container.maybeSetString("runtime", c.Runtime)
-
-	var image mapStr
-	image.maybeSetString("name", c.ImageName)
-	image.maybeSetString("tag", c.ImageTag)
-	container.maybeSetMapStr("image", map[string]any(image))
-	return map[string]any(container)
-}
