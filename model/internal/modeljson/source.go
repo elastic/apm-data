@@ -19,8 +19,8 @@ package modeljson
 
 type Source struct {
 	IP     IP     `json:"ip,omitempty"`
-	Domain string `json:"domain,omitempty"`
 	NAT    NAT    `json:"nat,omitempty"`
+	Domain string `json:"domain,omitempty"`
 	Port   int    `json:"port,omitempty"`
 }
 
