@@ -40,15 +40,11 @@ func TestStacktraceTransform(t *testing.T) {
 	mappedClassname := "mapped classname"
 	mappedAbsPath := "mapped path"
 
-	vars := map[string]any{"a": "abc", "b": 123}
-
 	contextLine := "context line"
-	preContext := []string{"before1", "before2"}
-	postContext := []string{"after1", "after2"}
 
 	tests := []struct {
 		Stacktrace Stacktrace
-		Output     []map[string]any
+		Output     any
 		Msg        string
 	}{
 		{
@@ -58,7 +54,7 @@ func TestStacktraceTransform(t *testing.T) {
 		},
 		{
 			Stacktrace: Stacktrace{&StacktraceFrame{}},
-			Output:     []map[string]any{{"exclude_from_grouping": false}},
+			Output:     []any{map[string]any{"exclude_from_grouping": false}},
 			Msg:        "Stacktrace with empty Frame",
 		},
 		{
@@ -71,22 +67,24 @@ func TestStacktraceTransform(t *testing.T) {
 				Module:       originalModule,
 				AbsPath:      originalAbsPath,
 				LibraryFrame: true,
-				Vars:         vars,
+				Vars:         map[string]any{"a": "abc", "b": 123},
 			}},
-			Output: []map[string]any{{
-				"abs_path":  "original path",
-				"filename":  "original filename",
-				"function":  "original function",
-				"classname": "original classname",
-				"module":    "original module",
-				"line": map[string]any{
-					"number": 111,
-					"column": 222,
+			Output: []any{
+				map[string]any{
+					"abs_path":  "original path",
+					"filename":  "original filename",
+					"function":  "original function",
+					"classname": "original classname",
+					"module":    "original module",
+					"line": map[string]any{
+						"number": 111.0,
+						"column": 222.0,
+					},
+					"exclude_from_grouping": false,
+					"library_frame":         true,
+					"vars":                  map[string]any{"a": "abc", "b": 123.0},
 				},
-				"exclude_from_grouping": false,
-				"library_frame":         true,
-				"vars":                  vars,
-			}},
+			},
 			Msg: "unmapped stacktrace",
 		},
 		{
@@ -109,43 +107,46 @@ func TestStacktraceTransform(t *testing.T) {
 				SourcemapUpdated:    true,
 				SourcemapError:      "boom",
 				ContextLine:         contextLine,
-				PreContext:          preContext,
-				PostContext:         postContext,
+				PreContext:          []string{"before1", "before2"},
+				PostContext:         []string{"after1", "after2"},
 			}},
-			Output: []map[string]any{{
-				"abs_path":  "mapped path",
-				"filename":  "mapped filename",
-				"function":  "mapped function",
-				"classname": "mapped classname",
-				"line": map[string]any{
-					"number":  333,
-					"column":  444,
-					"context": "context line",
+			Output: []any{
+				map[string]any{
+					"abs_path":  "mapped path",
+					"filename":  "mapped filename",
+					"function":  "mapped function",
+					"classname": "mapped classname",
+					"line": map[string]any{
+						"number":  333.0,
+						"column":  444.0,
+						"context": "context line",
+					},
+					"context": map[string]any{
+						"pre":  []any{"before1", "before2"},
+						"post": []any{"after1", "after2"},
+					},
+					"original": map[string]any{
+						"abs_path":  "original path",
+						"filename":  "original filename",
+						"function":  "original function",
+						"classname": "original classname",
+						"lineno":    111.0,
+						"colno":     222.0,
+					},
+					"exclude_from_grouping": true,
+					"sourcemap": map[string]any{
+						"updated": true,
+						"error":   "boom",
+					},
 				},
-				"context": map[string]any{
-					"pre":  preContext,
-					"post": postContext,
-				},
-				"original": map[string]any{
-					"abs_path":  "original path",
-					"filename":  "original filename",
-					"function":  "original function",
-					"classname": "original classname",
-					"lineno":    111,
-					"colno":     222,
-				},
-				"exclude_from_grouping": true,
-				"sourcemap": map[string]any{
-					"updated": true,
-					"error":   "boom",
-				},
-			}},
+			},
 			Msg: "mapped stacktrace",
 		},
 	}
 
 	for idx, test := range tests {
-		output := test.Stacktrace.transform()
-		assert.Equal(t, test.Output, output, fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
+		output := transformAPMEvent(APMEvent{Span: &Span{Stacktrace: test.Stacktrace}})
+		span := output["span"].(map[string]any)
+		assert.Equal(t, test.Output, span["stacktrace"], fmt.Sprintf("Failed at idx %v; %s", idx, test.Msg))
 	}
 }

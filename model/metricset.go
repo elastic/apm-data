@@ -19,6 +19,8 @@ package model
 
 import (
 	"time"
+
+	"github.com/elastic/apm-data/model/internal/modeljson"
 )
 
 var (
@@ -100,16 +102,6 @@ type Histogram struct {
 	Counts []int64
 }
 
-func (h *Histogram) fields() map[string]any {
-	if len(h.Counts) == 0 {
-		return nil
-	}
-	var fields mapStr
-	fields.set("counts", h.Counts)
-	fields.set("values", h.Values)
-	return map[string]any(fields)
-}
-
 // SummaryMetric holds summary metrics (count and sum).
 type SummaryMetric struct {
 	// Count holds the number of aggregated measurements.
@@ -117,10 +109,6 @@ type SummaryMetric struct {
 
 	// Sum holds the sum of aggregated measurements.
 	Sum float64
-}
-
-func (s *SummaryMetric) fields() map[string]any {
-	return map[string]any{"value_count": s.Count, "sum": s.Sum}
 }
 
 // AggregatedDuration holds a count and sum of aggregated durations.
@@ -132,42 +120,24 @@ type AggregatedDuration struct {
 	Sum time.Duration
 }
 
-func (a *AggregatedDuration) fields() map[string]any {
-	if a.Count == 0 {
-		return nil
+func (me *Metricset) toModelJSON(out *modeljson.Metricset) {
+	var samples []modeljson.MetricsetSample
+	if n := len(me.Samples); n > 0 {
+		samples = make([]modeljson.MetricsetSample, n)
+		for i, sample := range me.Samples {
+			samples[i] = modeljson.MetricsetSample{
+				Name:      sample.Name,
+				Type:      string(sample.Type),
+				Unit:      sample.Unit,
+				Value:     sample.Value,
+				Histogram: modeljson.Histogram(sample.Histogram),
+				Summary:   modeljson.SummaryMetric(sample.SummaryMetric),
+			}
+		}
 	}
-	var fields mapStr
-	fields.set("count", a.Count)
-	fields.set("sum.us", a.Sum.Microseconds())
-	return map[string]any(fields)
-}
-
-func (me *Metricset) setFields(fields *mapStr) {
-	if me.DocCount > 0 {
-		fields.set("_doc_count", me.DocCount)
-	}
-	fields.maybeSetString("metricset.name", me.Name)
-	fields.maybeSetString("metricset.interval", me.Interval)
-
-	var metricDescriptions mapStr
-	for _, sample := range me.Samples {
-		sample.set(sample.Name, fields)
-
-		var md mapStr
-		md.maybeSetString("type", string(sample.Type))
-		md.maybeSetString("unit", sample.Unit)
-		metricDescriptions.set(sample.Name, map[string]any(md))
-	}
-	fields.maybeSetMapStr("_metric_descriptions", map[string]any(metricDescriptions))
-}
-
-func (s *MetricsetSample) set(name string, fields *mapStr) {
-	switch s.Type {
-	case MetricTypeHistogram:
-		fields.set(name, s.Histogram.fields())
-	case MetricTypeSummary:
-		fields.set(name, s.SummaryMetric.fields())
-	default:
-		fields.set(name, s.Value)
+	*out = modeljson.Metricset{
+		Name:     me.Name,
+		Interval: me.Interval,
+		Samples:  samples,
 	}
 }

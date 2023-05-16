@@ -51,26 +51,3 @@ type NetworkCarrier struct {
 	// ICC holds the carrier's ISO 3166-1 alpha-2 2-character country code.
 	ICC string
 }
-
-func (n *Network) fields() map[string]any {
-	var network mapStr
-	network.maybeSetMapStr("connection", n.Connection.fields())
-	network.maybeSetMapStr("carrier", n.Carrier.fields())
-	return map[string]any(network)
-}
-
-func (c *NetworkConnection) fields() map[string]any {
-	var connection mapStr
-	connection.maybeSetString("type", c.Type)
-	connection.maybeSetString("subtype", c.Subtype)
-	return map[string]any(connection)
-}
-
-func (c *NetworkCarrier) fields() map[string]any {
-	var carrier mapStr
-	carrier.maybeSetString("mcc", c.MCC)
-	carrier.maybeSetString("mnc", c.MNC)
-	carrier.maybeSetString("icc", c.ICC)
-	carrier.maybeSetString("name", c.Name)
-	return map[string]any(carrier)
-}

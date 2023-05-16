@@ -643,7 +643,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var out model.APMEvent
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, model.Span{
-			Type: "unknown",
+			Type:                "unknown",
+			RepresentativeCount: 1,
 		}, *out.Span)
 	})
 }

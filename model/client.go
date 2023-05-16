@@ -30,15 +30,3 @@ type Client struct {
 	// Port holds the client's IP port.
 	Port int
 }
-
-func (c *Client) fields() map[string]any {
-	var fields mapStr
-	fields.maybeSetString("domain", c.Domain)
-	if c.IP.IsValid() {
-		fields.set("ip", c.IP.String())
-	}
-	if c.Port > 0 {
-		fields.set("port", c.Port)
-	}
-	return map[string]any(fields)
-}

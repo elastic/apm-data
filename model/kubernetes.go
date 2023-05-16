@@ -23,22 +23,3 @@ type Kubernetes struct {
 	PodName   string
 	PodUID    string
 }
-
-func (k *Kubernetes) fields() map[string]any {
-	var kubernetes mapStr
-	kubernetes.maybeSetString("namespace", k.Namespace)
-
-	var node mapStr
-	if node.maybeSetString("name", k.NodeName) {
-		kubernetes.set("node", map[string]any(node))
-	}
-
-	var pod mapStr
-	pod.maybeSetString("name", k.PodName)
-	pod.maybeSetString("uid", k.PodUID)
-	if pod != nil {
-		kubernetes.set("pod", map[string]any(pod))
-	}
-
-	return map[string]any(kubernetes)
-}

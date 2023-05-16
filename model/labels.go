@@ -66,18 +66,6 @@ func (l Labels) Clone() Labels {
 	return cp
 }
 
-func (l Labels) fields() map[string]any {
-	result := map[string]any{}
-	for k, v := range l {
-		if v.Values != nil {
-			result[k] = v.Values
-		} else {
-			result[k] = v.Value
-		}
-	}
-	return sanitizeLabels(result)
-}
-
 // NumericLabels wraps a map[string]float64 or map[string][]float64 with utility
 // methods.
 type NumericLabels map[string]NumericLabelValue
@@ -123,33 +111,8 @@ func (l NumericLabels) Clone() NumericLabels {
 	return cp
 }
 
-func (l NumericLabels) fields() map[string]any {
-	result := map[string]any{}
-	for k, v := range l {
-		if v.Values != nil {
-			result[k] = v.Values
-		} else {
-			result[k] = v.Value
-		}
-	}
-	return sanitizeLabels(result)
-}
-
 // Label keys are sanitized, replacing the reserved characters '.', '*' and '"'
 // with '_'. Null-valued labels are omitted.
-func sanitizeLabels(labels map[string]any) map[string]any {
-	for k, v := range labels {
-		if v == nil {
-			delete(labels, k)
-			continue
-		}
-		if k2 := sanitizeLabelKey(k); k != k2 {
-			delete(labels, k)
-			labels[k2] = v
-		}
-	}
-	return labels
-}
 
 func sanitizeLabelKey(k string) string {
 	return strings.Map(replaceReservedLabelKeyRune, k)

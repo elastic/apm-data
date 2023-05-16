@@ -28,9 +28,3 @@ type DataStream struct {
 	// Namespace holds the data_stream.namespace identifier.
 	Namespace string
 }
-
-func (d *DataStream) setFields(fields *mapStr) {
-	fields.maybeSetString("data_stream.type", d.Type)
-	fields.maybeSetString("data_stream.dataset", d.Dataset)
-	fields.maybeSetString("data_stream.namespace", d.Namespace)
-}

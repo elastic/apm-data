@@ -17,6 +17,8 @@
 
 package model
 
+import "github.com/elastic/apm-data/model/internal/modeljson"
+
 var (
 	// TransactionProcessor is the Processor value that should be assigned to transaction events.
 	TransactionProcessor = Processor{Name: "transaction", Event: "transaction"}
@@ -72,74 +74,72 @@ type SpanCount struct {
 	Started *int
 }
 
-func (e *Transaction) fields() map[string]any {
-	var transaction mapStr
-	transaction.maybeSetString("id", e.ID)
-	transaction.maybeSetString("type", e.Type)
-	transaction.maybeSetMapStr("duration.histogram", e.DurationHistogram.fields())
-	if e.DurationSummary.Count != 0 {
-		transaction.maybeSetMapStr("duration.summary", e.DurationSummary.fields())
-	}
-	transaction.maybeSetString("name", e.Name)
-	transaction.maybeSetString("result", e.Result)
-	transaction.maybeSetMapStr("marks", e.Marks.fields())
-	transaction.maybeSetMapStr("custom", customFields(e.Custom))
-	transaction.maybeSetMapStr("message", e.Message.Fields())
-	transaction.maybeSetMapStr("experience", e.UserExperience.Fields())
-	if e.SpanCount.Dropped != nil || e.SpanCount.Started != nil {
-		spanCount := map[string]any{}
-		if e.SpanCount.Dropped != nil {
-			spanCount["dropped"] = *e.SpanCount.Dropped
+func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
+	var marks map[string]map[string]float64
+	if n := len(e.Marks); n > 0 {
+		marks = make(map[string]map[string]float64, n)
+		for k, mark := range e.Marks {
+			sanitizedMark := make(map[string]float64, len(mark))
+			for k, v := range mark {
+				sanitizedMark[sanitizeLabelKey(k)] = v
+			}
+			marks[sanitizeLabelKey(k)] = sanitizedMark
 		}
-		if e.SpanCount.Started != nil {
-			spanCount["started"] = *e.SpanCount.Started
+	}
+	var message *modeljson.Message
+	if e.Message != nil {
+		message = &modeljson.Message{}
+		e.Message.toModelJSON(message)
+	}
+	var userExperience *modeljson.UserExperience
+	if e.UserExperience != nil {
+		userExperience = &modeljson.UserExperience{
+			CumulativeLayoutShift: e.UserExperience.CumulativeLayoutShift,
+			FirstInputDelay:       e.UserExperience.FirstInputDelay,
+			TotalBlockingTime:     e.UserExperience.TotalBlockingTime,
+			Longtask:              modeljson.LongtaskMetrics(e.UserExperience.Longtask),
 		}
-		transaction.set("span_count", spanCount)
 	}
-	if e.Sampled {
-		transaction.set("sampled", e.Sampled)
+	var droppedSpansStats []modeljson.DroppedSpanStats
+	if metricset {
+		// DroppedSpansStats is only indexed for metric documents, never for events.
+		if n := len(e.DroppedSpansStats); n > 0 {
+			droppedSpansStats = make([]modeljson.DroppedSpanStats, n)
+			for i, dss := range e.DroppedSpansStats {
+				droppedSpansStats[i] = modeljson.DroppedSpanStats{
+					DestinationServiceResource: dss.DestinationServiceResource,
+					ServiceTargetType:          dss.ServiceTargetType,
+					ServiceTargetName:          dss.ServiceTargetName,
+					Outcome:                    dss.Outcome,
+					Duration:                   modeljson.AggregatedDuration(dss.Duration),
+				}
+			}
+		}
 	}
-	if e.Root {
-		transaction.set("root", e.Root)
+	*out = modeljson.Transaction{
+		ID:                  e.ID,
+		Type:                e.Type,
+		Name:                e.Name,
+		Result:              e.Result,
+		Sampled:             e.Sampled,
+		Root:                e.Root,
+		RepresentativeCount: e.RepresentativeCount,
+
+		DurationHistogram: modeljson.Histogram(e.DurationHistogram),
+		DurationSummary:   modeljson.SummaryMetric(e.DurationSummary),
+		SpanCount:         modeljson.SpanCount(e.SpanCount),
+		DroppedSpansStats: droppedSpansStats,
+
+		Marks:          marks,
+		Custom:         customFields(e.Custom),
+		Message:        message,
+		UserExperience: userExperience,
 	}
-	if e.RepresentativeCount > 0 {
-		transaction.set("representative_count", e.RepresentativeCount)
-	}
-	var dss []map[string]any
-	for _, v := range e.DroppedSpansStats {
-		dss = append(dss, v.fields())
-	}
-	if len(dss) > 0 {
-		transaction.set("dropped_spans_stats", dss)
-	}
-	return map[string]any(transaction)
 }
 
 type TransactionMarks map[string]TransactionMark
 
-func (m TransactionMarks) fields() map[string]any {
-	if len(m) == 0 {
-		return nil
-	}
-	out := make(mapStr, len(m))
-	for k, v := range m {
-		out.maybeSetMapStr(sanitizeLabelKey(k), v.fields())
-	}
-	return map[string]any(out)
-}
-
 type TransactionMark map[string]float64
-
-func (m TransactionMark) fields() map[string]any {
-	if len(m) == 0 {
-		return nil
-	}
-	out := make(map[string]any, len(m))
-	for k, v := range m {
-		out[sanitizeLabelKey(k)] = v
-	}
-	return out
-}
 
 type DroppedSpanStats struct {
 	DestinationServiceResource string
@@ -147,16 +147,4 @@ type DroppedSpanStats struct {
 	ServiceTargetName          string
 	Outcome                    string
 	Duration                   AggregatedDuration
-}
-
-func (stat DroppedSpanStats) fields() map[string]any {
-	var out mapStr
-	out.maybeSetString("destination_service_resource",
-		stat.DestinationServiceResource,
-	)
-	out.maybeSetString("service_target_type", stat.ServiceTargetType)
-	out.maybeSetString("service_target_name", stat.ServiceTargetName)
-	out.maybeSetString("outcome", stat.Outcome)
-	out.maybeSetMapStr("duration", stat.Duration.fields())
-	return map[string]any(out)
 }

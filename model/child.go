@@ -22,11 +22,3 @@ type Child struct {
 	// ID holds IDs of child events.
 	ID []string
 }
-
-func (c *Child) fields() map[string]any {
-	var fields mapStr
-	if len(c.ID) > 0 {
-		fields.set("id", c.ID)
-	}
-	return map[string]any(fields)
-}

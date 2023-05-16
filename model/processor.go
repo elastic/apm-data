@@ -25,10 +25,3 @@ type Processor struct {
 	Name  string
 	Event string
 }
-
-func (p *Processor) fields() map[string]any {
-	var fields mapStr
-	fields.maybeSetString("name", p.Name)
-	fields.maybeSetString("event", p.Event)
-	return map[string]any(fields)
-}

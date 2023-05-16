@@ -15,29 +15,50 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package modelprocessor
+package modeljson
 
 import (
-	"context"
-
-	"github.com/elastic/apm-data/model"
+	"go.elastic.co/fastjson"
 )
 
-// DroppedSpansStatsDiscarder removes the Transaction.DroppedSpanStats since we
-// only use that field to process and publish metricsets. The MetricSets are
-// aggregated and published only for the Elastic licensed `apm-server` but we
-// make sure the source isn't ever stored, ASL2 or Elastic licensed.
-type DroppedSpansStatsDiscarder struct{}
+type Label struct {
+	Value  string
+	Values []string
+}
 
-// ProcessBatch modifies the batches with a transaction processor, unsetting
-// the DroppedSpansStats field
-func (DroppedSpansStatsDiscarder) ProcessBatch(_ context.Context, batch *model.Batch) error {
-	for i := range *batch {
-		event := &(*batch)[i]
-		tx := event.Transaction
-		if event.Processor == model.TransactionProcessor && tx != nil {
-			event.Transaction.DroppedSpansStats = nil
+func (v *Label) MarshalFastJSON(w *fastjson.Writer) error {
+	if v.Values != nil {
+		w.RawByte('[')
+		for i, value := range v.Values {
+			if i > 0 {
+				w.RawByte(',')
+			}
+			w.String(value)
 		}
+		w.RawByte(']')
+	} else {
+		w.String(v.Value)
+	}
+	return nil
+}
+
+type NumericLabel struct {
+	Values []float64
+	Value  float64
+}
+
+func (v *NumericLabel) MarshalFastJSON(w *fastjson.Writer) error {
+	if v.Values != nil {
+		w.RawByte('[')
+		for i, value := range v.Values {
+			if i > 0 {
+				w.RawByte(',')
+			}
+			w.Float64(value)
+		}
+		w.RawByte(']')
+	} else {
+		w.Float64(v.Value)
 	}
 	return nil
 }

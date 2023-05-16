@@ -40,35 +40,3 @@ type CloudOrigin struct {
 	Region      string
 	ServiceName string
 }
-
-func (c *Cloud) fields() map[string]any {
-	var fields mapStr
-
-	var account, instance, machine, project, service mapStr
-	account.maybeSetString("id", c.AccountID)
-	account.maybeSetString("name", c.AccountName)
-	instance.maybeSetString("id", c.InstanceID)
-	instance.maybeSetString("name", c.InstanceName)
-	machine.maybeSetString("type", c.MachineType)
-	project.maybeSetString("id", c.ProjectID)
-	project.maybeSetString("name", c.ProjectName)
-	service.maybeSetString("name", c.ServiceName)
-
-	fields.maybeSetMapStr("account", map[string]any(account))
-	fields.maybeSetString("availability_zone", c.AvailabilityZone)
-	fields.maybeSetMapStr("instance", map[string]any(instance))
-	fields.maybeSetMapStr("machine", map[string]any(machine))
-	fields.maybeSetMapStr("project", map[string]any(project))
-	fields.maybeSetMapStr("service", map[string]any(service))
-	fields.maybeSetString("provider", c.Provider)
-	fields.maybeSetString("region", c.Region)
-	if c.Origin != nil {
-		var origin mapStr
-		origin.maybeSetString("account.id", c.Origin.AccountID)
-		origin.maybeSetString("provider", c.Origin.Provider)
-		origin.maybeSetString("region", c.Origin.Region)
-		origin.maybeSetString("service.name", c.Origin.ServiceName)
-		fields.maybeSetMapStr("origin", map[string]any(origin))
-	}
-	return map[string]any(fields)
-}
