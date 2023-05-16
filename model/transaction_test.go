@@ -23,7 +23,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tidwall/sjson"
 )
 
 func TestTransactionTransform(t *testing.T) {
@@ -268,16 +267,18 @@ func TestEventsTransformWithMetadata(t *testing.T) {
 }
 
 func TestTransactionTransformMarks(t *testing.T) {
-	out := marshalJSONAPMEvent(APMEvent{Transaction: &Transaction{
-		Marks: TransactionMarks{
-			"a.b": TransactionMark{
-				"c.d": 123,
+	out := marshalJSONAPMEvent(APMEvent{
+		Timestamp: time.Time{},
+		Transaction: &Transaction{
+			Marks: TransactionMarks{
+				"a.b": TransactionMark{
+					"c.d": 123,
+				},
 			},
 		},
-	}})
-	out, _ = sjson.DeleteBytes(out, "\\@timestamp")
+	})
 
-	assert.JSONEq(t, `{"transaction":{
+	assert.JSONEq(t, `{"@timestamp":"0001-01-01T00:00:00.000Z","transaction":{
 		"marks": {
 		  "a_b": {
 		    "c_d": 123
