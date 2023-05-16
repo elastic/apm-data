@@ -135,6 +135,8 @@ func (c *Consumer) convertLogRecord(
 			eventDomain = v.Str()
 		case "session.id":
 			event.Session.ID = v.Str()
+		case "lifecycle.state":
+			setLabel(k, &event, ifaceAttributeValue(v))
 		default:
 			setLabel(replaceDots(k), &event, ifaceAttributeValue(v))
 		}
@@ -162,7 +164,7 @@ func (c *Consumer) convertLogRecord(
 	if eventDomain == "device" {
 		event.Event.Category = "device"
 		event.Event.Kind = "event"
-		event.Event.Type = eventName
+		event.Event.Action = eventName
 	}
 
 	if event.Error != nil {

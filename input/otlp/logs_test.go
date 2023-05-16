@@ -307,7 +307,7 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 	//assert.Equal(t, model.Labels{""})
 	assert.Equal(t, "event", processed[0].Event.Kind)
 	assert.Equal(t, "device", processed[0].Event.Category)
-	assert.Equal(t, "MyEvent", processed[0].Event.Type)
+	assert.Equal(t, "MyEvent", processed[0].Event.Action)
 }
 
 func TestConsumerConsumeLogsLabels(t *testing.T) {
