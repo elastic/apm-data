@@ -154,7 +154,7 @@ func (c *Consumer) convertLogRecord(
 		)
 	}
 
-	if eventDomain == "device" {
+	if eventDomain == "device" && eventName != "" {
 		event.Event.Category = "device"
 		event.Event.Kind = "event"
 		event.Event.Action = eventName
