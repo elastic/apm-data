@@ -20,13 +20,14 @@ package model
 import (
 	"net/netip"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tidwall/sjson"
 )
 
 func TestHost(t *testing.T) {
 	out := marshalJSONAPMEvent(APMEvent{
+		Timestamp: time.Time{},
 		Host: Host{
 			Hostname:     "host_hostname",
 			Name:         "host_name",
@@ -45,9 +46,8 @@ func TestHost(t *testing.T) {
 			},
 		},
 	})
-	out, _ = sjson.DeleteBytes(out, "\\@timestamp")
 
-	assert.JSONEq(t, `{"host":{
+	assert.JSONEq(t, `{"@timestamp":"0001-01-01T00:00:00.000Z","host":{
 		"hostname": "host_hostname",
 		"name": "host_name",
 		"architecture": "amd",
