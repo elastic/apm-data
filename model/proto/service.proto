@@ -28,7 +28,7 @@ message ServiceTarget {
   string type = 2;
 }
 
-message Language { 
+message Language {
   string name = 1;
   string version = 2;
 }

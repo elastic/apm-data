@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package elastic.apm.v1;
 
-import "google/protobuf/timestamp.proto";
-
 import "agent.proto";
 import "child.proto";
 import "client.proto";
@@ -15,6 +13,7 @@ import "device.proto";
 import "error.proto";
 import "event.proto";
 import "faas.proto";
+import "google/protobuf/timestamp.proto";
 import "host.proto";
 import "http.proto";
 import "kubernetes.proto";
@@ -36,7 +35,6 @@ import "url.proto";
 import "user.proto";
 import "useragent.proto";
 
-
 option go_package = "/modelpb";
 option optimize_for = SPEED;
 
@@ -56,23 +54,23 @@ message APMEvent {
   User user = 13;
   Device device = 14;
   Kubernetes kubernetes = 15;
-  Observer    observer = 16;
-  DataStream data_stream =  17;
-  Agent      agent = 18;
-  Processor  processor = 19;
-  HTTP       http = 20;
-  UserAgent  user_agent = 21;
-  Parent     parent = 22;
-  string  message = 23;
-  Trace       trace = 24;
-  Host        host = 25;
-  URL         url = 26;
-  Log         log = 27;
-  Source      source = 28;
-  Client      client = 29;
-  Child       child = 30;
+  Observer observer = 16;
+  DataStream data_stream = 17;
+  Agent agent = 18;
+  Processor processor = 19;
+  HTTP http = 20;
+  UserAgent user_agent = 21;
+  Parent parent = 22;
+  string message = 23;
+  Trace trace = 24;
+  Host host = 25;
+  URL url = 26;
+  Log log = 27;
+  Source source = 28;
+  Client client = 29;
+  Child child = 30;
   Destination destination = 31;
-  Session     session = 32;
-  Process     process = 33;
-  Event       event = 34;
+  Session session = 32;
+  Process process = 33;
+  Event event = 34;
 }

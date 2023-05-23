@@ -12,7 +12,7 @@ message Log {
 }
 
 message LogOrigin {
-  string function_name= 1;
+  string function_name = 1;
   LogOriginFile file = 2;
 }
 
