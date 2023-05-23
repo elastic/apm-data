@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+option go_package = "/modelpb";
+option optimize_for = SPEED;
+
+message UserAgent {
+  string original = 1;
+  string name = 2;
+}

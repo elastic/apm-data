@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+import "google/protobuf/timestamp.proto";
+
+import "agent.proto";
+import "child.proto";
+import "client.proto";
+import "cloud.proto";
+import "container.proto";
+import "datastream.proto";
+import "destination.proto";
+import "device.proto";
+import "error.proto";
+import "event.proto";
+import "faas.proto";
+import "host.proto";
+import "http.proto";
+import "kubernetes.proto";
+import "labels.proto";
+import "log.proto";
+import "metricset.proto";
+import "network.proto";
+import "observer.proto";
+import "parent.proto";
+import "process.proto";
+import "processor.proto";
+import "service.proto";
+import "session.proto";
+import "source.proto";
+import "span.proto";
+import "trace.proto";
+import "transaction.proto";
+import "url.proto";
+import "user.proto";
+import "useragent.proto";
+
+
+option go_package = "/modelpb";
+option optimize_for = SPEED;
+
+message APMEvent {
+  google.protobuf.Timestamp timestamp = 1;
+  optional Span span = 2;
+  map<string, NumericLabelValue> numeric_labels = 3;
+  map<string, LabelValue> labels = 4;
+  optional Transaction transaction = 5;
+  optional Metricset metricset = 6;
+  optional Error error = 7;
+  Cloud cloud = 8;
+  Service service = 9;
+  Faas faas = 10;
+  Network network = 11;
+  Container container = 12;
+  User user = 13;
+  Device device = 14;
+  Kubernetes kubernetes = 15;
+  Observer    observer = 16;
+  DataStream data_stream =  17;
+  Agent      agent = 18;
+  Processor  processor = 19;
+  HTTP       http = 20;
+  UserAgent  user_agent = 21;
+  Parent     parent = 22;
+  string  message = 23;
+  Trace       trace = 24;
+  Host        host = 25;
+  URL         url = 26;
+  Log         log = 27;
+  Source      source = 28;
+  Client      client = 29;
+  Child       child = 30;
+  Destination destination = 31;
+  Session     session = 32;
+  Process     process = 33;
+  Event       event = 34;
+}

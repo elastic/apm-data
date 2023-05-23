@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+option go_package = "/modelpb";
+option optimize_for = SPEED;
+
+message Faas {
+  string id = 1;
+  optional bool cold_start = 2;
+  string execution = 3;
+  string trigger_type = 4;
+  string trigger_request_id = 5;
+  string name = 6;
+  string version = 7;
+}

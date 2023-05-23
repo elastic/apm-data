@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+option go_package = "/modelpb";
+option optimize_for = SPEED;
+
+message Source {
+  string ip = 1;
+  NAT nat = 2;
+  string domain = 3;
+  uint32 port = 4;
+}
+
+message NAT {
+  string ip = 1;
+}

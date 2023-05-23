@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+option go_package = "/modelpb";
+option optimize_for = SPEED;
+
+message Observer {
+  string hostname = 1;
+  string name = 2;
+  string type = 3;
+  string version = 4;
+}

@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+import "message.proto";
+import "metricset.proto";
+import "stacktrace.proto";
+import "trace.proto";
+
+option go_package = "/modelpb";
+option optimize_for = SPEED;
+
+message Span {
+  optional Message message = 1;
+  optional Composite composite = 2;
+  optional DestinationService destination_service = 3;
+  optional DB db = 4;
+  optional bool sync = 5;
+  string kind = 6;
+  string action = 7;
+  string subtype = 8;
+  string id = 9;
+  string type = 10;
+  string name = 11;
+  repeated StacktraceFrame stacktrace = 12;
+  repeated SpanLink links = 13;
+  AggregatedDuration self_time = 14;
+  double representative_count = 15;
+}
+
+message DB {
+  optional int64 rows_affected = 1;
+  string instance = 2;
+  string statement = 3;
+  string type = 4;
+  string user_name = 5;
+  string link = 6;
+}
+
+message DestinationService {
+  string type = 1;
+  string name = 2;
+  string resource = 3;
+  AggregatedDuration response_time = 4;
+}
+
+enum CompressionStrategy {
+  COMPRESSION_STRATEGY_UNSPECIFIED = 0;
+  COMPRESSION_STRATEGY_EXACT_MATCH = 1;
+  COMPRESSION_STRATEGY_SAME_KIND = 2;
+}
+
+message Composite {
+  CompressionStrategy compression_strategy = 1;
+  uint32 count = 2;
+  double sum = 3;
+}
+
+message SpanLink {
+  Trace trace = 1;
+  Span span = 2;
+}

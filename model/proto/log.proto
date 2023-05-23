@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+option go_package = "/modelpb";
+option optimize_for = SPEED;
+
+message Log {
+  string level = 1;
+  string logger = 2;
+  LogOrigin origin = 3;
+}
+
+message LogOrigin {
+  string function_name= 1;
+  LogOriginFile file = 2;
+}
+
+message LogOriginFile {
+  string name = 1;
+  int32 line = 2;
+}

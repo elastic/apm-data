@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+option go_package = "/modelpb";
+option optimize_for = SPEED;
+
+message Container {
+  string id = 1;
+  string name = 2;
+  string runtime = 3;
+  string image_name = 4;
+  string image_tag = 5;
+}

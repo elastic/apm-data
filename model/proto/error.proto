@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+import "google/protobuf/struct.proto";
+import "stacktrace.proto";
+
+option go_package = "/modelpb";
+option optimize_for = SPEED;
+
+message Error {
+  google.protobuf.Struct custom = 1;
+  optional Exception exception = 2;
+  optional ErrorLog log = 3;
+  string id = 4;
+  string grouping_key = 5;
+  string culprit = 6;
+  string stack_trace = 7;
+  string message = 8;
+  string type = 9;
+}
+
+message Exception {
+  string message = 1;
+  string module = 2;
+  string code = 3;
+  google.protobuf.Struct attributes = 4;
+  repeated StacktraceFrame stacktrace = 5;
+  string type = 6;
+  optional bool handled = 7;
+  repeated Exception cause = 8;
+}
+
+message ErrorLog {
+  string message = 1;
+  string level = 2;
+  string param_message = 3;
+  string logger_name = 4;
+  repeated StacktraceFrame stacktrace = 5;
+}

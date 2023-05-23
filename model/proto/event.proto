@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+import "google/protobuf/duration.proto";
+
+import "metricset.proto";
+
+option go_package = "/modelpb";
+option optimize_for = SPEED;
+
+message Event {
+  string outcome = 1;
+  string action = 2;
+  string dataset = 3;
+
+  string kind = 4;
+  string category = 5;
+  string type = 6;
+
+  SummaryMetric success_count = 7;
+  google.protobuf.Duration duration = 8;
+  int64 severity = 9;
+}

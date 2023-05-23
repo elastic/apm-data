@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+import "google/protobuf/duration.proto";
+
+option go_package = "/modelpb";
+option optimize_for = SPEED;
+
+message Metricset {
+  string name = 1;
+  string interval = 2;
+  repeated MetricsetSample samples = 3;
+  int64 doc_count = 4;
+}
+
+enum MetricType {
+  METRIC_TYPE_UNSPECIFIED = 0;
+  METRIC_TYPE_GAUGE = 1;
+  METRIC_TYPE_COUNTER = 2;
+  METRIC_TYPE_HISTOGRAM = 3;
+  METRIC_TYPE_SUMMARY = 4;
+}
+
+message MetricsetSample {
+  MetricType type = 1;
+  string name = 2;
+  string unit = 3;
+  Histogram histogram = 4;
+  SummaryMetric summary = 5;
+  double value = 6;
+}
+
+message Histogram {
+  repeated double values = 1;
+  repeated int64 counts = 2;
+}
+
+message SummaryMetric {
+  int64 count = 1;
+  double sum = 2;
+}
+
+message AggregatedDuration {
+  int64 count = 1;
+  google.protobuf.Duration sum = 5;
+}

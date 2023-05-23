@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+option go_package = "/modelpb";
+option optimize_for = SPEED;
+
+message Network {
+  NetworkConnection connection = 1;
+  NetworkCarrier carrier = 2;
+}
+
+message NetworkConnection {
+  string type = 1;
+  string subtype = 2;
+}
+
+message NetworkCarrier {
+  string name = 1;
+  string mcc = 2;
+  string mnc = 3;
+  string icc = 4;
+}

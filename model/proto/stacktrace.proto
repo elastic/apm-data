@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+import "google/protobuf/struct.proto";
+
+option go_package = "/modelpb";
+option optimize_for = SPEED;
+
+message StacktraceFrame {
+  google.protobuf.Struct vars = 1;
+  optional int32 lineno = 2;
+  optional int32 colno = 3;
+  string filename = 4;
+  string classname = 5;
+  string context_line = 6;
+  string module = 7;
+  string function = 8;
+  string abs_path = 9;
+  string sourcemap_error = 10;
+  Original original = 11;
+  repeated string pre_context = 12;
+  repeated string post_context = 13;
+  bool library_frame = 14;
+  bool sourcemap_updated = 15;
+  bool exclude_from_grouping = 16;
+}
+
+message Original {
+  string abs_path = 1;
+  string filename = 2;
+  string classname = 3;
+  optional int32 lineno = 4;
+  optional int32 colno = 5;
+  string function = 6;
+  bool library_frame = 7;
+}

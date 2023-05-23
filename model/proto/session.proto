@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+option go_package = "/modelpb";
+option optimize_for = SPEED;
+
+message Session {
+  string id = 1;
+  int64 sequence = 2;
+}

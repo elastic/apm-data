@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+option go_package = "/modelpb";
+option optimize_for = SPEED;
+
+message Cloud {
+  optional CloudOrigin origin = 1;
+  string account_id = 2;
+  string account_name = 3;
+  string availability_zone = 4;
+  string instance_id = 5;
+  string instance_name = 6;
+  string machine_type = 7;
+  string project_id = 8;
+  string project_name = 9;
+  string provider = 10;
+  string region = 11;
+  string service_name = 12;
+}
+
+message CloudOrigin {
+  string account_id = 1;
+  string provider = 2;
+  string region = 3;
+  string service_name = 4;
+}

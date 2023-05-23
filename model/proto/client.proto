@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+option go_package = "/modelpb";
+option optimize_for = SPEED;
+
+message Client {
+  string ip = 1;
+  string domain = 2;
+  uint32 port = 3;
+}
