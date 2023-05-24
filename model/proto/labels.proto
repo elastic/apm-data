@@ -12,7 +12,7 @@ message LabelValue {
 }
 
 message NumericLabelValue {
-  double value = 1;
-  repeated double values = 2;
+  repeated double values = 1;
+  double value = 2;
   bool global = 3;
 }

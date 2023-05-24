@@ -74,11 +74,11 @@ type NumericLabels map[string]NumericLabelValue
 // key. Only one should be set, in cases where both are set, the `Values` field
 // will be used and `Value` will be ignored.
 type NumericLabelValue struct {
-	// Value holds the label `float64` value.
-	Value float64
-
 	// Values holds holds the label `[]float64` value.
 	Values []float64
+
+	// Value holds the label `float64` value.
+	Value float64
 
 	// Global is `true` when the label is defined at the agent level, rather
 	// than being event-specific.
