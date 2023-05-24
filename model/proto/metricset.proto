@@ -42,5 +42,5 @@ message SummaryMetric {
 
 message AggregatedDuration {
   int64 count = 1;
-  google.protobuf.Duration sum = 5;
+  google.protobuf.Duration sum = 2;
 }
