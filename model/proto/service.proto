@@ -5,8 +5,8 @@ package elastic.apm.v1;
 option go_package = "/modelpb";
 
 message Service {
-  optional ServiceOrigin origin = 1;
-  optional ServiceTarget target = 2;
+  ServiceOrigin origin = 1;
+  ServiceTarget target = 2;
   Language language = 3;
   Runtime runtime = 4;
   Framework framework = 5;

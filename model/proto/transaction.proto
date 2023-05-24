@@ -11,10 +11,10 @@ option go_package = "/modelpb";
 
 message Transaction {
   SpanCount span_count = 1;
-  optional UserExperience user_experience = 2;
+  UserExperience user_experience = 2;
   google.protobuf.Struct custom = 3;
   map<string, TransactionMark> marks = 4;
-  optional Message message = 5;
+  Message message = 5;
   string type = 6;
   string name = 7;
   string result = 8;

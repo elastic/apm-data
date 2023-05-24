@@ -5,7 +5,7 @@ package elastic.apm.v1;
 option go_package = "/modelpb";
 
 message Cloud {
-  optional CloudOrigin origin = 1;
+  CloudOrigin origin = 1;
   string account_id = 2;
   string account_name = 3;
   string availability_zone = 4;

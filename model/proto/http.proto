@@ -7,8 +7,8 @@ import "google/protobuf/struct.proto";
 option go_package = "/modelpb";
 
 message HTTP {
-  optional HTTPRequest request = 1;
-  optional HTTPResponse response = 2;
+  HTTPRequest request = 1;
+  HTTPResponse response = 2;
   string version = 3;
 }
 

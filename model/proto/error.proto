@@ -9,8 +9,8 @@ option go_package = "/modelpb";
 
 message Error {
   google.protobuf.Struct custom = 1;
-  optional Exception exception = 2;
-  optional ErrorLog log = 3;
+  Exception exception = 2;
+  ErrorLog log = 3;
   string id = 4;
   string grouping_key = 5;
   string culprit = 6;

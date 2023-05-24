@@ -39,12 +39,12 @@ option go_package = "/modelpb";
 
 message APMEvent {
   google.protobuf.Timestamp timestamp = 1;
-  optional Span span = 2;
+  Span span = 2;
   map<string, NumericLabelValue> numeric_labels = 3;
   map<string, LabelValue> labels = 4;
-  optional Transaction transaction = 5;
-  optional Metricset metricset = 6;
-  optional Error error = 7;
+  Transaction transaction = 5;
+  Metricset metricset = 6;
+  Error error = 7;
   Cloud cloud = 8;
   Service service = 9;
   Faas faas = 10;

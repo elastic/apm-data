@@ -10,10 +10,10 @@ import "trace.proto";
 option go_package = "/modelpb";
 
 message Span {
-  optional Message message = 1;
-  optional Composite composite = 2;
-  optional DestinationService destination_service = 3;
-  optional DB db = 4;
+  Message message = 1;
+  Composite composite = 2;
+  DestinationService destination_service = 3;
+  DB db = 4;
   optional bool sync = 5;
   string kind = 6;
   string action = 7;
