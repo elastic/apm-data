@@ -8,7 +8,6 @@ import "stacktrace.proto";
 import "trace.proto";
 
 option go_package = "/modelpb";
-option optimize_for = SPEED;
 
 message Span {
   optional Message message = 1;

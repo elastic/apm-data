@@ -3,7 +3,6 @@ syntax = "proto3";
 package elastic.apm.v1;
 
 option go_package = "/modelpb";
-option optimize_for = SPEED;
 
 message Service {
   optional ServiceOrigin origin = 1;

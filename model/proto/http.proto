@@ -5,7 +5,6 @@ package elastic.apm.v1;
 import "google/protobuf/struct.proto";
 
 option go_package = "/modelpb";
-option optimize_for = SPEED;
 
 message HTTP {
   optional HTTPRequest request = 1;

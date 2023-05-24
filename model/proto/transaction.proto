@@ -8,7 +8,6 @@ import "message.proto";
 import "metricset.proto";
 
 option go_package = "/modelpb";
-option optimize_for = SPEED;
 
 message Transaction {
   SpanCount span_count = 1;

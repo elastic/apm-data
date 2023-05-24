@@ -6,7 +6,6 @@ import "google/protobuf/duration.proto";
 import "metricset.proto";
 
 option go_package = "/modelpb";
-option optimize_for = SPEED;
 
 message Event {
   string outcome = 1;

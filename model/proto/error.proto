@@ -6,7 +6,6 @@ import "google/protobuf/struct.proto";
 import "stacktrace.proto";
 
 option go_package = "/modelpb";
-option optimize_for = SPEED;
 
 message Error {
   google.protobuf.Struct custom = 1;

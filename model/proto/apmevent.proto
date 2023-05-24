@@ -36,7 +36,6 @@ import "user.proto";
 import "useragent.proto";
 
 option go_package = "/modelpb";
-option optimize_for = SPEED;
 
 message APMEvent {
   google.protobuf.Timestamp timestamp = 1;
