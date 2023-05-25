@@ -2,7 +2,10 @@ test:
 	go test -v ./...
 
 fmt:
-	go run golang.org/x/tools/cmd/goimports@v0.3.0 -w .
+	go run golang.org/x/tools/cmd/goimports@v0.3.0 -w ./input
+	go run golang.org/x/tools/cmd/goimports@v0.3.0 -w ./model/modelprocessor
+	go run golang.org/x/tools/cmd/goimports@v0.3.0 -w ./model/internal
+	go run golang.org/x/tools/cmd/goimports@v0.3.0 -w ./model/*.go
 
 gomodtidy:
 	go mod tidy -v
