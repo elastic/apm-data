@@ -1,0 +1,92 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+import "agent.proto";
+import "child.proto";
+import "client.proto";
+import "cloud.proto";
+import "container.proto";
+import "datastream.proto";
+import "destination.proto";
+import "device.proto";
+import "error.proto";
+import "event.proto";
+import "faas.proto";
+import "google/protobuf/timestamp.proto";
+import "host.proto";
+import "http.proto";
+import "kubernetes.proto";
+import "labels.proto";
+import "log.proto";
+import "metricset.proto";
+import "network.proto";
+import "observer.proto";
+import "parent.proto";
+import "process.proto";
+import "processor.proto";
+import "service.proto";
+import "session.proto";
+import "source.proto";
+import "span.proto";
+import "trace.proto";
+import "transaction.proto";
+import "url.proto";
+import "user.proto";
+import "useragent.proto";
+
+option go_package = "github.com/elastic/apm-data/model/modelpb";
+
+message APMEvent {
+  google.protobuf.Timestamp timestamp = 1;
+  Span span = 2;
+  map<string, NumericLabelValue> numeric_labels = 3;
+  map<string, LabelValue> labels = 4;
+  Transaction transaction = 5;
+  Metricset metricset = 6;
+  Error error = 7;
+  Cloud cloud = 8;
+  Service service = 9;
+  Faas faas = 10;
+  Network network = 11;
+  Container container = 12;
+  User user = 13;
+  Device device = 14;
+  Kubernetes kubernetes = 15;
+  Observer observer = 16;
+  DataStream data_stream = 17;
+  Agent agent = 18;
+  Processor processor = 19;
+  HTTP http = 20;
+  UserAgent user_agent = 21;
+  Parent parent = 22;
+  string message = 23;
+  Trace trace = 24;
+  Host host = 25;
+  URL url = 26;
+  Log log = 27;
+  Source source = 28;
+  Client client = 29;
+  Child child = 30;
+  Destination destination = 31;
+  Session session = 32;
+  Process process = 33;
+  Event event = 34;
+}
