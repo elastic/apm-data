@@ -14,4 +14,5 @@ fieldalignment:
 	go run golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.4.0 -test=false $(shell go list ./... | grep -v modeldecoder/generator | grep -v test)
 
 update-licenses:
-	go run github.com/elastic/go-licenser@v0.4.1 .
+	go run github.com/elastic/go-licenser@v0.4.1 -ext .go .
+	go run github.com/elastic/go-licenser@v0.4.1 -ext .proto .
