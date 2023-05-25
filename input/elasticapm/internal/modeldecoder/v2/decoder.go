@@ -798,15 +798,15 @@ func mapToResponseModel(from contextResponse, out *model.HTTPResponse) {
 		out.StatusCode = from.StatusCode.Val
 	}
 	if from.TransferSize.IsSet() {
-		val := from.TransferSize.Val
+		val := int64(from.TransferSize.Val)
 		out.TransferSize = &val
 	}
 	if from.EncodedBodySize.IsSet() {
-		val := from.EncodedBodySize.Val
+		val := int64(from.EncodedBodySize.Val)
 		out.EncodedBodySize = &val
 	}
 	if from.DecodedBodySize.IsSet() {
-		val := from.DecodedBodySize.Val
+		val := int64(from.DecodedBodySize.Val)
 		out.DecodedBodySize = &val
 	}
 }
@@ -976,11 +976,11 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 		if from.Context.HTTP.Response.IsSet() {
 			response := model.HTTPResponse{}
 			if from.Context.HTTP.Response.DecodedBodySize.IsSet() {
-				val := from.Context.HTTP.Response.DecodedBodySize.Val
+				val := int64(from.Context.HTTP.Response.DecodedBodySize.Val)
 				response.DecodedBodySize = &val
 			}
 			if from.Context.HTTP.Response.EncodedBodySize.IsSet() {
-				val := from.Context.HTTP.Response.EncodedBodySize.Val
+				val := int64(from.Context.HTTP.Response.EncodedBodySize.Val)
 				response.EncodedBodySize = &val
 			}
 			if from.Context.HTTP.Response.Headers.IsSet() {
@@ -990,7 +990,7 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 				response.StatusCode = from.Context.HTTP.Response.StatusCode.Val
 			}
 			if from.Context.HTTP.Response.TransferSize.IsSet() {
-				val := from.Context.HTTP.Response.TransferSize.Val
+				val := int64(from.Context.HTTP.Response.TransferSize.Val)
 				response.TransferSize = &val
 			}
 			event.HTTP.Response = &response
