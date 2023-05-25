@@ -3,6 +3,7 @@
 PLATFORM=$(go env GOOS)
 PROTOBUF_VERSION="23.1"
 PROTOC_GO_VERSION="v1.30.0"
+VTPROTOBUF_VERSION="v0.4.0"
 
 
 if [ "${PLATFORM}" = "darwin" ]; then
@@ -32,3 +33,4 @@ if ! PATH="${TOOLS_DIR}/bin" protoc --version; then
 fi
 
 GOBIN="${TOOLS_DIR}/bin" go install "google.golang.org/protobuf/cmd/protoc-gen-go@${PROTOC_GO_VERSION}"
+GOBIN="${TOOLS_DIR}/bin" go install "github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto@${VTPROTOBUF_VERSION}"
