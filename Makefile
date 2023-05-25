@@ -16,3 +16,9 @@ fieldalignment:
 update-licenses:
 	go run github.com/elastic/go-licenser@v0.4.1 -ext .go .
 	go run github.com/elastic/go-licenser@v0.4.1 -ext .proto .
+
+install-protobuf:
+	./tools/install-protobuf.sh
+
+generate-modelpb: install-protobuf
+	./tools/generate-modelpb.sh
