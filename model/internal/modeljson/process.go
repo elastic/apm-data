@@ -28,7 +28,7 @@ type Process struct {
 }
 
 type ProcessParent struct {
-	Pid *int `json:"pid,omitempty"`
+	Pid *uint32 `json:"pid,omitempty"`
 }
 
 func (p ProcessParent) isZero() bool {

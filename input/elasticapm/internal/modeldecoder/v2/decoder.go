@@ -555,7 +555,7 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 		out.Process.Pid = from.Process.Pid.Val
 	}
 	if from.Process.Ppid.IsSet() {
-		var pid = from.Process.Ppid.Val
+		var pid = uint32(from.Process.Ppid.Val)
 		out.Process.Ppid = &pid
 	}
 	if from.Process.Title.IsSet() {
