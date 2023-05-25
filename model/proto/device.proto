@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package elastic.apm.v1;
 
-option go_package = "/modelpb";
+option go_package = "github.com/elastic/apm-data/model/modelpb";
 
 message Device {
   string id = 1;

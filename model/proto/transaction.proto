@@ -7,7 +7,7 @@ import "google/protobuf/struct.proto";
 import "message.proto";
 import "metricset.proto";
 
-option go_package = "/modelpb";
+option go_package = "github.com/elastic/apm-data/model/modelpb";
 
 message Transaction {
   SpanCount span_count = 1;

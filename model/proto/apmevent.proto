@@ -35,7 +35,7 @@ import "url.proto";
 import "user.proto";
 import "useragent.proto";
 
-option go_package = "/modelpb";
+option go_package = "github.com/elastic/apm-data/model/modelpb";
 
 message APMEvent {
   google.protobuf.Timestamp timestamp = 1;

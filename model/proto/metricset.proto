@@ -4,7 +4,7 @@ package elastic.apm.v1;
 
 import "google/protobuf/duration.proto";
 
-option go_package = "/modelpb";
+option go_package = "github.com/elastic/apm-data/model/modelpb";
 
 message Metricset {
   string name = 1;
