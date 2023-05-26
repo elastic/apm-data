@@ -927,7 +927,7 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 			db.Link = from.Context.Database.Link.Val
 		}
 		if from.Context.Database.RowsAffected.IsSet() {
-			val := from.Context.Database.RowsAffected.Val
+			val := uint32(from.Context.Database.RowsAffected.Val)
 			db.RowsAffected = &val
 		}
 		if from.Context.Database.Statement.IsSet() {
