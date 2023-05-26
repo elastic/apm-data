@@ -23,8 +23,9 @@ package modelpb
 
 import (
 	fmt "fmt"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	io "io"
+
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (

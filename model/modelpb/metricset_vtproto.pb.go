@@ -24,11 +24,12 @@ package modelpb
 import (
 	binary "encoding/binary"
 	fmt "fmt"
+	io "io"
+	math "math"
+
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
-	io "io"
-	math "math"
 )
 
 const (
