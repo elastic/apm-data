@@ -42,11 +42,13 @@ func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
 			CumulativeLayoutShift: e.UserExperience.CumulativeLayoutShift,
 			FirstInputDelay:       e.UserExperience.FirstInputDelay,
 			TotalBlockingTime:     e.UserExperience.TotalBlockingTime,
-			Longtask: modeljson.LongtaskMetrics{
+		}
+		if e.UserExperience.LongTask != nil {
+			userExperience.Longtask = modeljson.LongtaskMetrics{
 				Count: int(e.UserExperience.LongTask.Count),
 				Sum:   e.UserExperience.LongTask.Sum,
 				Max:   e.UserExperience.LongTask.Max,
-			},
+			}
 		}
 	}
 	var droppedSpansStats []modeljson.DroppedSpanStats
@@ -55,16 +57,21 @@ func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
 		if n := len(e.DroppedSpansStats); n > 0 {
 			droppedSpansStats = make([]modeljson.DroppedSpanStats, n)
 			for i, dss := range e.DroppedSpansStats {
-				droppedSpansStats[i] = modeljson.DroppedSpanStats{
+				dssJson := modeljson.DroppedSpanStats{
 					DestinationServiceResource: dss.DestinationServiceResource,
 					ServiceTargetType:          dss.ServiceTargetType,
 					ServiceTargetName:          dss.ServiceTargetName,
 					Outcome:                    dss.Outcome,
-					Duration: modeljson.AggregatedDuration{
+				}
+
+				if dss.Duration != nil {
+					dssJson.Duration = modeljson.AggregatedDuration{
 						Count: int(dss.Duration.Count),
 						Sum:   dss.Duration.Sum.AsDuration(),
-					},
+					}
 				}
+
+				droppedSpansStats[i] = dssJson
 			}
 		}
 	}
@@ -77,23 +84,30 @@ func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
 		Root:                e.Root,
 		RepresentativeCount: e.RepresentativeCount,
 
-		DurationHistogram: modeljson.Histogram{
-			Values: e.DurationHistogram.Values,
-			Counts: e.DurationHistogram.Counts,
-		},
-		DurationSummary: modeljson.SummaryMetric{
-			Count: e.DurationSummary.Count,
-			Sum:   e.DurationSummary.Sum,
-		},
-		SpanCount: modeljson.SpanCount{
-			Dropped: e.SpanCount.Dropped,
-			Started: e.SpanCount.Started,
-		},
 		DroppedSpansStats: droppedSpansStats,
 
 		Marks:          marks,
 		Custom:         customFields(e.Custom.AsMap()),
 		Message:        message,
 		UserExperience: userExperience,
+	}
+
+	if e.DurationHistogram != nil {
+		out.DurationHistogram = modeljson.Histogram{
+			Values: e.DurationHistogram.Values,
+			Counts: e.DurationHistogram.Counts,
+		}
+	}
+	if e.DurationSummary != nil {
+		out.DurationSummary = modeljson.SummaryMetric{
+			Count: e.DurationSummary.Count,
+			Sum:   e.DurationSummary.Sum,
+		}
+	}
+	if e.SpanCount != nil {
+		out.SpanCount = modeljson.SpanCount{
+			Dropped: e.SpanCount.Dropped,
+			Started: e.SpanCount.Started,
+		}
 	}
 }

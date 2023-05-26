@@ -19,7 +19,6 @@ package modelpb
 
 import "github.com/elastic/apm-data/model/internal/modeljson"
 
-
 func (s *StacktraceFrame) toModelJSON(out *modeljson.StacktraceFrame) {
 	*out = modeljson.StacktraceFrame{
 		Filename:            s.Filename,
@@ -55,16 +54,18 @@ func (s *StacktraceFrame) toModelJSON(out *modeljson.StacktraceFrame) {
 		out.Sourcemap = &sourcemap
 	}
 
-	orig := modeljson.StacktraceFrameOriginal{LibraryFrame: s.Original.LibraryFrame}
-	if s.SourcemapUpdated {
-		orig.Filename = s.Original.Filename
-		orig.Classname = s.Original.Classname
-		orig.AbsPath = s.Original.AbsPath
-		orig.Function = s.Original.Function
-		orig.Colno = s.Original.Colno
-		orig.Lineno = s.Original.Lineno
-	}
-	if orig != (modeljson.StacktraceFrameOriginal{}) {
-		out.Original = &orig
+	if s.Original != nil {
+		orig := modeljson.StacktraceFrameOriginal{LibraryFrame: s.Original.LibraryFrame}
+		if s.SourcemapUpdated {
+			orig.Filename = s.Original.Filename
+			orig.Classname = s.Original.Classname
+			orig.AbsPath = s.Original.AbsPath
+			orig.Function = s.Original.Function
+			orig.Colno = s.Original.Colno
+			orig.Lineno = s.Original.Lineno
+		}
+		if orig != (modeljson.StacktraceFrameOriginal{}) {
+			out.Original = &orig
+		}
 	}
 }

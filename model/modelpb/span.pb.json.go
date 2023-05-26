@@ -53,10 +53,12 @@ func (e *Span) toModelJSON(out *modeljson.Span) {
 		Kind:                e.Kind,
 		Sync:                e.Sync,
 		RepresentativeCount: e.RepresentativeCount,
-		SelfTime: modeljson.AggregatedDuration{
+	}
+	if e.SelfTime != nil {
+		out.SelfTime = modeljson.AggregatedDuration{
 			Count: int(e.SelfTime.Count),
 			Sum:   e.SelfTime.Sum.AsDuration(),
-		},
+		}
 	}
 	if e.Db != nil {
 		out.DB = &modeljson.DB{}
@@ -76,11 +78,13 @@ func (e *Span) toModelJSON(out *modeljson.Span) {
 				Type:     e.DestinationService.Type,
 				Name:     e.DestinationService.Name,
 				Resource: e.DestinationService.Resource,
-				ResponseTime: modeljson.AggregatedDuration{
-					Count: int(e.DestinationService.ResponseTime.Count),
-					Sum:   e.DestinationService.ResponseTime.Sum.AsDuration(),
-				},
 			},
+		}
+		if e.DestinationService.ResponseTime != nil {
+			out.Destination.Service.ResponseTime = modeljson.AggregatedDuration{
+				Count: int(e.DestinationService.ResponseTime.Count),
+				Sum:   e.DestinationService.ResponseTime.Sum.AsDuration(),
+			}
 		}
 	}
 	if n := len(e.Links); n > 0 {

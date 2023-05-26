@@ -27,11 +27,13 @@ func (e *Event) toModelJSON(out *modeljson.Event) {
 		Kind:     e.Kind,
 		Category: e.Category,
 		Type:     e.Type,
-		SuccessCount: modeljson.SummaryMetric{
-			Count: e.SuccessCount.Count,
-			Sum:   e.SuccessCount.Sum,
-		},
 		Duration: int64(e.Duration.GetNanos()),
 		Severity: e.Severity,
+	}
+	if e.SuccessCount != nil {
+		out.SuccessCount = modeljson.SummaryMetric{
+			Count: e.SuccessCount.Count,
+			Sum:   e.SuccessCount.Sum,
+		}
 	}
 }

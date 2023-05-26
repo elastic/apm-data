@@ -24,19 +24,27 @@ func (me *Metricset) toModelJSON(out *modeljson.Metricset) {
 	if n := len(me.Samples); n > 0 {
 		samples = make([]modeljson.MetricsetSample, n)
 		for i, sample := range me.Samples {
-			samples[i] = modeljson.MetricsetSample{
-				Name:  sample.Name,
-				Type:  string(sample.Type),
-				Unit:  sample.Unit,
-				Value: sample.Value,
-				Histogram: modeljson.Histogram{
-					Values: sample.Histogram.Values,
-					Counts: sample.Histogram.Counts,
-				},
-				Summary: modeljson.SummaryMetric{
-					Count: sample.Summary.Count,
-					Sum:   sample.Summary.Sum,
-				},
+			if sample != nil {
+				sampleJson := modeljson.MetricsetSample{
+					Name:  sample.Name,
+					Type:  string(sample.Type),
+					Unit:  sample.Unit,
+					Value: sample.Value,
+				}
+				if sample.Histogram != nil {
+					sampleJson.Histogram = modeljson.Histogram{
+						Values: sample.Histogram.Values,
+						Counts: sample.Histogram.Counts,
+					}
+				}
+				if sample.Summary != nil {
+					sampleJson.Summary = modeljson.SummaryMetric{
+						Count: sample.Summary.Count,
+						Sum:   sample.Summary.Sum,
+					}
+				}
+
+				samples[i] = sampleJson
 			}
 		}
 	}

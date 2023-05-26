@@ -22,7 +22,9 @@ import "github.com/elastic/apm-data/model/internal/modeljson"
 func (m *Message) toModelJSON(out *modeljson.Message) {
 	headers := make(map[string][]string, len(m.Headers))
 	for k, hv := range m.Headers {
-		headers[k] = hv.Values
+		if hv != nil {
+			headers[k] = hv.Values
+		}
 	}
 	*out = modeljson.Message{
 		Body:       m.Body,

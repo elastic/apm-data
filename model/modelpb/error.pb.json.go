@@ -43,7 +43,9 @@ func (e *Error) toModelJSON(out *modeljson.Error) {
 		if n := len(e.Log.Stacktrace); n > 0 {
 			out.Log.Stacktrace = make([]modeljson.StacktraceFrame, n)
 			for i, frame := range e.Log.Stacktrace {
-				frame.toModelJSON(&out.Log.Stacktrace[i])
+				if frame != nil {
+					frame.toModelJSON(&out.Log.Stacktrace[i])
+				}
 			}
 		}
 	}
@@ -61,13 +63,17 @@ func (e *Exception) toModelJSON(out *modeljson.Exception) {
 	if n := len(e.Cause); n > 0 {
 		out.Cause = make([]modeljson.Exception, n)
 		for i, cause := range e.Cause {
-			cause.toModelJSON(&out.Cause[i])
+			if cause != nil {
+				cause.toModelJSON(&out.Cause[i])
+			}
 		}
 	}
 	if n := len(e.Stacktrace); n > 0 {
 		out.Stacktrace = make([]modeljson.StacktraceFrame, n)
 		for i, frame := range e.Stacktrace {
-			frame.toModelJSON(&out.Stacktrace[i])
+			if frame != nil {
+				frame.toModelJSON(&out.Stacktrace[i])
+			}
 		}
 	}
 }
