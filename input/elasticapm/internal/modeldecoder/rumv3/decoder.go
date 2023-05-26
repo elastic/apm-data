@@ -722,11 +722,11 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 		event.Session.Sequence = from.Session.Sequence.Val
 	}
 	if from.SpanCount.Dropped.IsSet() {
-		dropped := from.SpanCount.Dropped.Val
+		dropped := uint32(from.SpanCount.Dropped.Val)
 		out.SpanCount.Dropped = &dropped
 	}
 	if from.SpanCount.Started.IsSet() {
-		started := from.SpanCount.Started.Val
+		started := uint32(from.SpanCount.Started.Val)
 		out.SpanCount.Started = &started
 	}
 	if from.TraceID.IsSet() {

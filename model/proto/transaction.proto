@@ -45,8 +45,8 @@ message Transaction {
 }
 
 message SpanCount {
-  optional int64 dropped = 1;
-  optional int64 started = 2;
+  optional uint32 dropped = 1;
+  optional uint32 started = 2;
 }
 
 message TransactionMark {

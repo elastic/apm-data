@@ -70,8 +70,8 @@ type Transaction struct {
 }
 
 type SpanCount struct {
-	Dropped *int
-	Started *int
+	Dropped *uint32
+	Started *uint32
 }
 
 func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
