@@ -593,7 +593,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 			fr.Classname = eventFrame.Classname.Val
 		}
 		if eventFrame.ColumnNumber.IsSet() {
-			val := eventFrame.ColumnNumber.Val
+			val := uint32(eventFrame.ColumnNumber.Val)
 			fr.Colno = &val
 		}
 		if eventFrame.ContextLine.IsSet() {
@@ -606,7 +606,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 			fr.Function = eventFrame.Function.Val
 		}
 		if eventFrame.LineNumber.IsSet() {
-			val := eventFrame.LineNumber.Val
+			val := uint32(eventFrame.LineNumber.Val)
 			fr.Lineno = &val
 		}
 		if eventFrame.Module.IsSet() {

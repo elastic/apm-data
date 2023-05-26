@@ -23,8 +23,8 @@ type Stacktrace []*StacktraceFrame
 
 type StacktraceFrame struct {
 	Vars                map[string]any
-	Lineno              *int
-	Colno               *int
+	Lineno              *uint32
+	Colno               *uint32
 	Filename            string
 	Classname           string
 	ContextLine         string
@@ -44,8 +44,8 @@ type Original struct {
 	AbsPath      string
 	Filename     string
 	Classname    string
-	Lineno       *int
-	Colno        *int
+	Lineno       *uint32
+	Colno        *uint32
 	Function     string
 	LibraryFrame bool
 }
