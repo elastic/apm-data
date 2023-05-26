@@ -25,7 +25,7 @@ import (
 )
 
 func TestMessaging_Fields(t *testing.T) {
-	ageMillis := 1577958057123
+	ageMillis := int64(1577958057123)
 	out := transformAPMEvent(APMEvent{
 		Transaction: &Transaction{
 			Message: &Message{

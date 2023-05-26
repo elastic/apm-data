@@ -1014,7 +1014,7 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 			message.Headers = from.Context.Message.Headers.Val.Clone()
 		}
 		if from.Context.Message.Age.Milliseconds.IsSet() {
-			val := from.Context.Message.Age.Milliseconds.Val
+			val := int64(from.Context.Message.Age.Milliseconds.Val)
 			message.AgeMillis = &val
 		}
 		if from.Context.Message.Queue.Name.IsSet() {
@@ -1185,7 +1185,7 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 		if from.Context.Message.IsSet() {
 			out.Message = &model.Message{}
 			if from.Context.Message.Age.IsSet() {
-				val := from.Context.Message.Age.Milliseconds.Val
+				val := int64(from.Context.Message.Age.Milliseconds.Val)
 				out.Message.AgeMillis = &val
 			}
 			if from.Context.Message.Body.IsSet() {

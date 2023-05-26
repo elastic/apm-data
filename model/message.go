@@ -27,7 +27,7 @@ import (
 type Message struct {
 	Body       string
 	Headers    http.Header
-	AgeMillis  *int
+	AgeMillis  *int64
 	QueueName  string
 	RoutingKey string
 }
