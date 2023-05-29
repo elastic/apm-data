@@ -40,8 +40,8 @@ type HTTPResponse struct {
 	Headers         map[string]any // Non-ECS field.
 	Finished        *bool          // Non-ECS field.
 	HeadersSent     *bool          // Non-ECS field.
-	TransferSize    *int           // Non-ECS field.
-	EncodedBodySize *int           // Non-ECS field.
-	DecodedBodySize *int           // Non-ECS field.
+	TransferSize    *int64         // Non-ECS field.
+	EncodedBodySize *int64         // Non-ECS field.
+	DecodedBodySize *int64         // Non-ECS field.
 	StatusCode      int
 }

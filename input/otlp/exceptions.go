@@ -196,10 +196,11 @@ func parseJavaStacktraceFrame(s string, out *model.Exception) error {
 		classname, function = function[:dot], function[dot+1:]
 	}
 	file := submatch[2]
-	var lineno *int
+	var lineno *uint32
 	if submatch[3] != "" {
-		if n, err := strconv.Atoi(submatch[3]); err == nil {
-			lineno = &n
+		if n, err := strconv.ParseUint(submatch[3], 10, 32); err == nil {
+			un := uint32(n)
+			lineno = &un
 		}
 	}
 	out.Stacktrace = append(out.Stacktrace, &model.StacktraceFrame{

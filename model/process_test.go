@@ -28,7 +28,7 @@ func TestProcessTransform(t *testing.T) {
 	commandLine := "node run.js"
 	executablePath := "/usr/bin/node"
 
-	ppid := 456
+	ppid := uint32(456)
 	tests := []struct {
 		Process Process
 		Output  any
@@ -40,7 +40,7 @@ func TestProcessTransform(t *testing.T) {
 		{
 			Process: Process{
 				Pid:         123,
-				Ppid:        &ppid,
+				Ppid:        ppid,
 				Title:       processTitle,
 				Argv:        []string{"node", "server.js"},
 				CommandLine: commandLine,

@@ -1600,7 +1600,7 @@ func newTracesSpans() (ptrace.Traces, ptrace.ScopeSpans) {
 	return traces, scopeSpans
 }
 
-func newInt(v int) *int {
+func newUint32(v uint32) *uint32 {
 	return &v
 }
 

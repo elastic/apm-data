@@ -57,7 +57,7 @@ type Span struct {
 
 // DB contains information related to a database query of a span event
 type DB struct {
-	RowsAffected *int
+	RowsAffected *uint32
 	Instance     string
 	Statement    string
 	Type         string

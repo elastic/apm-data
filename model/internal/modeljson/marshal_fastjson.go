@@ -1493,7 +1493,7 @@ func (v *HTTPResponse) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.Int64(int64(*v.DecodedBodySize))
+		w.Int64(*v.DecodedBodySize)
 	}
 	if v.EncodedBodySize != nil {
 		const prefix = ",\"encoded_body_size\":"
@@ -1503,7 +1503,7 @@ func (v *HTTPResponse) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.Int64(int64(*v.EncodedBodySize))
+		w.Int64(*v.EncodedBodySize)
 	}
 	if v.Finished != nil {
 		const prefix = ",\"finished\":"
@@ -1569,7 +1569,7 @@ func (v *HTTPResponse) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.Int64(int64(*v.TransferSize))
+		w.Int64(*v.TransferSize)
 	}
 	w.RawByte('}')
 	return firstErr
@@ -1821,7 +1821,7 @@ func (v *MessageAge) MarshalFastJSON(w *fastjson.Writer) error {
 	w.RawByte('{')
 	if v.Millis != nil {
 		w.RawString("\"ms\":")
-		w.Int64(int64(*v.Millis))
+		w.Int64(*v.Millis)
 	}
 	w.RawByte('}')
 	return nil
@@ -2237,9 +2237,9 @@ func (v *Process) MarshalFastJSON(w *fastjson.Writer) error {
 
 func (v *ProcessParent) MarshalFastJSON(w *fastjson.Writer) error {
 	w.RawByte('{')
-	if v.Pid != nil {
+	if v.Pid != 0 {
 		w.RawString("\"pid\":")
-		w.Int64(int64(*v.Pid))
+		w.Uint64(uint64(v.Pid))
 	}
 	w.RawByte('}')
 	return nil
@@ -2928,7 +2928,7 @@ func (v *DB) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.Int64(int64(*v.RowsAffected))
+		w.Uint64(uint64(*v.RowsAffected))
 	}
 	if v.Statement != "" {
 		const prefix = ",\"statement\":"
@@ -3153,7 +3153,7 @@ func (v *StacktraceFrameLine) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.Int64(int64(*v.Column))
+		w.Uint64(uint64(*v.Column))
 	}
 	if v.Context != "" {
 		const prefix = ",\"context\":"
@@ -3173,7 +3173,7 @@ func (v *StacktraceFrameLine) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.Int64(int64(*v.Number))
+		w.Uint64(uint64(*v.Number))
 	}
 	w.RawByte('}')
 	return nil
@@ -3237,7 +3237,7 @@ func (v *StacktraceFrameOriginal) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.Int64(int64(*v.Colno))
+		w.Uint64(uint64(*v.Colno))
 	}
 	if v.Filename != "" {
 		const prefix = ",\"filename\":"
@@ -3277,7 +3277,7 @@ func (v *StacktraceFrameOriginal) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.Int64(int64(*v.Lineno))
+		w.Uint64(uint64(*v.Lineno))
 	}
 	w.RawByte('}')
 	return nil
@@ -3533,7 +3533,7 @@ func (v *SpanCount) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.Int64(int64(*v.Dropped))
+		w.Uint64(uint64(*v.Dropped))
 	}
 	if v.Started != nil {
 		const prefix = ",\"started\":"
@@ -3543,7 +3543,7 @@ func (v *SpanCount) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.Int64(int64(*v.Started))
+		w.Uint64(uint64(*v.Started))
 	}
 	w.RawByte('}')
 	return nil

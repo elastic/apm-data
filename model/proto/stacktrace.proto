@@ -25,8 +25,8 @@ option go_package = "github.com/elastic/apm-data/model/modelpb";
 
 message StacktraceFrame {
   google.protobuf.Struct vars = 1;
-  optional int32 lineno = 2;
-  optional int32 colno = 3;
+  optional uint32 lineno = 2;
+  optional uint32 colno = 3;
   string filename = 4;
   string classname = 5;
   string context_line = 6;
@@ -46,8 +46,8 @@ message Original {
   string abs_path = 1;
   string filename = 2;
   string classname = 3;
-  optional int32 lineno = 4;
-  optional int32 colno = 5;
+  optional uint32 lineno = 4;
+  optional uint32 colno = 5;
   string function = 6;
   bool library_frame = 7;
 }

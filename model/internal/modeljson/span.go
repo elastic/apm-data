@@ -57,12 +57,12 @@ type SpanCompositeSum struct {
 }
 
 type DB struct {
-	RowsAffected *int   `json:"rows_affected,omitempty"`
-	Instance     string `json:"instance,omitempty"`
-	Statement    string `json:"statement,omitempty"`
-	Type         string `json:"type,omitempty"`
-	User         DBUser `json:"user,omitempty"`
-	Link         string `json:"link,omitempty"`
+	RowsAffected *uint32 `json:"rows_affected,omitempty"`
+	Instance     string  `json:"instance,omitempty"`
+	Statement    string  `json:"statement,omitempty"`
+	Type         string  `json:"type,omitempty"`
+	User         DBUser  `json:"user,omitempty"`
+	Link         string  `json:"link,omitempty"`
 }
 
 type DBUser struct {

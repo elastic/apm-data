@@ -18,17 +18,17 @@
 package modeljson
 
 type Process struct {
-	Parent      ProcessParent `json:"parent,omitempty"`
 	Title       string        `json:"title,omitempty"`
 	CommandLine string        `json:"command_line,omitempty"`
 	Executable  string        `json:"executable,omitempty"`
 	Args        []string      `json:"args,omitempty"`
 	Thread      ProcessThread `json:"thread,omitempty"`
+	Parent      ProcessParent `json:"parent,omitempty"`
 	Pid         int           `json:"pid,omitempty"`
 }
 
 type ProcessParent struct {
-	Pid *int `json:"pid,omitempty"`
+	Pid uint32 `json:"pid,omitempty"`
 }
 
 func (p ProcessParent) isZero() bool {
