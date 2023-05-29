@@ -2237,9 +2237,9 @@ func (v *Process) MarshalFastJSON(w *fastjson.Writer) error {
 
 func (v *ProcessParent) MarshalFastJSON(w *fastjson.Writer) error {
 	w.RawByte('{')
-	if v.Pid != nil {
+	if v.Pid != 0 {
 		w.RawString("\"pid\":")
-		w.Uint64(uint64(*v.Pid))
+		w.Uint64(uint64(v.Pid))
 	}
 	w.RawByte('}')
 	return nil
