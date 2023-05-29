@@ -22,7 +22,7 @@ package elastic.apm.v1;
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
 message Process {
-  optional uint32 ppid = 1;
+  uint32 ppid = 1;
   ProcessThread thread = 2;
   string title = 3;
   string command_line = 4;

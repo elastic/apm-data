@@ -110,8 +110,8 @@ func (m *Process) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if m.Ppid != nil {
-		i = encodeVarint(dAtA, i, uint64(*m.Ppid))
+	if m.Ppid != 0 {
+		i = encodeVarint(dAtA, i, uint64(m.Ppid))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -169,8 +169,8 @@ func (m *Process) SizeVT() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Ppid != nil {
-		n += 1 + sov(uint64(*m.Ppid))
+	if m.Ppid != 0 {
+		n += 1 + sov(uint64(m.Ppid))
 	}
 	if m.Thread != nil {
 		l = m.Thread.SizeVT()
@@ -251,7 +251,7 @@ func (m *Process) UnmarshalVT(dAtA []byte) error {
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Ppid", wireType)
 			}
-			var v uint32
+			m.Ppid = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflow
@@ -261,12 +261,11 @@ func (m *Process) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				v |= uint32(b&0x7F) << shift
+				m.Ppid |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			m.Ppid = &v
 		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Thread", wireType)
