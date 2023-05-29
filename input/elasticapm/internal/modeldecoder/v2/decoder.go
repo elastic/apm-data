@@ -555,8 +555,8 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 		out.Process.Pid = from.Process.Pid.Val
 	}
 	if from.Process.Ppid.IsSet() {
-		var pid = from.Process.Ppid.Val
-		out.Process.Ppid = &pid
+		var pid = uint32(from.Process.Ppid.Val)
+		out.Process.Ppid = pid
 	}
 	if from.Process.Title.IsSet() {
 		out.Process.Title = from.Process.Title.Val
@@ -798,15 +798,15 @@ func mapToResponseModel(from contextResponse, out *model.HTTPResponse) {
 		out.StatusCode = from.StatusCode.Val
 	}
 	if from.TransferSize.IsSet() {
-		val := from.TransferSize.Val
+		val := int64(from.TransferSize.Val)
 		out.TransferSize = &val
 	}
 	if from.EncodedBodySize.IsSet() {
-		val := from.EncodedBodySize.Val
+		val := int64(from.EncodedBodySize.Val)
 		out.EncodedBodySize = &val
 	}
 	if from.DecodedBodySize.IsSet() {
-		val := from.DecodedBodySize.Val
+		val := int64(from.DecodedBodySize.Val)
 		out.DecodedBodySize = &val
 	}
 }
@@ -927,7 +927,7 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 			db.Link = from.Context.Database.Link.Val
 		}
 		if from.Context.Database.RowsAffected.IsSet() {
-			val := from.Context.Database.RowsAffected.Val
+			val := uint32(from.Context.Database.RowsAffected.Val)
 			db.RowsAffected = &val
 		}
 		if from.Context.Database.Statement.IsSet() {
@@ -976,11 +976,11 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 		if from.Context.HTTP.Response.IsSet() {
 			response := model.HTTPResponse{}
 			if from.Context.HTTP.Response.DecodedBodySize.IsSet() {
-				val := from.Context.HTTP.Response.DecodedBodySize.Val
+				val := int64(from.Context.HTTP.Response.DecodedBodySize.Val)
 				response.DecodedBodySize = &val
 			}
 			if from.Context.HTTP.Response.EncodedBodySize.IsSet() {
-				val := from.Context.HTTP.Response.EncodedBodySize.Val
+				val := int64(from.Context.HTTP.Response.EncodedBodySize.Val)
 				response.EncodedBodySize = &val
 			}
 			if from.Context.HTTP.Response.Headers.IsSet() {
@@ -990,7 +990,7 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 				response.StatusCode = from.Context.HTTP.Response.StatusCode.Val
 			}
 			if from.Context.HTTP.Response.TransferSize.IsSet() {
-				val := from.Context.HTTP.Response.TransferSize.Val
+				val := int64(from.Context.HTTP.Response.TransferSize.Val)
 				response.TransferSize = &val
 			}
 			event.HTTP.Response = &response
@@ -1014,7 +1014,7 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 			message.Headers = from.Context.Message.Headers.Val.Clone()
 		}
 		if from.Context.Message.Age.Milliseconds.IsSet() {
-			val := from.Context.Message.Age.Milliseconds.Val
+			val := int64(from.Context.Message.Age.Milliseconds.Val)
 			message.AgeMillis = &val
 		}
 		if from.Context.Message.Queue.Name.IsSet() {
@@ -1120,7 +1120,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 			fr.Classname = eventFrame.Classname.Val
 		}
 		if eventFrame.ColumnNumber.IsSet() {
-			val := eventFrame.ColumnNumber.Val
+			val := uint32(eventFrame.ColumnNumber.Val)
 			fr.Colno = &val
 		}
 		if eventFrame.ContextLine.IsSet() {
@@ -1137,7 +1137,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 			fr.LibraryFrame = val
 		}
 		if eventFrame.LineNumber.IsSet() {
-			val := eventFrame.LineNumber.Val
+			val := uint32(eventFrame.LineNumber.Val)
 			fr.Lineno = &val
 		}
 		if eventFrame.Module.IsSet() {
@@ -1185,7 +1185,7 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 		if from.Context.Message.IsSet() {
 			out.Message = &model.Message{}
 			if from.Context.Message.Age.IsSet() {
-				val := from.Context.Message.Age.Milliseconds.Val
+				val := int64(from.Context.Message.Age.Milliseconds.Val)
 				out.Message.AgeMillis = &val
 			}
 			if from.Context.Message.Body.IsSet() {
@@ -1284,11 +1284,11 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 		event.Session.Sequence = from.Session.Sequence.Val
 	}
 	if from.SpanCount.Dropped.IsSet() {
-		dropped := from.SpanCount.Dropped.Val
+		dropped := uint32(from.SpanCount.Dropped.Val)
 		out.SpanCount.Dropped = &dropped
 	}
 	if from.SpanCount.Started.IsSet() {
-		started := from.SpanCount.Started.Val
+		started := uint32(from.SpanCount.Started.Val)
 		out.SpanCount.Started = &started
 	}
 	if !from.Timestamp.Val.IsZero() {

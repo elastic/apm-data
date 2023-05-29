@@ -25,16 +25,16 @@ import (
 )
 
 func TestStacktraceTransform(t *testing.T) {
-	originalLineno := 111
-	originalColno := 222
+	originalLineno := uint32(111)
+	originalColno := uint32(222)
 	originalFunction := "original function"
 	originalFilename := "original filename"
 	originalModule := "original module"
 	originalClassname := "original classname"
 	originalAbsPath := "original path"
 
-	mappedLineno := 333
-	mappedColno := 444
+	mappedLineno := uint32(333)
+	mappedColno := uint32(444)
 	mappedFunction := "mapped function"
 	mappedFilename := "mapped filename"
 	mappedClassname := "mapped classname"

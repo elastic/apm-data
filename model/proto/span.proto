@@ -45,7 +45,7 @@ message Span {
 }
 
 message DB {
-  optional int64 rows_affected = 1;
+  optional uint32 rows_affected = 1;
   string instance = 2;
   string statement = 3;
   string type = 4;

@@ -18,13 +18,13 @@
 package model
 
 type Process struct {
-	Ppid        *int
 	Thread      ProcessThread
 	Title       string
 	CommandLine string
 	Executable  string
 	Argv        []string
 	Pid         int
+	Ppid        uint32
 }
 
 // ProcessThread represents the thread information.

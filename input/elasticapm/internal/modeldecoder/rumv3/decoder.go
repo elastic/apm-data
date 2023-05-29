@@ -393,15 +393,15 @@ func mapToResponseModel(from contextResponse, out *model.HTTPResponse) {
 		out.StatusCode = from.StatusCode.Val
 	}
 	if from.TransferSize.IsSet() {
-		val := from.TransferSize.Val
+		val := int64(from.TransferSize.Val)
 		out.TransferSize = &val
 	}
 	if from.EncodedBodySize.IsSet() {
-		val := from.EncodedBodySize.Val
+		val := int64(from.EncodedBodySize.Val)
 		out.EncodedBodySize = &val
 	}
 	if from.DecodedBodySize.IsSet() {
-		val := from.DecodedBodySize.Val
+		val := int64(from.DecodedBodySize.Val)
 		out.DecodedBodySize = &val
 	}
 }
@@ -518,15 +518,15 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 		if from.Context.HTTP.Response.IsSet() {
 			event.HTTP.Response = &response
 			if from.Context.HTTP.Response.DecodedBodySize.IsSet() {
-				val := from.Context.HTTP.Response.DecodedBodySize.Val
+				val := int64(from.Context.HTTP.Response.DecodedBodySize.Val)
 				event.HTTP.Response.DecodedBodySize = &val
 			}
 			if from.Context.HTTP.Response.EncodedBodySize.IsSet() {
-				val := from.Context.HTTP.Response.EncodedBodySize.Val
+				val := int64(from.Context.HTTP.Response.EncodedBodySize.Val)
 				event.HTTP.Response.EncodedBodySize = &val
 			}
 			if from.Context.HTTP.Response.TransferSize.IsSet() {
-				val := from.Context.HTTP.Response.TransferSize.Val
+				val := int64(from.Context.HTTP.Response.TransferSize.Val)
 				event.HTTP.Response.TransferSize = &val
 			}
 		}
@@ -593,7 +593,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 			fr.Classname = eventFrame.Classname.Val
 		}
 		if eventFrame.ColumnNumber.IsSet() {
-			val := eventFrame.ColumnNumber.Val
+			val := uint32(eventFrame.ColumnNumber.Val)
 			fr.Colno = &val
 		}
 		if eventFrame.ContextLine.IsSet() {
@@ -606,7 +606,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 			fr.Function = eventFrame.Function.Val
 		}
 		if eventFrame.LineNumber.IsSet() {
-			val := eventFrame.LineNumber.Val
+			val := uint32(eventFrame.LineNumber.Val)
 			fr.Lineno = &val
 		}
 		if eventFrame.Module.IsSet() {
@@ -722,11 +722,11 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 		event.Session.Sequence = from.Session.Sequence.Val
 	}
 	if from.SpanCount.Dropped.IsSet() {
-		dropped := from.SpanCount.Dropped.Val
+		dropped := uint32(from.SpanCount.Dropped.Val)
 		out.SpanCount.Dropped = &dropped
 	}
 	if from.SpanCount.Started.IsSet() {
-		started := from.SpanCount.Started.Val
+		started := uint32(from.SpanCount.Started.Val)
 		out.SpanCount.Started = &started
 	}
 	if from.TraceID.IsSet() {

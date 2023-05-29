@@ -40,9 +40,9 @@ type HTTPRequestBody struct {
 type HTTPResponse struct {
 	Finished        *bool          `json:"finished,omitempty"`          // Non-ECS field.
 	HeadersSent     *bool          `json:"headers_sent,omitempty"`      // Non-ECS field.
-	TransferSize    *int           `json:"transfer_size,omitempty"`     // Non-ECS field.
-	EncodedBodySize *int           `json:"encoded_body_size,omitempty"` // Non-ECS field.
-	DecodedBodySize *int           `json:"decoded_body_size,omitempty"` // Non-ECS field.
+	TransferSize    *int64         `json:"transfer_size,omitempty"`     // Non-ECS field.
+	EncodedBodySize *int64         `json:"encoded_body_size,omitempty"` // Non-ECS field.
+	DecodedBodySize *int64         `json:"decoded_body_size,omitempty"` // Non-ECS field.
 	Headers         map[string]any `json:"headers,omitempty"`           // Non-ECS field.
 	StatusCode      int            `json:"status_code,omitempty"`
 }

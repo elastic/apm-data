@@ -38,9 +38,9 @@ type StacktraceFrameContext struct {
 }
 
 type StacktraceFrameLine struct {
-	Number  *int   `json:"number,omitempty"`
-	Column  *int   `json:"column,omitempty"`
-	Context string `json:"context,omitempty"`
+	Number  *uint32 `json:"number,omitempty"`
+	Column  *uint32 `json:"column,omitempty"`
+	Context string  `json:"context,omitempty"`
 }
 
 type StacktraceFrameSourcemap struct {
@@ -49,11 +49,11 @@ type StacktraceFrameSourcemap struct {
 }
 
 type StacktraceFrameOriginal struct {
-	AbsPath      string `json:"abs_path,omitempty"`
-	Filename     string `json:"filename,omitempty"`
-	Classname    string `json:"classname,omitempty"`
-	Lineno       *int   `json:"lineno,omitempty"`
-	Colno        *int   `json:"colno,omitempty"`
-	Function     string `json:"function,omitempty"`
-	LibraryFrame bool   `json:"library_frame,omitempty"`
+	AbsPath      string  `json:"abs_path,omitempty"`
+	Filename     string  `json:"filename,omitempty"`
+	Classname    string  `json:"classname,omitempty"`
+	Lineno       *uint32 `json:"lineno,omitempty"`
+	Colno        *uint32 `json:"colno,omitempty"`
+	Function     string  `json:"function,omitempty"`
+	LibraryFrame bool    `json:"library_frame,omitempty"`
 }

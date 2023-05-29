@@ -30,7 +30,7 @@ func TestSpanTransform(t *testing.T) {
 	subtype := "amqp"
 	action := "publish"
 	timestamp := time.Date(2019, 1, 3, 15, 17, 4, 908.596*1e6, time.FixedZone("+0100", 3600))
-	instance, statement, dbType, user, rowsAffected := "db01", "select *", "sql", "jane", 5
+	instance, statement, dbType, user, rowsAffected := "db01", "select *", "sql", "jane", uint32(5)
 	destServiceType, destServiceName, destServiceResource := "db", "elasticsearch", "elasticsearch"
 	links := []SpanLink{{Span: Span{ID: "linked_span"}, Trace: Trace{ID: "linked_trace"}}}
 

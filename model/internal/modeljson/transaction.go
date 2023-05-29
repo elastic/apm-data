@@ -36,8 +36,8 @@ type Transaction struct {
 }
 
 type SpanCount struct {
-	Dropped *int `json:"dropped,omitempty"`
-	Started *int `json:"started,omitempty"`
+	Dropped *uint32 `json:"dropped,omitempty"`
+	Started *uint32 `json:"started,omitempty"`
 }
 
 func (s *SpanCount) isZero() bool {

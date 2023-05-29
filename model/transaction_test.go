@@ -27,7 +27,7 @@ import (
 
 func TestTransactionTransform(t *testing.T) {
 	id := "123"
-	dropped, startedSpans := 5, 14
+	dropped, startedSpans := uint32(5), uint32(14)
 	name := "mytransaction"
 	duration := 65980 * time.Microsecond
 

@@ -26,7 +26,7 @@ type Message struct {
 }
 
 type MessageAge struct {
-	Millis *int `json:"ms,omitempty"`
+	Millis *int64 `json:"ms,omitempty"`
 }
 
 func (a MessageAge) isZero() bool {
