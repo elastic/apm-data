@@ -301,6 +301,8 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 			newVal = &val
 		case *int:
 			newVal = &values.Int
+		case uint32:
+			newVal = uint32(values.Int)
 		case *uint32:
 			val := uint32(values.Int)
 			newVal = &val
