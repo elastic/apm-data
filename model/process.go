@@ -18,7 +18,7 @@
 package model
 
 type Process struct {
-	Ppid        *uint32
+	Ppid        uint32
 	Thread      ProcessThread
 	Title       string
 	CommandLine string

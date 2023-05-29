@@ -40,7 +40,7 @@ func TestProcessTransform(t *testing.T) {
 		{
 			Process: Process{
 				Pid:         123,
-				Ppid:        &ppid,
+				Ppid:        ppid,
 				Title:       processTitle,
 				Argv:        []string{"node", "server.js"},
 				CommandLine: commandLine,
