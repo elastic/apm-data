@@ -20,7 +20,7 @@ package model
 import (
 	"net/http"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // Message holds information about a recorded message, such as the message body and meta information
@@ -32,12 +32,21 @@ type Message struct {
 	RoutingKey string
 }
 
-func (m *Message) toModelJSON(out *modeljson.Message) {
-	*out = modeljson.Message{
+func (m *Message) toModelProtobuf(out *modelpb.Message) {
+	var headers map[string]*modelpb.HTTPHeaderValue
+	if n := len(m.Headers); n > 0 {
+		headers = make(map[string]*modelpb.HTTPHeaderValue, n)
+		for k, v := range m.Headers {
+			headers[k] = &modelpb.HTTPHeaderValue{
+				Values: v,
+			}
+		}
+	}
+	*out = modelpb.Message{
 		Body:       m.Body,
-		Headers:    m.Headers,
-		Age:        modeljson.MessageAge{Millis: m.AgeMillis},
-		Queue:      modeljson.MessageQueue{Name: m.QueueName},
+		Headers:    headers,
+		AgeMillis:  m.AgeMillis,
+		QueueName:  m.QueueName,
 		RoutingKey: m.RoutingKey,
 	}
 }

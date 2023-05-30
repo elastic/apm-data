@@ -30,7 +30,11 @@ func HTTPHeadersToMap(h http.Header) map[string]any {
 	}
 	m := make(map[string]any, len(h))
 	for k, v := range h {
-		m[k] = v
+		arr := make([]any, 0, len(v))
+		for _, s := range v {
+			arr = append(arr, s)
+		}
+		m[k] = arr
 	}
 	return m
 }

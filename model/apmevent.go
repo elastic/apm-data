@@ -18,11 +18,12 @@
 package model
 
 import (
-	"net"
 	"time"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modelpb"
 	"go.elastic.co/fastjson"
+	"google.golang.org/protobuf/types/known/structpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // APMEvent holds the details of an APM event.
@@ -89,334 +90,445 @@ func (e *APMEvent) MarshalJSON() ([]byte, error) {
 
 // MarshalFastJSON marshals e as JSON, writing the result to w.
 func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
-	var labels map[string]modeljson.Label
+	var outProto modelpb.APMEvent
+	e.toModelProtobuf(&outProto)
+	return outProto.MarshalFastJSON(w)
+}
+
+func (e *APMEvent) toModelProtobuf(out *modelpb.APMEvent) {
+	var labels map[string]*modelpb.LabelValue
 	if n := len(e.Labels); n > 0 {
-		labels = make(map[string]modeljson.Label)
-		for k, label := range e.Labels {
-			labels[sanitizeLabelKey(k)] = modeljson.Label{
-				Value:  label.Value,
-				Values: label.Values,
+		labels = make(map[string]*modelpb.LabelValue, n)
+		for k, v := range e.Labels {
+			pbv := &modelpb.LabelValue{
+				Value:  v.Value,
+				Values: v.Values,
+				Global: v.Global,
 			}
+			labels[k] = pbv
 		}
 	}
 
-	var numericLabels map[string]modeljson.NumericLabel
+	var numericLabels map[string]*modelpb.NumericLabelValue
 	if n := len(e.NumericLabels); n > 0 {
-		numericLabels = make(map[string]modeljson.NumericLabel)
-		for k, label := range e.NumericLabels {
-			numericLabels[sanitizeLabelKey(k)] = modeljson.NumericLabel{
-				Value:  label.Value,
-				Values: label.Values,
+		numericLabels = make(map[string]*modelpb.NumericLabelValue, n)
+		for k, v := range e.NumericLabels {
+			numericLabels[k] = &modelpb.NumericLabelValue{
+				Value:  v.Value,
+				Values: v.Values,
+				Global: v.Global,
 			}
 		}
 	}
 
-	doc := modeljson.Document{
-		Timestamp:           modeljson.Time(e.Timestamp),
-		DataStreamType:      e.DataStream.Type,
-		DataStreamDataset:   e.DataStream.Dataset,
-		DataStreamNamespace: e.DataStream.Namespace,
-		Processor:           modeljson.Processor(e.Processor),
-		Labels:              labels,
-		NumericLabels:       numericLabels,
-		Message:             e.Message,
+	*out = modelpb.APMEvent{
+		Timestamp:     timestamppb.New(e.Timestamp),
+		NumericLabels: numericLabels,
+		Labels:        labels,
+		Message:       e.Message,
 	}
 
-	var transaction modeljson.Transaction
+	if !isZero(e.DataStream) {
+		out.DataStream = &modelpb.DataStream{
+			Type:      e.DataStream.Type,
+			Dataset:   e.DataStream.Dataset,
+			Namespace: e.DataStream.Namespace,
+		}
+	}
+
+	if !isZero(e.Processor) {
+		out.Processor = &modelpb.Processor{
+			Name:  e.Processor.Name,
+			Event: e.Processor.Event,
+		}
+	}
+
+	var transaction modelpb.Transaction
 	if e.Transaction != nil {
-		e.Transaction.toModelJSON(&transaction, e.Processor == MetricsetProcessor)
-		doc.Transaction = &transaction
+		e.Transaction.toModelProtobuf(&transaction, e.Processor == MetricsetProcessor)
+		out.Transaction = &transaction
 	}
 
-	var span modeljson.Span
+	var span modelpb.Span
 	if e.Span != nil {
-		e.Span.toModelJSON(&span)
-		doc.Span = &span
+		e.Span.toModelProtobuf(&span)
+		out.Span = &span
 	}
 
-	var metricset modeljson.Metricset
+	var metricset modelpb.Metricset
 	if e.Metricset != nil {
-		e.Metricset.toModelJSON(&metricset)
-		doc.Metricset = &metricset
-		doc.DocCount = e.Metricset.DocCount
+		e.Metricset.toModelProtobuf(&metricset)
+		out.Metricset = &metricset
 	}
 
-	var errorStruct modeljson.Error
+	var errorStruct modelpb.Error
 	if e.Error != nil {
-		e.Error.toModelJSON(&errorStruct)
-		doc.Error = &errorStruct
+		e.Error.toModelProtobuf(&errorStruct)
+		out.Error = &errorStruct
 	}
 
-	var event modeljson.Event
+	var event modelpb.Event
 	if !isZero(e.Event) {
-		e.Event.toModelJSON(&event)
-		doc.Event = &event
+		e.Event.toModelProtobuf(&event)
+		out.Event = &event
 	}
 
-	// Set high resolution timestamp.
-	//
-	// TODO(axw) change @timestamp to use date_nanos, and remove this field.
-	var timestampStruct modeljson.Timestamp
-	if !e.Timestamp.IsZero() {
-		switch e.Processor {
-		case TransactionProcessor, SpanProcessor, ErrorProcessor:
-			timestampStruct.US = int(e.Timestamp.UnixNano() / 1000)
-			doc.TimestampStruct = &timestampStruct
+	if !isZero(e.Cloud) {
+		cloud := modelpb.Cloud{
+			AvailabilityZone: e.Cloud.AvailabilityZone,
+			Provider:         e.Cloud.Provider,
+			Region:           e.Cloud.Region,
+			AccountId:        e.Cloud.AccountID,
+			AccountName:      e.Cloud.AccountName,
+			ServiceName:      e.Cloud.ServiceName,
+			ProjectId:        e.Cloud.ProjectID,
+			ProjectName:      e.Cloud.ProjectName,
+			InstanceId:       e.Cloud.InstanceID,
+			InstanceName:     e.Cloud.InstanceName,
+			MachineType:      e.Cloud.MachineType,
+		}
+		if e.Cloud.Origin != nil {
+			cloud.Origin = &modelpb.CloudOrigin{
+				Provider:    e.Cloud.Origin.Provider,
+				Region:      e.Cloud.Origin.Region,
+				AccountId:   e.Cloud.Origin.AccountID,
+				ServiceName: e.Cloud.Origin.ServiceName,
+			}
+		}
+		out.Cloud = &cloud
+	}
+
+	if !isZero(e.FAAS) {
+		out.Faas = &modelpb.Faas{
+			Id:               e.FAAS.ID,
+			Name:             e.FAAS.Name,
+			Version:          e.FAAS.Version,
+			Execution:        e.FAAS.Execution,
+			ColdStart:        e.FAAS.Coldstart,
+			TriggerType:      e.FAAS.TriggerType,
+			TriggerRequestId: e.FAAS.TriggerRequestID,
 		}
 	}
 
-	cloud := modeljson.Cloud{
-		AvailabilityZone: e.Cloud.AvailabilityZone,
-		Provider:         e.Cloud.Provider,
-		Region:           e.Cloud.Region,
-		Account: modeljson.CloudAccount{
-			ID:   e.Cloud.AccountID,
-			Name: e.Cloud.AccountName,
-		},
-		Service: modeljson.CloudService{
-			Name: e.Cloud.ServiceName,
-		},
-		Project: modeljson.CloudProject{
-			ID:   e.Cloud.ProjectID,
-			Name: e.Cloud.ProjectName,
-		},
-		Instance: modeljson.CloudInstance{
-			ID:   e.Cloud.InstanceID,
-			Name: e.Cloud.InstanceName,
-		},
-		Machine: modeljson.CloudMachine{
-			Type: e.Cloud.MachineType,
-		},
+	if !isZero(e.Device) {
+		device := modelpb.Device{
+			Id:           e.Device.ID,
+			Manufacturer: e.Device.Manufacturer,
+		}
+		if !isZero(e.Device.Model) {
+			device.Model = &modelpb.DeviceModel{
+				Name:       e.Device.Model.Name,
+				Identifier: e.Device.Model.Identifier,
+			}
+		}
+		out.Device = &device
 	}
-	if e.Cloud.Origin != nil {
-		cloud.Origin = modeljson.CloudOrigin{
-			Provider: e.Cloud.Origin.Provider,
-			Region:   e.Cloud.Origin.Region,
-			Account: modeljson.CloudAccount{
-				ID: e.Cloud.Origin.AccountID,
-			},
-			Service: modeljson.CloudService{
-				Name: e.Cloud.Origin.ServiceName,
-			},
+
+	if !isZero(e.Network) {
+		network := modelpb.Network{}
+		if !isZero(e.Network.Connection) {
+			network.Connection = &modelpb.NetworkConnection{
+				Type:    e.Network.Connection.Type,
+				Subtype: e.Network.Connection.Subtype,
+			}
+		}
+		if !isZero(e.Network.Carrier) {
+			network.Carrier = &modelpb.NetworkCarrier{
+				Name: e.Network.Carrier.Name,
+				Mcc:  e.Network.Carrier.MCC,
+				Mnc:  e.Network.Carrier.MNC,
+				Icc:  e.Network.Carrier.ICC,
+			}
+		}
+		out.Network = &network
+	}
+
+	if !isZero(e.Observer) {
+		out.Observer = &modelpb.Observer{
+			Hostname: e.Observer.Hostname,
+			Name:     e.Observer.Name,
+			Type:     e.Observer.Type,
+			Version:  e.Observer.Version,
 		}
 	}
-	setNonZero(&doc.Cloud, &cloud)
 
-	faas := modeljson.FAAS{
-		ID:        e.FAAS.ID,
-		Name:      e.FAAS.Name,
-		Version:   e.FAAS.Version,
-		Execution: e.FAAS.Execution,
-		Coldstart: e.FAAS.Coldstart,
-		Trigger: modeljson.FAASTrigger{
-			Type:      e.FAAS.TriggerType,
-			RequestID: e.FAAS.TriggerRequestID,
-		},
-	}
-	setNonZero(&doc.FAAS, &faas)
-
-	device := modeljson.Device{
-		ID:           e.Device.ID,
-		Manufacturer: e.Device.Manufacturer,
-		Model:        modeljson.DeviceModel(e.Device.Model),
-	}
-	setNonZero(&doc.Device, &device)
-
-	network := modeljson.Network{
-		Connection: modeljson.NetworkConnection(e.Network.Connection),
-		Carrier:    modeljson.NetworkCarrier(e.Network.Carrier),
-	}
-	setNonZero(&doc.Network, &network)
-
-	observer := modeljson.Observer(e.Observer)
-	setNonZero(&doc.Observer, &observer)
-
-	container := modeljson.Container{
-		ID:      e.Container.ID,
-		Name:    e.Container.Name,
-		Runtime: e.Container.Runtime,
-		Image: modeljson.ContainerImage{
-			Name: e.Container.ImageName,
-			Tag:  e.Container.ImageTag,
-		},
-	}
-	setNonZero(&doc.Container, &container)
-
-	kubernetes := modeljson.Kubernetes{
-		Namespace: e.Kubernetes.Namespace,
-		Node: modeljson.KubernetesNode{
-			Name: e.Kubernetes.NodeName,
-		},
-		Pod: modeljson.KubernetesPod{
-			Name: e.Kubernetes.PodName,
-			UID:  e.Kubernetes.PodUID,
-		},
-	}
-	setNonZero(&doc.Kubernetes, &kubernetes)
-
-	agent := modeljson.Agent(e.Agent)
-	setNonZero(&doc.Agent, &agent)
-
-	trace := modeljson.Trace(e.Trace)
-	setNonZero(&doc.Trace, &trace)
-
-	user := modeljson.User(e.User)
-	setNonZero(&doc.User, &user)
-
-	source := modeljson.Source{
-		IP:     modeljson.IP(e.Source.IP),
-		Domain: e.Source.Domain,
-		Port:   e.Source.Port,
-	}
-	if e.Source.NAT != nil {
-		source.NAT.IP = modeljson.IP(e.Source.NAT.IP)
-	}
-	setNonZero(&doc.Source, &source)
-
-	parent := modeljson.Parent(e.Parent)
-	setNonZero(&doc.Parent, &parent)
-
-	child := modeljson.Child(e.Child)
-	if len(child.ID) > 0 {
-		doc.Child = &child
-	}
-
-	client := modeljson.Client{Domain: e.Client.Domain, Port: e.Client.Port}
-	if e.Client.IP.IsValid() {
-		client.IP = e.Client.IP.String()
-	}
-	setNonZero(&doc.Client, &client)
-
-	userAgent := modeljson.UserAgent(e.UserAgent)
-	setNonZero(&doc.UserAgent, &userAgent)
-
-	service := modeljson.Service{
-		Name:        e.Service.Name,
-		Version:     e.Service.Version,
-		Environment: e.Service.Environment,
-	}
-	serviceNode := modeljson.ServiceNode(e.Service.Node)
-	setNonZero(&service.Node, &serviceNode)
-	serviceLanguage := modeljson.Language(e.Service.Language)
-	setNonZero(&service.Language, &serviceLanguage)
-	serviceRuntime := modeljson.Runtime(e.Service.Runtime)
-	setNonZero(&service.Runtime, &serviceRuntime)
-	serviceFramework := modeljson.Framework(e.Service.Framework)
-	setNonZero(&service.Framework, &serviceFramework)
-	var serviceOrigin modeljson.ServiceOrigin
-	var serviceTarget modeljson.ServiceTarget
-	if e.Service.Origin != nil {
-		serviceOrigin = modeljson.ServiceOrigin(*e.Service.Origin)
-		service.Origin = &serviceOrigin
-	}
-	if e.Service.Target != nil {
-		serviceTarget = modeljson.ServiceTarget(*e.Service.Target)
-		service.Target = &serviceTarget
-	}
-	setNonZero(&doc.Service, &service)
-
-	http := modeljson.HTTP{
-		Version: e.HTTP.Version,
-	}
-	var httpRequest modeljson.HTTPRequest
-	var httpRequestBody modeljson.HTTPRequestBody
-	var httpResponse modeljson.HTTPResponse
-	if e.HTTP.Request != nil {
-		httpRequest = modeljson.HTTPRequest{
-			ID:       e.HTTP.Request.ID,
-			Method:   e.HTTP.Request.Method,
-			Referrer: e.HTTP.Request.Referrer,
-			Headers:  e.HTTP.Request.Headers,
-			Env:      e.HTTP.Request.Env,
-			Cookies:  e.HTTP.Request.Cookies,
-		}
-		if e.HTTP.Request.Body != nil {
-			httpRequestBody.Original = e.HTTP.Request.Body
-			httpRequest.Body = &httpRequestBody
-		}
-		http.Request = &httpRequest
-	}
-	if e.HTTP.Response != nil {
-		httpResponse = modeljson.HTTPResponse{
-			StatusCode:      e.HTTP.Response.StatusCode,
-			Headers:         e.HTTP.Response.Headers,
-			Finished:        e.HTTP.Response.Finished,
-			HeadersSent:     e.HTTP.Response.HeadersSent,
-			TransferSize:    e.HTTP.Response.TransferSize,
-			EncodedBodySize: e.HTTP.Response.EncodedBodySize,
-			DecodedBodySize: e.HTTP.Response.DecodedBodySize,
-		}
-		http.Response = &httpResponse
-	}
-	setNonZero(&doc.HTTP, &http)
-
-	host := modeljson.Host{
-		Hostname:     e.Host.Hostname,
-		Name:         e.Host.Name,
-		ID:           e.Host.ID,
-		Architecture: e.Host.Architecture,
-		Type:         e.Host.Type,
-		IP:           make([]string, 0, len(e.Host.IP)),
-	}
-	for _, ip := range e.Host.IP {
-		if ip.IsValid() {
-			host.IP = append(host.IP, ip.String())
+	if !isZero(e.Container) {
+		out.Container = &modelpb.Container{
+			Id:        e.Container.ID,
+			Name:      e.Container.Name,
+			Runtime:   e.Container.Runtime,
+			ImageName: e.Container.ImageName,
+			ImageTag:  e.Container.ImageTag,
 		}
 	}
-	if len(host.IP) == 0 {
-		host.IP = nil
-	}
-	hostOS := modeljson.OS(e.Host.OS)
-	setNonZero(&host.OS, &hostOS)
-	if !isZero(host.OS) || !isZero(host.Hostname) || !isZero(host.Name) || !isZero(host.Name) || !isZero(host.ID) ||
-		!isZero(host.Architecture) || !isZero(host.Type) || len(host.IP) != 0 {
-		doc.Host = &host
-	}
 
-	url := modeljson.URL(e.URL)
-	setNonZero(&doc.URL, &url)
-
-	log := modeljson.Log{
-		Level:  e.Log.Level,
-		Logger: e.Log.Logger,
-		Origin: modeljson.LogOrigin{
-			Function: e.Log.Origin.FunctionName,
-			File:     modeljson.LogOriginFile(e.Log.Origin.File),
-		},
-	}
-	setNonZero(&doc.Log, &log)
-
-	process := modeljson.Process{
-		Pid:         e.Process.Pid,
-		Title:       e.Process.Title,
-		CommandLine: e.Process.CommandLine,
-		Executable:  e.Process.Executable,
-		Args:        e.Process.Argv,
-		Thread:      modeljson.ProcessThread(e.Process.Thread),
-		Parent:      modeljson.ProcessParent{Pid: e.Process.Ppid},
-	}
-	if !isZero(process.Pid) || !isZero(process.Title) || !isZero(process.CommandLine) || !isZero(process.Executable) ||
-		len(process.Args) != 0 || !isZero(process.Thread) || !isZero(process.Parent) {
-		doc.Process = &process
-	}
-
-	destination := modeljson.Destination{
-		Address: e.Destination.Address,
-		Port:    e.Destination.Port,
-	}
-	if e.Destination.Address != "" {
-		if ip := net.ParseIP(e.Destination.Address); ip != nil {
-			destination.IP = e.Destination.Address
+	if !isZero(e.Kubernetes) {
+		out.Kubernetes = &modelpb.Kubernetes{
+			Namespace: e.Kubernetes.Namespace,
+			NodeName:  e.Kubernetes.NodeName,
+			PodName:   e.Kubernetes.PodName,
+			PodUid:    e.Kubernetes.PodUID,
 		}
 	}
-	setNonZero(&doc.Destination, &destination)
 
-	session := modeljson.Session(e.Session)
-	if session.ID != "" {
-		doc.Session = &session
+	if !isZero(e.Agent) {
+		out.Agent = &modelpb.Agent{
+			Name:             e.Agent.Name,
+			Version:          e.Agent.Version,
+			EphemeralId:      e.Agent.EphemeralID,
+			ActivationMethod: e.Agent.ActivationMethod,
+		}
 	}
 
-	return doc.MarshalFastJSON(w)
+	if !isZero(e.Trace) {
+		out.Trace = &modelpb.Trace{
+			Id: e.Trace.ID,
+		}
+	}
+
+	if !isZero(e.User) {
+		out.User = &modelpb.User{
+			Domain: e.User.Domain,
+			Id:     e.User.ID,
+			Email:  e.User.Email,
+			Name:   e.User.Name,
+		}
+	}
+
+	if !isZero(e.Source) {
+		source := modelpb.Source{
+			Ip:     e.Source.IP.String(),
+			Domain: e.Source.Domain,
+			Port:   uint32(e.Source.Port),
+		}
+		if e.Source.NAT != nil {
+			source.Nat = &modelpb.NAT{
+				Ip: e.Source.NAT.IP.String(),
+			}
+		}
+		out.Source = &source
+	}
+
+	if !isZero(e.Parent) {
+		out.Parent = &modelpb.Parent{
+			Id: e.Parent.ID,
+		}
+	}
+
+	if len(e.Child.ID) > 0 {
+		out.Child = &modelpb.Child{
+			Id: e.Child.ID,
+		}
+	}
+
+	if !isZero(e.Client) {
+		client := modelpb.Client{
+			Domain: e.Client.Domain,
+			Port:   uint32(e.Client.Port),
+		}
+		if e.Client.IP.IsValid() {
+			client.Ip = e.Client.IP.String()
+		}
+		out.Client = &client
+	}
+
+	if !isZero(e.UserAgent) {
+		out.UserAgent = &modelpb.UserAgent{
+			Original: e.UserAgent.Original,
+			Name:     e.UserAgent.Name,
+		}
+	}
+
+	if !isZero(e.Service) {
+		service := modelpb.Service{
+			Name:        e.Service.Name,
+			Version:     e.Service.Version,
+			Environment: e.Service.Environment,
+		}
+		if e.Service.Origin != nil {
+			service.Origin = &modelpb.ServiceOrigin{
+				Id:      e.Service.Origin.ID,
+				Name:    e.Service.Origin.Name,
+				Version: e.Service.Origin.Version,
+			}
+		}
+		if e.Service.Target != nil {
+			service.Target = &modelpb.ServiceTarget{
+				Name: e.Service.Target.Name,
+				Type: e.Service.Target.Type,
+			}
+		}
+		if !isZero(e.Service.Language) {
+			service.Language = &modelpb.Language{
+				Name:    e.Service.Language.Name,
+				Version: e.Service.Language.Version,
+			}
+		}
+		if !isZero(e.Service.Runtime) {
+			service.Runtime = &modelpb.Runtime{
+				Name:    e.Service.Runtime.Name,
+				Version: e.Service.Runtime.Version,
+			}
+		}
+		if !isZero(e.Service.Framework) {
+			service.Framework = &modelpb.Framework{
+				Name:    e.Service.Framework.Name,
+				Version: e.Service.Framework.Version,
+			}
+		}
+		if !isZero(e.Service.Node) {
+			service.Node = &modelpb.ServiceNode{
+				Name: e.Service.Node.Name,
+			}
+		}
+		out.Service = &service
+	}
+
+	if !isZero(e.HTTP) {
+		http := modelpb.HTTP{
+			Version: e.HTTP.Version,
+		}
+		if e.HTTP.Request != nil {
+			httpRequest := modelpb.HTTPRequest{
+				Id:       e.HTTP.Request.ID,
+				Method:   e.HTTP.Request.Method,
+				Referrer: e.HTTP.Request.Referrer,
+			}
+			if e.HTTP.Request.Body != nil {
+				if v, err := structpb.NewValue(e.HTTP.Request.Body); err == nil {
+					httpRequest.Body = v
+				}
+			}
+			if len(e.HTTP.Response.Headers) != 0 {
+				if m, err := structpb.NewStruct(e.HTTP.Response.Headers); err == nil {
+					httpRequest.Headers = m
+				}
+			}
+			if len(e.HTTP.Request.Env) != 0 {
+				if m, err := structpb.NewStruct(e.HTTP.Request.Env); err == nil {
+					httpRequest.Env = m
+				}
+			}
+			if len(e.HTTP.Request.Cookies) != 0 {
+				if m, err := structpb.NewStruct(e.HTTP.Request.Cookies); err == nil {
+					httpRequest.Cookies = m
+				}
+			}
+			http.Request = &httpRequest
+		}
+		if e.HTTP.Response != nil {
+			httpResponse := modelpb.HTTPResponse{
+				StatusCode:      int32(e.HTTP.Response.StatusCode),
+				Finished:        e.HTTP.Response.Finished,
+				HeadersSent:     e.HTTP.Response.HeadersSent,
+				TransferSize:    e.HTTP.Response.TransferSize,
+				EncodedBodySize: e.HTTP.Response.EncodedBodySize,
+				DecodedBodySize: e.HTTP.Response.DecodedBodySize,
+			}
+			if len(e.HTTP.Response.Headers) != 0 {
+				if m, err := structpb.NewStruct(e.HTTP.Response.Headers); err == nil {
+					httpResponse.Headers = m
+				}
+			}
+			http.Response = &httpResponse
+		}
+		out.Http = &http
+	}
+
+	if !isZero(e.Host.OS) || !isZero(e.Host.Hostname) || !isZero(e.Host.Name) || !isZero(e.Host.Name) || !isZero(e.Host.ID) ||
+		!isZero(e.Host.Architecture) || !isZero(e.Host.Type) || len(e.Host.IP) != 0 {
+		host := modelpb.Host{
+			Hostname:     e.Host.Hostname,
+			Name:         e.Host.Name,
+			Id:           e.Host.ID,
+			Architecture: e.Host.Architecture,
+			Type:         e.Host.Type,
+			Ip:           make([]string, 0, len(e.Host.IP)),
+		}
+		for _, ip := range e.Host.IP {
+			if ip.IsValid() {
+				host.Ip = append(host.Ip, ip.String())
+			}
+		}
+		if len(host.Ip) == 0 {
+			host.Ip = nil
+		}
+		if !isZero(e.Host.OS) {
+			host.Os = &modelpb.OS{
+				Name:     e.Host.OS.Name,
+				Version:  e.Host.OS.Version,
+				Platform: e.Host.OS.Platform,
+				Full:     e.Host.OS.Full,
+				Type:     e.Host.OS.Type,
+			}
+		}
+		out.Host = &host
+	}
+
+	if !isZero(e.URL) {
+		out.Url = &modelpb.URL{
+			Original: e.URL.Original,
+			Scheme:   e.URL.Scheme,
+			Full:     e.URL.Full,
+			Domain:   e.URL.Domain,
+			Path:     e.URL.Path,
+			Query:    e.URL.Query,
+			Fragment: e.URL.Fragment,
+			Port:     uint32(e.URL.Port),
+		}
+	}
+
+	if !isZero(e.Log) {
+		log := modelpb.Log{
+			Level:  e.Log.Level,
+			Logger: e.Log.Logger,
+		}
+		if !isZero(e.Log.Origin) {
+			log.Origin = &modelpb.LogOrigin{
+				FunctionName: e.Log.Origin.FunctionName,
+			}
+			if !isZero(e.Log.Origin.File) {
+				log.Origin.File = &modelpb.LogOriginFile{
+					Name: e.Log.Origin.File.Name,
+					Line: int32(e.Log.Origin.File.Line),
+				}
+			}
+		}
+		out.Log = &log
+	}
+
+	if !isZero(e.Process.Pid) || !isZero(e.Process.Title) || !isZero(e.Process.CommandLine) || !isZero(e.Process.Executable) ||
+		len(e.Process.Argv) != 0 || !isZero(e.Process.Thread) || !isZero(e.Process.Ppid) {
+		process := modelpb.Process{
+			Ppid:        e.Process.Ppid,
+			Title:       e.Process.Title,
+			CommandLine: e.Process.CommandLine,
+			Executable:  e.Process.Executable,
+			Argv:        e.Process.Argv,
+			Pid:         uint32(e.Process.Pid),
+		}
+		if !isZero(e.Process.Thread) {
+			process.Thread = &modelpb.ProcessThread{
+				Name: e.Process.Thread.Name,
+				Id:   int32(e.Process.Thread.ID),
+			}
+		}
+		out.Process = &process
+	}
+
+	if !isZero(e.Destination) {
+		out.Destination = &modelpb.Destination{
+			Address: e.Destination.Address,
+			Port:    uint32(e.Destination.Port),
+		}
+	}
+
+	if !isZero(e.Session) {
+		out.Session = &modelpb.Session{
+			Id:       e.Session.ID,
+			Sequence: int64(e.Session.Sequence),
+		}
+	}
 }
 
 func setNonZero[T comparable](to **T, from *T) {

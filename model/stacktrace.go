@@ -17,7 +17,10 @@
 
 package model
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modelpb"
+	"google.golang.org/protobuf/types/known/structpb"
+)
 
 type Stacktrace []*StacktraceFrame
 
@@ -50,54 +53,39 @@ type Original struct {
 	LibraryFrame bool
 }
 
-func (s *StacktraceFrame) toModelJSON(out *modeljson.StacktraceFrame) {
-	*out = modeljson.StacktraceFrame{
+func (s *StacktraceFrame) toModelProtobuf(out *modelpb.StacktraceFrame) {
+	*out = modelpb.StacktraceFrame{
+		Lineno:              s.Lineno,
+		Colno:               s.Colno,
 		Filename:            s.Filename,
 		Classname:           s.Classname,
-		AbsPath:             s.AbsPath,
+		ContextLine:         s.ContextLine,
 		Module:              s.Module,
 		Function:            s.Function,
+		AbsPath:             s.AbsPath,
+		SourcemapError:      s.SourcemapError,
+		PreContext:          s.PreContext,
+		PostContext:         s.PostContext,
 		LibraryFrame:        s.LibraryFrame,
+		SourcemapUpdated:    s.SourcemapUpdated,
 		ExcludeFromGrouping: s.ExcludeFromGrouping,
 	}
 
+	if !isZero(s.Original) {
+		out.Original = &modelpb.Original{
+			AbsPath:      s.Original.AbsPath,
+			Filename:     s.Original.Filename,
+			Classname:    s.Original.Classname,
+			Lineno:       s.Original.Lineno,
+			Colno:        s.Original.Colno,
+			Function:     s.Original.Function,
+			LibraryFrame: s.Original.LibraryFrame,
+		}
+	}
+
 	if len(s.Vars) != 0 {
-		out.Vars = s.Vars
-	}
-
-	if len(s.PreContext) != 0 || len(s.PostContext) != 0 {
-		out.Context = &modeljson.StacktraceFrameContext{
-			Pre:  s.PreContext,
-			Post: s.PostContext,
+		if v, err := structpb.NewStruct(s.Vars); err == nil {
+			out.Vars = v
 		}
-	}
-
-	if s.Lineno != nil || s.Colno != nil || s.ContextLine != "" {
-		out.Line = &modeljson.StacktraceFrameLine{
-			Number:  s.Lineno,
-			Column:  s.Colno,
-			Context: s.ContextLine,
-		}
-	}
-
-	sourcemap := modeljson.StacktraceFrameSourcemap{
-		Updated: s.SourcemapUpdated,
-		Error:   s.SourcemapError,
-	}
-	if sourcemap != (modeljson.StacktraceFrameSourcemap{}) {
-		out.Sourcemap = &sourcemap
-	}
-
-	orig := modeljson.StacktraceFrameOriginal{LibraryFrame: s.Original.LibraryFrame}
-	if s.SourcemapUpdated {
-		orig.Filename = s.Original.Filename
-		orig.Classname = s.Original.Classname
-		orig.AbsPath = s.Original.AbsPath
-		orig.Function = s.Original.Function
-		orig.Colno = s.Original.Colno
-		orig.Lineno = s.Original.Lineno
-	}
-	if orig != (modeljson.StacktraceFrameOriginal{}) {
-		out.Original = &orig
 	}
 }

@@ -17,7 +17,11 @@
 
 package model
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modelpb"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/structpb"
+)
 
 var (
 	// TransactionProcessor is the Processor value that should be assigned to transaction events.
@@ -74,50 +78,87 @@ type SpanCount struct {
 	Started *uint32
 }
 
-func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
-	var marks map[string]map[string]float64
+func (e *Transaction) toModelProtobuf(out *modelpb.Transaction, metricset bool) {
+	var marks map[string]*modelpb.TransactionMark
 	if n := len(e.Marks); n > 0 {
-		marks = make(map[string]map[string]float64, n)
+		marks = make(map[string]*modelpb.TransactionMark, n)
 		for k, mark := range e.Marks {
-			sanitizedMark := make(map[string]float64, len(mark))
-			for k, v := range mark {
-				sanitizedMark[sanitizeLabelKey(k)] = v
+			marks[k] = &modelpb.TransactionMark{
+				Measurements: mark,
 			}
-			marks[sanitizeLabelKey(k)] = sanitizedMark
 		}
 	}
-	var message *modeljson.Message
+	var message *modelpb.Message
 	if e.Message != nil {
-		message = &modeljson.Message{}
-		e.Message.toModelJSON(message)
+		message = &modelpb.Message{}
+		e.Message.toModelProtobuf(message)
 	}
-	var userExperience *modeljson.UserExperience
+	var userExperience *modelpb.UserExperience
 	if e.UserExperience != nil {
-		userExperience = &modeljson.UserExperience{
+		userExperience = &modelpb.UserExperience{
 			CumulativeLayoutShift: e.UserExperience.CumulativeLayoutShift,
 			FirstInputDelay:       e.UserExperience.FirstInputDelay,
 			TotalBlockingTime:     e.UserExperience.TotalBlockingTime,
-			Longtask:              modeljson.LongtaskMetrics(e.UserExperience.Longtask),
+		}
+		if !isZero(e.UserExperience.Longtask) {
+			userExperience.LongTask = &modelpb.LongtaskMetrics{
+				Count: int64(e.UserExperience.Longtask.Count),
+				Sum:   e.UserExperience.Longtask.Sum,
+				Max:   e.UserExperience.Longtask.Max,
+			}
 		}
 	}
-	var droppedSpansStats []modeljson.DroppedSpanStats
+	var droppedSpansStats []*modelpb.DroppedSpanStats
 	if metricset {
 		// DroppedSpansStats is only indexed for metric documents, never for events.
 		if n := len(e.DroppedSpansStats); n > 0 {
-			droppedSpansStats = make([]modeljson.DroppedSpanStats, n)
+			droppedSpansStats = make([]*modelpb.DroppedSpanStats, n)
 			for i, dss := range e.DroppedSpansStats {
-				droppedSpansStats[i] = modeljson.DroppedSpanStats{
+				dssProto := modelpb.DroppedSpanStats{
 					DestinationServiceResource: dss.DestinationServiceResource,
 					ServiceTargetType:          dss.ServiceTargetType,
 					ServiceTargetName:          dss.ServiceTargetName,
 					Outcome:                    dss.Outcome,
-					Duration:                   modeljson.AggregatedDuration(dss.Duration),
 				}
+				if !isZero(dss.Duration) {
+					dssProto.Duration = &modelpb.AggregatedDuration{
+						Count: int64(dss.Duration.Count),
+						Sum:   durationpb.New(dss.Duration.Sum),
+					}
+				}
+				droppedSpansStats[i] = &dssProto
 			}
 		}
 	}
-	*out = modeljson.Transaction{
-		ID:                  e.ID,
+	var durationHistogram *modelpb.Histogram
+	if len(e.DurationHistogram.Counts) != 0 || len(e.DurationHistogram.Counts) != 0 {
+		durationHistogram = &modelpb.Histogram{
+			Values: e.DurationHistogram.Values,
+			Counts: e.DurationHistogram.Counts,
+		}
+	}
+	var durationSummary *modelpb.SummaryMetric
+	if !isZero(e.DurationSummary) {
+		durationSummary = &modelpb.SummaryMetric{
+			Count: e.DurationSummary.Count,
+			Sum:   e.DurationSummary.Sum,
+		}
+	}
+	var spanCount *modelpb.SpanCount
+	if !isZero(e.SpanCount) {
+		spanCount = &modelpb.SpanCount{
+			Dropped: e.SpanCount.Dropped,
+			Started: e.SpanCount.Started,
+		}
+	}
+	var custom *structpb.Struct
+	if len(e.Custom) != 0 {
+		if s, err := structpb.NewStruct(e.Custom); err == nil {
+			custom = s
+		}
+	}
+	*out = modelpb.Transaction{
+		Id:                  e.ID,
 		Type:                e.Type,
 		Name:                e.Name,
 		Result:              e.Result,
@@ -125,13 +166,13 @@ func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
 		Root:                e.Root,
 		RepresentativeCount: e.RepresentativeCount,
 
-		DurationHistogram: modeljson.Histogram(e.DurationHistogram),
-		DurationSummary:   modeljson.SummaryMetric(e.DurationSummary),
-		SpanCount:         modeljson.SpanCount(e.SpanCount),
+		DurationHistogram: durationHistogram,
+		DurationSummary:   durationSummary,
+		SpanCount:         spanCount,
 		DroppedSpansStats: droppedSpansStats,
 
 		Marks:          marks,
-		Custom:         customFields(e.Custom),
+		Custom:         custom,
 		Message:        message,
 		UserExperience: userExperience,
 	}
