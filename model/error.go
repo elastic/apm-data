@@ -94,12 +94,20 @@ func (e *Error) toModelJSON(out *modeljson.Error) {
 
 func (e *Exception) toModelJSON(out *modeljson.Exception) {
 	*out = modeljson.Exception{
-		Message:    e.Message,
-		Module:     e.Module,
-		Code:       e.Code,
-		Attributes: e.Attributes,
-		Type:       e.Type,
-		Handled:    e.Handled,
+		Message: e.Message,
+		Module:  e.Module,
+		Code:    e.Code,
+		Type:    e.Type,
+		Handled: e.Handled,
+	}
+	if e.Attributes != nil {
+		if attr, ok := e.Attributes.(map[string]any); ok {
+			if n := len(attr); n > 0 {
+				out.Attributes = e.Attributes
+			}
+		} else {
+			out.Attributes = e.Attributes
+		}
 	}
 	if n := len(e.Cause); n > 0 {
 		out.Cause = make([]modeljson.Exception, n)

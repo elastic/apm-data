@@ -27,7 +27,7 @@ func (me *Metricset) toModelJSON(out *modeljson.Metricset) {
 			if sample != nil {
 				sampleJson := modeljson.MetricsetSample{
 					Name:  sample.Name,
-					Type:  string(sample.Type),
+					Type:  sample.Type.String(),
 					Unit:  sample.Unit,
 					Value: sample.Value,
 				}

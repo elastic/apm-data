@@ -57,9 +57,12 @@ func (s *StacktraceFrame) toModelJSON(out *modeljson.StacktraceFrame) {
 		AbsPath:             s.AbsPath,
 		Module:              s.Module,
 		Function:            s.Function,
-		Vars:                s.Vars,
 		LibraryFrame:        s.LibraryFrame,
 		ExcludeFromGrouping: s.ExcludeFromGrouping,
+	}
+
+	if len(s.Vars) != 0 {
+		out.Vars = s.Vars
 	}
 
 	if len(s.PreContext) != 0 || len(s.PostContext) != 0 {

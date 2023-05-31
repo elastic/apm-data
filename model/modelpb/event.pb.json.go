@@ -27,7 +27,7 @@ func (e *Event) toModelJSON(out *modeljson.Event) {
 		Kind:     e.Kind,
 		Category: e.Category,
 		Type:     e.Type,
-		Duration: int64(e.Duration.GetNanos()),
+		Duration: int64(e.Duration.AsDuration().Nanoseconds()),
 		Severity: e.Severity,
 	}
 	if e.SuccessCount != nil {
