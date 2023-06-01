@@ -592,8 +592,8 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		histogram := metric.SetEmptyHistogram()
 		dp := histogram.DataPoints().AppendEmpty()
 		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
-		dp.BucketCounts().Append(1, 1, 2, 3)
-		dp.ExplicitBounds().Append(0.5, 1.5, 2.5)
+		dp.BucketCounts().Append(counts...)
+		dp.ExplicitBounds().Append(values...)
 		dp.Attributes().FromRaw(attributes)
 	}
 
@@ -605,7 +605,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	// JVM metrics convention with 'process.runtime.jvm' prefix
 	// defined in https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/runtime-environment-metrics.md#jvm-metrics
 
-	addInt64Histogram("process.runtime.jvm.gc.duration", []uint64{1, 2, 3}, []float64{4, 5, 6}, map[string]interface{}{
+	addInt64Histogram("process.runtime.jvm.gc.duration", []uint64{1, 1, 2, 3}, []float64{0.5, 1.5, 2.5}, map[string]interface{}{
 		"gc":     "G1 Young Generation",
 		"action": "end of minor GC",
 	})
