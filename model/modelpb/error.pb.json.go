@@ -55,11 +55,11 @@ func (e *Error) toModelJSON(out *modeljson.Error) {
 
 func (e *Exception) toModelJSON(out *modeljson.Exception) {
 	*out = modeljson.Exception{
-		Message:    e.Message,
-		Module:     e.Module,
-		Code:       e.Code,
-		Type:       e.Type,
-		Handled:    e.Handled,
+		Message: e.Message,
+		Module:  e.Module,
+		Code:    e.Code,
+		Type:    e.Type,
+		Handled: e.Handled,
 	}
 	if e.Attributes != nil && len(e.Attributes.AsMap()) != 0 {
 		out.Attributes = e.Attributes.AsMap()
