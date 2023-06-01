@@ -20,9 +20,19 @@ package modelpb
 import "github.com/elastic/apm-data/model/internal/modeljson"
 
 func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
-	var marks map[string]map[string]float64
+	*out = modeljson.Transaction{
+		ID:                  e.Id,
+		Type:                e.Type,
+		Name:                e.Name,
+		Result:              e.Result,
+		Sampled:             e.Sampled,
+		Root:                e.Root,
+		RepresentativeCount: e.RepresentativeCount,
+		Custom:              customFields(e.Custom.AsMap()),
+	}
+
 	if n := len(e.Marks); n > 0 {
-		marks = make(map[string]map[string]float64, n)
+		marks := make(map[string]map[string]float64, n)
 		for k, mark := range e.Marks {
 			sanitizedMark := make(map[string]float64, len(mark.Measurements))
 			for k, v := range mark.Measurements {
@@ -30,32 +40,22 @@ func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
 			}
 			marks[sanitizeLabelKey(k)] = sanitizedMark
 		}
+		out.Marks = marks
 	}
-	var message *modeljson.Message
 	if e.Message != nil {
-		message = &modeljson.Message{}
-		e.Message.toModelJSON(message)
+		var message modeljson.Message
+		e.Message.toModelJSON(&message)
+		out.Message = &message
 	}
-	var userExperience *modeljson.UserExperience
 	if e.UserExperience != nil {
-		userExperience = &modeljson.UserExperience{
-			CumulativeLayoutShift: e.UserExperience.CumulativeLayoutShift,
-			FirstInputDelay:       e.UserExperience.FirstInputDelay,
-			TotalBlockingTime:     e.UserExperience.TotalBlockingTime,
-		}
-		if e.UserExperience.LongTask != nil {
-			userExperience.Longtask = modeljson.LongtaskMetrics{
-				Count: int(e.UserExperience.LongTask.Count),
-				Sum:   e.UserExperience.LongTask.Sum,
-				Max:   e.UserExperience.LongTask.Max,
-			}
-		}
+		var userExperience modeljson.UserExperience
+		e.UserExperience.toModelJSON(&userExperience)
+		out.UserExperience = &userExperience
 	}
-	var droppedSpansStats []modeljson.DroppedSpanStats
 	if metricset {
 		// DroppedSpansStats is only indexed for metric documents, never for events.
 		if n := len(e.DroppedSpansStats); n > 0 {
-			droppedSpansStats = make([]modeljson.DroppedSpanStats, n)
+			droppedSpansStats := make([]modeljson.DroppedSpanStats, n)
 			for i, dss := range e.DroppedSpansStats {
 				dssJson := modeljson.DroppedSpanStats{
 					DestinationServiceResource: dss.DestinationServiceResource,
@@ -73,23 +73,8 @@ func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
 
 				droppedSpansStats[i] = dssJson
 			}
+			out.DroppedSpansStats = droppedSpansStats
 		}
-	}
-	*out = modeljson.Transaction{
-		ID:                  e.Id,
-		Type:                e.Type,
-		Name:                e.Name,
-		Result:              e.Result,
-		Sampled:             e.Sampled,
-		Root:                e.Root,
-		RepresentativeCount: e.RepresentativeCount,
-
-		DroppedSpansStats: droppedSpansStats,
-
-		Marks:          marks,
-		Custom:         customFields(e.Custom.AsMap()),
-		Message:        message,
-		UserExperience: userExperience,
 	}
 
 	if e.DurationHistogram != nil {
