@@ -24,10 +24,8 @@ import (
 )
 
 func (s *Source) toModelJSON(out *modeljson.Source) {
-	*out = modeljson.Source{
-		Domain: s.Domain,
-		Port:   int(s.Port),
-	}
+	out.Domain = s.Domain
+	out.Port = int(s.Port)
 	if ip, err := netip.ParseAddr(s.Ip); err == nil {
 		out.IP = modeljson.IP(ip)
 	}

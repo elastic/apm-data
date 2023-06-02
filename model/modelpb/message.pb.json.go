@@ -20,12 +20,10 @@ package modelpb
 import "github.com/elastic/apm-data/model/internal/modeljson"
 
 func (m *Message) toModelJSON(out *modeljson.Message) {
-	*out = modeljson.Message{
-		Body:       m.Body,
-		Age:        modeljson.MessageAge{Millis: m.AgeMillis},
-		Queue:      modeljson.MessageQueue{Name: m.QueueName},
-		RoutingKey: m.RoutingKey,
-	}
+	out.Body = m.Body
+	out.Age = modeljson.MessageAge{Millis: m.AgeMillis}
+	out.Queue = modeljson.MessageQueue{Name: m.QueueName}
+	out.RoutingKey = m.RoutingKey
 	if n := len(m.Headers); n > 0 {
 		headers := make(map[string][]string, n)
 		for k, hv := range m.Headers {

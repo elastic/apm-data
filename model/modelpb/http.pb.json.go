@@ -20,15 +20,11 @@ package modelpb
 import "github.com/elastic/apm-data/model/internal/modeljson"
 
 func (h *HTTP) toModelJSON(out *modeljson.HTTP) {
-	*out = modeljson.HTTP{
-		Version: h.Version,
-	}
+	out.Version = h.Version
 	if h.Request != nil {
-		out.Request = &modeljson.HTTPRequest{
-			ID:       h.Request.Id,
-			Method:   h.Request.Method,
-			Referrer: h.Request.Referrer,
-		}
+		out.Request.ID = h.Request.Id
+		out.Request.Method = h.Request.Method
+		out.Request.Referrer = h.Request.Referrer
 		if len(h.Request.Headers.AsMap()) != 0 {
 			out.Request.Headers = h.Request.Headers.AsMap()
 		}
@@ -39,20 +35,16 @@ func (h *HTTP) toModelJSON(out *modeljson.HTTP) {
 			out.Request.Cookies = h.Request.Cookies.AsMap()
 		}
 		if h.Request.Body != nil {
-			out.Request.Body = &modeljson.HTTPRequestBody{
-				Original: h.Request.Body,
-			}
+			out.Request.Body.Original = h.Request.Body
 		}
 	}
 	if h.Response != nil {
-		out.Response = &modeljson.HTTPResponse{
-			StatusCode:      int(h.Response.StatusCode),
-			Finished:        h.Response.Finished,
-			HeadersSent:     h.Response.HeadersSent,
-			TransferSize:    h.Response.TransferSize,
-			EncodedBodySize: h.Response.EncodedBodySize,
-			DecodedBodySize: h.Response.DecodedBodySize,
-		}
+		out.Response.StatusCode = int(h.Response.StatusCode)
+		out.Response.Finished = h.Response.Finished
+		out.Response.HeadersSent = h.Response.HeadersSent
+		out.Response.TransferSize = h.Response.TransferSize
+		out.Response.EncodedBodySize = h.Response.EncodedBodySize
+		out.Response.DecodedBodySize = h.Response.DecodedBodySize
 		if len(h.Response.Headers.AsMap()) != 0 {
 			out.Response.Headers = h.Response.Headers.AsMap()
 		}

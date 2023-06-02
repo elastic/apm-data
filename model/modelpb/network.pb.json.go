@@ -20,7 +20,6 @@ package modelpb
 import "github.com/elastic/apm-data/model/internal/modeljson"
 
 func (n *Network) toModelJSON(out *modeljson.Network) {
-	*out = modeljson.Network{}
 	if n.Connection != nil {
 		out.Connection = modeljson.NetworkConnection{
 			Type:    n.Connection.Type,

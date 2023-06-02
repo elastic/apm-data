@@ -20,14 +20,12 @@ package modelpb
 import "github.com/elastic/apm-data/model/internal/modeljson"
 
 func (u *URL) toModelJSON(out *modeljson.URL) {
-	*out = modeljson.URL{
-		Original: u.Original,
-		Scheme:   u.Scheme,
-		Full:     u.Full,
-		Domain:   u.Domain,
-		Path:     u.Path,
-		Query:    u.Query,
-		Fragment: u.Fragment,
-		Port:     int(u.Port),
-	}
+	out.Original = u.Original
+	out.Scheme = u.Scheme
+	out.Full = u.Full
+	out.Domain = u.Domain
+	out.Path = u.Path
+	out.Query = u.Query
+	out.Fragment = u.Fragment
+	out.Port = int(u.Port)
 }

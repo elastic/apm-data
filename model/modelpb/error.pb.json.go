@@ -20,28 +20,23 @@ package modelpb
 import "github.com/elastic/apm-data/model/internal/modeljson"
 
 func (e *Error) toModelJSON(out *modeljson.Error) {
-	*out = modeljson.Error{
-		ID:          e.Id,
-		GroupingKey: e.GroupingKey,
-		Culprit:     e.Culprit,
-		Message:     e.Message,
-		Type:        e.Type,
-		StackTrace:  e.StackTrace,
-	}
+	out.ID = e.Id
+	out.GroupingKey = e.GroupingKey
+	out.Culprit = e.Culprit
+	out.Message = e.Message
+	out.Type = e.Type
+	out.StackTrace = e.StackTrace
 	if e.Custom != nil {
 		out.Custom = customFields(e.Custom.AsMap())
 	}
 	if e.Exception != nil {
-		out.Exception = &modeljson.Exception{}
 		e.Exception.toModelJSON(out.Exception)
 	}
 	if e.Log != nil {
-		out.Log = &modeljson.ErrorLog{
-			Message:      e.Log.Message,
-			ParamMessage: e.Log.ParamMessage,
-			LoggerName:   e.Log.LoggerName,
-			Level:        e.Log.Level,
-		}
+		out.Log.Message = e.Log.Message
+		out.Log.ParamMessage = e.Log.ParamMessage
+		out.Log.LoggerName = e.Log.LoggerName
+		out.Log.Level = e.Log.Level
 		if n := len(e.Log.Stacktrace); n > 0 {
 			out.Log.Stacktrace = make([]modeljson.StacktraceFrame, n)
 			for i, frame := range e.Log.Stacktrace {
@@ -54,13 +49,11 @@ func (e *Error) toModelJSON(out *modeljson.Error) {
 }
 
 func (e *Exception) toModelJSON(out *modeljson.Exception) {
-	*out = modeljson.Exception{
-		Message: e.Message,
-		Module:  e.Module,
-		Code:    e.Code,
-		Type:    e.Type,
-		Handled: e.Handled,
-	}
+	out.Message = e.Message
+	out.Module = e.Module
+	out.Code = e.Code
+	out.Type = e.Type
+	out.Handled = e.Handled
 	if e.Attributes != nil && len(e.Attributes.AsMap()) != 0 {
 		out.Attributes = e.Attributes.AsMap()
 	}
