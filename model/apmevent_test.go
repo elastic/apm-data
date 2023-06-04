@@ -20,6 +20,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/netip"
 	"testing"
 	"time"
@@ -221,6 +222,469 @@ func TestAPMEventFields(t *testing.T) {
 		m := transformAPMEvent(test.input)
 		delete(m, "@timestamp")
 		assert.Equal(t, test.output, m)
+	}
+}
+
+func BenchmarkAPMEventToJSON(b *testing.B) {
+	modelEvent := fullvent(b)
+
+	b.Run("to-json", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			modelEvent.MarshalJSON()
+		}
+	})
+
+}
+
+func fullvent(t testing.TB) *APMEvent {
+	return &APMEvent{
+		Timestamp: time.Unix(1, 1),
+		Span: &Span{
+			Message: &Message{
+				Body: "body",
+				Headers: http.Header{
+					"foo": []string{"bar"},
+				},
+				AgeMillis:  int64Ptr(2),
+				QueueName:  "queuename",
+				RoutingKey: "routingkey",
+			},
+			Composite: &Composite{
+				CompressionStrategy: "exact_match",
+				Count:               1,
+				Sum:                 2,
+			},
+			DestinationService: &DestinationService{
+				Type:     "destination_type",
+				Name:     "destination_name",
+				Resource: "destination_resource",
+				ResponseTime: AggregatedDuration{
+					Count: 3,
+					Sum:   4 * time.Second,
+				},
+			},
+			DB: &DB{
+				RowsAffected: uintPtr(5),
+				Instance:     "db_instace",
+				Statement:    "db_statement",
+				Type:         "db_type",
+				UserName:     "db_username",
+				Link:         "db_link",
+			},
+			Sync:    boolPtr(true),
+			Kind:    "kind",
+			Action:  "action",
+			Subtype: "subtype",
+			ID:      "id",
+			Type:    "type",
+			Name:    "name",
+			Stacktrace: Stacktrace{
+				&StacktraceFrame{
+					Vars:           randomStructPb(t).AsMap(),
+					Lineno:         uintPtr(1),
+					Colno:          uintPtr(2),
+					Filename:       "frame_filename",
+					Classname:      "frame_classname",
+					ContextLine:    "frame_contextline",
+					Module:         "frame_module",
+					Function:       "frame_function",
+					AbsPath:        "frame_abspath",
+					SourcemapError: "frame_sourcemaperror",
+					Original: Original{
+						AbsPath:      "orig_abspath",
+						Filename:     "orig_filename",
+						Classname:    "orig_classname",
+						Lineno:       uintPtr(3),
+						Colno:        uintPtr(4),
+						Function:     "orig_function",
+						LibraryFrame: true,
+					},
+					PreContext:          []string{"pre"},
+					PostContext:         []string{"post"},
+					LibraryFrame:        true,
+					SourcemapUpdated:    true,
+					ExcludeFromGrouping: true,
+				},
+			},
+			Links: []SpanLink{
+				{
+					Trace: Trace{
+						ID: "trace_id",
+					},
+					Span: Span{
+						Kind:    "kind1",
+						Action:  "action1",
+						Subtype: "subtype1",
+						ID:      "id1",
+						Type:    "type1",
+						Name:    "name1",
+					},
+				},
+			},
+			SelfTime: AggregatedDuration{
+				Count: 6,
+				Sum:   7 * time.Second,
+			},
+			RepresentativeCount: 8,
+		},
+		NumericLabels: NumericLabels{
+			"foo": {
+				Values: []float64{1, 2, 3},
+				Value:  1,
+				Global: true,
+			},
+		},
+		Labels: Labels{
+			"bar": {
+				Value:  "a",
+				Values: []string{"a", "b", "c"},
+				Global: true,
+			},
+		},
+		Message: "message",
+		Transaction: &Transaction{
+			SpanCount: SpanCount{
+				Started: uintPtr(1),
+				Dropped: uintPtr(2),
+			},
+			UserExperience: &UserExperience{
+				CumulativeLayoutShift: 1,
+				FirstInputDelay:       2,
+				TotalBlockingTime:     3,
+				Longtask: LongtaskMetrics{
+					Count: 4,
+					Sum:   5,
+					Max:   6,
+				},
+			},
+			// TODO investigat valid values
+			Custom: nil,
+			Marks: TransactionMarks{
+				"foo": TransactionMark{
+					"bar": 3,
+				},
+			},
+			Message: &Message{
+				Body: "body",
+				Headers: http.Header{
+					"foo": []string{"bar"},
+				},
+				AgeMillis:  int64Ptr(2),
+				QueueName:  "queuename",
+				RoutingKey: "routingkey",
+			},
+			Type:   "type",
+			Name:   "name",
+			Result: "result",
+			ID:     "id",
+			DurationHistogram: Histogram{
+				Values: []float64{4},
+				Counts: []int64{5},
+			},
+			DroppedSpansStats: []DroppedSpanStats{
+				{
+					DestinationServiceResource: "destinationserviceresource",
+					ServiceTargetType:          "servicetargetype",
+					ServiceTargetName:          "servicetargetname",
+					Outcome:                    "outcome",
+					Duration: AggregatedDuration{
+						Count: 4,
+						Sum:   5 * time.Second,
+					},
+				},
+			},
+			DurationSummary: SummaryMetric{
+				Count: 6,
+				Sum:   7,
+			},
+			RepresentativeCount: 8,
+			Sampled:             true,
+			Root:                true,
+		},
+		Metricset: &Metricset{
+			Name:     "name",
+			Interval: "interval",
+			Samples: []MetricsetSample{
+				{
+					Type: MetricTypeCounter,
+					Name: "name",
+					Unit: "unit",
+					Histogram: Histogram{
+						Values: []float64{1},
+						Counts: []int64{2},
+					},
+					SummaryMetric: SummaryMetric{
+						Count: 3,
+						Sum:   4,
+					},
+					Value: 5,
+				},
+			},
+			DocCount: 1,
+		},
+		Error: &Error{
+			Exception: &Exception{
+				Message:    "ex_message",
+				Module:     "ex_module",
+				Code:       "ex_code",
+				Attributes: randomStructPb(t),
+				Type:       "ex_type",
+				Handled:    boolPtr(true),
+				Cause: []Exception{
+					{
+						Message: "ex1_message",
+						Module:  "ex1_module",
+						Code:    "ex1_code",
+						Type:    "ex_type",
+					},
+				},
+			},
+			Log: &ErrorLog{
+				Message:      "log_message",
+				Level:        "log_level",
+				ParamMessage: "log_parammessage",
+				LoggerName:   "log_loggername",
+			},
+			ID:          "id",
+			GroupingKey: "groupingkey",
+			Culprit:     "culprit",
+			StackTrace:  "stacktrace",
+			Message:     "message",
+			Type:        "type",
+		},
+		Cloud: Cloud{
+			Origin: &CloudOrigin{
+				AccountID:   "origin_accountid",
+				Provider:    "origin_provider",
+				Region:      "origin_region",
+				ServiceName: "origin_servicename",
+			},
+			AccountID:        "accountid",
+			AccountName:      "accountname",
+			AvailabilityZone: "availabilityzone",
+			InstanceID:       "instanceid",
+			InstanceName:     "instancename",
+			MachineType:      "machinetype",
+			ProjectID:        "projectid",
+			ProjectName:      "projectname",
+			Provider:         "provider",
+			Region:           "region",
+			ServiceName:      "servicename",
+		},
+		Service: Service{
+			Origin: &ServiceOrigin{
+				ID:      "origin_id",
+				Name:    "origin_name",
+				Version: "origin_version",
+			},
+			Target: &ServiceTarget{
+				Name: "target_name",
+				Type: "target_type",
+			},
+			Language: Language{
+				Name:    "language_name",
+				Version: "language_version",
+			},
+			Runtime: Runtime{
+				Name:    "runtime_name",
+				Version: "runtime_version",
+			},
+			Framework: Framework{
+				Name:    "framework_name",
+				Version: "framework_version",
+			},
+			Name:        "name",
+			Version:     "version",
+			Environment: "environment",
+			Node: ServiceNode{
+				Name: "node_name",
+			},
+		},
+		FAAS: FAAS{
+			ID:               "id",
+			Coldstart:        boolPtr(true),
+			Execution:        "execution",
+			TriggerType:      "triggertype",
+			TriggerRequestID: "triggerrequestid",
+			Name:             "name",
+			Version:          "version",
+		},
+		Network: Network{
+			Connection: NetworkConnection{
+				Type:    "type",
+				Subtype: "subtype",
+			},
+			Carrier: NetworkCarrier{
+				Name: "name",
+				MCC:  "mcc",
+				MNC:  "mnc",
+				ICC:  "icc",
+			},
+		},
+		Container: Container{
+			ID:        "id",
+			Name:      "name",
+			Runtime:   "runtime",
+			ImageName: "imagename",
+			ImageTag:  "imagetag",
+		},
+		User: User{
+			Domain: "domain",
+			ID:     "id",
+			Email:  "email",
+			Name:   "name",
+		},
+		Device: Device{
+			ID: "id",
+			Model: DeviceModel{
+				Name:       "name",
+				Identifier: "identifier",
+			},
+			Manufacturer: "manufacturer",
+		},
+		Kubernetes: Kubernetes{
+			Namespace: "namespace",
+			NodeName:  "nodename",
+			PodName:   "podname",
+			PodUID:    "poduid",
+		},
+		Observer: Observer{
+			Hostname: "hostname",
+			Name:     "name",
+			Type:     "type",
+			Version:  "version",
+		},
+		DataStream: DataStream{
+			Type:      "type",
+			Dataset:   "dataset",
+			Namespace: "namespace",
+		},
+		Agent: Agent{
+			Name:             "name",
+			Version:          "version",
+			EphemeralID:      "ephemeralid",
+			ActivationMethod: "activationmethod",
+		},
+		Processor: Processor{
+			Name:  "name",
+			Event: "event",
+		},
+		HTTP: HTTP{
+			Request: &HTTPRequest{
+				Headers:  randomStructPb(t).AsMap(),
+				Env:      randomStructPb(t).AsMap(),
+				Cookies:  randomStructPb(t).AsMap(),
+				ID:       "id",
+				Method:   "method",
+				Referrer: "referrer",
+			},
+			Response: &HTTPResponse{
+				Headers:         randomStructPb(t).AsMap(),
+				Finished:        boolPtr(true),
+				HeadersSent:     boolPtr(true),
+				TransferSize:    int64Ptr(1),
+				EncodedBodySize: int64Ptr(2),
+				DecodedBodySize: int64Ptr(3),
+				StatusCode:      200,
+			},
+			Version: "version",
+		},
+		UserAgent: UserAgent{
+			Original: "original",
+			Name:     "name",
+		},
+		Parent: Parent{
+			ID: "id",
+		},
+		Trace: Trace{
+			ID: "id",
+		},
+		Host: Host{
+			OS: OS{
+				Name:     "name",
+				Version:  "version",
+				Platform: "platform",
+				Full:     "full",
+				Type:     "type",
+			},
+			Hostname:     "hostname",
+			Name:         "name",
+			ID:           "id",
+			Architecture: "architecture",
+			Type:         "type",
+			IP:           []netip.Addr{netip.MustParseAddr("127.0.0.1")},
+		},
+		URL: URL{
+			Original: "original",
+			Scheme:   "scheme",
+			Full:     "full",
+			Domain:   "doain",
+			Path:     "path",
+			Query:    "query",
+			Fragment: "fragment",
+			Port:     443,
+		},
+		Log: Log{
+			Level:  "level",
+			Logger: "logger",
+			Origin: LogOrigin{
+				FunctionName: "functionname",
+				File: LogOriginFile{
+					Name: "name",
+					Line: 1,
+				},
+			},
+		},
+		Source: Source{
+			IP: netip.MustParseAddr("127.0.0.1"),
+			NAT: &NAT{
+				IP: netip.MustParseAddr("127.0.0.2"),
+			},
+			Domain: "domain",
+			Port:   443,
+		},
+		Client: Client{
+			IP:     netip.MustParseAddr("127.0.0.1"),
+			Domain: "example.com",
+			Port:   443,
+		},
+		Child: Child{
+			ID: []string{"id"},
+		},
+		Destination: Destination{
+			Address: "127.0.0.1",
+			Port:    443,
+		},
+		Session: Session{
+			ID:       "id",
+			Sequence: 1,
+		},
+		Process: Process{
+			Ppid: 1,
+			Thread: ProcessThread{
+				Name: "name",
+				ID:   2,
+			},
+			Title:       "title",
+			CommandLine: "commandline",
+			Executable:  "executable",
+			Argv:        []string{"argv"},
+			Pid:         3,
+		},
+		Event: Event{
+			Outcome:  "outcome",
+			Action:   "action",
+			Dataset:  "dataset",
+			Kind:     "kind",
+			Category: "category",
+			Type:     "type",
+			SuccessCount: SummaryMetric{
+				Count: 1,
+				Sum:   2,
+			},
+			Duration: 3 * time.Second,
+			Severity: 4,
+		},
 	}
 }
 

@@ -416,7 +416,7 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 		doc.Session = &session
 	}
 
-	return doc.MarshalFastJSON(w)
+	return net.ErrClosed
 }
 
 func setNonZero[T comparable](to **T, from *T) {
