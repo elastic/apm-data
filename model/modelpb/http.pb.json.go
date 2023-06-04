@@ -37,6 +37,8 @@ func (h *HTTP) toModelJSON(out *modeljson.HTTP) {
 		if h.Request.Body != nil {
 			out.Request.Body.Original = h.Request.Body
 		}
+	} else {
+		out.Request = nil
 	}
 	if h.Response != nil {
 		out.Response.StatusCode = int(h.Response.StatusCode)
@@ -48,5 +50,7 @@ func (h *HTTP) toModelJSON(out *modeljson.HTTP) {
 		if len(h.Response.Headers.AsMap()) != 0 {
 			out.Response.Headers = h.Response.Headers.AsMap()
 		}
+	} else {
+		out.Response = nil
 	}
 }

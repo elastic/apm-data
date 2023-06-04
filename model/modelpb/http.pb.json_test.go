@@ -155,7 +155,10 @@ func TestHTTPToModelJSON(t *testing.T) {
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			var out modeljson.HTTP
+			out := modeljson.HTTP{
+				Request:  &modeljson.HTTPRequest{},
+				Response: &modeljson.HTTPResponse{},
+			}
 			tc.proto.toModelJSON(&out)
 			diff := cmp.Diff(*tc.expected, out)
 			require.Empty(t, diff)

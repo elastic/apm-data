@@ -31,6 +31,8 @@ func (e *Error) toModelJSON(out *modeljson.Error) {
 	}
 	if e.Exception != nil {
 		e.Exception.toModelJSON(out.Exception)
+	} else {
+		out.Exception = nil
 	}
 	if e.Log != nil {
 		out.Log.Message = e.Log.Message
@@ -45,6 +47,8 @@ func (e *Error) toModelJSON(out *modeljson.Error) {
 				}
 			}
 		}
+	} else {
+		out.Log = nil
 	}
 }
 

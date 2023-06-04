@@ -56,12 +56,18 @@ func (e *Span) toModelJSON(out *modeljson.Span) {
 	}
 	if e.Db != nil {
 		e.Db.toModelJSON(out.DB)
+	} else {
+		out.DB = nil
 	}
 	if e.Message != nil {
 		e.Message.toModelJSON(out.Message)
+	} else {
+		out.Message = nil
 	}
 	if e.Composite != nil {
 		e.Composite.toModelJSON(out.Composite)
+	} else {
+		out.Composite = nil
 	}
 	if e.DestinationService != nil {
 		out.Destination.Service.Type = e.DestinationService.Type
@@ -73,6 +79,8 @@ func (e *Span) toModelJSON(out *modeljson.Span) {
 				Sum:   e.DestinationService.ResponseTime.Sum.AsDuration(),
 			}
 		}
+	} else {
+		out.Destination = nil
 	}
 	if n := len(e.Links); n > 0 {
 		out.Links = make([]modeljson.SpanLink, n)

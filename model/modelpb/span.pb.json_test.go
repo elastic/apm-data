@@ -167,7 +167,12 @@ func TestSpanToModelJSON(t *testing.T) {
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			var out modeljson.Span
+			out := modeljson.Span{
+				Message:     &modeljson.Message{},
+				Composite:   &modeljson.SpanComposite{},
+				Destination: &modeljson.SpanDestination{},
+				DB:          &modeljson.DB{},
+			}
 			tc.proto.toModelJSON(&out)
 			diff := cmp.Diff(*tc.expected, out)
 			require.Empty(t, diff)

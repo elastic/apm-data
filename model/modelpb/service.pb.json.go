@@ -25,26 +25,38 @@ func (s *Service) toModelJSON(out *modeljson.Service) {
 	out.Environment = s.Environment
 	if s.Node != nil {
 		out.Node.Name = s.Node.Name
+	} else {
+		out.Node = nil
 	}
 	if s.Language != nil {
 		out.Language.Name = s.Language.Name
 		out.Language.Version = s.Language.Version
+	} else {
+		out.Language = nil
 	}
 	if s.Runtime != nil {
 		out.Runtime.Name = s.Runtime.Name
 		out.Runtime.Version = s.Runtime.Version
+	} else {
+		out.Runtime = nil
 	}
 	if s.Framework != nil {
 		out.Framework.Name = s.Framework.Name
 		out.Framework.Version = s.Framework.Version
+	} else {
+		out.Framework = nil
 	}
 	if s.Origin != nil {
 		out.Origin.ID = s.Origin.Id
 		out.Origin.Name = s.Origin.Name
 		out.Origin.Version = s.Origin.Version
+	} else {
+		out.Origin = nil
 	}
 	if s.Target != nil {
 		out.Target.Name = s.Target.Name
 		out.Target.Type = s.Target.Type
+	} else {
+		out.Target = nil
 	}
 }

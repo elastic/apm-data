@@ -109,7 +109,14 @@ func TestServiceToModelJSON(t *testing.T) {
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			var out modeljson.Service
+			out := modeljson.Service{
+				Node:      &modeljson.ServiceNode{},
+				Language:  &modeljson.Language{},
+				Runtime:   &modeljson.Runtime{},
+				Framework: &modeljson.Framework{},
+				Origin:    &modeljson.ServiceOrigin{},
+				Target:    &modeljson.ServiceTarget{},
+			}
 			tc.proto.toModelJSON(&out)
 			diff := cmp.Diff(*tc.expected, out)
 			require.Empty(t, diff)

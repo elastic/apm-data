@@ -104,7 +104,10 @@ func TestErrorToModelJSON(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			var out modeljson.Error
+			out := modeljson.Error{
+				Exception: &modeljson.Exception{},
+				Log:       &modeljson.ErrorLog{},
+			}
 			tc.proto.toModelJSON(&out)
 			diff := cmp.Diff(*tc.expected, out)
 			require.Empty(t, diff)

@@ -80,7 +80,7 @@ func fullEvent(t testing.TB) *APMEvent {
 			Type:    "type",
 			Name:    "name",
 			Stacktrace: []*StacktraceFrame{
-				&StacktraceFrame{
+				{
 					Vars:           randomStructPb(t),
 					Lineno:         uintPtr(1),
 					Colno:          uintPtr(2),
