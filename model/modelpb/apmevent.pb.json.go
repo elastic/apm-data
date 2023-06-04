@@ -92,7 +92,6 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 	//return out.MarshalFastJSON(w)
 }
 
-//go:noinline
 func (e *APMEvent) updateModelJSON(doc *modeljson.Document) {
 	doc.Timestamp = modeljson.Time(e.Timestamp.AsTime())
 	doc.Message = e.Message
