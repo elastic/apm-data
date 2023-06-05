@@ -24,30 +24,36 @@ import (
 )
 
 func (db *DB) toModelJSON(out *modeljson.DB) {
-	out.Instance = db.Instance
-	out.Statement = db.Statement
-	out.Type = db.Type
-	out.Link = db.Link
-	out.RowsAffected = db.RowsAffected
-	out.User = modeljson.DBUser{Name: db.UserName}
+	*out = modeljson.DB{
+		Instance:     db.Instance,
+		Statement:    db.Statement,
+		Type:         db.Type,
+		Link:         db.Link,
+		RowsAffected: db.RowsAffected,
+		User:         modeljson.DBUser{Name: db.UserName},
+	}
 }
 
 func (c *Composite) toModelJSON(out *modeljson.SpanComposite) {
 	sumDuration := time.Duration(c.Sum * float64(time.Millisecond))
-	out.CompressionStrategy = c.CompressionStrategy.String()
-	out.Count = int(c.Count)
-	out.Sum = modeljson.SpanCompositeSum{US: sumDuration.Microseconds()}
+	*out = modeljson.SpanComposite{
+		CompressionStrategy: c.CompressionStrategy.String(),
+		Count:               int(c.Count),
+		Sum:                 modeljson.SpanCompositeSum{US: sumDuration.Microseconds()},
+	}
 }
 
 func (e *Span) toModelJSON(out *modeljson.Span) {
-	out.ID = e.Id
-	out.Name = e.Name
-	out.Type = e.Type
-	out.Subtype = e.Subtype
-	out.Action = e.Action
-	out.Kind = e.Kind
-	out.Sync = e.Sync
-	out.RepresentativeCount = e.RepresentativeCount
+	*out = modeljson.Span{
+		ID:                  e.Id,
+		Name:                e.Name,
+		Type:                e.Type,
+		Subtype:             e.Subtype,
+		Action:              e.Action,
+		Kind:                e.Kind,
+		Sync:                e.Sync,
+		RepresentativeCount: e.RepresentativeCount,
+	}
 	if e.SelfTime != nil {
 		out.SelfTime = modeljson.AggregatedDuration{
 			Count: int(e.SelfTime.Count),
@@ -55,32 +61,31 @@ func (e *Span) toModelJSON(out *modeljson.Span) {
 		}
 	}
 	if e.Db != nil {
+		out.DB = &modeljson.DB{}
 		e.Db.toModelJSON(out.DB)
-	} else {
-		out.DB = nil
 	}
 	if e.Message != nil {
+		out.Message = &modeljson.Message{}
 		e.Message.toModelJSON(out.Message)
-	} else {
-		out.Message = nil
 	}
 	if e.Composite != nil {
+		out.Composite = &modeljson.SpanComposite{}
 		e.Composite.toModelJSON(out.Composite)
-	} else {
-		out.Composite = nil
 	}
 	if e.DestinationService != nil {
-		out.Destination.Service.Type = e.DestinationService.Type
-		out.Destination.Service.Name = e.DestinationService.Name
-		out.Destination.Service.Resource = e.DestinationService.Resource
+		out.Destination = &modeljson.SpanDestination{
+			Service: modeljson.SpanDestinationService{
+				Type:     e.DestinationService.Type,
+				Name:     e.DestinationService.Name,
+				Resource: e.DestinationService.Resource,
+			},
+		}
 		if e.DestinationService.ResponseTime != nil {
 			out.Destination.Service.ResponseTime = modeljson.AggregatedDuration{
 				Count: int(e.DestinationService.ResponseTime.Count),
 				Sum:   e.DestinationService.ResponseTime.Sum.AsDuration(),
 			}
 		}
-	} else {
-		out.Destination = nil
 	}
 	if n := len(e.Links); n > 0 {
 		out.Links = make([]modeljson.SpanLink, n)

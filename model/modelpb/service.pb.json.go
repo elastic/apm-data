@@ -20,43 +20,45 @@ package modelpb
 import "github.com/elastic/apm-data/model/internal/modeljson"
 
 func (s *Service) toModelJSON(out *modeljson.Service) {
-	out.Name = s.Name
-	out.Version = s.Version
-	out.Environment = s.Environment
+	*out = modeljson.Service{
+		Name:        s.Name,
+		Version:     s.Version,
+		Environment: s.Environment,
+	}
 	if s.Node != nil {
-		out.Node.Name = s.Node.Name
-	} else {
-		out.Node = nil
+		out.Node = &modeljson.ServiceNode{
+			Name: s.Node.Name,
+		}
 	}
 	if s.Language != nil {
-		out.Language.Name = s.Language.Name
-		out.Language.Version = s.Language.Version
-	} else {
-		out.Language = nil
+		out.Language = &modeljson.Language{
+			Name:    s.Language.Name,
+			Version: s.Language.Version,
+		}
 	}
 	if s.Runtime != nil {
-		out.Runtime.Name = s.Runtime.Name
-		out.Runtime.Version = s.Runtime.Version
-	} else {
-		out.Runtime = nil
+		out.Runtime = &modeljson.Runtime{
+			Name:    s.Runtime.Name,
+			Version: s.Runtime.Version,
+		}
 	}
 	if s.Framework != nil {
-		out.Framework.Name = s.Framework.Name
-		out.Framework.Version = s.Framework.Version
-	} else {
-		out.Framework = nil
+		out.Framework = &modeljson.Framework{
+			Name:    s.Framework.Name,
+			Version: s.Framework.Version,
+		}
 	}
 	if s.Origin != nil {
-		out.Origin.ID = s.Origin.Id
-		out.Origin.Name = s.Origin.Name
-		out.Origin.Version = s.Origin.Version
-	} else {
-		out.Origin = nil
+		out.Origin = &modeljson.ServiceOrigin{
+			ID:      s.Origin.Id,
+			Name:    s.Origin.Name,
+			Version: s.Origin.Version,
+		}
 	}
 	if s.Target != nil {
-		out.Target.Name = s.Target.Name
-		out.Target.Type = s.Target.Type
-	} else {
-		out.Target = nil
+		out.Target = &modeljson.ServiceTarget{
+			Name: s.Target.Name,
+			Type: s.Target.Type,
+		}
 	}
 }

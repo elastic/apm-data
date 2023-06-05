@@ -20,10 +20,9 @@ package modelpb
 import "github.com/elastic/apm-data/model/internal/modeljson"
 
 func (me *Metricset) toModelJSON(out *modeljson.Metricset) {
-	out.Name = me.Name
-	out.Interval = me.Interval
+	var samples []modeljson.MetricsetSample
 	if n := len(me.Samples); n > 0 {
-		samples := make([]modeljson.MetricsetSample, n)
+		samples = make([]modeljson.MetricsetSample, n)
 		for i, sample := range me.Samples {
 			if sample != nil {
 				sampleJson := modeljson.MetricsetSample{
@@ -48,6 +47,10 @@ func (me *Metricset) toModelJSON(out *modeljson.Metricset) {
 				samples[i] = sampleJson
 			}
 		}
-		out.Samples = samples
+	}
+	*out = modeljson.Metricset{
+		Name:     me.Name,
+		Interval: me.Interval,
+		Samples:  samples,
 	}
 }

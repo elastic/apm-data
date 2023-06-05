@@ -20,14 +20,16 @@ package modelpb
 import "github.com/elastic/apm-data/model/internal/modeljson"
 
 func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
-	out.ID = e.Id
-	out.Type = e.Type
-	out.Name = e.Name
-	out.Result = e.Result
-	out.Sampled = e.Sampled
-	out.Root = e.Root
-	out.RepresentativeCount = e.RepresentativeCount
-	out.Custom = customFields(e.Custom.AsMap())
+	*out = modeljson.Transaction{
+		ID:                  e.Id,
+		Type:                e.Type,
+		Name:                e.Name,
+		Result:              e.Result,
+		Sampled:             e.Sampled,
+		Root:                e.Root,
+		RepresentativeCount: e.RepresentativeCount,
+		Custom:              customFields(e.Custom.AsMap()),
+	}
 
 	if n := len(e.Marks); n > 0 {
 		marks := make(map[string]map[string]float64, n)
@@ -41,10 +43,14 @@ func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
 		out.Marks = marks
 	}
 	if e.Message != nil {
-		e.Message.toModelJSON(out.Message)
+		var message modeljson.Message
+		e.Message.toModelJSON(&message)
+		out.Message = &message
 	}
 	if e.UserExperience != nil {
-		e.UserExperience.toModelJSON(out.UserExperience)
+		var userExperience modeljson.UserExperience
+		e.UserExperience.toModelJSON(&userExperience)
+		out.UserExperience = &userExperience
 	}
 	if metricset {
 		// DroppedSpansStats is only indexed for metric documents, never for events.

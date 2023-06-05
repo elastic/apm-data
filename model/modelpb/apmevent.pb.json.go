@@ -31,71 +31,7 @@ func (e *APMEvent) MarshalJSON() ([]byte, error) {
 }
 
 func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
-	out := modeljson.Document{
-		Span: &modeljson.Span{
-			Message:     &modeljson.Message{},
-			Composite:   &modeljson.SpanComposite{},
-			Destination: &modeljson.SpanDestination{},
-			DB:          &modeljson.DB{},
-		},
-		Transaction: &modeljson.Transaction{
-			UserExperience: &modeljson.UserExperience{},
-			Message:        &modeljson.Message{},
-		},
-		Metricset: &modeljson.Metricset{},
-		Error: &modeljson.Error{
-			Exception: &modeljson.Exception{},
-			Log:       &modeljson.ErrorLog{},
-		},
-		TimestampStruct: &modeljson.Timestamp{},
-		Cloud:           &modeljson.Cloud{},
-		Service: &modeljson.Service{
-			Node:      &modeljson.ServiceNode{},
-			Language:  &modeljson.Language{},
-			Runtime:   &modeljson.Runtime{},
-			Framework: &modeljson.Framework{},
-			Origin:    &modeljson.ServiceOrigin{},
-			Target:    &modeljson.ServiceTarget{},
-		},
-		FAAS:       &modeljson.FAAS{},
-		Network:    &modeljson.Network{},
-		Container:  &modeljson.Container{},
-		User:       &modeljson.User{},
-		Device:     &modeljson.Device{},
-		Kubernetes: &modeljson.Kubernetes{},
-		Observer:   &modeljson.Observer{},
-		Agent:      &modeljson.Agent{},
-		HTTP: &modeljson.HTTP{
-			Request: &modeljson.HTTPRequest{
-				Body: &modeljson.HTTPRequestBody{},
-			},
-			Response: &modeljson.HTTPResponse{},
-		},
-		UserAgent: &modeljson.UserAgent{},
-		Parent:    &modeljson.Parent{},
-		Trace:     &modeljson.Trace{},
-		Host: &modeljson.Host{
-			OS: &modeljson.OS{},
-		},
-		URL:         &modeljson.URL{},
-		Log:         &modeljson.Log{},
-		Source:      &modeljson.Source{},
-		Client:      &modeljson.Client{},
-		Child:       &modeljson.Child{},
-		Destination: &modeljson.Destination{},
-		Session:     &modeljson.Session{},
-		Process:     &modeljson.Process{},
-		Event:       &modeljson.Event{},
-	}
-	e.updateModelJSON(&out)
-	return ErrInvalidLength
-	//return out.MarshalFastJSON(w)
-}
-
-func (e *APMEvent) updateModelJSON(doc *modeljson.Document) {
-	doc.Timestamp = modeljson.Time(e.Timestamp.AsTime())
-	doc.Message = e.Message
-
+	var labels map[string]modeljson.Label
 	if n := len(e.Labels); n > 0 {
 		labels := make(map[string]modeljson.Label)
 		for k, label := range e.Labels {
@@ -106,9 +42,9 @@ func (e *APMEvent) updateModelJSON(doc *modeljson.Document) {
 				}
 			}
 		}
-		doc.Labels = labels
 	}
 
+	var numericLabels map[string]modeljson.NumericLabel
 	if n := len(e.NumericLabels); n > 0 {
 		numericLabels := make(map[string]modeljson.NumericLabel)
 		for k, label := range e.NumericLabels {
@@ -119,7 +55,13 @@ func (e *APMEvent) updateModelJSON(doc *modeljson.Document) {
 				}
 			}
 		}
-		doc.NumericLabels = numericLabels
+	}
+
+	doc := modeljson.Document{
+		Timestamp:     modeljson.Time(e.Timestamp.AsTime()),
+		Labels:        labels,
+		NumericLabels: numericLabels,
+		Message:       e.Message,
 	}
 
 	if e.DataStream != nil {
@@ -135,42 +77,41 @@ func (e *APMEvent) updateModelJSON(doc *modeljson.Document) {
 		}
 	}
 
+	var transaction modeljson.Transaction
 	if e.Transaction != nil {
-		e.Transaction.toModelJSON(doc.Transaction, e.Processor.Name == "metric" && e.Processor.Event == "metric")
-	} else {
-		doc.Transaction = nil
+		e.Transaction.toModelJSON(&transaction, e.Processor.Name == "metric" && e.Processor.Event == "metric")
+		doc.Transaction = &transaction
 	}
 
+	var span modeljson.Span
 	if e.Span != nil {
-		e.Span.toModelJSON(doc.Span)
-	} else {
-		doc.Span = nil
+		e.Span.toModelJSON(&span)
+		doc.Span = &span
 	}
 
+	var metricset modeljson.Metricset
 	if e.Metricset != nil {
-		e.Metricset.toModelJSON(doc.Metricset)
+		e.Metricset.toModelJSON(&metricset)
+		doc.Metricset = &metricset
 		doc.DocCount = e.Metricset.DocCount
-	} else {
-		doc.Metricset = nil
 	}
 
+	var errorStruct modeljson.Error
 	if e.Error != nil {
-		e.Error.toModelJSON(doc.Error)
-	} else {
-		doc.Error = nil
+		e.Error.toModelJSON(&errorStruct)
+		doc.Error = &errorStruct
 	}
 
+	var event modeljson.Event
 	if e.Event != nil {
-		e.Event.toModelJSON(doc.Event)
-	} else {
-		doc.Event = nil
+		e.Event.toModelJSON(&event)
+		doc.Event = &event
 	}
 
 	// Set high resolution timestamp.
 	//
 	// TODO(axw) change @timestamp to use date_nanos, and remove this field.
 	var timestampStruct modeljson.Timestamp
-	var timestampSet bool = false
 	if !e.Timestamp.AsTime().IsZero() {
 		if e.Processor != nil {
 			processorName := e.Processor.Name
@@ -178,153 +119,151 @@ func (e *APMEvent) updateModelJSON(doc *modeljson.Document) {
 			if (processorName == "error" && processorEvent == "error") || (processorName == "transaction" && (processorEvent == "transaction" || processorEvent == "span")) {
 				timestampStruct.US = int(e.Timestamp.AsTime().UnixNano() / 1000)
 				doc.TimestampStruct = &timestampStruct
-				timestampSet = true
 			}
 		}
 	}
-	if !timestampSet {
-		doc.TimestampStruct = nil
-	}
 
+	var cloud modeljson.Cloud
 	if e.Cloud != nil {
-		e.Cloud.toModelJSON(doc.Cloud)
-	} else {
-		doc.Cloud = nil
+		e.Cloud.toModelJSON(&cloud)
+		doc.Cloud = &cloud
 	}
 
+	var fass modeljson.FAAS
 	if e.Faas != nil {
-		e.Faas.toModelJSON(doc.FAAS)
-	} else {
-		doc.FAAS = nil
+		e.Faas.toModelJSON(&fass)
+		doc.FAAS = &fass
 	}
 
+	var device modeljson.Device
 	if e.Device != nil {
-		e.Device.toModelJSON(doc.Device)
-	} else {
-		doc.Device = nil
+		e.Device.toModelJSON(&device)
+		doc.Device = &device
 	}
 
+	var network modeljson.Network
 	if e.Network != nil {
-		e.Network.toModelJSON(doc.Network)
-	} else {
-		doc.Network = nil
+		e.Network.toModelJSON(&network)
+		doc.Network = &network
 	}
 
+	var observer modeljson.Observer
 	if e.Observer != nil {
-		e.Observer.toModelJSON(doc.Observer)
-	} else {
-		doc.Observer = nil
+		e.Observer.toModelJSON(&observer)
+		doc.Observer = &observer
 	}
 
+	var container modeljson.Container
 	if e.Container != nil {
-		e.Container.toModelJSON(doc.Container)
-	} else {
-		doc.Container = nil
+		e.Container.toModelJSON(&container)
+		doc.Container = &container
 	}
 
+	var kubernetes modeljson.Kubernetes
 	if e.Kubernetes != nil {
-		e.Kubernetes.toModelJSON(doc.Kubernetes)
-	} else {
-		doc.Kubernetes = nil
+		e.Kubernetes.toModelJSON(&kubernetes)
+		doc.Kubernetes = &kubernetes
 	}
 
+	var agent modeljson.Agent
 	if e.Agent != nil {
-		e.Agent.toModelJSON(doc.Agent)
-	} else {
-		doc.Agent = nil
+		e.Agent.toModelJSON(&agent)
+		doc.Agent = &agent
 	}
 
 	if e.Trace != nil {
-		doc.Trace.ID = e.Trace.Id
-	} else {
-		doc.Trace = nil
+		doc.Trace = &modeljson.Trace{
+			ID: e.Trace.Id,
+		}
 	}
 
+	var user modeljson.User
 	if e.User != nil {
-		e.User.toModelJSON(doc.User)
-	} else {
-		doc.User = nil
+		e.User.toModelJSON(&user)
+		doc.User = &user
 	}
 
+	var source modeljson.Source
 	if e.Source != nil {
-		e.Source.toModelJSON(doc.Source)
-	} else {
-		doc.Source = nil
+		e.Source.toModelJSON(&source)
+		doc.Source = &source
 	}
 
 	if e.Parent != nil {
-		doc.Parent.ID = e.Parent.Id
-	} else {
-		doc.Parent = nil
+		doc.Parent = &modeljson.Parent{
+			ID: e.Parent.Id,
+		}
 	}
 
 	if e.Child != nil {
-		doc.Child.ID = e.Child.Id
-	} else {
-		doc.Child = nil
+		doc.Child = &modeljson.Child{
+			ID: e.Child.Id,
+		}
 	}
 
+	var client modeljson.Client
 	if e.Client != nil {
-		e.Client.toModelJSON(doc.Client)
-	} else {
-		doc.Client = nil
+		e.Client.toModelJSON(&client)
+		doc.Client = &client
 	}
 
 	if e.UserAgent != nil {
-		doc.UserAgent.Original = e.UserAgent.Original
-		doc.UserAgent.Name = e.UserAgent.Name
-	} else {
-		doc.UserAgent = nil
+		doc.UserAgent = &modeljson.UserAgent{
+			Original: e.UserAgent.Original,
+			Name:     e.UserAgent.Name,
+		}
 	}
 
+	var service modeljson.Service
 	if e.Service != nil {
-		e.Service.toModelJSON(doc.Service)
-	} else {
-		doc.Service = nil
+		e.Service.toModelJSON(&service)
+		doc.Service = &service
 	}
 
+	var httpStruct modeljson.HTTP
 	if e.Http != nil {
-		e.Http.toModelJSON(doc.HTTP)
-	} else {
-		doc.HTTP = nil
+		e.Http.toModelJSON(&httpStruct)
+		doc.HTTP = &httpStruct
 	}
 
+	var host modeljson.Host
 	if e.Host != nil {
-		e.Host.toModelJSON(doc.Host)
-	} else {
-		doc.Host = nil
+		e.Host.toModelJSON(&host)
+		doc.Host = &host
 	}
 
+	var url modeljson.URL
 	if e.Url != nil {
-		e.Url.toModelJSON(doc.URL)
-	} else {
-		doc.URL = nil
+		e.Url.toModelJSON(&url)
+		doc.URL = &url
 	}
 
+	var logStruct modeljson.Log
 	if e.Log != nil {
-		e.Log.toModelJSON(doc.Log)
-	} else {
-		doc.Log = nil
+		e.Log.toModelJSON(&logStruct)
+		doc.Log = &logStruct
 	}
 
+	var process modeljson.Process
 	if e.Process != nil {
-		e.Process.toModelJSON(doc.Process)
-	} else {
-		doc.Process = nil
+		e.Process.toModelJSON(&process)
+		doc.Process = &process
 	}
 
+	var destination modeljson.Destination
 	if e.Destination != nil {
-		e.Destination.toModelJSON(doc.Destination)
-	} else {
-		doc.Destination = nil
+		e.Destination.toModelJSON(&destination)
+		doc.Destination = &destination
 	}
 
 	if e.Session != nil {
-		doc.Session.ID = e.Session.Id
-		doc.Session.Sequence = int(e.Session.Sequence)
-	} else {
-		doc.Session = nil
+		doc.Session = &modeljson.Session{
+			ID: e.Session.Id,
+			Sequence: int(e.Session.Sequence),
+		}
 	}
+
+	return ErrInvalidLength
 }
 
 func setNonZero[T comparable](to **T, from *T) {

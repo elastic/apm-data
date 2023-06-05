@@ -20,12 +20,14 @@ package modelpb
 import "github.com/elastic/apm-data/model/internal/modeljson"
 
 func (k *Kubernetes) toModelJSON(out *modeljson.Kubernetes) {
-	out.Namespace = k.Namespace
-	out.Node = modeljson.KubernetesNode{
-		Name: k.NodeName,
-	}
-	out.Pod = modeljson.KubernetesPod{
-		Name: k.PodName,
-		UID:  k.PodUid,
+	*out = modeljson.Kubernetes{
+		Namespace: k.Namespace,
+		Node: modeljson.KubernetesNode{
+			Name: k.NodeName,
+		},
+		Pod: modeljson.KubernetesPod{
+			Name: k.PodName,
+			UID:  k.PodUid,
+		},
 	}
 }

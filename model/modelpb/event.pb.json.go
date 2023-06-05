@@ -20,14 +20,16 @@ package modelpb
 import "github.com/elastic/apm-data/model/internal/modeljson"
 
 func (e *Event) toModelJSON(out *modeljson.Event) {
-	out.Outcome = e.Outcome
-	out.Action = e.Action
-	out.Dataset = e.Dataset
-	out.Kind = e.Kind
-	out.Category = e.Category
-	out.Type = e.Type
-	out.Duration = int64(e.Duration.AsDuration().Nanoseconds())
-	out.Severity = e.Severity
+	*out = modeljson.Event{
+		Outcome:  e.Outcome,
+		Action:   e.Action,
+		Dataset:  e.Dataset,
+		Kind:     e.Kind,
+		Category: e.Category,
+		Type:     e.Type,
+		Duration: int64(e.Duration.AsDuration().Nanoseconds()),
+		Severity: e.Severity,
+	}
 	if e.SuccessCount != nil {
 		out.SuccessCount = modeljson.SummaryMetric{
 			Count: e.SuccessCount.Count,

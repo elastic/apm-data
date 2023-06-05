@@ -20,8 +20,10 @@ package modelpb
 import "github.com/elastic/apm-data/model/internal/modeljson"
 
 func (l *Log) toModelJSON(out *modeljson.Log) {
-	out.Level = l.Level
-	out.Logger = l.Logger
+	*out = modeljson.Log{
+		Level:  l.Level,
+		Logger: l.Logger,
+	}
 	if l.Origin != nil {
 		out.Origin = modeljson.LogOrigin{
 			Function: l.Origin.FunctionName,

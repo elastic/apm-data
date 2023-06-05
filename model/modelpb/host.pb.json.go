@@ -24,11 +24,13 @@ import (
 )
 
 func (h *Host) toModelJSON(out *modeljson.Host) {
-	out.Hostname = h.Hostname
-	out.Name = h.Name
-	out.ID = h.Id
-	out.Architecture = h.Architecture
-	out.Type = h.Type
+	*out = modeljson.Host{
+		Hostname:     h.Hostname,
+		Name:         h.Name,
+		ID:           h.Id,
+		Architecture: h.Architecture,
+		Type:         h.Type,
+	}
 
 	if n := len(h.Ip); n != 0 {
 		ips := make([]string, 0, n)
@@ -41,6 +43,8 @@ func (h *Host) toModelJSON(out *modeljson.Host) {
 	}
 
 	if h.Os != nil {
-		h.Os.toModelJSON(out.OS)
+		var os modeljson.OS
+		h.Os.toModelJSON(&os)
+		out.OS = &os
 	}
 }
