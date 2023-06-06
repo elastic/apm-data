@@ -265,14 +265,3 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 
 	return ErrInvalidLength
 }
-
-func setNonZero[T comparable](to **T, from *T) {
-	if !isZero(*from) {
-		*to = from
-	}
-}
-
-func isZero[T comparable](t T) bool {
-	var zero T
-	return t == zero
-}
