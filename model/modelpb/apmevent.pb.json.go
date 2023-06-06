@@ -79,7 +79,7 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 
 	var transaction modeljson.Transaction
 	if e.Transaction != nil {
-		e.Transaction.toModelJSON(&transaction, e.Processor.Name == "metric" && e.Processor.Event == "metric")
+		e.Transaction.toModelJSON(&transaction, e.Processor != nil && e.Processor.Name == "metric" && e.Processor.Event == "metric")
 		doc.Transaction = &transaction
 	}
 
