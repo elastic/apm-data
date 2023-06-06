@@ -263,5 +263,5 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 		}
 	}
 
-	return ErrInvalidLength
+	return doc.MarshalFastJSON(w)
 }
