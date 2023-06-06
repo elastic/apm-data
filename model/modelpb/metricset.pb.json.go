@@ -19,6 +19,13 @@ package modelpb
 
 import "github.com/elastic/apm-data/model/internal/modeljson"
 
+var metricTypeText = map[MetricType]string{
+	MetricType_METRIC_TYPE_GAUGE:     "gauge",
+	MetricType_METRIC_TYPE_COUNTER:   "counter",
+	MetricType_METRIC_TYPE_HISTOGRAM: "histogram",
+	MetricType_METRIC_TYPE_SUMMARY:   "summary",
+}
+
 func (me *Metricset) toModelJSON(out *modeljson.Metricset) {
 	var samples []modeljson.MetricsetSample
 	if n := len(me.Samples); n > 0 {
@@ -27,7 +34,7 @@ func (me *Metricset) toModelJSON(out *modeljson.Metricset) {
 			if sample != nil {
 				sampleJson := modeljson.MetricsetSample{
 					Name:  sample.Name,
-					Type:  sample.Type.String(),
+					Type:  metricTypeText[sample.Type],
 					Unit:  sample.Unit,
 					Value: sample.Value,
 				}

@@ -61,7 +61,7 @@ func TestMetricsetToModelJSON(t *testing.T) {
 				Interval: "interval",
 				Samples: []modeljson.MetricsetSample{
 					{
-						Type: "METRIC_TYPE_COUNTER",
+						Type: "counter",
 						Name: "name",
 						Unit: "unit",
 						Histogram: modeljson.Histogram{
