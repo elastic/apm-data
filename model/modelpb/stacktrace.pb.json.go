@@ -30,7 +30,7 @@ func (s *StacktraceFrame) toModelJSON(out *modeljson.StacktraceFrame) {
 		ExcludeFromGrouping: s.ExcludeFromGrouping,
 	}
 
-	if len(s.Vars.AsMap()) != 0 {
+	if s.Vars != nil {
 		out.Vars = s.Vars.AsMap()
 	}
 

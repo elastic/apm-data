@@ -29,13 +29,13 @@ func (h *HTTP) toModelJSON(out *modeljson.HTTP) {
 			Method:   h.Request.Method,
 			Referrer: h.Request.Referrer,
 		}
-		if len(h.Request.Headers.AsMap()) != 0 {
+		if h.Request.Headers != nil {
 			out.Request.Headers = h.Request.Headers.AsMap()
 		}
-		if len(h.Request.Env.AsMap()) != 0 {
+		if h.Request.Env != nil {
 			out.Request.Env = h.Request.Env.AsMap()
 		}
-		if len(h.Request.Cookies.AsMap()) != 0 {
+		if h.Request.Cookies != nil {
 			out.Request.Cookies = h.Request.Cookies.AsMap()
 		}
 		if h.Request.Body != nil {
@@ -53,7 +53,7 @@ func (h *HTTP) toModelJSON(out *modeljson.HTTP) {
 			EncodedBodySize: h.Response.EncodedBodySize,
 			DecodedBodySize: h.Response.DecodedBodySize,
 		}
-		if len(h.Response.Headers.AsMap()) != 0 {
+		if h.Response.Headers != nil {
 			out.Response.Headers = h.Response.Headers.AsMap()
 		}
 	}

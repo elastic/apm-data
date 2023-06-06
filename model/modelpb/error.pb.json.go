@@ -63,7 +63,7 @@ func (e *Exception) toModelJSON(out *modeljson.Exception) {
 		Type:    e.Type,
 		Handled: e.Handled,
 	}
-	if e.Attributes != nil && len(e.Attributes.AsMap()) != 0 {
+	if e.Attributes != nil {
 		out.Attributes = e.Attributes.AsMap()
 	}
 	if n := len(e.Cause); n > 0 {
