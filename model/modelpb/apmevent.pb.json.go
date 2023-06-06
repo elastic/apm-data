@@ -33,7 +33,7 @@ func (e *APMEvent) MarshalJSON() ([]byte, error) {
 func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 	var labels map[string]modeljson.Label
 	if n := len(e.Labels); n > 0 {
-		labels := make(map[string]modeljson.Label)
+		labels = make(map[string]modeljson.Label)
 		for k, label := range e.Labels {
 			if label != nil {
 				labels[sanitizeLabelKey(k)] = modeljson.Label{
@@ -46,7 +46,7 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 
 	var numericLabels map[string]modeljson.NumericLabel
 	if n := len(e.NumericLabels); n > 0 {
-		numericLabels := make(map[string]modeljson.NumericLabel)
+		numericLabels = make(map[string]modeljson.NumericLabel)
 		for k, label := range e.NumericLabels {
 			if label != nil {
 				numericLabels[sanitizeLabelKey(k)] = modeljson.NumericLabel{
