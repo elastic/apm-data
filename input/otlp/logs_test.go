@@ -304,7 +304,6 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
 	assert.Len(t, processed, 1)
-	//assert.Equal(t, model.Labels{""})
 	assert.Equal(t, "event", processed[0].Event.Kind)
 	assert.Equal(t, "device", processed[0].Event.Category)
 	assert.Equal(t, "MyEvent", processed[0].Event.Action)
