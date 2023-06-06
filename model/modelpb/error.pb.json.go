@@ -29,7 +29,9 @@ func (e *Error) toModelJSON(out *modeljson.Error) {
 		StackTrace:  e.StackTrace,
 	}
 	if e.Custom != nil {
-		out.Custom = customFields(e.Custom.AsMap())
+		m := e.Custom.AsMap()
+		updateFields(m)
+		out.Custom = m
 	}
 	if e.Exception != nil {
 		out.Exception = &modeljson.Exception{}

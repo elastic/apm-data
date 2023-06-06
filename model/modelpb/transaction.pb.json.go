@@ -28,7 +28,12 @@ func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
 		Sampled:             e.Sampled,
 		Root:                e.Root,
 		RepresentativeCount: e.RepresentativeCount,
-		Custom:              customFields(e.Custom.AsMap()),
+	}
+
+	if e.Custom != nil {
+		m := e.Custom.AsMap()
+		updateFields(m)
+		out.Custom = m
 	}
 
 	if n := len(e.Marks); n > 0 {

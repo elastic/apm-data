@@ -17,15 +17,11 @@
 
 package modelpb
 
-// customFields transforms in, returning a copy with sanitized keys,
+// updateFields transforms in, returning a copy with sanitized keys,
 // suitable for storing as "custom" in transaction and error documents.
-func customFields(in map[string]any) map[string]any {
-	if len(in) == 0 {
-		return nil
-	}
-	out := make(map[string]any, len(in))
+func updateFields(in map[string]any) {
 	for k, v := range in {
-		out[sanitizeLabelKey(k)] = v
+		delete(in, k)
+		in[sanitizeLabelKey(k)] = v
 	}
-	return out
 }
