@@ -277,6 +277,38 @@ Caused by: LowLevelException
 	assert.Empty(t, out)
 }
 
+func TestConsumerConsumeOTelEventLogs(t *testing.T) {
+	logs := plog.NewLogs()
+	resourceLogs := logs.ResourceLogs().AppendEmpty()
+	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
+	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKLanguage, "swift")
+	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
+
+	record1 := newLogRecord("") // no log body
+	record1.Attributes().PutStr("event.domain", "device")
+	record1.Attributes().PutStr("event.name", "MyEvent")
+
+	record1.CopyTo(scopeLogs.LogRecords().AppendEmpty())
+
+	var processed model.Batch
+	var processor model.ProcessBatchFunc = func(_ context.Context, batch *model.Batch) error {
+		if processed != nil {
+			panic("already processes batch")
+		}
+		processed = *batch
+		assert.NotNil(t, processed[0].Timestamp)
+		processed[0].Timestamp = time.Time{}
+		return nil
+	}
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: processor})
+	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
+
+	assert.Len(t, processed, 1)
+	assert.Equal(t, "event", processed[0].Event.Kind)
+	assert.Equal(t, "device", processed[0].Event.Category)
+	assert.Equal(t, "MyEvent", processed[0].Event.Action)
+}
+
 func TestConsumerConsumeLogsLabels(t *testing.T) {
 	logs := plog.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
