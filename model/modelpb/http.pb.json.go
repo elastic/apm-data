@@ -40,7 +40,7 @@ func (h *HTTP) toModelJSON(out *modeljson.HTTP) {
 		}
 		if h.Request.Body != nil {
 			out.Request.Body = &modeljson.HTTPRequestBody{
-				Original: h.Request.Body,
+				Original: h.Request.Body.AsInterface(),
 			}
 		}
 	}
