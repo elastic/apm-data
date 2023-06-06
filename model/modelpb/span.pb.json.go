@@ -23,6 +23,11 @@ import (
 	"github.com/elastic/apm-data/model/internal/modeljson"
 )
 
+var compressionStrategyText = map[CompressionStrategy]string{
+	CompressionStrategy_COMPRESSION_STRATEGY_EXACT_MATCH: "exact_match",
+	CompressionStrategy_COMPRESSION_STRATEGY_SAME_KIND:   "same_kind",
+}
+
 func (db *DB) toModelJSON(out *modeljson.DB) {
 	*out = modeljson.DB{
 		Instance:     db.Instance,
@@ -37,7 +42,7 @@ func (db *DB) toModelJSON(out *modeljson.DB) {
 func (c *Composite) toModelJSON(out *modeljson.SpanComposite) {
 	sumDuration := time.Duration(c.Sum * float64(time.Millisecond))
 	*out = modeljson.SpanComposite{
-		CompressionStrategy: c.CompressionStrategy.String(),
+		CompressionStrategy: compressionStrategyText[c.CompressionStrategy],
 		Count:               int(c.Count),
 		Sum:                 modeljson.SpanCompositeSum{US: sumDuration.Microseconds()},
 	}

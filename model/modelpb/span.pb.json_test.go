@@ -112,7 +112,7 @@ func TestSpanToModelJSON(t *testing.T) {
 			},
 			expected: &modeljson.Span{
 				Composite: &modeljson.SpanComposite{
-					CompressionStrategy: "COMPRESSION_STRATEGY_EXACT_MATCH",
+					CompressionStrategy: "exact_match",
 					Count:               1,
 					Sum: modeljson.SpanCompositeSum{
 						US: 2000,
