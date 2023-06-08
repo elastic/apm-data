@@ -131,7 +131,7 @@ func (e *Transaction) toModelProtobuf(out *modelpb.Transaction, metricset bool) 
 		}
 	}
 	var durationHistogram *modelpb.Histogram
-	if len(e.DurationHistogram.Counts) != 0 || len(e.DurationHistogram.Counts) != 0 {
+	if len(e.DurationHistogram.Values) != 0 || len(e.DurationHistogram.Counts) != 0 {
 		durationHistogram = &modelpb.Histogram{
 			Values: e.DurationHistogram.Values,
 			Counts: e.DurationHistogram.Counts,
