@@ -399,8 +399,8 @@ func (e *APMEvent) toModelProtobuf(out *modelpb.APMEvent) {
 					httpRequest.Body = v
 				}
 			}
-			if len(e.HTTP.Response.Headers) != 0 {
-				if m, err := structpb.NewStruct(e.HTTP.Response.Headers); err == nil {
+			if len(e.HTTP.Request.Headers) != 0 {
+				if m, err := structpb.NewStruct(e.HTTP.Request.Headers); err == nil {
 					httpRequest.Headers = m
 				}
 			}
