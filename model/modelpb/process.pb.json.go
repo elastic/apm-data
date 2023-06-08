@@ -15,23 +15,25 @@
 // specific language governing permissions and limitations
 // under the License.
 
-syntax = "proto3";
+package modelpb
 
-package elastic.apm.v1;
+import "github.com/elastic/apm-data/model/internal/modeljson"
 
-option go_package = "github.com/elastic/apm-data/model/modelpb";
-
-message Process {
-  uint32 ppid = 1;
-  ProcessThread thread = 2;
-  string title = 3;
-  string command_line = 4;
-  string executable = 5;
-  repeated string argv = 6;
-  uint32 pid = 7;
-}
-
-message ProcessThread {
-  string name = 1;
-  int32 id = 2;
+func (p *Process) toModelJSON(out *modeljson.Process) {
+	*out = modeljson.Process{
+		Pid:         int(p.Pid),
+		Title:       p.Title,
+		CommandLine: p.CommandLine,
+		Executable:  p.Executable,
+		Args:        p.Argv,
+		Parent: modeljson.ProcessParent{
+			Pid: p.Ppid,
+		},
+	}
+	if p.Thread != nil {
+		out.Thread = modeljson.ProcessThread{
+			Name: p.Thread.Name,
+			ID:   int(p.Thread.Id),
+		}
+	}
 }

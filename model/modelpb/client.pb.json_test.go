@@ -15,23 +15,44 @@
 // specific language governing permissions and limitations
 // under the License.
 
-syntax = "proto3";
+package modelpb
 
-package elastic.apm.v1;
+import (
+	"testing"
 
-option go_package = "github.com/elastic/apm-data/model/modelpb";
+	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/require"
+)
 
-message Process {
-  uint32 ppid = 1;
-  ProcessThread thread = 2;
-  string title = 3;
-  string command_line = 4;
-  string executable = 5;
-  repeated string argv = 6;
-  uint32 pid = 7;
-}
-
-message ProcessThread {
-  string name = 1;
-  int32 id = 2;
+func TestClientToModelJSON(t *testing.T) {
+	testCases := map[string]struct {
+		proto    *Client
+		expected *modeljson.Client
+	}{
+		"empty": {
+			proto:    &Client{},
+			expected: &modeljson.Client{},
+		},
+		"full": {
+			proto: &Client{
+				Ip:     "127.0.0.1",
+				Domain: "example.com",
+				Port:   443,
+			},
+			expected: &modeljson.Client{
+				IP:     "127.0.0.1",
+				Domain: "example.com",
+				Port:   443,
+			},
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			var out modeljson.Client
+			tc.proto.toModelJSON(&out)
+			diff := cmp.Diff(*tc.expected, out)
+			require.Empty(t, diff)
+		})
+	}
 }

@@ -15,23 +15,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
-syntax = "proto3";
+package modelpb
 
-package elastic.apm.v1;
-
-option go_package = "github.com/elastic/apm-data/model/modelpb";
-
-message Process {
-  uint32 ppid = 1;
-  ProcessThread thread = 2;
-  string title = 3;
-  string command_line = 4;
-  string executable = 5;
-  repeated string argv = 6;
-  uint32 pid = 7;
-}
-
-message ProcessThread {
-  string name = 1;
-  int32 id = 2;
+// updateFields transforms in, returning a copy with sanitized keys,
+// suitable for storing as "custom" in transaction and error documents.
+func updateFields(in map[string]any) {
+	for k, v := range in {
+		delete(in, k)
+		in[sanitizeLabelKey(k)] = v
+	}
 }

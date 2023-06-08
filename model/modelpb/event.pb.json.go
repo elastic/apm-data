@@ -15,23 +15,25 @@
 // specific language governing permissions and limitations
 // under the License.
 
-syntax = "proto3";
+package modelpb
 
-package elastic.apm.v1;
+import "github.com/elastic/apm-data/model/internal/modeljson"
 
-option go_package = "github.com/elastic/apm-data/model/modelpb";
-
-message Process {
-  uint32 ppid = 1;
-  ProcessThread thread = 2;
-  string title = 3;
-  string command_line = 4;
-  string executable = 5;
-  repeated string argv = 6;
-  uint32 pid = 7;
-}
-
-message ProcessThread {
-  string name = 1;
-  int32 id = 2;
+func (e *Event) toModelJSON(out *modeljson.Event) {
+	*out = modeljson.Event{
+		Outcome:  e.Outcome,
+		Action:   e.Action,
+		Dataset:  e.Dataset,
+		Kind:     e.Kind,
+		Category: e.Category,
+		Type:     e.Type,
+		Duration: int64(e.Duration.AsDuration().Nanoseconds()),
+		Severity: e.Severity,
+	}
+	if e.SuccessCount != nil {
+		out.SuccessCount = modeljson.SummaryMetric{
+			Count: e.SuccessCount.Count,
+			Sum:   e.SuccessCount.Sum,
+		}
+	}
 }

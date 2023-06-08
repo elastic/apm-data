@@ -15,40 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package modelpb
 
 import "github.com/elastic/apm-data/model/internal/modeljson"
-
-type Stacktrace []*StacktraceFrame
-
-type StacktraceFrame struct {
-	Vars                map[string]any
-	Lineno              *uint32
-	Colno               *uint32
-	Filename            string
-	Classname           string
-	ContextLine         string
-	Module              string
-	Function            string
-	AbsPath             string
-	SourcemapError      string
-	Original            Original
-	PreContext          []string
-	PostContext         []string
-	LibraryFrame        bool
-	SourcemapUpdated    bool
-	ExcludeFromGrouping bool
-}
-
-type Original struct {
-	AbsPath      string
-	Filename     string
-	Classname    string
-	Lineno       *uint32
-	Colno        *uint32
-	Function     string
-	LibraryFrame bool
-}
 
 func (s *StacktraceFrame) toModelJSON(out *modeljson.StacktraceFrame) {
 	*out = modeljson.StacktraceFrame{
@@ -61,8 +30,8 @@ func (s *StacktraceFrame) toModelJSON(out *modeljson.StacktraceFrame) {
 		ExcludeFromGrouping: s.ExcludeFromGrouping,
 	}
 
-	if len(s.Vars) != 0 {
-		out.Vars = s.Vars
+	if s.Vars != nil {
+		out.Vars = s.Vars.AsMap()
 	}
 
 	if len(s.PreContext) != 0 || len(s.PostContext) != 0 {
@@ -88,16 +57,19 @@ func (s *StacktraceFrame) toModelJSON(out *modeljson.StacktraceFrame) {
 		out.Sourcemap = &sourcemap
 	}
 
-	orig := modeljson.StacktraceFrameOriginal{LibraryFrame: s.Original.LibraryFrame}
-	if s.SourcemapUpdated {
-		orig.Filename = s.Original.Filename
-		orig.Classname = s.Original.Classname
-		orig.AbsPath = s.Original.AbsPath
-		orig.Function = s.Original.Function
-		orig.Colno = s.Original.Colno
-		orig.Lineno = s.Original.Lineno
-	}
-	if orig != (modeljson.StacktraceFrameOriginal{}) {
-		out.Original = &orig
+	if s.Original != nil {
+		orig := modeljson.StacktraceFrameOriginal{LibraryFrame: s.Original.LibraryFrame}
+		if s.SourcemapUpdated {
+			orig.Filename = s.Original.Filename
+			orig.Classname = s.Original.Classname
+			orig.AbsPath = s.Original.AbsPath
+			orig.Function = s.Original.Function
+			orig.Colno = s.Original.Colno
+			orig.Lineno = s.Original.Lineno
+
+		}
+		if orig != (modeljson.StacktraceFrameOriginal{}) {
+			out.Original = &orig
+		}
 	}
 }

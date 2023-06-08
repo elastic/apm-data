@@ -15,23 +15,20 @@
 // specific language governing permissions and limitations
 // under the License.
 
-syntax = "proto3";
+package modelpb
 
-package elastic.apm.v1;
+import "github.com/elastic/apm-data/model/internal/modeljson"
 
-option go_package = "github.com/elastic/apm-data/model/modelpb";
-
-message Process {
-  uint32 ppid = 1;
-  ProcessThread thread = 2;
-  string title = 3;
-  string command_line = 4;
-  string executable = 5;
-  repeated string argv = 6;
-  uint32 pid = 7;
-}
-
-message ProcessThread {
-  string name = 1;
-  int32 id = 2;
+func (f *Faas) toModelJSON(out *modeljson.FAAS) {
+	*out = modeljson.FAAS{
+		ID:        f.Id,
+		Name:      f.Name,
+		Version:   f.Version,
+		Execution: f.Execution,
+		Coldstart: f.ColdStart,
+		Trigger: modeljson.FAASTrigger{
+			Type:      f.TriggerType,
+			RequestID: f.TriggerRequestId,
+		},
+	}
 }

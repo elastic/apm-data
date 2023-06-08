@@ -15,23 +15,21 @@
 // specific language governing permissions and limitations
 // under the License.
 
-syntax = "proto3";
+package modelpb
 
-package elastic.apm.v1;
+import "strings"
 
-option go_package = "github.com/elastic/apm-data/model/modelpb";
+// Label keys are sanitized, replacing the reserved characters '.', '*' and '"'
+// with '_'. Null-valued labels are omitted.
 
-message Process {
-  uint32 ppid = 1;
-  ProcessThread thread = 2;
-  string title = 3;
-  string command_line = 4;
-  string executable = 5;
-  repeated string argv = 6;
-  uint32 pid = 7;
+func sanitizeLabelKey(k string) string {
+	return strings.Map(replaceReservedLabelKeyRune, k)
 }
 
-message ProcessThread {
-  string name = 1;
-  int32 id = 2;
+func replaceReservedLabelKeyRune(r rune) rune {
+	switch r {
+	case '.', '*', '"':
+		return '_'
+	}
+	return r
 }

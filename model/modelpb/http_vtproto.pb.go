@@ -670,7 +670,7 @@ func (m *HTTPRequest) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Body == nil {
-				m.Body = &structpb.Struct{}
+				m.Body = &structpb.Value{}
 			}
 			if unmarshal, ok := interface{}(m.Body).(interface {
 				UnmarshalVT([]byte) error

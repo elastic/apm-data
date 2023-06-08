@@ -15,23 +15,25 @@
 // specific language governing permissions and limitations
 // under the License.
 
-syntax = "proto3";
+package modelpb
 
-package elastic.apm.v1;
+import (
+	"net/netip"
 
-option go_package = "github.com/elastic/apm-data/model/modelpb";
+	"github.com/elastic/apm-data/model/internal/modeljson"
+)
 
-message Process {
-  uint32 ppid = 1;
-  ProcessThread thread = 2;
-  string title = 3;
-  string command_line = 4;
-  string executable = 5;
-  repeated string argv = 6;
-  uint32 pid = 7;
-}
-
-message ProcessThread {
-  string name = 1;
-  int32 id = 2;
+func (s *Source) toModelJSON(out *modeljson.Source) {
+	*out = modeljson.Source{
+		Domain: s.Domain,
+		Port:   int(s.Port),
+	}
+	if ip, err := netip.ParseAddr(s.Ip); err == nil {
+		out.IP = modeljson.IP(ip)
+	}
+	if s.Nat != nil {
+		if ip, err := netip.ParseAddr(s.Nat.Ip); err == nil {
+			out.NAT.IP = modeljson.IP(ip)
+		}
+	}
 }

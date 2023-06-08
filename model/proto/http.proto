@@ -30,7 +30,7 @@ message HTTP {
 }
 
 message HTTPRequest {
-  google.protobuf.Struct body = 1;
+  google.protobuf.Value body = 1;
   google.protobuf.Struct headers = 2;
   google.protobuf.Struct env = 3;
   google.protobuf.Struct cookies = 4;

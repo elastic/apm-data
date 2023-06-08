@@ -15,62 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package modelpb
 
 import "github.com/elastic/apm-data/model/internal/modeljson"
 
-var (
-	// ErrorProcessor is the Processor value that should be assigned to error events.
-	ErrorProcessor = Processor{Name: "error", Event: "error"}
-)
-
-type Error struct {
-	Custom      map[string]any
-	Exception   *Exception
-	Log         *ErrorLog
-	ID          string
-	GroupingKey string
-	Culprit     string
-	// StackTrace holds an unparsed stack trace.
-	//
-	// This may be set when a stack trace cannot be parsed.
-	StackTrace string
-	// Message holds an error message.
-	//
-	// Message is the ECS field equivalent of the APM field `error.log.message`.
-	Message string
-	// Type holds the type of the error.
-	Type string
-}
-
-type Exception struct {
-	Message    string
-	Module     string
-	Code       string
-	Attributes interface{}
-	Stacktrace Stacktrace
-	Type       string
-	Handled    *bool
-	Cause      []Exception
-}
-
-type ErrorLog struct {
-	Message      string
-	Level        string
-	ParamMessage string
-	LoggerName   string
-	Stacktrace   Stacktrace
-}
-
 func (e *Error) toModelJSON(out *modeljson.Error) {
 	*out = modeljson.Error{
-		ID:          e.ID,
+		ID:          e.Id,
 		GroupingKey: e.GroupingKey,
 		Culprit:     e.Culprit,
 		Message:     e.Message,
 		Type:        e.Type,
 		StackTrace:  e.StackTrace,
-		Custom:      customFields(e.Custom),
+	}
+	if e.Custom != nil {
+		m := e.Custom.AsMap()
+		updateFields(m)
+		out.Custom = m
 	}
 	if e.Exception != nil {
 		out.Exception = &modeljson.Exception{}
@@ -86,7 +47,9 @@ func (e *Error) toModelJSON(out *modeljson.Error) {
 		if n := len(e.Log.Stacktrace); n > 0 {
 			out.Log.Stacktrace = make([]modeljson.StacktraceFrame, n)
 			for i, frame := range e.Log.Stacktrace {
-				frame.toModelJSON(&out.Log.Stacktrace[i])
+				if frame != nil {
+					frame.toModelJSON(&out.Log.Stacktrace[i])
+				}
 			}
 		}
 	}
@@ -101,24 +64,22 @@ func (e *Exception) toModelJSON(out *modeljson.Exception) {
 		Handled: e.Handled,
 	}
 	if e.Attributes != nil {
-		if attr, ok := e.Attributes.(map[string]any); ok {
-			if n := len(attr); n > 0 {
-				out.Attributes = e.Attributes
-			}
-		} else {
-			out.Attributes = e.Attributes
-		}
+		out.Attributes = e.Attributes.AsMap()
 	}
 	if n := len(e.Cause); n > 0 {
 		out.Cause = make([]modeljson.Exception, n)
 		for i, cause := range e.Cause {
-			cause.toModelJSON(&out.Cause[i])
+			if cause != nil {
+				cause.toModelJSON(&out.Cause[i])
+			}
 		}
 	}
 	if n := len(e.Stacktrace); n > 0 {
 		out.Stacktrace = make([]modeljson.StacktraceFrame, n)
 		for i, frame := range e.Stacktrace {
-			frame.toModelJSON(&out.Stacktrace[i])
+			if frame != nil {
+				frame.toModelJSON(&out.Stacktrace[i])
+			}
 		}
 	}
 }
