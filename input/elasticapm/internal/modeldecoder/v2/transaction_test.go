@@ -324,8 +324,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
 		var out model.APMEvent
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, map[string]any{"a": []string{"b"}, "c": []string{"d", "e"}}, out.HTTP.Request.Headers)
-		assert.Equal(t, map[string]any{"f": []string{"g"}}, out.HTTP.Response.Headers)
+		assert.Equal(t, map[string]any{"a": []any{"b"}, "c": []any{"d", "e"}}, out.HTTP.Request.Headers)
+		assert.Equal(t, map[string]any{"f": []any{"g"}}, out.HTTP.Response.Headers)
 	})
 
 	t.Run("http-request-body", func(t *testing.T) {

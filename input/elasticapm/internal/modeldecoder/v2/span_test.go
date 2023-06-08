@@ -262,7 +262,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		input.Context.HTTP.Response.Headers.Set(http.Header{"a": []string{"b", "c"}})
 		var out model.APMEvent
 		mapToSpanModel(&input, &out)
-		assert.Equal(t, map[string]any{"a": []string{"b", "c"}}, out.HTTP.Response.Headers)
+		assert.Equal(t, map[string]any{"a": []any{"b", "c"}}, out.HTTP.Response.Headers)
 	})
 
 	t.Run("otel-bridge", func(t *testing.T) {
