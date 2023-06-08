@@ -20,7 +20,8 @@ package model
 import (
 	"time"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modelpb"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 // Event holds information about an event, in ECS terms.
@@ -58,16 +59,23 @@ type Event struct {
 	Severity int64
 }
 
-func (e *Event) toModelJSON(out *modeljson.Event) {
-	*out = modeljson.Event{
-		Outcome:      e.Outcome,
-		Action:       e.Action,
-		Dataset:      e.Dataset,
-		Kind:         e.Kind,
-		Category:     e.Category,
-		Type:         e.Type,
-		SuccessCount: modeljson.SummaryMetric(e.SuccessCount),
-		Duration:     e.Duration.Nanoseconds(),
-		Severity:     e.Severity,
+func (e *Event) toModelProtobuf(out *modelpb.Event) {
+	*out = modelpb.Event{
+		Outcome:  e.Outcome,
+		Action:   e.Action,
+		Dataset:  e.Dataset,
+		Kind:     e.Kind,
+		Category: e.Category,
+		Type:     e.Type,
+		Severity: e.Severity,
+	}
+	if !isZero(e.Duration) {
+		out.Duration = durationpb.New(e.Duration)
+	}
+	if !isZero(e.SuccessCount) {
+		out.SuccessCount = &modelpb.SummaryMetric{
+			Count: e.SuccessCount.Count,
+			Sum:   e.SuccessCount.Sum,
+		}
 	}
 }

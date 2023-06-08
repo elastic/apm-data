@@ -17,10 +17,6 @@
 
 package model
 
-import (
-	"strings"
-)
-
 // Labels wraps a map[string]string or map[string][]string with utility
 // methods.
 type Labels map[string]LabelValue
@@ -109,19 +105,4 @@ func (l NumericLabels) Clone() NumericLabels {
 		cp[k] = to
 	}
 	return cp
-}
-
-// Label keys are sanitized, replacing the reserved characters '.', '*' and '"'
-// with '_'. Null-valued labels are omitted.
-
-func sanitizeLabelKey(k string) string {
-	return strings.Map(replaceReservedLabelKeyRune, k)
-}
-
-func replaceReservedLabelKeyRune(r rune) rune {
-	switch r {
-	case '.', '*', '"':
-		return '_'
-	}
-	return r
 }

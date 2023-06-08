@@ -18,14 +18,18 @@
 package model
 
 import (
-	"time"
-
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modelpb"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 var (
 	// SpanProcessor is the Processor value that should be assigned to span events.
 	SpanProcessor = Processor{Name: "transaction", Event: "span"}
+
+	compressionStrategyText = map[string]modelpb.CompressionStrategy{
+		"exact_match": modelpb.CompressionStrategy_COMPRESSION_STRATEGY_EXACT_MATCH,
+		"same_kind":   modelpb.CompressionStrategy_COMPRESSION_STRATEGY_SAME_KIND,
+	}
 )
 
 type Span struct {
@@ -82,73 +86,82 @@ type Composite struct {
 	Sum                 float64 // milliseconds
 }
 
-func (db *DB) toModelJSON(out *modeljson.DB) {
-	*out = modeljson.DB{
+func (db *DB) toModelProtobuf(out *modelpb.DB) {
+	*out = modelpb.DB{
+		RowsAffected: db.RowsAffected,
 		Instance:     db.Instance,
 		Statement:    db.Statement,
 		Type:         db.Type,
+		UserName:     db.UserName,
 		Link:         db.Link,
-		RowsAffected: db.RowsAffected,
-		User:         modeljson.DBUser{Name: db.UserName},
 	}
 }
 
-func (c *Composite) toModelJSON(out *modeljson.SpanComposite) {
-	sumDuration := time.Duration(c.Sum * float64(time.Millisecond))
-	*out = modeljson.SpanComposite{
-		CompressionStrategy: c.CompressionStrategy,
-		Count:               c.Count,
-		Sum:                 modeljson.SpanCompositeSum{US: sumDuration.Microseconds()},
+func (c *Composite) toModelProtobuf(out *modelpb.Composite) {
+	*out = modelpb.Composite{
+		CompressionStrategy: compressionStrategyText[c.CompressionStrategy],
+		Count:               uint32(c.Count),
+		Sum:                 c.Sum,
 	}
 }
 
-func (e *Span) toModelJSON(out *modeljson.Span) {
-	*out = modeljson.Span{
-		ID:                  e.ID,
-		Name:                e.Name,
-		Type:                e.Type,
-		Subtype:             e.Subtype,
-		Action:              e.Action,
-		Kind:                e.Kind,
+func (e *Span) toModelProtobuf(out *modelpb.Span) {
+	*out = modelpb.Span{
 		Sync:                e.Sync,
+		Kind:                e.Kind,
+		Action:              e.Action,
+		Subtype:             e.Subtype,
+		Id:                  e.ID,
+		Type:                e.Type,
+		Name:                e.Name,
 		RepresentativeCount: e.RepresentativeCount,
-		SelfTime:            modeljson.AggregatedDuration(e.SelfTime),
+	}
+	if !isZero(e.SelfTime) {
+		out.SelfTime = &modelpb.AggregatedDuration{
+			Count: int64(e.SelfTime.Count),
+			Sum:   durationpb.New(e.SelfTime.Sum),
+		}
 	}
 	if e.DB != nil {
-		out.DB = &modeljson.DB{}
-		e.DB.toModelJSON(out.DB)
+		out.Db = &modelpb.DB{}
+		e.DB.toModelProtobuf(out.Db)
 	}
 	if e.Message != nil {
-		out.Message = &modeljson.Message{}
-		e.Message.toModelJSON(out.Message)
+		out.Message = &modelpb.Message{}
+		e.Message.toModelProtobuf(out.Message)
 	}
 	if e.Composite != nil {
-		out.Composite = &modeljson.SpanComposite{}
-		e.Composite.toModelJSON(out.Composite)
+		out.Composite = &modelpb.Composite{}
+		e.Composite.toModelProtobuf(out.Composite)
 	}
 	if e.DestinationService != nil {
-		out.Destination = &modeljson.SpanDestination{
-			Service: modeljson.SpanDestinationService{
-				Type:         e.DestinationService.Type,
-				Name:         e.DestinationService.Name,
-				Resource:     e.DestinationService.Resource,
-				ResponseTime: modeljson.AggregatedDuration(e.DestinationService.ResponseTime),
-			},
+		out.DestinationService = &modelpb.DestinationService{
+			Type:     e.DestinationService.Type,
+			Name:     e.DestinationService.Name,
+			Resource: e.DestinationService.Resource,
+		}
+		if !isZero(e.DestinationService.ResponseTime) {
+			out.DestinationService.ResponseTime = &modelpb.AggregatedDuration{
+				Count: int64(e.DestinationService.ResponseTime.Count),
+				Sum:   durationpb.New(e.DestinationService.ResponseTime.Sum),
+			}
 		}
 	}
 	if n := len(e.Links); n > 0 {
-		out.Links = make([]modeljson.SpanLink, n)
+		out.Links = make([]*modelpb.SpanLink, n)
 		for i, link := range e.Links {
-			out.Links[i] = modeljson.SpanLink{
-				Trace: modeljson.SpanLinkTrace{ID: link.Trace.ID},
-				Span:  modeljson.SpanLinkSpan{ID: link.Span.ID},
+			out.Links[i] = &modelpb.SpanLink{
+				Trace: &modelpb.Trace{Id: link.Trace.ID},
+				Span:  &modelpb.Span{Id: link.Span.ID},
 			}
 		}
 	}
 	if n := len(e.Stacktrace); n > 0 {
-		out.Stacktrace = make([]modeljson.StacktraceFrame, n)
+		out.Stacktrace = make([]*modelpb.StacktraceFrame, n)
 		for i, frame := range e.Stacktrace {
-			frame.toModelJSON(&out.Stacktrace[i])
+			outFrame := modelpb.StacktraceFrame{}
+			frame.toModelProtobuf(&outFrame)
+			out.Stacktrace[i] = &outFrame
 		}
 	}
 }

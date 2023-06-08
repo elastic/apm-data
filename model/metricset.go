@@ -20,7 +20,7 @@ package model
 import (
 	"time"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 var (
@@ -38,6 +38,13 @@ const (
 	MetricTypeHistogram MetricType = "histogram"
 	MetricTypeSummary   MetricType = "summary"
 )
+
+var metricTypeText = map[string]modelpb.MetricType{
+	"gauge":     modelpb.MetricType_METRIC_TYPE_GAUGE,
+	"counter":   modelpb.MetricType_METRIC_TYPE_COUNTER,
+	"histogram": modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
+	"summary":   modelpb.MetricType_METRIC_TYPE_SUMMARY,
+}
 
 // Metricset describes a set of metrics and associated metadata.
 type Metricset struct {
@@ -120,24 +127,39 @@ type AggregatedDuration struct {
 	Sum time.Duration
 }
 
-func (me *Metricset) toModelJSON(out *modeljson.Metricset) {
-	var samples []modeljson.MetricsetSample
+func (me *Metricset) toModelProtobuf(out *modelpb.Metricset) {
+	var samples []*modelpb.MetricsetSample
 	if n := len(me.Samples); n > 0 {
-		samples = make([]modeljson.MetricsetSample, n)
+		samples = make([]*modelpb.MetricsetSample, n)
 		for i, sample := range me.Samples {
-			samples[i] = modeljson.MetricsetSample{
-				Name:      sample.Name,
-				Type:      string(sample.Type),
-				Unit:      sample.Unit,
-				Value:     sample.Value,
-				Histogram: modeljson.Histogram(sample.Histogram),
-				Summary:   modeljson.SummaryMetric(sample.SummaryMetric),
+			ms := &modelpb.MetricsetSample{
+				Name:  sample.Name,
+				Type:  metricTypeText[string(sample.Type)],
+				Unit:  sample.Unit,
+				Value: sample.Value,
 			}
+
+			if len(sample.Histogram.Values) != 0 || len(sample.Histogram.Counts) != 0 {
+				ms.Histogram = &modelpb.Histogram{
+					Values: sample.Histogram.Values,
+					Counts: sample.Histogram.Counts,
+				}
+			}
+
+			if !isZero(sample.SummaryMetric) {
+				ms.Summary = &modelpb.SummaryMetric{
+					Count: sample.SummaryMetric.Count,
+					Sum:   sample.SummaryMetric.Sum,
+				}
+			}
+
+			samples[i] = ms
 		}
 	}
-	*out = modeljson.Metricset{
+	*out = modelpb.Metricset{
 		Name:     me.Name,
 		Interval: me.Interval,
 		Samples:  samples,
+		DocCount: me.DocCount,
 	}
 }
