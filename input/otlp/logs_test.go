@@ -58,7 +58,10 @@ func TestConsumerConsumeLogs(t *testing.T) {
 			return nil
 		}
 
-		consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: processor})
+		consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+			Processor:      processor,
+			MaxConcurrency: 100,
+		})
 		logs := plog.NewLogs()
 		assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 	})
@@ -101,7 +104,10 @@ func TestConsumerConsumeLogs(t *testing.T) {
 				processed[0].Timestamp = time.Time{}
 				return nil
 			}
-			consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: processor})
+			consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+				Processor:      processor,
+				MaxConcurrency: 100,
+			})
 			assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
 			expected := commonEvent
@@ -192,7 +198,10 @@ Caused by: LowLevelException
 		processed[0].Timestamp = time.Time{}
 		return nil
 	}
-	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: processor})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor:      processor,
+		MaxConcurrency: 100,
+	})
 	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
 	assert.Len(t, processed, 2)
@@ -330,7 +339,10 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 		processed[0].Timestamp = time.Time{}
 		return nil
 	}
-	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: processor})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor:      processor,
+		MaxConcurrency: 100,
+	})
 	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
 	assert.Len(t, processed, 1)
@@ -370,7 +382,10 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 		processed[0].Timestamp = time.Time{}
 		return nil
 	}
-	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: processor})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor:      processor,
+		MaxConcurrency: 100,
+	})
 	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
 	assert.Len(t, processed, 3)

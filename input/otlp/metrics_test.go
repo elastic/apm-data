@@ -742,7 +742,10 @@ func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]model.APMEvent, 
 	var batches []*model.Batch
 	recorder := batchRecorderBatchProcessor(&batches)
 
-	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: recorder})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor:      recorder,
+		MaxConcurrency: 100,
+	})
 	err := consumer.ConsumeMetrics(context.Background(), metrics)
 	require.NoError(t, err)
 	require.Len(t, batches, 1)
