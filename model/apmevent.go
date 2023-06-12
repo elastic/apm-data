@@ -91,11 +91,11 @@ func (e *APMEvent) MarshalJSON() ([]byte, error) {
 // MarshalFastJSON marshals e as JSON, writing the result to w.
 func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 	var outProto modelpb.APMEvent
-	e.toModelProtobuf(&outProto)
+	e.ToModelProtobuf(&outProto)
 	return outProto.MarshalFastJSON(w)
 }
 
-func (e *APMEvent) toModelProtobuf(out *modelpb.APMEvent) {
+func (e *APMEvent) ToModelProtobuf(out *modelpb.APMEvent) {
 	var labels map[string]*modelpb.LabelValue
 	if n := len(e.Labels); n > 0 {
 		labels = make(map[string]*modelpb.LabelValue, n)
