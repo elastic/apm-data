@@ -20,7 +20,7 @@ package modelprocessor
 import (
 	"context"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // SetCulprit is a model.BatchProcessor that sets or updates the culprit for RUM
@@ -28,7 +28,7 @@ import (
 type SetCulprit struct{}
 
 // ProcessBatch sets or updates the culprit for RUM errors.
-func (s SetCulprit) ProcessBatch(ctx context.Context, b *model.Batch) error {
+func (s SetCulprit) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	for _, event := range *b {
 		if event.Error != nil {
 			s.processError(ctx, event.Error)
@@ -37,8 +37,8 @@ func (s SetCulprit) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	return nil
 }
 
-func (s SetCulprit) processError(ctx context.Context, event *model.Error) {
-	var culpritFrame *model.StacktraceFrame
+func (s SetCulprit) processError(ctx context.Context, event *modelpb.Error) {
+	var culpritFrame *modelpb.StacktraceFrame
 	if event.Log != nil {
 		culpritFrame = s.findSourceMappedNonLibraryFrame(event.Log.Stacktrace)
 	}
@@ -58,7 +58,7 @@ func (s SetCulprit) processError(ctx context.Context, event *model.Error) {
 	event.Culprit = culprit
 }
 
-func (s SetCulprit) findSourceMappedNonLibraryFrame(frames []*model.StacktraceFrame) *model.StacktraceFrame {
+func (s SetCulprit) findSourceMappedNonLibraryFrame(frames []*modelpb.StacktraceFrame) *modelpb.StacktraceFrame {
 	for _, frame := range frames {
 		if frame.SourcemapUpdated && !frame.LibraryFrame {
 			return frame

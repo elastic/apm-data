@@ -20,7 +20,7 @@ package modelprocessor
 import (
 	"context"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // NewDropUnsampled returns a model.BatchProcessor which drops unsampled transaction events,
@@ -30,12 +30,12 @@ import (
 // unsampled transaction events are dropped.
 //
 // This model.BatchProcessor does not guarantee order preservation of the remaining events.
-func NewDropUnsampled(dropRUM bool, droppedCallback func(int64)) model.BatchProcessor {
-	return model.ProcessBatchFunc(func(_ context.Context, batch *model.Batch) error {
+func NewDropUnsampled(dropRUM bool, droppedCallback func(int64)) modelpb.BatchProcessor {
+	return modelpb.ProcessBatchFunc(func(_ context.Context, batch *modelpb.Batch) error {
 		events := *batch
 		for i := 0; i < len(events); {
 			event := events[i]
-			if !shouldDropUnsampled(&event, dropRUM) {
+			if !shouldDropUnsampled(event, dropRUM) {
 				i++
 				continue
 			}
@@ -51,9 +51,9 @@ func NewDropUnsampled(dropRUM bool, droppedCallback func(int64)) model.BatchProc
 	})
 }
 
-func shouldDropUnsampled(event *model.APMEvent, dropRUM bool) bool {
-	if event.Processor != model.TransactionProcessor || event.Transaction == nil || event.Transaction.Sampled {
+func shouldDropUnsampled(event *modelpb.APMEvent, dropRUM bool) bool {
+	if !event.Processor.IsTransaction() || event.Transaction == nil || event.Transaction.Sampled {
 		return false
 	}
-	return dropRUM || !isRUMAgentName(event.Agent.Name)
+	return dropRUM || !isRUMAgentName(event.GetAgent().GetName())
 }
