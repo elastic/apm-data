@@ -95,6 +95,7 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 	return outProto.MarshalFastJSON(w)
 }
 
+// ToModelProtobuf converts e to a protobuf model
 func (e *APMEvent) ToModelProtobuf(out *modelpb.APMEvent) {
 	var labels map[string]*modelpb.LabelValue
 	if n := len(e.Labels); n > 0 {
