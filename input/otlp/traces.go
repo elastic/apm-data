@@ -51,8 +51,11 @@ import (
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 const (
@@ -78,8 +81,8 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) erro
 	receiveTimestamp := time.Now()
 	c.config.Logger.Debug("consuming traces", zap.Stringer("traces", tracesStringer(traces)))
 
-	var batch model.Batch
 	resourceSpans := traces.ResourceSpans()
+	batch := make(modelpb.Batch, 0, resourceSpans.Len())
 	for i := 0; i < resourceSpans.Len(); i++ {
 		c.convertResourceSpans(resourceSpans.At(i), receiveTimestamp, &batch)
 	}
@@ -89,9 +92,9 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) erro
 func (c *Consumer) convertResourceSpans(
 	resourceSpans ptrace.ResourceSpans,
 	receiveTimestamp time.Time,
-	out *model.Batch,
+	out *modelpb.Batch,
 ) {
-	var baseEvent model.APMEvent
+	var baseEvent modelpb.APMEvent
 	var timeDelta time.Duration
 	resource := resourceSpans.Resource()
 	translateResourceMetadata(resource, &baseEvent)
@@ -100,15 +103,15 @@ func (c *Consumer) convertResourceSpans(
 	}
 	scopeSpans := resourceSpans.ScopeSpans()
 	for i := 0; i < scopeSpans.Len(); i++ {
-		c.convertScopeSpans(scopeSpans.At(i), baseEvent, timeDelta, out)
+		c.convertScopeSpans(scopeSpans.At(i), &baseEvent, timeDelta, out)
 	}
 }
 
 func (c *Consumer) convertScopeSpans(
 	in ptrace.ScopeSpans,
-	baseEvent model.APMEvent,
+	baseEvent *modelpb.APMEvent,
 	timeDelta time.Duration,
-	out *model.Batch,
+	out *modelpb.Batch,
 ) {
 	otelSpans := in.Spans()
 	for i := 0; i < otelSpans.Len(); i++ {
@@ -119,9 +122,9 @@ func (c *Consumer) convertScopeSpans(
 func (c *Consumer) convertSpan(
 	otelSpan ptrace.Span,
 	otelLibrary pcommon.InstrumentationScope,
-	baseEvent model.APMEvent,
+	baseEvent *modelpb.APMEvent,
 	timeDelta time.Duration,
-	out *model.Batch,
+	out *modelpb.Batch,
 ) {
 	root := otelSpan.ParentSpanID().IsEmpty()
 	var parentID string
@@ -141,32 +144,43 @@ func (c *Consumer) convertSpan(
 	name := otelSpan.Name()
 	spanID := hexSpanID(otelSpan.SpanID())
 	representativeCount := getRepresentativeCountFromTracestateHeader(otelSpan.TraceState().AsRaw())
-	event := baseEvent
-	initEventLabels(&event)
-	event.Timestamp = startTime.Add(timeDelta)
-	event.Trace.ID = hexTraceID(otelSpan.TraceID())
-	event.Event.Duration = duration
+	event := proto.Clone(baseEvent).(*modelpb.APMEvent)
+	initEventLabels(event)
+	event.Timestamp = timestamppb.New(startTime.Add(timeDelta))
+	if id := hexTraceID(otelSpan.TraceID()); id != "" {
+		event.Trace = &modelpb.Trace{
+			Id: id,
+		}
+	}
+	if event.Event == nil {
+		event.Event = &modelpb.Event{}
+	}
+	event.Event.Duration = durationpb.New(duration)
 	event.Event.Outcome = spanStatusOutcome(otelSpan.Status())
-	event.Parent.ID = parentID
+	if parentID != "" {
+		event.Parent = &modelpb.Parent{
+			Id: parentID,
+		}
+	}
 	if root || otelSpan.Kind() == ptrace.SpanKindServer || otelSpan.Kind() == ptrace.SpanKindConsumer {
-		event.Processor = model.TransactionProcessor
-		event.Transaction = &model.Transaction{
-			ID:                  spanID,
+		event.Processor = modelpb.TransactionProcessor()
+		event.Transaction = &modelpb.Transaction{
+			Id:                  spanID,
 			Name:                name,
 			Sampled:             true,
 			RepresentativeCount: representativeCount,
 		}
-		TranslateTransaction(otelSpan.Attributes(), otelSpan.Status(), otelLibrary, &event)
+		TranslateTransaction(otelSpan.Attributes(), otelSpan.Status(), otelLibrary, event)
 	} else {
-		event.Processor = model.SpanProcessor
-		event.Span = &model.Span{
-			ID:                  spanID,
+		event.Processor = modelpb.SpanProcessor()
+		event.Span = &modelpb.Span{
+			Id:                  spanID,
 			Name:                name,
 			RepresentativeCount: representativeCount,
 		}
-		TranslateSpan(otelSpan.Kind(), otelSpan.Attributes(), &event)
+		TranslateSpan(otelSpan.Kind(), otelSpan.Attributes(), event)
 	}
-	translateSpanLinks(&event, otelSpan.Links())
+	translateSpanLinks(event, otelSpan.Links())
 	if len(event.Labels) == 0 {
 		event.Labels = nil
 	}
@@ -176,10 +190,11 @@ func (c *Consumer) convertSpan(
 	*out = append(*out, event)
 
 	events := otelSpan.Events()
+	event = proto.Clone(event).(*modelpb.APMEvent)
 	event.Labels = baseEvent.Labels               // only copy common labels to span events
 	event.NumericLabels = baseEvent.NumericLabels // only copy common labels to span events
-	event.Event = model.Event{}                   // don't copy event.* to span events
-	event.Destination = model.Destination{}       // don't set destination for span events
+	event.Event = nil                             // don't copy event.* to span events
+	event.Destination = nil                       // don't set destination for span events
 	for i := 0; i < events.Len(); i++ {
 		*out = append(*out, c.convertSpanEvent(events.At(i), event, timeDelta))
 	}
@@ -191,7 +206,7 @@ func TranslateTransaction(
 	attributes pcommon.Map,
 	spanStatus ptrace.Status,
 	library pcommon.InstrumentationScope,
-	event *model.APMEvent,
+	event *modelpb.APMEvent,
 ) {
 	isJaeger := strings.HasPrefix(event.Agent.Name, "Jaeger")
 
@@ -205,13 +220,13 @@ func TranslateTransaction(
 		httpURL        string
 		httpServerName string
 		httpHost       string
-		http           model.HTTP
-		httpRequest    model.HTTPRequest
-		httpResponse   model.HTTPResponse
+		http           modelpb.HTTP
+		httpRequest    modelpb.HTTPRequest
+		httpResponse   modelpb.HTTPResponse
 	)
 
 	var foundSpanType int
-	var message model.Message
+	var message modelpb.Message
 
 	var samplerType, samplerParam pcommon.Value
 	attributes.Range(func(kDots string, v pcommon.Value) bool {
@@ -238,10 +253,13 @@ func TranslateTransaction(
 			switch kDots {
 			case semconv.AttributeHTTPStatusCode:
 				foundSpanType = httpSpan
-				httpResponse.StatusCode = int(v.Int())
+				httpResponse.StatusCode = int32(v.Int())
 				http.Response = &httpResponse
 			case semconv.AttributeNetPeerPort:
-				event.Source.Port = int(v.Int())
+				if event.Source == nil {
+					event.Source = &modelpb.Source{}
+				}
+				event.Source.Port = uint32(v.Int())
 			case semconv.AttributeNetHostPort:
 				netHostPort = int(v.Int())
 			case semconv.AttributeRPCGRPCStatusCode:
@@ -271,13 +289,13 @@ func TranslateTransaction(
 			case semconv.AttributeHTTPStatusCode:
 				if intv, err := strconv.Atoi(stringval); err == nil {
 					foundSpanType = httpSpan
-					httpResponse.StatusCode = intv
+					httpResponse.StatusCode = int32(intv)
 					http.Response = &httpResponse
 				}
 			case "http.protocol":
 				if !strings.HasPrefix(stringval, "HTTP/") {
 					// Unexpected, store in labels for debugging.
-					event.Labels.Set(k, stringval)
+					modelpb.Labels(event.Labels).Set(k, stringval)
 					break
 				}
 				stringval = strings.TrimPrefix(stringval, "HTTP/")
@@ -290,32 +308,82 @@ func TranslateTransaction(
 				httpServerName = stringval
 			case semconv.AttributeHTTPClientIP:
 				if ip, err := netip.ParseAddr(stringval); err == nil {
-					event.Client.IP = ip
+					if event.Client == nil {
+						event.Client = &modelpb.Client{}
+					}
+					event.Client.Ip = ip.String()
 				}
 			case semconv.AttributeHTTPUserAgent:
+				if event.UserAgent == nil {
+					event.UserAgent = &modelpb.UserAgent{}
+				}
 				event.UserAgent.Original = stringval
 
 			// net.*
 			case semconv.AttributeNetPeerIP:
+				if event.Source == nil {
+					event.Source = &modelpb.Source{}
+				}
 				if ip, err := netip.ParseAddr(stringval); err == nil {
-					event.Source.IP = ip
+					event.Source.Ip = ip.String()
 				}
 			case semconv.AttributeNetPeerName:
+				if event.Source == nil {
+					event.Source = &modelpb.Source{}
+				}
 				event.Source.Domain = stringval
 			case semconv.AttributeNetHostName:
 				netHostName = stringval
 			case attributeNetworkConnectionType:
+				if event.Network == nil {
+					event.Network = &modelpb.Network{}
+				}
+				if event.Network.Connection == nil {
+					event.Network.Connection = &modelpb.NetworkConnection{}
+				}
 				event.Network.Connection.Type = stringval
 			case attributeNetworkConnectionSubtype:
+				if event.Network == nil {
+					event.Network = &modelpb.Network{}
+				}
+				if event.Network.Connection == nil {
+					event.Network.Connection = &modelpb.NetworkConnection{}
+				}
+
 				event.Network.Connection.Subtype = stringval
 			case attributeNetworkMCC:
-				event.Network.Carrier.MCC = stringval
+				if event.Network == nil {
+					event.Network = &modelpb.Network{}
+				}
+				if event.Network.Carrier == nil {
+					event.Network.Carrier = &modelpb.NetworkCarrier{}
+				}
+				event.Network.Carrier.Mcc = stringval
 			case attributeNetworkMNC:
-				event.Network.Carrier.MNC = stringval
+				if event.Network == nil {
+					event.Network = &modelpb.Network{}
+				}
+				if event.Network.Carrier == nil {
+					event.Network.Carrier = &modelpb.NetworkCarrier{}
+				}
+
+				event.Network.Carrier.Mnc = stringval
 			case attributeNetworkCarrierName:
+				if event.Network == nil {
+					event.Network = &modelpb.Network{}
+				}
+				if event.Network.Carrier == nil {
+					event.Network.Carrier = &modelpb.NetworkCarrier{}
+				}
 				event.Network.Carrier.Name = stringval
 			case attributeNetworkICC:
-				event.Network.Carrier.ICC = stringval
+				if event.Network == nil {
+					event.Network = &modelpb.Network{}
+				}
+				if event.Network.Carrier == nil {
+					event.Network.Carrier = &modelpb.NetworkCarrier{}
+				}
+				event.Network.Carrier.Icc = stringval
 
 			// messaging.*
 			case "message_bus.destination", semconv.AttributeMessagingDestination:
@@ -338,7 +406,10 @@ func TranslateTransaction(
 			case "type":
 				event.Transaction.Type = stringval
 			case "session.id":
-				event.Session.ID = stringval
+				if event.Session == nil {
+					event.Session = &modelpb.Session{}
+				}
+				event.Session.Id = stringval
 			case semconv.AttributeServiceVersion:
 				// NOTE support for sending service.version as a span tag
 				// is deprecated, and will be removed in 8.0. Instrumentation
@@ -346,7 +417,7 @@ func TranslateTransaction(
 				// tag (Jaeger).
 				event.Service.Version = stringval
 			default:
-				event.Labels.Set(k, stringval)
+				modelpb.Labels(event.Labels).Set(k, stringval)
 			}
 		}
 		return true
@@ -365,39 +436,43 @@ func TranslateTransaction(
 
 	switch foundSpanType {
 	case httpSpan:
-		event.HTTP = http
+		if !proto.Equal(&http, &modelpb.HTTP{}) {
+			event.Http = &http
+		}
 
 		// Set outcome nad result from status code.
 		if statusCode := httpResponse.StatusCode; statusCode > 0 {
 			if event.Event.Outcome == outcomeUnknown {
-				event.Event.Outcome = serverHTTPStatusCodeOutcome(statusCode)
+				event.Event.Outcome = serverHTTPStatusCodeOutcome(int(statusCode))
 			}
 			if event.Transaction.Result == "" {
-				event.Transaction.Result = httpStatusCodeResult(statusCode)
+				event.Transaction.Result = httpStatusCodeResult(int(statusCode))
 			}
 		}
 
-		// Build the model.URL from http{URL,Host,Scheme}.
+		// Build the modelpb.URL from http{URL,Host,Scheme}.
 		httpHost := httpHost
 		if httpHost == "" {
 			httpHost = httpServerName
 			if httpHost == "" {
 				httpHost = netHostName
 				if httpHost == "" {
-					httpHost = event.Host.Hostname
+					httpHost = event.GetHost().GetHostname()
 				}
 			}
 			if httpHost != "" && netHostPort > 0 {
 				httpHost = net.JoinHostPort(httpHost, strconv.Itoa(netHostPort))
 			}
 		}
-		event.URL = model.ParseURL(httpURL, httpHost, httpScheme)
+		event.Url = modelpb.ParseURL(httpURL, httpHost, httpScheme)
 	case messagingSpan:
 		event.Transaction.Message = &message
 	}
 
-	if !event.Client.IP.IsValid() {
-		event.Client = model.Client{IP: event.Source.IP, Port: event.Source.Port, Domain: event.Source.Domain}
+	if event.Source != nil {
+		if _, err := netip.ParseAddr(event.GetClient().GetIp()); err != nil {
+			event.Client = &modelpb.Client{Ip: event.Source.Ip, Port: event.Source.Port, Domain: event.Source.Domain}
+		}
 	}
 
 	if samplerType != (pcommon.Value{}) {
@@ -409,6 +484,12 @@ func TranslateTransaction(
 		event.Transaction.Result = spanStatusResult(spanStatus)
 	}
 	if name := library.Name(); name != "" {
+		if event.Service == nil {
+			event.Service = &modelpb.Service{}
+		}
+		if event.Service.Framework == nil {
+			event.Service.Framework = &modelpb.Framework{}
+		}
 		event.Service.Framework.Name = name
 		event.Service.Framework.Version = library.Version()
 	}
@@ -424,7 +505,7 @@ const (
 
 // TranslateSpan converts incoming otlp/otel trace data into the
 // expected elasticsearch format.
-func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *model.APMEvent) {
+func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *modelpb.APMEvent) {
 	isJaeger := strings.HasPrefix(event.Agent.Name, "Jaeger")
 
 	var (
@@ -456,13 +537,13 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 		rpcService string
 	)
 
-	var http model.HTTP
-	var httpRequest model.HTTPRequest
-	var httpResponse model.HTTPResponse
-	var message model.Message
-	var db model.DB
-	var destinationService model.DestinationService
-	var serviceTarget model.ServiceTarget
+	var http modelpb.HTTP
+	var httpRequest modelpb.HTTPRequest
+	var httpResponse modelpb.HTTPResponse
+	var message modelpb.Message
+	var db modelpb.DB
+	var destinationService modelpb.DestinationService
+	var serviceTarget modelpb.ServiceTarget
 	var foundSpanType int
 	var samplerType, samplerParam pcommon.Value
 	attributes.Range(func(kDots string, v pcommon.Value) bool {
@@ -494,7 +575,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 		case pcommon.ValueTypeInt:
 			switch kDots {
 			case "http.status_code":
-				httpResponse.StatusCode = int(v.Int())
+				httpResponse.StatusCode = int32(v.Int())
 				http.Response = &httpResponse
 				foundSpanType = httpSpan
 			case semconv.AttributeNetPeerPort, "peer.port":
@@ -555,21 +636,61 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 			case "peer.address":
 				peerAddress = stringval
 			case attributeNetworkConnectionType:
+				if event.Network == nil {
+					event.Network = &modelpb.Network{}
+				}
+				if event.Network.Connection == nil {
+					event.Network.Connection = &modelpb.NetworkConnection{}
+				}
 				event.Network.Connection.Type = stringval
 			case attributeNetworkConnectionSubtype:
+				if event.Network == nil {
+					event.Network = &modelpb.Network{}
+				}
+				if event.Network.Connection == nil {
+					event.Network.Connection = &modelpb.NetworkConnection{}
+				}
 				event.Network.Connection.Subtype = stringval
 			case attributeNetworkMCC:
-				event.Network.Carrier.MCC = stringval
+				if event.Network == nil {
+					event.Network = &modelpb.Network{}
+				}
+				if event.Network.Carrier == nil {
+					event.Network.Carrier = &modelpb.NetworkCarrier{}
+				}
+				event.Network.Carrier.Mcc = stringval
 			case attributeNetworkMNC:
-				event.Network.Carrier.MNC = stringval
+				if event.Network == nil {
+					event.Network = &modelpb.Network{}
+				}
+				if event.Network.Carrier == nil {
+					event.Network.Carrier = &modelpb.NetworkCarrier{}
+				}
+				event.Network.Carrier.Mnc = stringval
 			case attributeNetworkCarrierName:
+				if event.Network == nil {
+					event.Network = &modelpb.Network{}
+				}
+				if event.Network.Carrier == nil {
+					event.Network.Carrier = &modelpb.NetworkCarrier{}
+				}
 				event.Network.Carrier.Name = stringval
 			case attributeNetworkICC:
-				event.Network.Carrier.ICC = stringval
+				if event.Network == nil {
+					event.Network = &modelpb.Network{}
+				}
+				if event.Network.Carrier == nil {
+					event.Network.Carrier = &modelpb.NetworkCarrier{}
+				}
+
+				event.Network.Carrier.Icc = stringval
 
 			// session.*
 			case "session.id":
-				event.Session.ID = stringval
+				if event.Session == nil {
+					event.Session = &modelpb.Session{}
+				}
+				event.Session.Id = stringval
 
 			// messaging.*
 			case "message_bus.destination", semconv.AttributeMessagingDestination:
@@ -603,7 +724,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 			case semconv.AttributePeerService:
 				peerService = stringval
 			default:
-				event.Labels.Set(k, stringval)
+				modelpb.Labels(event.Labels).Set(k, stringval)
 			}
 		}
 		return true
@@ -670,14 +791,19 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 	case httpSpan:
 		if httpResponse.StatusCode > 0 {
 			if event.Event.Outcome == outcomeUnknown {
-				event.Event.Outcome = clientHTTPStatusCodeOutcome(httpResponse.StatusCode)
+				event.Event.Outcome = clientHTTPStatusCodeOutcome(int(httpResponse.StatusCode))
 			}
 		}
 		event.Span.Type = "external"
 		subtype := "http"
 		event.Span.Subtype = subtype
-		event.HTTP = http
-		event.URL.Original = httpURL
+		if !proto.Equal(&http, &modelpb.HTTP{}) {
+			event.Http = &http
+		}
+		if event.Url == nil {
+			event.Url = &modelpb.URL{}
+		}
+		event.Url.Original = httpURL
 		serviceTarget.Type = event.Span.Subtype
 		if fullURL != nil {
 			url := url.URL{Scheme: fullURL.Scheme, Host: fullURL.Host}
@@ -714,7 +840,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 		if db.Instance != "" {
 			serviceTarget.Name = db.Instance
 		}
-		event.Span.DB = &db
+		event.Span.Db = &db
 	case messagingSpan:
 		event.Span.Type = "messaging"
 		event.Span.Subtype = messageSystem
@@ -767,9 +893,9 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 	}
 
 	if destAddr != "" {
-		event.Destination = model.Destination{Address: destAddr, Port: destPort}
+		event.Destination = &modelpb.Destination{Address: destAddr, Port: uint32(destPort)}
 	}
-	if destinationService != (model.DestinationService{}) {
+	if !proto.Equal(&destinationService, &modelpb.DestinationService{}) {
 		if destinationService.Type == "" {
 			// Copy span type to destination.service.type.
 			destinationService.Type = event.Span.Type
@@ -777,7 +903,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 		event.Span.DestinationService = &destinationService
 	}
 
-	if serviceTarget != (model.ServiceTarget{}) {
+	if !proto.Equal(&serviceTarget, &modelpb.ServiceTarget{}) {
 		event.Service.Target = &serviceTarget
 	}
 
@@ -787,7 +913,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 	}
 }
 
-func parseSamplerAttributes(samplerType, samplerParam pcommon.Value, event *model.APMEvent) {
+func parseSamplerAttributes(samplerType, samplerParam pcommon.Value, event *modelpb.APMEvent) {
 	switch samplerType := samplerType.Str(); samplerType {
 	case "probabilistic":
 		probability := samplerParam.Double()
@@ -801,30 +927,30 @@ func parseSamplerAttributes(samplerType, samplerParam pcommon.Value, event *mode
 		}
 	default:
 		event.Transaction.RepresentativeCount = 0
-		event.Labels.Set("sampler_type", samplerType)
+		modelpb.Labels(event.Labels).Set("sampler_type", samplerType)
 		switch samplerParam.Type() {
 		case pcommon.ValueTypeBool:
-			event.Labels.Set("sampler_param", strconv.FormatBool(samplerParam.Bool()))
+			modelpb.Labels(event.Labels).Set("sampler_param", strconv.FormatBool(samplerParam.Bool()))
 		case pcommon.ValueTypeDouble:
-			event.NumericLabels.Set("sampler_param", samplerParam.Double())
+			modelpb.NumericLabels(event.NumericLabels).Set("sampler_param", samplerParam.Double())
 		}
 	}
 }
 
 func (c *Consumer) convertSpanEvent(
 	spanEvent ptrace.SpanEvent,
-	parent model.APMEvent, // either span or transaction
+	parent *modelpb.APMEvent, // either span or transaction
 	timeDelta time.Duration,
-) model.APMEvent {
-	event := parent
-	initEventLabels(&event)
+) *modelpb.APMEvent {
+	event := proto.Clone(parent).(*modelpb.APMEvent)
+	initEventLabels(event)
 	event.Transaction = nil
 	event.Span = nil
-	event.Timestamp = spanEvent.Timestamp().AsTime().Add(timeDelta)
+	event.Timestamp = timestamppb.New(spanEvent.Timestamp().AsTime().Add(timeDelta))
 
 	isJaeger := strings.HasPrefix(parent.Agent.Name, "Jaeger")
 	if isJaeger {
-		event.Error = c.convertJaegerErrorSpanEvent(spanEvent, &event)
+		event.Error = c.convertJaegerErrorSpanEvent(spanEvent, event)
 	} else if spanEvent.Name() == "exception" {
 		// Translate exception span events to errors.
 		//
@@ -844,7 +970,7 @@ func (c *Consumer) convertSpanEvent(
 			case "exception.escaped":
 				exceptionEscaped = v.Bool()
 			default:
-				setLabel(replaceDots(k), &event, ifaceAttributeValue(v))
+				setLabel(replaceDots(k), event, ifaceAttributeValue(v))
 			}
 			return true
 		})
@@ -861,10 +987,10 @@ func (c *Consumer) convertSpanEvent(
 	}
 
 	if event.Error != nil {
-		event.Processor = model.ErrorProcessor
-		setErrorContext(&event, parent)
+		event.Processor = modelpb.ErrorProcessor()
+		setErrorContext(event, parent)
 	} else {
-		event.Processor = model.LogProcessor
+		event.Processor = modelpb.LogProcessor()
 		event.Message = spanEvent.Name()
 		spanEvent.Attributes().Range(func(k string, v pcommon.Value) bool {
 			k = replaceDots(k)
@@ -872,14 +998,14 @@ func (c *Consumer) convertSpanEvent(
 				event.Message = truncate(v.Str())
 				return true
 			}
-			setLabel(k, &event, ifaceAttributeValue(v))
+			setLabel(k, event, ifaceAttributeValue(v))
 			return true
 		})
 	}
 	return event
 }
 
-func (c *Consumer) convertJaegerErrorSpanEvent(event ptrace.SpanEvent, apmEvent *model.APMEvent) *model.Error {
+func (c *Consumer) convertJaegerErrorSpanEvent(event ptrace.SpanEvent, apmEvent *modelpb.APMEvent) *modelpb.Error {
 	var isError bool
 	var exMessage, exType string
 	var logMessage string
@@ -925,12 +1051,12 @@ func (c *Consumer) convertJaegerErrorSpanEvent(event ptrace.SpanEvent, apmEvent 
 		)
 		return nil
 	}
-	e := &model.Error{}
+	e := &modelpb.Error{}
 	if logMessage != "" {
-		e.Log = &model.ErrorLog{Message: logMessage}
+		e.Log = &modelpb.ErrorLog{Message: logMessage}
 	}
 	if exMessage != "" || exType != "" {
-		e.Exception = &model.Exception{
+		e.Exception = &modelpb.Exception{
 			Message: exMessage,
 			Type:    exType,
 		}
@@ -938,38 +1064,41 @@ func (c *Consumer) convertJaegerErrorSpanEvent(event ptrace.SpanEvent, apmEvent 
 	return e
 }
 
-func setErrorContext(out *model.APMEvent, parent model.APMEvent) {
-	out.Trace.ID = parent.Trace.ID
-	out.HTTP = parent.HTTP
-	out.URL = parent.URL
+func setErrorContext(out *modelpb.APMEvent, parent *modelpb.APMEvent) {
+	out.Trace.Id = parent.Trace.Id
+	out.Http = parent.Http
+	out.Url = parent.Url
 	if parent.Transaction != nil {
-		out.Transaction = &model.Transaction{
-			ID:      parent.Transaction.ID,
+		out.Transaction = &modelpb.Transaction{
+			Id:      parent.Transaction.Id,
 			Sampled: parent.Transaction.Sampled,
 			Type:    parent.Transaction.Type,
 		}
 		out.Error.Custom = parent.Transaction.Custom
-		out.Parent.ID = parent.Transaction.ID
+		if out.Parent == nil {
+			out.Parent = &modelpb.Parent{}
+		}
+		out.Parent.Id = parent.Transaction.Id
 	}
 	if parent.Span != nil {
-		out.Parent.ID = parent.Span.ID
+		out.Parent.Id = parent.Span.Id
 	}
 }
 
-func translateSpanLinks(out *model.APMEvent, in ptrace.SpanLinkSlice) {
+func translateSpanLinks(out *modelpb.APMEvent, in ptrace.SpanLinkSlice) {
 	n := in.Len()
 	if n == 0 {
 		return
 	}
 	if out.Span == nil {
-		out.Span = &model.Span{}
+		out.Span = &modelpb.Span{}
 	}
-	out.Span.Links = make([]model.SpanLink, n)
+	out.Span.Links = make([]*modelpb.SpanLink, n)
 	for i := 0; i < n; i++ {
 		link := in.At(i)
-		out.Span.Links[i] = model.SpanLink{
-			Span:  model.Span{ID: hexSpanID(link.SpanID())},
-			Trace: model.Trace{ID: hexTraceID(link.TraceID())},
+		out.Span.Links[i] = &modelpb.SpanLink{
+			Span:  &modelpb.Span{Id: hexSpanID(link.SpanID())},
+			Trace: &modelpb.Trace{Id: hexTraceID(link.TraceID())},
 		}
 	}
 }

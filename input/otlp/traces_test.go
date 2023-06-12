@@ -39,7 +39,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"net/netip"
 	"os"
 	"path/filepath"
 	"strings"
@@ -55,13 +54,14 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/input/otlp"
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 func TestConsumer_ConsumeTraces_Empty(t *testing.T) {
-	var processor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+	var processor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
 		assert.Empty(t, batch)
 		return nil
 	}
@@ -87,11 +87,11 @@ func TestOutcome(t *testing.T) {
 		otelSpan2.Status().SetCode(statusCode)
 
 		batch := transformTraces(t, traces)
-		require.Len(t, batch, 2)
+		require.Len(t, *batch, 2)
 
-		assert.Equal(t, expectedOutcome, batch[0].Event.Outcome)
-		assert.Equal(t, expectedResult, batch[0].Transaction.Result)
-		assert.Equal(t, expectedOutcome, batch[1].Event.Outcome)
+		assert.Equal(t, expectedOutcome, (*batch)[0].GetEvent().GetOutcome())
+		assert.Equal(t, expectedResult, (*batch)[0].Transaction.Result)
+		assert.Equal(t, expectedOutcome, (*batch)[1].GetEvent().GetOutcome())
 	}
 
 	test(t, "unknown", "", ptrace.StatusCodeUnset)
@@ -126,24 +126,24 @@ func TestRepresentativeCount(t *testing.T) {
 	otelSpan5.SetParentSpanID(pcommon.SpanID{2})
 
 	batch := transformTraces(t, traces)
-	require.Len(t, batch, 5)
+	require.Len(t, *batch, 5)
 
-	assert.Equal(t, 256.0, batch[0].Transaction.RepresentativeCount)
-	assert.Equal(t, 0.0, batch[1].Span.RepresentativeCount)
-	assert.Equal(t, 1.0, batch[2].Span.RepresentativeCount)
-	assert.Equal(t, 1.0, batch[3].Span.RepresentativeCount)
-	assert.Equal(t, 1.0, batch[4].Span.RepresentativeCount)
+	assert.Equal(t, 256.0, (*batch)[0].Transaction.RepresentativeCount)
+	assert.Equal(t, 0.0, (*batch)[1].Span.RepresentativeCount)
+	assert.Equal(t, 1.0, (*batch)[2].Span.RepresentativeCount)
+	assert.Equal(t, 1.0, (*batch)[3].Span.RepresentativeCount)
+	assert.Equal(t, 1.0, (*batch)[4].Span.RepresentativeCount)
 }
 
 func TestHTTPTransactionURL(t *testing.T) {
-	test := func(t *testing.T, expected model.URL, attrs map[string]interface{}) {
+	test := func(t *testing.T, expected *modelpb.URL, attrs map[string]interface{}) {
 		t.Helper()
 		event := transformTransactionWithAttributes(t, attrs)
-		assert.Equal(t, expected, event.URL)
+		assert.Equal(t, expected, event.Url)
 	}
 
 	t.Run("scheme_host_target", func(t *testing.T) {
-		test(t, model.URL{
+		test(t, &modelpb.URL{
 			Scheme:   "https",
 			Original: "/foo?bar",
 			Full:     "https://testing.invalid:80/foo?bar",
@@ -158,7 +158,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 		})
 	})
 	t.Run("scheme_servername_nethostport_target", func(t *testing.T) {
-		test(t, model.URL{
+		test(t, &modelpb.URL{
 			Scheme:   "https",
 			Original: "/foo?bar",
 			Full:     "https://testing.invalid:80/foo?bar",
@@ -174,7 +174,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 		})
 	})
 	t.Run("scheme_nethostname_nethostport_target", func(t *testing.T) {
-		test(t, model.URL{
+		test(t, &modelpb.URL{
 			Scheme:   "https",
 			Original: "/foo?bar",
 			Full:     "https://testing.invalid:80/foo?bar",
@@ -190,7 +190,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 		})
 	})
 	t.Run("http.url", func(t *testing.T) {
-		test(t, model.URL{
+		test(t, &modelpb.URL{
 			Scheme:   "https",
 			Original: "https://testing.invalid:80/foo?bar",
 			Full:     "https://testing.invalid:80/foo?bar",
@@ -203,7 +203,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 		})
 	})
 	t.Run("host_no_port", func(t *testing.T) {
-		test(t, model.URL{
+		test(t, &modelpb.URL{
 			Scheme:   "https",
 			Original: "/foo",
 			Full:     "https://testing.invalid/foo",
@@ -216,7 +216,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 		})
 	})
 	t.Run("ipv6_host_no_port", func(t *testing.T) {
-		test(t, model.URL{
+		test(t, &modelpb.URL{
 			Scheme:   "https",
 			Original: "/foo",
 			Full:     "https://[::1]/foo",
@@ -230,7 +230,7 @@ func TestHTTPTransactionURL(t *testing.T) {
 	})
 	t.Run("default_scheme", func(t *testing.T) {
 		// scheme is set to "http" if it can't be deduced from attributes.
-		test(t, model.URL{
+		test(t, &modelpb.URL{
 			Scheme:   "http",
 			Original: "/foo",
 			Full:     "http://testing.invalid/foo",
@@ -247,7 +247,7 @@ func TestHTTPSpanURL(t *testing.T) {
 	test := func(t *testing.T, expected string, attrs map[string]interface{}) {
 		t.Helper()
 		event := transformSpanWithAttributes(t, attrs)
-		assert.Equal(t, model.URL{Original: expected}, event.URL)
+		assert.Equal(t, &modelpb.URL{Original: expected}, event.Url)
 	}
 
 	t.Run("host.url", func(t *testing.T) {
@@ -289,18 +289,18 @@ func TestHTTPSpanURL(t *testing.T) {
 }
 
 func TestHTTPSpanDestination(t *testing.T) {
-	test := func(t *testing.T, expectedDestination model.Destination, expectedDestinationService *model.DestinationService, attrs map[string]interface{}) {
+	test := func(t *testing.T, expectedDestination *modelpb.Destination, expectedDestinationService *modelpb.DestinationService, attrs map[string]interface{}) {
 		t.Helper()
 		event := transformSpanWithAttributes(t, attrs)
-		assert.Equal(t, expectedDestination, event.Destination)
-		assert.Equal(t, expectedDestinationService, event.Span.DestinationService)
+		assert.Empty(t, cmp.Diff(expectedDestination, event.Destination, protocmp.Transform()))
+		assert.Empty(t, cmp.Diff(expectedDestinationService, event.Span.DestinationService, protocmp.Transform()))
 	}
 
 	t.Run("url_default_port_specified", func(t *testing.T) {
-		test(t, model.Destination{
+		test(t, &modelpb.Destination{
 			Address: "testing.invalid",
 			Port:    443,
-		}, &model.DestinationService{
+		}, &modelpb.DestinationService{
 			Type:     "external",
 			Name:     "https://testing.invalid",
 			Resource: "testing.invalid:443",
@@ -309,10 +309,10 @@ func TestHTTPSpanDestination(t *testing.T) {
 		})
 	})
 	t.Run("url_port_scheme", func(t *testing.T) {
-		test(t, model.Destination{
+		test(t, &modelpb.Destination{
 			Address: "testing.invalid",
 			Port:    443,
-		}, &model.DestinationService{
+		}, &modelpb.DestinationService{
 			Type:     "external",
 			Name:     "https://testing.invalid",
 			Resource: "testing.invalid:443",
@@ -321,10 +321,10 @@ func TestHTTPSpanDestination(t *testing.T) {
 		})
 	})
 	t.Run("url_non_default_port", func(t *testing.T) {
-		test(t, model.Destination{
+		test(t, &modelpb.Destination{
 			Address: "testing.invalid",
 			Port:    444,
-		}, &model.DestinationService{
+		}, &modelpb.DestinationService{
 			Type:     "external",
 			Name:     "https://testing.invalid:444",
 			Resource: "testing.invalid:444",
@@ -333,10 +333,10 @@ func TestHTTPSpanDestination(t *testing.T) {
 		})
 	})
 	t.Run("scheme_host_target", func(t *testing.T) {
-		test(t, model.Destination{
+		test(t, &modelpb.Destination{
 			Address: "testing.invalid",
 			Port:    444,
-		}, &model.DestinationService{
+		}, &modelpb.DestinationService{
 			Type:     "external",
 			Name:     "https://testing.invalid:444",
 			Resource: "testing.invalid:444",
@@ -347,10 +347,10 @@ func TestHTTPSpanDestination(t *testing.T) {
 		})
 	})
 	t.Run("scheme_netpeername_nethostport_target", func(t *testing.T) {
-		test(t, model.Destination{
+		test(t, &modelpb.Destination{
 			Address: "::1",
 			Port:    444,
-		}, &model.DestinationService{
+		}, &modelpb.DestinationService{
 			Type:     "external",
 			Name:     "https://[::1]:444",
 			Resource: "[::1]:444",
@@ -371,17 +371,17 @@ func TestHTTPTransactionSource(t *testing.T) {
 		attrs["http.method"] = "POST"
 
 		event := transformTransactionWithAttributes(t, attrs)
-		require.NotNil(t, event.HTTP)
-		require.NotNil(t, event.HTTP.Request)
+		require.NotNil(t, event.Http)
+		require.NotNil(t, event.Http.Request)
 		parsedIP := net.ParseIP(expectedIP)
 		require.NotNil(t, parsedIP)
-		assert.Equal(t, model.Source{
+		assert.Equal(t, &modelpb.Source{
 			Domain: expectedDomain,
-			IP:     netip.MustParseAddr(expectedIP),
-			Port:   expectedPort,
+			Ip:     expectedIP,
+			Port:   uint32(expectedPort),
 		}, event.Source)
-		want := model.Client{IP: event.Source.IP, Port: event.Source.Port, Domain: event.Source.Domain}
-		assert.Equal(t, want, event.Client)
+		want := modelpb.Client{Ip: event.Source.Ip, Port: event.Source.Port, Domain: event.Source.Domain}
+		assert.Equal(t, &want, event.Client)
 	}
 
 	t.Run("net.peer.ip_port", func(t *testing.T) {
@@ -407,14 +407,14 @@ func TestHTTPTransactionFlavor(t *testing.T) {
 	event := transformTransactionWithAttributes(t, map[string]interface{}{
 		"http.flavor": "1.1",
 	})
-	assert.Equal(t, "1.1", event.HTTP.Version)
+	assert.Equal(t, "1.1", event.Http.Version)
 }
 
 func TestHTTPTransactionUserAgent(t *testing.T) {
 	event := transformTransactionWithAttributes(t, map[string]interface{}{
 		"http.user_agent": "Foo/bar (baz)",
 	})
-	assert.Equal(t, model.UserAgent{Original: "Foo/bar (baz)"}, event.UserAgent)
+	assert.Equal(t, &modelpb.UserAgent{Original: "Foo/bar (baz)"}, event.UserAgent)
 }
 
 func TestHTTPTransactionClientIP(t *testing.T) {
@@ -423,15 +423,15 @@ func TestHTTPTransactionClientIP(t *testing.T) {
 		"net.peer.port":  5678,
 		"http.client_ip": "9.10.11.12",
 	})
-	assert.Equal(t, model.Source{IP: netip.MustParseAddr("1.2.3.4"), Port: 5678}, event.Source)
-	assert.Equal(t, model.Client{IP: netip.MustParseAddr("9.10.11.12")}, event.Client)
+	assert.Equal(t, &modelpb.Source{Ip: "1.2.3.4", Port: 5678}, event.Source)
+	assert.Equal(t, &modelpb.Client{Ip: "9.10.11.12"}, event.Client)
 }
 
 func TestHTTPTransactionStatusCode(t *testing.T) {
 	event := transformTransactionWithAttributes(t, map[string]interface{}{
 		"http.status_code": 200,
 	})
-	assert.Equal(t, 200, event.HTTP.Response.StatusCode)
+	assert.Equal(t, int32(200), event.Http.Response.StatusCode)
 }
 
 func TestDatabaseSpan(t *testing.T) {
@@ -454,28 +454,28 @@ func TestDatabaseSpan(t *testing.T) {
 	assert.Equal(t, "mysql", event.Span.Subtype)
 	assert.Equal(t, "", event.Span.Action)
 
-	assert.Equal(t, &model.DB{
+	assert.Equal(t, &modelpb.DB{
 		Instance:  "ShopDb",
 		Statement: dbStatement,
 		Type:      "mysql",
 		UserName:  "billing_user",
-	}, event.Span.DB)
+	}, event.Span.Db)
 
-	assert.Equal(t, model.Labels{
+	assert.Equal(t, modelpb.Labels{
 		"db_connection_string": {Value: connectionString},
 		"net_transport":        {Value: "IP.TCP"},
-	}, event.Labels)
+	}, modelpb.Labels(event.Labels))
 
-	assert.Equal(t, model.Destination{
+	assert.Equal(t, &modelpb.Destination{
 		Address: "shopdb.example.com",
 		Port:    3306,
 	}, event.Destination)
 
-	assert.Equal(t, &model.DestinationService{
+	assert.Empty(t, cmp.Diff(&modelpb.DestinationService{
 		Type:     "db",
 		Name:     "mysql",
 		Resource: "mysql",
-	}, event.Span.DestinationService)
+	}, event.Span.DestinationService, protocmp.Transform()))
 }
 
 func TestInstrumentationLibrary(t *testing.T) {
@@ -486,7 +486,7 @@ func TestInstrumentationLibrary(t *testing.T) {
 	otelSpan.SetTraceID(pcommon.TraceID{1})
 	otelSpan.SetSpanID(pcommon.SpanID{2})
 	events := transformTraces(t, traces)
-	event := events[0]
+	event := (*events)[0]
 
 	assert.Equal(t, "library-name", event.Service.Framework.Name)
 	assert.Equal(t, "1.2.3", event.Service.Framework.Version)
@@ -505,9 +505,9 @@ func TestRPCTransaction(t *testing.T) {
 	assert.Equal(t, "request", event.Transaction.Type)
 	assert.Equal(t, "Unavailable", event.Transaction.Result)
 	assert.Empty(t, event.Labels)
-	assert.Equal(t, model.Client{
+	assert.Equal(t, &modelpb.Client{
 		Domain: "peer_name",
-		IP:     netip.MustParseAddr("10.20.30.40"),
+		Ip:     "10.20.30.40",
 		Port:   123,
 	}, event.Client)
 }
@@ -524,15 +524,15 @@ func TestRPCSpan(t *testing.T) {
 	assert.Equal(t, "external", event.Span.Type)
 	assert.Equal(t, "grpc", event.Span.Subtype)
 	assert.Empty(t, event.Labels)
-	assert.Equal(t, model.Destination{
+	assert.Equal(t, &modelpb.Destination{
 		Address: "10.20.30.40",
 		Port:    123,
 	}, event.Destination)
-	assert.Equal(t, &model.DestinationService{
+	assert.Empty(t, cmp.Diff(&modelpb.DestinationService{
 		Type:     "external",
 		Name:     "10.20.30.40:123",
 		Resource: "10.20.30.40:123",
-	}, event.Span.DestinationService)
+	}, event.Span.DestinationService, protocmp.Transform()))
 }
 
 func TestMessagingTransaction(t *testing.T) {
@@ -547,7 +547,7 @@ func TestMessagingTransaction(t *testing.T) {
 	})
 	assert.Equal(t, "messaging", event.Transaction.Type)
 	assert.Empty(t, event.Labels)
-	assert.Equal(t, &model.Message{
+	assert.Equal(t, &modelpb.Message{
 		QueueName: "myQueue",
 	}, event.Transaction.Message)
 }
@@ -565,29 +565,29 @@ func TestMessagingSpan(t *testing.T) {
 	assert.Equal(t, "kafka", event.Span.Subtype)
 	assert.Equal(t, "send", event.Span.Action)
 	assert.Empty(t, event.Labels)
-	assert.Equal(t, model.Destination{
+	assert.Equal(t, &modelpb.Destination{
 		Address: "10.20.30.40",
 		Port:    123,
 	}, event.Destination)
-	assert.Equal(t, &model.DestinationService{
+	assert.Empty(t, cmp.Diff(&modelpb.DestinationService{
 		Type:     "messaging",
 		Name:     "kafka",
 		Resource: "kafka/myTopic",
-	}, event.Span.DestinationService)
+	}, event.Span.DestinationService, protocmp.Transform()))
 }
 
 func TestMessagingSpan_DestinationResource(t *testing.T) {
-	test := func(t *testing.T, expectedDestination model.Destination, expectedDestinationService *model.DestinationService, attrs map[string]interface{}) {
+	test := func(t *testing.T, expectedDestination *modelpb.Destination, expectedDestinationService *modelpb.DestinationService, attrs map[string]interface{}) {
 		t.Helper()
 		event := transformSpanWithAttributes(t, attrs)
-		assert.Equal(t, expectedDestination, event.Destination)
-		assert.Equal(t, expectedDestinationService, event.Span.DestinationService)
+		assert.Empty(t, cmp.Diff(expectedDestination, event.Destination, protocmp.Transform()))
+		assert.Empty(t, cmp.Diff(expectedDestinationService, event.Span.DestinationService, protocmp.Transform()))
 	}
 
 	t.Run("system_destination_peerservice_peeraddress", func(t *testing.T) {
-		test(t, model.Destination{
+		test(t, &modelpb.Destination{
 			Address: "127.0.0.1",
-		}, &model.DestinationService{
+		}, &modelpb.DestinationService{
 			Type:     "messaging",
 			Name:     "testsvc",
 			Resource: "127.0.0.1/testtopic",
@@ -599,7 +599,7 @@ func TestMessagingSpan_DestinationResource(t *testing.T) {
 		})
 	})
 	t.Run("system_destination_peerservice", func(t *testing.T) {
-		test(t, model.Destination{}, &model.DestinationService{
+		test(t, nil, &modelpb.DestinationService{
 			Type:     "messaging",
 			Name:     "testsvc",
 			Resource: "testsvc/testtopic",
@@ -610,7 +610,7 @@ func TestMessagingSpan_DestinationResource(t *testing.T) {
 		})
 	})
 	t.Run("system_destination", func(t *testing.T) {
-		test(t, model.Destination{}, &model.DestinationService{
+		test(t, nil, &modelpb.DestinationService{
 			Type:     "messaging",
 			Name:     "kafka",
 			Resource: "kafka/testtopic",
@@ -649,20 +649,20 @@ func TestSpanNetworkAttributes(t *testing.T) {
 	txEvent := transformTransactionWithAttributes(t, networkAttributes)
 	spanEvent := transformSpanWithAttributes(t, networkAttributes)
 
-	expected := model.Network{
-		Connection: model.NetworkConnection{
+	expected := modelpb.Network{
+		Connection: &modelpb.NetworkConnection{
 			Type:    "cell",
 			Subtype: "LTE",
 		},
-		Carrier: model.NetworkCarrier{
+		Carrier: &modelpb.NetworkCarrier{
 			Name: "Vodafone",
-			MNC:  "01",
-			MCC:  "101",
-			ICC:  "UK",
+			Mnc:  "01",
+			Mcc:  "101",
+			Icc:  "UK",
 		},
 	}
-	assert.Equal(t, expected, txEvent.Network)
-	assert.Equal(t, expected, spanEvent.Network)
+	assert.Equal(t, &expected, txEvent.Network)
+	assert.Equal(t, &expected, spanEvent.Network)
 }
 
 func TestSessionID(t *testing.T) {
@@ -672,11 +672,11 @@ func TestSessionID(t *testing.T) {
 	txEvent := transformTransactionWithAttributes(t, sessionAttributes)
 	spanEvent := transformSpanWithAttributes(t, sessionAttributes)
 
-	expected := model.Session{
-		ID: "opbeans-swift",
+	expected := modelpb.Session{
+		Id: "opbeans-swift",
 	}
-	assert.Equal(t, expected, txEvent.Session)
-	assert.Equal(t, expected, spanEvent.Session)
+	assert.Equal(t, &expected, txEvent.Session)
+	assert.Equal(t, &expected, spanEvent.Session)
 }
 
 func TestArrayLabels(t *testing.T) {
@@ -691,14 +691,14 @@ func TestArrayLabels(t *testing.T) {
 		"int_array":    intArray,
 		"float_array":  floatArray,
 	})
-	assert.Equal(t, model.Labels{
+	assert.Equal(t, modelpb.Labels{
 		"bool_array":   {Values: []string{"false", "true"}},
 		"string_array": {Values: []string{"string1", "string2"}},
-	}, txEvent.Labels)
-	assert.Equal(t, model.NumericLabels{
+	}, modelpb.Labels(txEvent.Labels))
+	assert.Equal(t, modelpb.NumericLabels{
 		"int_array":   {Values: []float64{1234, 5678}},
 		"float_array": {Values: []float64{1234.5678, 9123.234123123}},
-	}, txEvent.NumericLabels)
+	}, modelpb.NumericLabels(txEvent.NumericLabels))
 
 	spanEvent := transformSpanWithAttributes(t, map[string]interface{}{
 		"string_array": stringArray,
@@ -706,14 +706,14 @@ func TestArrayLabels(t *testing.T) {
 		"int_array":    intArray,
 		"float_array":  floatArray,
 	})
-	assert.Equal(t, model.Labels{
+	assert.Equal(t, modelpb.Labels{
 		"bool_array":   {Values: []string{"false", "true"}},
 		"string_array": {Values: []string{"string1", "string2"}},
-	}, spanEvent.Labels)
-	assert.Equal(t, model.NumericLabels{
+	}, modelpb.Labels(spanEvent.Labels))
+	assert.Equal(t, modelpb.NumericLabels{
 		"int_array":   {Values: []float64{1234, 5678}},
 		"float_array": {Values: []float64{1234.5678, 9123.234123123}},
-	}, spanEvent.NumericLabels)
+	}, modelpb.NumericLabels(spanEvent.NumericLabels))
 }
 
 func TestConsumeTracesExportTimestamp(t *testing.T) {
@@ -763,18 +763,18 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	otelSpanEvent.Attributes().PutStr("exception.stacktrace", "the_stacktrace")
 
 	batch := transformTraces(t, traces)
-	require.Len(t, batch, 3)
+	require.Len(t, *batch, 3)
 
 	// Give some leeway for one event, and check other events' timestamps relative to that one.
-	assert.InDelta(t, now.Add(transactionOffset).Unix(), batch[0].Timestamp.Unix(), allowedError)
-	assert.Equal(t, spanOffset-transactionOffset, batch[1].Timestamp.Sub(batch[0].Timestamp))
-	assert.Equal(t, exceptionOffset-transactionOffset, batch[2].Timestamp.Sub(batch[0].Timestamp))
+	assert.InDelta(t, now.Add(transactionOffset).Unix(), (*batch)[0].Timestamp.AsTime().Unix(), allowedError)
+	assert.Equal(t, spanOffset-transactionOffset, (*batch)[1].Timestamp.AsTime().Sub((*batch)[0].Timestamp.AsTime()))
+	assert.Equal(t, exceptionOffset-transactionOffset, (*batch)[2].Timestamp.AsTime().Sub((*batch)[0].Timestamp.AsTime()))
 
 	// Durations should be unaffected.
-	assert.Equal(t, transactionDuration, batch[0].Event.Duration)
-	assert.Equal(t, spanDuration, batch[1].Event.Duration)
+	assert.Equal(t, transactionDuration, (*batch)[0].GetEvent().GetDuration().AsDuration())
+	assert.Equal(t, spanDuration, (*batch)[1].GetEvent().GetDuration().AsDuration())
 
-	for _, b := range batch {
+	for _, b := range *batch {
 		// telemetry.sdk.elastic_export_timestamp should not be sent as a label.
 		assert.Empty(t, b.NumericLabels)
 	}
@@ -793,10 +793,10 @@ func TestSpanLinks(t *testing.T) {
 	spanEvent := transformTransactionWithAttributes(t, map[string]interface{}{}, func(span ptrace.Span) {
 		spanLink.CopyTo(span.Links().AppendEmpty())
 	})
-	for _, event := range []model.APMEvent{txEvent, spanEvent} {
-		assert.Equal(t, []model.SpanLink{{
-			Span:  model.Span{ID: "0706050403020100"},
-			Trace: model.Trace{ID: "000102030405060708090a0b0c0d0e0f"},
+	for _, event := range []*modelpb.APMEvent{txEvent, spanEvent} {
+		assert.Equal(t, []*modelpb.SpanLink{{
+			Span:  &modelpb.Span{Id: "0706050403020100"},
+			Trace: &modelpb.Trace{Id: "000102030405060708090a0b0c0d0e0f"},
 		}}, event.Span.Links)
 	}
 }
@@ -837,7 +837,7 @@ func TestConsumer_JaegerMetadata(t *testing.T) {
 		}),
 	}} {
 		t.Run(tc.name, func(t *testing.T) {
-			var batches []*model.Batch
+			var batches []*modelpb.Batch
 			recorder := batchRecorderBatchProcessor(&batches)
 			consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: recorder})
 
@@ -892,7 +892,7 @@ func TestConsumer_JaegerSampleRate(t *testing.T) {
 	}})
 	require.NoError(t, err)
 
-	var batches []*model.Batch
+	var batches []*modelpb.Batch
 	recorder := batchRecorderBatchProcessor(&batches)
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: recorder})
 	require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
@@ -911,7 +911,7 @@ func TestConsumer_JaegerSampleRate(t *testing.T) {
 }
 
 func TestConsumer_JaegerTraceID(t *testing.T) {
-	var batches []*model.Batch
+	var batches []*modelpb.Batch
 	recorder := batchRecorderBatchProcessor(&batches)
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: recorder})
 
@@ -929,8 +929,8 @@ func TestConsumer_JaegerTraceID(t *testing.T) {
 	require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
 
 	batch := *batches[0]
-	assert.Equal(t, "00000000000000000000000046467830", batch[0].Trace.ID)
-	assert.Equal(t, "00000000464678300000000046467830", batch[1].Trace.ID)
+	assert.Equal(t, "00000000000000000000000046467830", batch[0].Trace.Id)
+	assert.Equal(t, "00000000464678300000000046467830", batch[1].Trace.Id)
 }
 
 func TestConsumer_JaegerTransaction(t *testing.T) {
@@ -1048,7 +1048,7 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 			}})
 			require.NoError(t, err)
 
-			var batches []*model.Batch
+			var batches []*modelpb.Batch
 			recorder := batchRecorderBatchProcessor(&batches)
 			consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: recorder})
 			require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
@@ -1165,7 +1165,7 @@ func TestConsumer_JaegerSpan(t *testing.T) {
 			traces, err := jaegertranslator.ProtoToTraces([]*jaegermodel.Batch{batch})
 			require.NoError(t, err)
 
-			var batches []*model.Batch
+			var batches []*modelpb.Batch
 			recorder := batchRecorderBatchProcessor(&batches)
 			consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: recorder})
 			require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
@@ -1195,7 +1195,7 @@ func TestJaegerServiceVersion(t *testing.T) {
 	}})
 	require.NoError(t, err)
 
-	var batches []*model.Batch
+	var batches []*modelpb.Batch
 	recorder := batchRecorderBatchProcessor(&batches)
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: recorder})
 	require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
@@ -1223,13 +1223,13 @@ func TestTracesLogging(t *testing.T) {
 */
 
 func TestServiceTarget(t *testing.T) {
-	test := func(t *testing.T, expected *model.ServiceTarget, input map[string]interface{}) {
+	test := func(t *testing.T, expected *modelpb.ServiceTarget, input map[string]interface{}) {
 		t.Helper()
 		event := transformSpanWithAttributes(t, input)
-		assert.Equal(t, expected, event.Service.Target)
+		assert.Empty(t, cmp.Diff(expected, event.Service.Target, protocmp.Transform()))
 	}
 	t.Run("db_spans_with_peerservice_system", func(t *testing.T) {
-		test(t, &model.ServiceTarget{
+		test(t, &modelpb.ServiceTarget{
 			Type: "postgresql",
 			Name: "testsvc",
 		}, map[string]interface{}{
@@ -1239,7 +1239,7 @@ func TestServiceTarget(t *testing.T) {
 	})
 
 	t.Run("db_spans_with_peerservice_name_system", func(t *testing.T) {
-		test(t, &model.ServiceTarget{
+		test(t, &modelpb.ServiceTarget{
 			Type: "postgresql",
 			Name: "testdb",
 		}, map[string]interface{}{
@@ -1250,7 +1250,7 @@ func TestServiceTarget(t *testing.T) {
 	})
 
 	t.Run("db_spans_with_name", func(t *testing.T) {
-		test(t, &model.ServiceTarget{
+		test(t, &modelpb.ServiceTarget{
 			Type: "db",
 			Name: "testdb",
 		}, map[string]interface{}{
@@ -1259,7 +1259,7 @@ func TestServiceTarget(t *testing.T) {
 	})
 
 	t.Run("http_spans_with_peerservice_url", func(t *testing.T) {
-		test(t, &model.ServiceTarget{
+		test(t, &modelpb.ServiceTarget{
 			Name: "test-url:443",
 			Type: "http",
 		}, map[string]interface{}{
@@ -1269,7 +1269,7 @@ func TestServiceTarget(t *testing.T) {
 	})
 
 	t.Run("http_spans_with_scheme_host_target", func(t *testing.T) {
-		test(t, &model.ServiceTarget{
+		test(t, &modelpb.ServiceTarget{
 			Name: "test-url:443",
 			Type: "http",
 		}, map[string]interface{}{
@@ -1280,7 +1280,7 @@ func TestServiceTarget(t *testing.T) {
 	})
 
 	t.Run("http_spans_with_scheme_netpeername_netpeerport_target", func(t *testing.T) {
-		test(t, &model.ServiceTarget{
+		test(t, &modelpb.ServiceTarget{
 			Name: "test-url:443",
 			Type: "http",
 		}, map[string]interface{}{
@@ -1293,7 +1293,7 @@ func TestServiceTarget(t *testing.T) {
 	})
 
 	t.Run("http_spans_with_scheme_netpeerip_netpeerport_target", func(t *testing.T) {
-		test(t, &model.ServiceTarget{
+		test(t, &modelpb.ServiceTarget{
 			Name: "[::1]:443",
 			Type: "http",
 		}, map[string]interface{}{
@@ -1305,7 +1305,7 @@ func TestServiceTarget(t *testing.T) {
 	})
 
 	t.Run("rpc_spans_with_peerservice_system", func(t *testing.T) {
-		test(t, &model.ServiceTarget{
+		test(t, &modelpb.ServiceTarget{
 			Name: "testsvc",
 			Type: "grpc",
 		}, map[string]interface{}{
@@ -1315,7 +1315,7 @@ func TestServiceTarget(t *testing.T) {
 	})
 
 	t.Run("rpc_spans_with_peerservice_system_service", func(t *testing.T) {
-		test(t, &model.ServiceTarget{
+		test(t, &modelpb.ServiceTarget{
 			Name: "test",
 			Type: "grpc",
 		}, map[string]interface{}{
@@ -1326,7 +1326,7 @@ func TestServiceTarget(t *testing.T) {
 	})
 
 	t.Run("rpc_spans_with_service", func(t *testing.T) {
-		test(t, &model.ServiceTarget{
+		test(t, &modelpb.ServiceTarget{
 			Name: "test",
 			Type: "external",
 		}, map[string]interface{}{
@@ -1335,7 +1335,7 @@ func TestServiceTarget(t *testing.T) {
 	})
 
 	t.Run("messaging_spans_with_peerservice_system_destination", func(t *testing.T) {
-		test(t, &model.ServiceTarget{
+		test(t, &modelpb.ServiceTarget{
 			Name: "myTopic",
 			Type: "kafka",
 		}, map[string]interface{}{
@@ -1346,7 +1346,7 @@ func TestServiceTarget(t *testing.T) {
 	})
 
 	t.Run("messaging_spans_with_peerservice_system_destination_tempdestination", func(t *testing.T) {
-		test(t, &model.ServiceTarget{
+		test(t, &modelpb.ServiceTarget{
 			Name: "testsvc",
 			Type: "kafka",
 		}, map[string]interface{}{
@@ -1358,7 +1358,7 @@ func TestServiceTarget(t *testing.T) {
 	})
 
 	t.Run("messaging_spans_with_destination", func(t *testing.T) {
-		test(t, &model.ServiceTarget{
+		test(t, &modelpb.ServiceTarget{
 			Name: "myTopic",
 			Type: "messaging",
 		}, map[string]interface{}{
@@ -1458,14 +1458,14 @@ func testDuration() time.Duration {
 	return 79 * time.Second
 }
 
-func batchRecorderBatchProcessor(out *[]*model.Batch) model.BatchProcessor {
-	return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+func batchRecorderBatchProcessor(out *[]*modelpb.Batch) modelpb.BatchProcessor {
+	return modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
 		*out = append(*out, batch)
 		return nil
 	})
 }
 
-func encodeBatch(t testing.TB, batches ...*model.Batch) [][]byte {
+func encodeBatch(t testing.TB, batches ...*modelpb.Batch) [][]byte {
 	var docs [][]byte
 	for _, batch := range batches {
 		for _, event := range *batch {
@@ -1537,7 +1537,7 @@ func jaegerKeyValue(k string, v interface{}) jaegermodel.KeyValue {
 	return kv
 }
 
-func transformTransactionWithAttributes(t *testing.T, attrs map[string]interface{}, configFns ...func(ptrace.Span)) model.APMEvent {
+func transformTransactionWithAttributes(t *testing.T, attrs map[string]interface{}, configFns ...func(ptrace.Span)) *modelpb.APMEvent {
 	traces, spans := newTracesSpans()
 	otelSpan := spans.Spans().AppendEmpty()
 	otelSpan.SetTraceID(pcommon.TraceID{1})
@@ -1547,10 +1547,10 @@ func transformTransactionWithAttributes(t *testing.T, attrs map[string]interface
 	}
 	otelSpan.Attributes().FromRaw(attrs)
 	events := transformTraces(t, traces)
-	return events[0]
+	return (*events)[0]
 }
 
-func transformSpanWithAttributes(t *testing.T, attrs map[string]interface{}, configFns ...func(ptrace.Span)) model.APMEvent {
+func transformSpanWithAttributes(t *testing.T, attrs map[string]interface{}, configFns ...func(ptrace.Span)) *modelpb.APMEvent {
 	traces, spans := newTracesSpans()
 	otelSpan := spans.Spans().AppendEmpty()
 	otelSpan.SetTraceID(pcommon.TraceID{1})
@@ -1561,10 +1561,10 @@ func transformSpanWithAttributes(t *testing.T, attrs map[string]interface{}, con
 	}
 	otelSpan.Attributes().FromRaw(attrs)
 	events := transformTraces(t, traces)
-	return events[0]
+	return (*events)[0]
 }
 
-func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ...ptrace.SpanEvent) (transaction model.APMEvent, events []model.APMEvent) {
+func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ...ptrace.SpanEvent) (transaction *modelpb.APMEvent, events []*modelpb.APMEvent) {
 	traces, spans := newTracesSpans()
 	traces.ResourceSpans().At(0).Resource().Attributes().PutStr(semconv.AttributeTelemetrySDKLanguage, language)
 	otelSpan := spans.Spans().AppendEmpty()
@@ -1576,12 +1576,12 @@ func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ..
 
 	allEvents := transformTraces(t, traces)
 	require.NotEmpty(t, allEvents)
-	return allEvents[0], allEvents[1:]
+	return (*allEvents)[0], (*allEvents)[1:]
 }
 
-func transformTraces(t *testing.T, traces ptrace.Traces) model.Batch {
-	var processed model.Batch
-	processor := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+func transformTraces(t *testing.T, traces ptrace.Traces) *modelpb.Batch {
+	var processed modelpb.Batch
+	processor := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
 		if processed != nil {
 			panic("already processes batch")
 		}
@@ -1590,7 +1590,7 @@ func transformTraces(t *testing.T, traces ptrace.Traces) model.Batch {
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: processor})
 	require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
-	return processed
+	return &processed
 }
 
 func newTracesSpans() (ptrace.Traces, ptrace.ScopeSpans) {

@@ -44,8 +44,10 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // ConsumeMetrics consumes OpenTelemetry metrics data, converting into
@@ -57,8 +59,8 @@ func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) 
 	return c.config.Processor.ProcessBatch(ctx, batch)
 }
 
-func (c *Consumer) convertMetrics(metrics pmetric.Metrics, receiveTimestamp time.Time) *model.Batch {
-	batch := model.Batch{}
+func (c *Consumer) convertMetrics(metrics pmetric.Metrics, receiveTimestamp time.Time) *modelpb.Batch {
+	batch := modelpb.Batch{}
 	resourceMetrics := metrics.ResourceMetrics()
 	for i := 0; i < resourceMetrics.Len(); i++ {
 		c.convertResourceMetrics(resourceMetrics.At(i), receiveTimestamp, &batch)
@@ -66,8 +68,8 @@ func (c *Consumer) convertMetrics(metrics pmetric.Metrics, receiveTimestamp time
 	return &batch
 }
 
-func (c *Consumer) convertResourceMetrics(resourceMetrics pmetric.ResourceMetrics, receiveTimestamp time.Time, out *model.Batch) {
-	var baseEvent model.APMEvent
+func (c *Consumer) convertResourceMetrics(resourceMetrics pmetric.ResourceMetrics, receiveTimestamp time.Time, out *modelpb.Batch) {
+	var baseEvent modelpb.APMEvent
 	var timeDelta time.Duration
 	resource := resourceMetrics.Resource()
 	translateResourceMetadata(resource, &baseEvent)
@@ -76,15 +78,15 @@ func (c *Consumer) convertResourceMetrics(resourceMetrics pmetric.ResourceMetric
 	}
 	scopeMetrics := resourceMetrics.ScopeMetrics()
 	for i := 0; i < scopeMetrics.Len(); i++ {
-		c.convertScopeMetrics(scopeMetrics.At(i), baseEvent, timeDelta, out)
+		c.convertScopeMetrics(scopeMetrics.At(i), &baseEvent, timeDelta, out)
 	}
 }
 
 func (c *Consumer) convertScopeMetrics(
 	in pmetric.ScopeMetrics,
-	baseEvent model.APMEvent,
+	baseEvent *modelpb.APMEvent,
 	timeDelta time.Duration,
-	out *model.Batch,
+	out *modelpb.Batch,
 ) {
 	ms := make(metricsets)
 	otelMetrics := in.Metrics()
@@ -95,18 +97,18 @@ func (c *Consumer) convertScopeMetrics(
 		}
 	}
 	for key, ms := range ms {
-		event := baseEvent
-		event.Processor = model.MetricsetProcessor
-		event.Timestamp = key.timestamp.Add(timeDelta)
-		metrs := make([]model.MetricsetSample, 0, len(ms.samples))
+		event := proto.Clone(baseEvent).(*modelpb.APMEvent)
+		event.Processor = modelpb.MetricsetProcessor()
+		event.Timestamp = timestamppb.New(key.timestamp.Add(timeDelta))
+		metrs := make([]*modelpb.MetricsetSample, 0, len(ms.samples))
 		for _, s := range ms.samples {
 			metrs = append(metrs, s)
 		}
-		event.Metricset = &model.Metricset{Samples: metrs, Name: "app"}
+		event.Metricset = &modelpb.Metricset{Samples: metrs, Name: "app"}
 		if ms.attributes.Len() > 0 {
-			initEventLabels(&event)
+			initEventLabels(event)
 			ms.attributes.Range(func(k string, v pcommon.Value) bool {
-				setLabel(k, &event, ifaceAttributeValue(v))
+				setLabel(k, event, ifaceAttributeValue(v))
 				return true
 			})
 			if len(event.Labels) == 0 {
@@ -131,9 +133,9 @@ func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) bool {
 		dps := metric.Gauge().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
-			if sample, ok := numberSample(dp, model.MetricTypeGauge); ok {
+			if sample, ok := numberSample(dp, modelpb.MetricType_METRIC_TYPE_GAUGE); ok {
 				sample.Name = metric.Name()
-				ms.upsert(dp.Timestamp().AsTime(), dp.Attributes(), sample)
+				ms.upsert(dp.Timestamp().AsTime(), dp.Attributes(), &sample)
 			} else {
 				anyDropped = true
 			}
@@ -143,9 +145,9 @@ func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) bool {
 		dps := metric.Sum().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
-			if sample, ok := numberSample(dp, model.MetricTypeCounter); ok {
+			if sample, ok := numberSample(dp, modelpb.MetricType_METRIC_TYPE_COUNTER); ok {
 				sample.Name = metric.Name()
-				ms.upsert(dp.Timestamp().AsTime(), dp.Attributes(), sample)
+				ms.upsert(dp.Timestamp().AsTime(), dp.Attributes(), &sample)
 			} else {
 				anyDropped = true
 			}
@@ -177,7 +179,7 @@ func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) bool {
 	return !anyDropped
 }
 
-func numberSample(dp pmetric.NumberDataPoint, metricType model.MetricType) (model.MetricsetSample, bool) {
+func numberSample(dp pmetric.NumberDataPoint, metricType modelpb.MetricType) (modelpb.MetricsetSample, bool) {
 	var value float64
 	switch dp.ValueType() {
 	case pmetric.NumberDataPointValueTypeInt:
@@ -185,28 +187,28 @@ func numberSample(dp pmetric.NumberDataPoint, metricType model.MetricType) (mode
 	case pmetric.NumberDataPointValueTypeDouble:
 		value = dp.DoubleValue()
 		if math.IsNaN(value) || math.IsInf(value, 0) {
-			return model.MetricsetSample{}, false
+			return modelpb.MetricsetSample{}, false
 		}
 	default:
-		return model.MetricsetSample{}, false
+		return modelpb.MetricsetSample{}, false
 	}
-	return model.MetricsetSample{
+	return modelpb.MetricsetSample{
 		Type:  metricType,
 		Value: value,
 	}, true
 }
 
-func summarySample(dp pmetric.SummaryDataPoint) model.MetricsetSample {
-	return model.MetricsetSample{
-		Type: model.MetricTypeSummary,
-		SummaryMetric: model.SummaryMetric{
+func summarySample(dp pmetric.SummaryDataPoint) *modelpb.MetricsetSample {
+	return &modelpb.MetricsetSample{
+		Type: modelpb.MetricType_METRIC_TYPE_SUMMARY,
+		Summary: &modelpb.SummaryMetric{
 			Count: int64(dp.Count()),
 			Sum:   dp.Sum(),
 		},
 	}
 }
 
-func histogramSample(bucketCounts pcommon.UInt64Slice, explicitBounds pcommon.Float64Slice) (model.MetricsetSample, bool) {
+func histogramSample(bucketCounts pcommon.UInt64Slice, explicitBounds pcommon.Float64Slice) (*modelpb.MetricsetSample, bool) {
 	// (From opentelemetry-proto/opentelemetry/proto/metrics/v1/metrics.proto)
 	//
 	// This defines size(explicit_bounds) + 1 (= N) buckets. The boundaries for
@@ -219,7 +221,7 @@ func histogramSample(bucketCounts pcommon.UInt64Slice, explicitBounds pcommon.Fl
 	// The values in the explicit_bounds array must be strictly increasing.
 	//
 	if bucketCounts.Len() != explicitBounds.Len()+1 || explicitBounds.Len() == 0 {
-		return model.MetricsetSample{}, false
+		return &modelpb.MetricsetSample{}, false
 	}
 
 	// For the bucket values, we follow the approach described by Prometheus's
@@ -262,9 +264,9 @@ func histogramSample(bucketCounts pcommon.UInt64Slice, explicitBounds pcommon.Fl
 		counts = append(counts, int64(count))
 		values = append(values, value)
 	}
-	return model.MetricsetSample{
-		Type: model.MetricTypeHistogram,
-		Histogram: model.Histogram{
+	return &modelpb.MetricsetSample{
+		Type: modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
+		Histogram: &modelpb.Histogram{
 			Counts: counts,
 			Values: values,
 		},
@@ -280,19 +282,19 @@ type metricsetKey struct {
 
 type metricset struct {
 	attributes pcommon.Map
-	samples    map[string]model.MetricsetSample
+	samples    map[string]*modelpb.MetricsetSample
 }
 
 // upsert searches for an existing metricset with the given timestamp and labels,
 // and appends the sample to it. If there is no such existing metricset, a new one
 // is created.
-func (ms metricsets) upsert(timestamp time.Time, attributes pcommon.Map, sample model.MetricsetSample) {
+func (ms metricsets) upsert(timestamp time.Time, attributes pcommon.Map, sample *modelpb.MetricsetSample) {
 	// We always record metrics as they are given. We also copy some
 	// well-known OpenTelemetry metrics to their Elastic APM equivalents.
 	ms.upsertOne(timestamp, attributes, sample)
 }
 
-func (ms metricsets) upsertOne(timestamp time.Time, attributes pcommon.Map, sample model.MetricsetSample) {
+func (ms metricsets) upsertOne(timestamp time.Time, attributes pcommon.Map, sample *modelpb.MetricsetSample) {
 	var signatureBuilder strings.Builder
 	attributes.Range(func(k string, v pcommon.Value) bool {
 		signatureBuilder.WriteString(k)
@@ -305,7 +307,7 @@ func (ms metricsets) upsertOne(timestamp time.Time, attributes pcommon.Map, samp
 	if !ok {
 		m = metricset{
 			attributes: attributes,
-			samples:    make(map[string]model.MetricsetSample),
+			samples:    make(map[string]*modelpb.MetricsetSample),
 		}
 		ms[key] = m
 	}

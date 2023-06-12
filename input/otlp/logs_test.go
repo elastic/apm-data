@@ -36,24 +36,25 @@ package otlp_test
 
 import (
 	"context"
-	"net/netip"
 	"testing"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/testing/protocmp"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/otlp"
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 func TestConsumerConsumeLogs(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
-		var processor model.ProcessBatchFunc = func(_ context.Context, batch *model.Batch) error {
+		var processor modelpb.ProcessBatchFunc = func(_ context.Context, batch *modelpb.Batch) error {
 			assert.Empty(t, batch)
 			return nil
 		}
@@ -63,25 +64,25 @@ func TestConsumerConsumeLogs(t *testing.T) {
 		assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 	})
 
-	commonEvent := model.APMEvent{
-		Processor: model.LogProcessor,
-		Agent: model.Agent{
+	commonEvent := modelpb.APMEvent{
+		Processor: modelpb.LogProcessor(),
+		Agent: &modelpb.Agent{
 			Name:    "otlp/go",
 			Version: "unknown",
 		},
-		Service: model.Service{
+		Service: &modelpb.Service{
 			Name:     "unknown",
-			Language: model.Language{Name: "go"},
+			Language: &modelpb.Language{Name: "go"},
 		},
 		Message: "a random log message",
-		Event: model.Event{
+		Event: &modelpb.Event{
 			Severity: int64(plog.SeverityNumberInfo),
 		},
-		Log:           model.Log{Level: "Info"},
-		Span:          &model.Span{ID: "0200000000000000"},
-		Trace:         model.Trace{ID: "01000000000000000000000000000000"},
-		Labels:        model.Labels{},
-		NumericLabels: model.NumericLabels{},
+		Log:           &modelpb.Log{Level: "Info"},
+		Span:          &modelpb.Span{Id: "0200000000000000"},
+		Trace:         &modelpb.Trace{Id: "01000000000000000000000000000000"},
+		Labels:        modelpb.Labels{},
+		NumericLabels: modelpb.NumericLabels{},
 	}
 	test := func(name string, body interface{}, expectedMessage string) {
 		t.Run(name, func(t *testing.T) {
@@ -91,22 +92,22 @@ func TestConsumerConsumeLogs(t *testing.T) {
 			scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
 			newLogRecord(body).CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
-			var processed model.Batch
-			var processor model.ProcessBatchFunc = func(_ context.Context, batch *model.Batch) error {
+			var processed modelpb.Batch
+			var processor modelpb.ProcessBatchFunc = func(_ context.Context, batch *modelpb.Batch) error {
 				if processed != nil {
 					panic("already processes batch")
 				}
 				processed = *batch
 				assert.NotNil(t, processed[0].Timestamp)
-				processed[0].Timestamp = time.Time{}
+				processed[0].Timestamp = nil
 				return nil
 			}
 			consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: processor})
 			assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
-			expected := commonEvent
+			expected := proto.Clone(&commonEvent).(*modelpb.APMEvent)
 			expected.Message = expectedMessage
-			assert.Equal(t, model.Batch{expected}, processed)
+			assert.Empty(t, cmp.Diff(modelpb.Batch{expected}, processed, protocmp.Transform()))
 		})
 	}
 	test("string_body", "a random log message", "a random log message")
@@ -152,55 +153,56 @@ Caused by: LowLevelException
 	... 3 more`[1:])
 	record2.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
-	var processed model.Batch
-	var processor model.ProcessBatchFunc = func(_ context.Context, batch *model.Batch) error {
+	var processed modelpb.Batch
+	var processor modelpb.ProcessBatchFunc = func(_ context.Context, batch *modelpb.Batch) error {
 		if processed != nil {
 			panic("already processes batch")
 		}
 		processed = *batch
 		assert.NotNil(t, processed[0].Timestamp)
-		processed[0].Timestamp = time.Time{}
+		processed[0].Timestamp = nil
 		return nil
 	}
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: processor})
 	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
 	assert.Len(t, processed, 2)
-	assert.Equal(t, model.Labels{"key0": {Global: true, Value: "zero"}, "key1": {Value: "one"}}, processed[0].Labels)
+	assert.Equal(t, modelpb.Labels{"key0": {Global: true, Value: "zero"}, "key1": {Value: "one"}}, modelpb.Labels(processed[0].Labels))
 	assert.Empty(t, processed[0].NumericLabels)
-	out := cmp.Diff(model.APMEvent{
-		Service: model.Service{
+	processed[1].Timestamp = nil
+	out := cmp.Diff(&modelpb.APMEvent{
+		Service: &modelpb.Service{
 			Name: "unknown",
-			Language: model.Language{
+			Language: &modelpb.Language{
 				Name: "java",
 			},
 		},
-		Agent: model.Agent{
+		Agent: &modelpb.Agent{
 			Name:    "otlp/java",
 			Version: "unknown",
 		},
-		Event: model.Event{
+		Event: &modelpb.Event{
 			Severity: int64(plog.SeverityNumberInfo),
 			Kind:     "event",
 			Category: "device",
 			Type:     "error",
 		},
-		Labels:        model.Labels{"key0": {Global: true, Value: "zero"}},
-		NumericLabels: model.NumericLabels{},
-		Processor:     model.ErrorProcessor,
+		Labels:        modelpb.Labels{"key0": {Global: true, Value: "zero"}},
+		NumericLabels: modelpb.NumericLabels{},
+		Processor:     modelpb.ErrorProcessor(),
 		Message:       "bar",
-		Trace:         model.Trace{ID: "01000000000000000000000000000000"},
-		Span:          &model.Span{ID: "0200000000000000"},
-		Log: model.Log{
+		Trace:         &modelpb.Trace{Id: "01000000000000000000000000000000"},
+		Span:          &modelpb.Span{Id: "0200000000000000"},
+		Log: &modelpb.Log{
 			Level: "Info",
 		},
-		Error: &model.Error{
+		Error: &modelpb.Error{
 			Type: "crash",
-			Exception: &model.Exception{
+			Exception: &modelpb.Exception{
 				Type:    "HighLevelException",
 				Message: "MidLevelException: LowLevelException",
 				Handled: newBool(true),
-				Stacktrace: []*model.StacktraceFrame{{
+				Stacktrace: []*modelpb.StacktraceFrame{{
 					Classname: "Junk",
 					Function:  "a",
 					Filename:  "Junk.java",
@@ -211,10 +213,10 @@ Caused by: LowLevelException
 					Filename:  "Junk.java",
 					Lineno:    newUint32(4),
 				}},
-				Cause: []model.Exception{{
+				Cause: []*modelpb.Exception{{
 					Message: "MidLevelException: LowLevelException",
 					Handled: newBool(true),
-					Stacktrace: []*model.StacktraceFrame{{
+					Stacktrace: []*modelpb.StacktraceFrame{{
 						Classname: "Junk",
 						Function:  "c",
 						Filename:  "Junk.java",
@@ -235,10 +237,10 @@ Caused by: LowLevelException
 						Filename:  "Junk.java",
 						Lineno:    newUint32(4),
 					}},
-					Cause: []model.Exception{{
+					Cause: []*modelpb.Exception{{
 						Message: "LowLevelException",
 						Handled: newBool(true),
-						Stacktrace: []*model.StacktraceFrame{{
+						Stacktrace: []*modelpb.StacktraceFrame{{
 							Classname: "Junk",
 							Function:  "e",
 							Filename:  "Junk.java",
@@ -273,7 +275,10 @@ Caused by: LowLevelException
 				}},
 			},
 		},
-	}, processed[1], cmpopts.IgnoreFields(model.APMEvent{}, "Error.ID", "Timestamp"), cmpopts.IgnoreTypes(netip.Addr{}))
+	}, processed[1],
+		protocmp.Transform(),
+		protocmp.IgnoreFields(&modelpb.Error{}, "id"),
+	)
 	assert.Empty(t, out)
 }
 
@@ -290,14 +295,14 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 
 	record1.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
-	var processed model.Batch
-	var processor model.ProcessBatchFunc = func(_ context.Context, batch *model.Batch) error {
+	var processed modelpb.Batch
+	var processor modelpb.ProcessBatchFunc = func(_ context.Context, batch *modelpb.Batch) error {
 		if processed != nil {
 			panic("already processes batch")
 		}
 		processed = *batch
 		assert.NotNil(t, processed[0].Timestamp)
-		processed[0].Timestamp = time.Time{}
+		processed[0].Timestamp = timestamppb.New(time.Time{})
 		return nil
 	}
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: processor})
@@ -330,26 +335,26 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 	record3.Attributes().PutInt("key4", 4)
 	record3.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
-	var processed model.Batch
-	var processor model.ProcessBatchFunc = func(_ context.Context, batch *model.Batch) error {
+	var processed modelpb.Batch
+	var processor modelpb.ProcessBatchFunc = func(_ context.Context, batch *modelpb.Batch) error {
 		if processed != nil {
 			panic("already processes batch")
 		}
 		processed = *batch
 		assert.NotNil(t, processed[0].Timestamp)
-		processed[0].Timestamp = time.Time{}
+		processed[0].Timestamp = timestamppb.New(time.Time{})
 		return nil
 	}
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: processor})
 	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
 	assert.Len(t, processed, 3)
-	assert.Equal(t, model.Labels{"key0": {Global: true, Value: "zero"}, "key1": {Value: "one"}}, processed[0].Labels)
+	assert.Equal(t, modelpb.Labels{"key0": {Global: true, Value: "zero"}, "key1": {Value: "one"}}, modelpb.Labels(processed[0].Labels))
 	assert.Empty(t, processed[0].NumericLabels)
-	assert.Equal(t, model.Labels{"key0": {Global: true, Value: "zero"}}, processed[1].Labels)
-	assert.Equal(t, model.NumericLabels{"key2": {Value: 2}}, processed[1].NumericLabels)
-	assert.Equal(t, model.Labels{"key0": {Global: true, Value: "zero"}, "key3": {Value: "three"}}, processed[2].Labels)
-	assert.Equal(t, model.NumericLabels{"key4": {Value: 4}}, processed[2].NumericLabels)
+	assert.Equal(t, modelpb.Labels{"key0": {Global: true, Value: "zero"}}, modelpb.Labels(processed[1].Labels))
+	assert.Equal(t, modelpb.NumericLabels{"key2": {Value: 2}}, modelpb.NumericLabels(processed[1].NumericLabels))
+	assert.Equal(t, modelpb.Labels{"key0": {Global: true, Value: "zero"}, "key3": {Value: "three"}}, modelpb.Labels(processed[2].Labels))
+	assert.Equal(t, modelpb.NumericLabels{"key4": {Value: 4}}, modelpb.NumericLabels(processed[2].NumericLabels))
 }
 
 func newLogRecord(body interface{}) plog.LogRecord {

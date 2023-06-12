@@ -1430,7 +1430,7 @@ func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
 	// potentially in the actual attributes map?
 	spanStatus := ptrace.NewStatus()
 	spanStatus.SetCode(ptrace.StatusCodeUnset)
-	otlp.TranslateTransaction(m, spanStatus, scope, out)
+	otlp.TranslateTransactionOld(m, spanStatus, scope, out)
 
 	if out.Span.Kind == "" {
 		switch out.Transaction.Type {
@@ -1478,7 +1478,7 @@ func mapOTelAttributesSpan(from otel, out *model.APMEvent) {
 		}
 		out.Span.Kind = from.SpanKind.Val
 	}
-	otlp.TranslateSpan(spanKind, m, out)
+	otlp.TranslateSpanOld(spanKind, m, out)
 
 	if spanKind == ptrace.SpanKindUnspecified {
 		switch out.Span.Type {

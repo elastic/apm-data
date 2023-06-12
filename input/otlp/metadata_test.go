@@ -19,28 +19,29 @@ package otlp_test
 
 import (
 	"testing"
-	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/pdata/pcommon"
+	"google.golang.org/protobuf/testing/protocmp"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 func TestResourceConventions(t *testing.T) {
-	defaultAgent := model.Agent{Name: "otlp", Version: "unknown"}
-	defaultService := model.Service{
+	defaultAgent := modelpb.Agent{Name: "otlp", Version: "unknown"}
+	defaultService := modelpb.Service{
 		Name:     "unknown",
-		Language: model.Language{Name: "unknown"},
+		Language: &modelpb.Language{Name: "unknown"},
 	}
 
 	for name, test := range map[string]struct {
 		attrs    map[string]interface{}
-		expected model.APMEvent
+		expected *modelpb.APMEvent
 	}{
 		"empty": {
 			attrs:    nil,
-			expected: model.APMEvent{Agent: defaultAgent, Service: defaultService},
+			expected: &modelpb.APMEvent{Agent: &defaultAgent, Service: &defaultService},
 		},
 		"service": {
 			attrs: map[string]interface{}{
@@ -48,13 +49,13 @@ func TestResourceConventions(t *testing.T) {
 				"service.version":        "service_version",
 				"deployment.environment": "service_environment",
 			},
-			expected: model.APMEvent{
-				Agent: model.Agent{Name: "otlp", Version: "unknown"},
-				Service: model.Service{
+			expected: &modelpb.APMEvent{
+				Agent: &modelpb.Agent{Name: "otlp", Version: "unknown"},
+				Service: &modelpb.Service{
 					Name:        "service_name",
 					Version:     "service_version",
 					Environment: "service_environment",
-					Language:    model.Language{Name: "unknown"},
+					Language:    &modelpb.Language{Name: "unknown"},
 				},
 			},
 		},
@@ -64,11 +65,11 @@ func TestResourceConventions(t *testing.T) {
 				"telemetry.sdk.version":  "sdk_version",
 				"telemetry.sdk.language": "language_name",
 			},
-			expected: model.APMEvent{
-				Agent: model.Agent{Name: "sdk_name/language_name", Version: "sdk_version"},
-				Service: model.Service{
+			expected: &modelpb.APMEvent{
+				Agent: &modelpb.Agent{Name: "sdk_name/language_name", Version: "sdk_version"},
+				Service: &modelpb.Service{
 					Name:     "unknown",
-					Language: model.Language{Name: "language_name"},
+					Language: &modelpb.Language{Name: "language_name"},
 				},
 			},
 		},
@@ -77,12 +78,12 @@ func TestResourceConventions(t *testing.T) {
 				"process.runtime.name":    "runtime_name",
 				"process.runtime.version": "runtime_version",
 			},
-			expected: model.APMEvent{
-				Agent: model.Agent{Name: "otlp", Version: "unknown"},
-				Service: model.Service{
+			expected: &modelpb.APMEvent{
+				Agent: &modelpb.Agent{Name: "otlp", Version: "unknown"},
+				Service: &modelpb.Service{
 					Name:     "unknown",
-					Language: model.Language{Name: "unknown"},
-					Runtime: model.Runtime{
+					Language: &modelpb.Language{Name: "unknown"},
+					Runtime: &modelpb.Runtime{
 						Name:    "runtime_name",
 						Version: "runtime_version",
 					},
@@ -97,13 +98,13 @@ func TestResourceConventions(t *testing.T) {
 				"cloud.availability_zone": "availability_zone",
 				"cloud.platform":          "platform_name",
 			},
-			expected: model.APMEvent{
-				Agent:   defaultAgent,
-				Service: defaultService,
-				Cloud: model.Cloud{
+			expected: &modelpb.APMEvent{
+				Agent:   &defaultAgent,
+				Service: &defaultService,
+				Cloud: &modelpb.Cloud{
 					Provider:         "provider_name",
 					Region:           "region_name",
-					AccountID:        "account_id",
+					AccountId:        "account_id",
 					AvailabilityZone: "availability_zone",
 					ServiceName:      "platform_name",
 				},
@@ -117,12 +118,12 @@ func TestResourceConventions(t *testing.T) {
 				"container.image.tag":  "container_image_tag",
 				"container.runtime":    "container_runtime",
 			},
-			expected: model.APMEvent{
-				Agent:   defaultAgent,
-				Service: defaultService,
-				Container: model.Container{
+			expected: &modelpb.APMEvent{
+				Agent:   &defaultAgent,
+				Service: &defaultService,
+				Container: &modelpb.Container{
 					Name:      "container_name",
-					ID:        "container_id",
+					Id:        "container_id",
 					Runtime:   "container_runtime",
 					ImageName: "container_image_name",
 					ImageTag:  "container_image_tag",
@@ -136,14 +137,14 @@ func TestResourceConventions(t *testing.T) {
 				"k8s.pod.name":       "kubernetes_pod_name",
 				"k8s.pod.uid":        "kubernetes_pod_uid",
 			},
-			expected: model.APMEvent{
-				Agent:   defaultAgent,
-				Service: defaultService,
-				Kubernetes: model.Kubernetes{
+			expected: &modelpb.APMEvent{
+				Agent:   &defaultAgent,
+				Service: &defaultService,
+				Kubernetes: &modelpb.Kubernetes{
 					Namespace: "kubernetes_namespace",
 					NodeName:  "kubernetes_node_name",
 					PodName:   "kubernetes_pod_name",
-					PodUID:    "kubernetes_pod_uid",
+					PodUid:    "kubernetes_pod_uid",
 				},
 			},
 		},
@@ -154,12 +155,12 @@ func TestResourceConventions(t *testing.T) {
 				"host.type": "host_type",
 				"host.arch": "host_arch",
 			},
-			expected: model.APMEvent{
-				Agent:   defaultAgent,
-				Service: defaultService,
-				Host: model.Host{
+			expected: &modelpb.APMEvent{
+				Agent:   &defaultAgent,
+				Service: &defaultService,
+				Host: &modelpb.Host{
 					Hostname:     "host_name",
-					ID:           "host_id",
+					Id:           "host_id",
 					Type:         "host_type",
 					Architecture: "host_arch",
 				},
@@ -172,12 +173,12 @@ func TestResourceConventions(t *testing.T) {
 				"device.model.name":       "device_model_name",
 				"device.manufacturer":     "device_manufacturer",
 			},
-			expected: model.APMEvent{
-				Agent:   defaultAgent,
-				Service: defaultService,
-				Device: model.Device{
-					ID: "device_id",
-					Model: model.DeviceModel{
+			expected: &modelpb.APMEvent{
+				Agent:   &defaultAgent,
+				Service: &defaultService,
+				Device: &modelpb.Device{
+					Id: "device_id",
+					Model: &modelpb.DeviceModel{
 						Identifier: "device_model_identifier",
 						Name:       "device_model_name",
 					},
@@ -191,10 +192,10 @@ func TestResourceConventions(t *testing.T) {
 				"process.command_line":    "command_line",
 				"process.executable.path": "executable_path",
 			},
-			expected: model.APMEvent{
-				Agent:   defaultAgent,
-				Service: defaultService,
-				Process: model.Process{
+			expected: &modelpb.APMEvent{
+				Agent:   &defaultAgent,
+				Service: &defaultService,
+				Process: &modelpb.Process{
 					Pid:         123,
 					CommandLine: "command_line",
 					Executable:  "executable_path",
@@ -208,11 +209,11 @@ func TestResourceConventions(t *testing.T) {
 				"os.type":        "DARWIN",
 				"os.description": "Mac OS Mojave",
 			},
-			expected: model.APMEvent{
-				Agent:   defaultAgent,
-				Service: defaultService,
-				Host: model.Host{
-					OS: model.OS{
+			expected: &modelpb.APMEvent{
+				Agent:   &defaultAgent,
+				Service: &defaultService,
+				Host: &modelpb.Host{
+					Os: &modelpb.OS{
 						Name:     "macOS",
 						Version:  "10.14.6",
 						Platform: "darwin",
@@ -229,11 +230,11 @@ func TestResourceConventions(t *testing.T) {
 				"os.type":        "DARWIN",
 				"os.description": "iOS 15.6",
 			},
-			expected: model.APMEvent{
-				Agent:   defaultAgent,
-				Service: defaultService,
-				Host: model.Host{
-					OS: model.OS{
+			expected: &modelpb.APMEvent{
+				Agent:   &defaultAgent,
+				Service: &defaultService,
+				Host: &modelpb.Host{
+					Os: &modelpb.OS{
 						Name:     "iOS",
 						Version:  "15.6",
 						Platform: "darwin",
@@ -250,11 +251,11 @@ func TestResourceConventions(t *testing.T) {
 				"os.type":        "linux",
 				"os.description": "Android 13",
 			},
-			expected: model.APMEvent{
-				Agent:   defaultAgent,
-				Service: defaultService,
-				Host: model.Host{
-					OS: model.OS{
+			expected: &modelpb.APMEvent{
+				Agent:   &defaultAgent,
+				Service: &defaultService,
+				Host: &modelpb.Host{
+					Os: &modelpb.OS{
 						Name:     "Android",
 						Version:  "13",
 						Platform: "linux",
@@ -267,7 +268,7 @@ func TestResourceConventions(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			meta := transformResourceMetadata(t, test.attrs)
-			assert.Equal(t, test.expected, meta)
+			assert.Empty(t, cmp.Diff(test.expected, meta, protocmp.Transform()))
 		})
 	}
 }
@@ -277,15 +278,15 @@ func TestResourceLabels(t *testing.T) {
 		"string_array": []interface{}{"abc", "def"},
 		"int_array":    []interface{}{123, 456},
 	})
-	assert.Equal(t, model.Labels{
+	assert.Equal(t, modelpb.Labels{
 		"string_array": {Global: true, Values: []string{"abc", "def"}},
-	}, metadata.Labels)
-	assert.Equal(t, model.NumericLabels{
+	}, modelpb.Labels(metadata.Labels))
+	assert.Equal(t, modelpb.NumericLabels{
 		"int_array": {Global: true, Values: []float64{123, 456}},
-	}, metadata.NumericLabels)
+	}, modelpb.NumericLabels(metadata.NumericLabels))
 }
 
-func transformResourceMetadata(t *testing.T, resourceAttrs map[string]interface{}) model.APMEvent {
+func transformResourceMetadata(t *testing.T, resourceAttrs map[string]interface{}) *modelpb.APMEvent {
 	traces, spans := newTracesSpans()
 	//attrMap := pcommon.NewMap()
 	//attrMap.FromRaw(resourceAttrs)
@@ -295,10 +296,10 @@ func transformResourceMetadata(t *testing.T, resourceAttrs map[string]interface{
 	otelSpan.SetTraceID(pcommon.TraceID{1})
 	otelSpan.SetSpanID(pcommon.SpanID{2})
 	events := transformTraces(t, traces)
-	events[0].Transaction = nil
-	events[0].Trace = model.Trace{}
-	events[0].Event.Outcome = ""
-	events[0].Timestamp = time.Time{}
-	events[0].Processor = model.Processor{}
-	return events[0]
+	(*events)[0].Transaction = nil
+	(*events)[0].Trace = nil
+	(*events)[0].Event = nil
+	(*events)[0].Timestamp = nil
+	(*events)[0].Processor = nil
+	return (*events)[0]
 }

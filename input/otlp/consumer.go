@@ -20,7 +20,7 @@ package otlp
 import (
 	"sync/atomic"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
 )
@@ -29,7 +29,7 @@ import (
 type ConsumerConfig struct {
 	// Processor holds the model.BatchProcessor which will be invoked
 	// with event batches when consuming OTLP payloads.
-	Processor model.BatchProcessor
+	Processor modelpb.BatchProcessor
 
 	// Logger holds a logger for the consumer. If this is nil, then
 	// no logging will be performed.

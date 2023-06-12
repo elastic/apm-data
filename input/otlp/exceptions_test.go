@@ -35,19 +35,19 @@
 package otlp_test
 
 import (
-	"net/netip"
 	"testing"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
+	"google.golang.org/protobuf/testing/protocmp"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 func TestEncodeSpanEventsNonExceptions(t *testing.T) {
@@ -63,8 +63,8 @@ func TestEncodeSpanEventsNonExceptions(t *testing.T) {
 
 	_, events := transformTransactionSpanEvents(t, "java", nonExceptionEvent, incompleteExceptionEvent)
 	require.Len(t, events, 2)
-	assert.Equal(t, model.LogProcessor, events[0].Processor)
-	assert.Equal(t, model.LogProcessor, events[1].Processor)
+	assert.True(t, events[0].Processor.IsLog())
+	assert.True(t, events[1].Processor.IsLog())
 }
 
 func TestEncodeSpanEventsJavaExceptions(t *testing.T) {
@@ -111,26 +111,26 @@ Caused by: LowLevelException
 
 	service, agent := languageOnlyMetadata("java")
 	transactionEvent, errorEvents := transformTransactionSpanEvents(t, "java", exceptionEvent1, exceptionEvent2)
-	out := cmp.Diff([]model.APMEvent{{
+	out := cmp.Diff([]*modelpb.APMEvent{{
 		Service:       service,
 		Agent:         agent,
-		Timestamp:     timestamp,
-		Labels:        model.Labels{},
-		NumericLabels: model.NumericLabels{},
-		Processor:     model.ErrorProcessor,
+		Timestamp:     timestamppb.New(timestamp),
+		Labels:        modelpb.Labels{},
+		NumericLabels: modelpb.NumericLabels{},
+		Processor:     modelpb.ErrorProcessor(),
 		Trace:         transactionEvent.Trace,
-		Parent:        model.Parent{ID: transactionEvent.Transaction.ID},
-		Transaction: &model.Transaction{
-			ID:      transactionEvent.Transaction.ID,
+		Parent:        &modelpb.Parent{Id: transactionEvent.Transaction.Id},
+		Transaction: &modelpb.Transaction{
+			Id:      transactionEvent.Transaction.Id,
 			Type:    transactionEvent.Transaction.Type,
 			Sampled: true,
 		},
-		Error: &model.Error{
-			Exception: &model.Exception{
+		Error: &modelpb.Error{
+			Exception: &modelpb.Exception{
 				Type:    "java.net.ConnectException.OSError",
 				Message: "Division by zero",
 				Handled: newBool(false),
-				Stacktrace: []*model.StacktraceFrame{{
+				Stacktrace: []*modelpb.StacktraceFrame{{
 					Classname: "com.example.GenerateTrace",
 					Function:  "methodB",
 					Filename:  "GenerateTrace.java",
@@ -166,23 +166,23 @@ Caused by: LowLevelException
 	}, {
 		Service:       service,
 		Agent:         agent,
-		Timestamp:     timestamp,
-		Labels:        model.Labels{},
-		NumericLabels: model.NumericLabels{},
-		Processor:     model.ErrorProcessor,
+		Timestamp:     timestamppb.New(timestamp),
+		Labels:        modelpb.Labels{},
+		NumericLabels: modelpb.NumericLabels{},
+		Processor:     modelpb.ErrorProcessor(),
 		Trace:         transactionEvent.Trace,
-		Parent:        model.Parent{ID: transactionEvent.Transaction.ID},
-		Transaction: &model.Transaction{
-			ID:      transactionEvent.Transaction.ID,
+		Parent:        &modelpb.Parent{Id: transactionEvent.Transaction.Id},
+		Transaction: &modelpb.Transaction{
+			Id:      transactionEvent.Transaction.Id,
 			Type:    transactionEvent.Transaction.Type,
 			Sampled: true,
 		},
-		Error: &model.Error{
-			Exception: &model.Exception{
+		Error: &modelpb.Error{
+			Exception: &modelpb.Exception{
 				Type:    "HighLevelException",
 				Message: "MidLevelException: LowLevelException",
 				Handled: newBool(true),
-				Stacktrace: []*model.StacktraceFrame{{
+				Stacktrace: []*modelpb.StacktraceFrame{{
 					Classname: "Junk",
 					Function:  "a",
 					Filename:  "Junk.java",
@@ -193,10 +193,10 @@ Caused by: LowLevelException
 					Filename:  "Junk.java",
 					Lineno:    newUint32(4),
 				}},
-				Cause: []model.Exception{{
+				Cause: []*modelpb.Exception{{
 					Message: "MidLevelException: LowLevelException",
 					Handled: newBool(true),
-					Stacktrace: []*model.StacktraceFrame{{
+					Stacktrace: []*modelpb.StacktraceFrame{{
 						Classname: "Junk",
 						Function:  "c",
 						Filename:  "Junk.java",
@@ -217,10 +217,10 @@ Caused by: LowLevelException
 						Filename:  "Junk.java",
 						Lineno:    newUint32(4),
 					}},
-					Cause: []model.Exception{{
+					Cause: []*modelpb.Exception{{
 						Message: "LowLevelException",
 						Handled: newBool(true),
-						Stacktrace: []*model.StacktraceFrame{{
+						Stacktrace: []*modelpb.StacktraceFrame{{
 							Classname: "Junk",
 							Function:  "e",
 							Filename:  "Junk.java",
@@ -255,7 +255,10 @@ Caused by: LowLevelException
 				}},
 			},
 		},
-	}}, errorEvents, cmpopts.IgnoreFields(model.APMEvent{}, "Error.ID"), cmpopts.IgnoreTypes(netip.Addr{}))
+	}}, errorEvents,
+		protocmp.Transform(),
+		protocmp.IgnoreFields(&modelpb.Error{}, "id"),
+	)
 	require.Empty(t, out)
 }
 
@@ -321,40 +324,43 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 	require.Len(t, errorEvents, 1)
 
 	service, agent := languageOnlyMetadata("COBOL")
-	out := cmp.Diff(model.APMEvent{
+	out := cmp.Diff(&modelpb.APMEvent{
 		Service:       service,
 		Agent:         agent,
-		Timestamp:     timestamp,
-		Labels:        model.Labels{},
-		NumericLabels: model.NumericLabels{},
-		Processor:     model.ErrorProcessor,
+		Timestamp:     timestamppb.New(timestamp),
+		Labels:        modelpb.Labels{},
+		NumericLabels: modelpb.NumericLabels{},
+		Processor:     modelpb.ErrorProcessor(),
 		Trace:         transactionEvent.Trace,
-		Parent:        model.Parent{ID: transactionEvent.Transaction.ID},
-		Transaction: &model.Transaction{
-			ID:      transactionEvent.Transaction.ID,
+		Parent:        &modelpb.Parent{Id: transactionEvent.Transaction.Id},
+		Transaction: &modelpb.Transaction{
+			Id:      transactionEvent.Transaction.Id,
 			Type:    transactionEvent.Transaction.Type,
 			Sampled: true,
 		},
-		Error: &model.Error{
-			Exception: &model.Exception{
+		Error: &modelpb.Error{
+			Exception: &modelpb.Exception{
 				Type:    "the_type",
 				Message: "the_message",
 				Handled: newBool(true),
 			},
 			StackTrace: "the_stacktrace",
 		},
-	}, errorEvents[0], cmpopts.IgnoreFields(model.APMEvent{}, "Error.ID"), cmpopts.IgnoreTypes(netip.Addr{}))
+	}, errorEvents[0],
+		protocmp.Transform(),
+		protocmp.IgnoreFields(&modelpb.Error{}, "id"),
+	)
 	require.Empty(t, out)
 }
 
-func languageOnlyMetadata(language string) (model.Service, model.Agent) {
-	service := model.Service{
+func languageOnlyMetadata(language string) (*modelpb.Service, *modelpb.Agent) {
+	service := modelpb.Service{
 		Name:     "unknown",
-		Language: model.Language{Name: language},
+		Language: &modelpb.Language{Name: language},
 	}
-	agent := model.Agent{
+	agent := modelpb.Agent{
 		Name:    "otlp/" + language,
 		Version: "unknown",
 	}
-	return service, agent
+	return &service, &agent
 }
