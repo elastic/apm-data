@@ -23,22 +23,28 @@ import (
 	"github.com/elastic/apm-data/model"
 	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
+	"golang.org/x/sync/semaphore"
 )
 
 // ConsumerConfig holds configuration for Consumer.
 type ConsumerConfig struct {
+	// Logger holds a logger for the consumer. If this is nil, then
+	// no logging will be performed.
+	Logger *zap.Logger
+
 	// Processor holds the model.BatchProcessor which will be invoked
 	// with event batches when consuming OTLP payloads.
 	Processor model.BatchProcessor
 
-	// Logger holds a logger for the consumer. If this is nil, then
-	// no logging will be performed.
-	Logger *zap.Logger
+	// MaxConcurrency hold the maximum number of running exports that can run in parallel.
+	// The value is configured within the semaphore created on setup.
+	MaxConcurrency int64
 }
 
 // Consumer transforms OpenTelemetry data to the Elastic APM data model,
 // sending each payload as a batch to the configured BatchProcessor.
 type Consumer struct {
+	sem    *semaphore.Weighted
 	config ConsumerConfig
 	stats  consumerStats
 }
@@ -50,7 +56,10 @@ func NewConsumer(config ConsumerConfig) *Consumer {
 	} else {
 		config.Logger = config.Logger.Named("otel")
 	}
-	return &Consumer{config: config}
+	return &Consumer{
+		config: config,
+		sem:    semaphore.NewWeighted(config.MaxConcurrency),
+	}
 }
 
 // ConsumerStats holds a snapshot of statistics about data consumption.

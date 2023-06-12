@@ -116,6 +116,36 @@ func TestConsumerConsumeLogs(t *testing.T) {
 	// TODO(marclop): How to test map body
 }
 
+func TestConsumeLogsSemaphore(t *testing.T) {
+	logs := plog.NewLogs()
+	var batches []*model.Batch
+
+	doneCh := make(chan struct{})
+	recorder := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+		<-doneCh
+		batches = append(batches, batch)
+		return nil
+	})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor:      recorder,
+		MaxConcurrency: 1,
+	})
+
+	startCh := make(chan struct{})
+	go func() {
+		close(startCh)
+		assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
+	}()
+
+	<-startCh
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+	defer cancel()
+	assert.Equal(t, consumer.ConsumeLogs(ctx, logs).Error(), "context deadline exceeded")
+	close(doneCh)
+
+	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
+}
+
 func TestConsumerConsumeLogsException(t *testing.T) {
 	logs := plog.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()

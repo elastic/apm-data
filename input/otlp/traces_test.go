@@ -801,6 +801,37 @@ func TestSpanLinks(t *testing.T) {
 	}
 }
 
+func TestConsumeTracesSemaphore(t *testing.T) {
+	traces := ptrace.NewTraces()
+	var batches []*model.Batch
+
+	doneCh := make(chan struct{})
+	recorder := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+		<-doneCh
+		batches = append(batches, batch)
+		return nil
+	})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor:      recorder,
+		MaxConcurrency: 1,
+	})
+
+	startCh := make(chan struct{})
+	go func() {
+		close(startCh)
+		assert.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+	}()
+
+	<-startCh
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+	defer cancel()
+	err := consumer.ConsumeTraces(ctx, traces)
+	assert.Equal(t, err.Error(), "context deadline exceeded")
+	close(doneCh)
+
+	assert.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+}
+
 func TestConsumer_JaegerMetadata(t *testing.T) {
 	jaegerBatch := &jaegermodel.Batch{
 		Spans: []*jaegermodel.Span{{

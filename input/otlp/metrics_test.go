@@ -217,6 +217,36 @@ func TestConsumeMetrics(t *testing.T) {
 	eventsMatch(t, expected, events)
 }
 
+func TestConsumeMetricsSemaphore(t *testing.T) {
+	metrics := pmetric.NewMetrics()
+	var batches []*model.Batch
+
+	doneCh := make(chan struct{})
+	recorder := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+		<-doneCh
+		batches = append(batches, batch)
+		return nil
+	})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor:      recorder,
+		MaxConcurrency: 1,
+	})
+
+	startCh := make(chan struct{})
+	go func() {
+		close(startCh)
+		assert.NoError(t, consumer.ConsumeMetrics(context.Background(), metrics))
+	}()
+
+	<-startCh
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+	defer cancel()
+	assert.Equal(t, consumer.ConsumeMetrics(ctx, metrics).Error(), "context deadline exceeded")
+	close(doneCh)
+
+	assert.NoError(t, consumer.ConsumeMetrics(context.Background(), metrics))
+}
+
 func TestConsumeMetricsNaN(t *testing.T) {
 	timestamp := time.Unix(123, 0).UTC()
 	metrics := pmetric.NewMetrics()
