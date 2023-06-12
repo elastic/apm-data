@@ -73,12 +73,19 @@ type Processor struct {
 type Config struct {
 	// Semaphore holds a channel to which Processor.HandleStream
 	// will send an item before proceeding, to limit concurrency.
+	// Deprecated: use the MaxConcurrency value instead
 	Semaphore chan struct{}
+
 	// Logger holds a logger for the processor. If Logger is nil,
 	// then no logging will be performed.
 	Logger *zap.Logger
 	// MaxEventSize holds the maximum event size, in bytes.
 	MaxEventSize int
+
+	// MaxConcurrency hold the maximum number of running Processor.HandleStram
+	// that can run in parallel. The value is configured within the semaphore
+	// created on setup.
+	MaxConcurrency int64
 }
 
 // NewProcessor returns a new Processor for processing an event stream from
@@ -87,9 +94,15 @@ func NewProcessor(cfg Config) *Processor {
 	if cfg.Logger == nil {
 		cfg.Logger = zap.NewNop()
 	}
+
+	semaphore := cfg.Semaphore
+	if semaphore == nil {
+		semaphore = make(chan struct{}, cfg.MaxConcurrency)
+	}
+
 	return &Processor{
 		MaxEventSize: cfg.MaxEventSize,
-		sem:          cfg.Semaphore,
+		sem:          semaphore,
 		logger:       cfg.Logger,
 	}
 }

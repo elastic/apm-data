@@ -51,8 +51,8 @@ func TestHandleStreamReaderError(t *testing.T) {
 	}
 
 	sp := NewProcessor(Config{
-		MaxEventSize: 100 * 1024,
-		Semaphore:    make(chan struct{}, 1),
+		MaxEventSize:   100 * 1024,
+		MaxConcurrency: 1,
 	})
 
 	var actualResult Result
@@ -83,8 +83,8 @@ func TestHandleStreamBatchProcessorError(t *testing.T) {
 		err:  ErrQueueFull,
 	}} {
 		sp := NewProcessor(Config{
-			MaxEventSize: 100 * 1024,
-			Semaphore:    make(chan struct{}, 1),
+			MaxEventSize:   100 * 1024,
+			MaxConcurrency: 1,
 		})
 		processor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
 			return test.err
@@ -184,8 +184,8 @@ func TestHandleStreamErrors(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			var actualResult Result
 			p := NewProcessor(Config{
-				MaxEventSize: len(validMetadata) + 1,
-				Semaphore:    make(chan struct{}, 1),
+				MaxEventSize:   len(validMetadata) + 1,
+				MaxConcurrency: 1,
 			})
 			err := p.HandleStream(
 				context.Background(), false, model.APMEvent{},
@@ -219,8 +219,8 @@ func TestHandleStream(t *testing.T) {
 	}, "\n")
 
 	p := NewProcessor(Config{
-		MaxEventSize: 100 * 1024,
-		Semaphore:    make(chan struct{}, 1),
+		MaxEventSize:   100 * 1024,
+		MaxConcurrency: 1,
 	})
 	err := p.HandleStream(
 		context.Background(), false, model.APMEvent{},
@@ -257,8 +257,8 @@ func TestHandleStreamRUMv3(t *testing.T) {
 	}, "\n")
 
 	p := NewProcessor(Config{
-		MaxEventSize: 100 * 1024,
-		Semaphore:    make(chan struct{}, 1),
+		MaxEventSize:   100 * 1024,
+		MaxConcurrency: 1,
 	})
 	err := p.HandleStream(
 		context.Background(), false, model.APMEvent{},
@@ -305,8 +305,8 @@ func TestHandleStreamBaseEvent(t *testing.T) {
 
 	payload := validMetadata + "\n" + validRUMv2Span + "\n"
 	p := NewProcessor(Config{
-		MaxEventSize: 100 * 1024,
-		Semaphore:    make(chan struct{}, 1),
+		MaxEventSize:   100 * 1024,
+		MaxConcurrency: 1,
 	})
 	err := p.HandleStream(
 		context.Background(), false, baseEvent,
@@ -338,8 +338,8 @@ func TestLabelLeak(t *testing.T) {
 	})
 
 	p := NewProcessor(Config{
-		MaxEventSize: 100 * 1024,
-		Semaphore:    make(chan struct{}, 1),
+		MaxEventSize:   100 * 1024,
+		MaxConcurrency: 1,
 	})
 	var actualResult Result
 	err := p.HandleStream(context.Background(), false, baseEvent, strings.NewReader(payload), 10, batchProcessor, &actualResult)
@@ -378,8 +378,8 @@ func TestConcurrentAsync(t *testing.T) {
 		var wg sync.WaitGroup
 		var mu sync.Mutex
 		p := NewProcessor(Config{
-			MaxEventSize: 100 * 1024,
-			Semaphore:    make(chan struct{}, tc.sem),
+			MaxEventSize:   100 * 1024,
+			MaxConcurrency: int64(tc.sem),
 		})
 		if tc.fullSem {
 			for i := 0; i < tc.sem; i++ {
