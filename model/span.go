@@ -119,7 +119,9 @@ func (e *Span) toModelProtobuf(out *modelpb.Span) {
 	if !isZero(e.SelfTime) {
 		out.SelfTime = &modelpb.AggregatedDuration{
 			Count: int64(e.SelfTime.Count),
-			Sum:   durationpb.New(e.SelfTime.Sum),
+		}
+		if e.SelfTime.Sum != 0 {
+			out.SelfTime.Sum = durationpb.New(e.SelfTime.Sum)
 		}
 	}
 	if e.DB != nil {
