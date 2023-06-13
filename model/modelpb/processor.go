@@ -38,7 +38,7 @@ func SpanProcessor() *Processor {
 }
 
 func (p *Processor) IsSpan() bool {
-	return p.Name == spanProcessorName && p.Event == spanProcessorEvent
+	return p.GetName() == spanProcessorName && p.GetEvent() == spanProcessorEvent
 }
 
 func TransactionProcessor() *Processor {
@@ -49,7 +49,7 @@ func TransactionProcessor() *Processor {
 }
 
 func (p *Processor) IsTransaction() bool {
-	return p.Name == transactionProcessorName && p.Event == transactionProcessorEvent
+	return p.GetName() == transactionProcessorName && p.GetEvent() == transactionProcessorEvent
 }
 
 func ErrorProcessor() *Processor {
@@ -60,7 +60,7 @@ func ErrorProcessor() *Processor {
 }
 
 func (p *Processor) IsError() bool {
-	return p.Name == errorProcessorName && p.Event == errorProcessorEvent
+	return p.GetName() == errorProcessorName && p.GetEvent() == errorProcessorEvent
 }
 
 func LogProcessor() *Processor {
@@ -71,7 +71,7 @@ func LogProcessor() *Processor {
 }
 
 func (p *Processor) IsLog() bool {
-	return p.Name == logProcessorName && p.Event == logProcessorEvent
+	return p.GetName() == logProcessorName && p.GetEvent() == logProcessorEvent
 }
 
 func MetricsetProcessor() *Processor {
@@ -82,5 +82,5 @@ func MetricsetProcessor() *Processor {
 }
 
 func (p *Processor) IsMetricset() bool {
-	return p.Name == metricsetProcessorName && p.Event == metricsetProcessorEvent
+	return p.GetName() == metricsetProcessorName && p.GetEvent() == metricsetProcessorEvent
 }
