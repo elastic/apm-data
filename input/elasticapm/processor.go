@@ -34,6 +34,7 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/rumv3"
 	v2 "github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/v2"
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 var (
@@ -156,7 +157,7 @@ func (p *Processor) readBatch(
 	ctx context.Context,
 	baseEvent model.APMEvent,
 	batchSize int,
-	batch *model.Batch,
+	batch *modelpb.Batch,
 	reader *streamReader,
 	result *Result,
 ) (int, error) {
@@ -227,7 +228,7 @@ func (p *Processor) HandleStream(
 	baseEvent model.APMEvent,
 	reader io.Reader,
 	batchSize int,
-	processor model.BatchProcessor,
+	processor modelpb.BatchProcessor,
 	result *Result,
 ) error {
 	// Limit the number of concurrent batch decodes.
@@ -295,7 +296,7 @@ func (p *Processor) handleStream(
 	baseEvent model.APMEvent,
 	batchSize int,
 	sr *streamReader,
-	processor model.BatchProcessor,
+	processor modelpb.BatchProcessor,
 	result *Result,
 	first bool,
 ) (readErr error) {
@@ -319,8 +320,8 @@ func (p *Processor) handleStream(
 			}
 		}()
 	}
-	var batch model.Batch
-	if b, ok := p.batchPool.Get().(*model.Batch); ok {
+	var batch modelpb.Batch
+	if b, ok := p.batchPool.Get().(*modelpb.Batch); ok {
 		batch = (*b)[:0]
 	}
 	n, readErr = p.readBatch(ctx, baseEvent, batchSize, &batch, sr, result)
@@ -348,7 +349,7 @@ func (p *Processor) handleStream(
 }
 
 // processBatch processes the batch and returns it to the pool after it's been processed.
-func (p *Processor) processBatch(ctx context.Context, processor model.BatchProcessor, batch *model.Batch) error {
+func (p *Processor) processBatch(ctx context.Context, processor modelpb.BatchProcessor, batch *modelpb.Batch) error {
 	defer p.batchPool.Put(batch)
 	return processor.ProcessBatch(ctx, batch)
 }

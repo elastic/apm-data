@@ -36,6 +36,7 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 func TestResetTransactionOnRelease(t *testing.T) {
@@ -49,25 +50,25 @@ func TestResetTransactionOnRelease(t *testing.T) {
 
 func TestDecodeNestedTransaction(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
-		now := time.Now()
+		now := time.Now().UTC()
 		input := modeldecoder.Input{}
 		str := `{"transaction":{"duration":100,"timestamp":1599996822281000,"id":"100","trace_id":"1","type":"request","span_count":{"started":2}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 
-		var batch model.Batch
+		var batch modelpb.Batch
 		require.NoError(t, DecodeNestedTransaction(dec, &input, &batch))
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Transaction)
 		assert.Equal(t, "request", batch[0].Transaction.Type)
-		assert.Equal(t, "2020-09-13 11:33:42.281 +0000 UTC", batch[0].Timestamp.String())
+		assert.Equal(t, "2020-09-13 11:33:42.281 +0000 UTC", batch[0].Timestamp.AsTime().String())
 
 		input = modeldecoder.Input{Base: model.APMEvent{Timestamp: now}}
 		str = `{"transaction":{"duration":100,"id":"100","trace_id":"1","type":"request","span_count":{"started":2}}}`
 		dec = decoder.NewJSONDecoder(strings.NewReader(str))
-		batch = model.Batch{}
+		batch = modelpb.Batch{}
 		require.NoError(t, DecodeNestedTransaction(dec, &input, &batch))
 		// if no timestamp is provided, fall back to base event timestamp
-		assert.Equal(t, now, batch[0].Timestamp)
+		assert.Equal(t, now, batch[0].Timestamp.AsTime())
 
 		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &batch)
 		require.Error(t, err)
@@ -75,7 +76,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 	})
 
 	t.Run("validate", func(t *testing.T) {
-		var batch model.Batch
+		var batch modelpb.Batch
 		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &batch)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "validation")

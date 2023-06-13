@@ -22,13 +22,18 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/testing/protocmp"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 func TestResetMetricsetOnRelease(t *testing.T) {
@@ -49,11 +54,11 @@ func TestDecodeNestedMetricset(t *testing.T) {
 		input := modeldecoder.Input{Base: eventBase}
 		str := `{"metricset":{"timestamp":1599996822281000,"samples":{"a.b":{"value":2048}}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
-		var batch model.Batch
+		var batch modelpb.Batch
 		require.NoError(t, DecodeNestedMetricset(dec, &input, &batch))
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Metricset)
-		assert.Equal(t, []model.MetricsetSample{{Name: "a.b", Value: 2048}}, batch[0].Metricset.Samples)
+		assert.Equal(t, []*modelpb.MetricsetSample{{Name: "a.b", Value: 2048}}, batch[0].Metricset.Samples)
 		defaultVal.Update(time.Unix(1599996822, 281000000).UTC())
 		modeldecodertest.AssertStructValues(t, &batch[0], isMetadataException, defaultVal)
 
@@ -64,7 +69,7 @@ func TestDecodeNestedMetricset(t *testing.T) {
 	})
 
 	t.Run("validate", func(t *testing.T) {
-		var batch model.Batch
+		var batch modelpb.Batch
 		err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &batch)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "validation")
@@ -194,7 +199,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 }
 
 func TestDecodeMetricsetInternal(t *testing.T) {
-	var batch model.Batch
+	var batch modelpb.Batch
 
 	// There are no known metrics in the samples. Because "transaction" is set,
 	// the metricset will be omitted.
@@ -233,25 +238,25 @@ func TestDecodeMetricsetInternal(t *testing.T) {
 	}`)), &modeldecoder.Input{}, &batch)
 	require.NoError(t, err)
 
-	assert.Equal(t, model.Batch{{
-		Timestamp: time.Unix(0, 0).UTC(),
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+	assert.Empty(t, cmp.Diff(modelpb.Batch{{
+		Timestamp: timestamppb.New(time.Unix(0, 0).UTC()),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "span_breakdown",
 		},
-		Transaction: &model.Transaction{
+		Transaction: &modelpb.Transaction{
 			Name: "transaction_name",
 			Type: "transaction_type",
 		},
-		Span: &model.Span{
+		Span: &modelpb.Span{
 			Type:    "span_type",
 			Subtype: "span_subtype",
-			SelfTime: model.AggregatedDuration{
+			SelfTime: &modelpb.AggregatedDuration{
 				Count: 123,
-				Sum:   456 * time.Microsecond,
+				Sum:   durationpb.New(456 * time.Microsecond),
 			},
 		},
-	}}, batch)
+	}}, batch, protocmp.Transform()))
 }
 
 func TestDecodeMetricsetServiceName(t *testing.T) {
@@ -264,7 +269,7 @@ func TestDecodeMetricsetServiceName(t *testing.T) {
 			},
 		},
 	}
-	var batch model.Batch
+	var batch modelpb.Batch
 
 	err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`{
 		"metricset": {
@@ -288,29 +293,29 @@ func TestDecodeMetricsetServiceName(t *testing.T) {
 	}`)), input, &batch)
 	require.NoError(t, err)
 
-	assert.Equal(t, model.Batch{{
-		Timestamp: time.Unix(0, 0).UTC(),
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+	assert.Empty(t, cmp.Diff(modelpb.Batch{{
+		Timestamp: timestamppb.New(time.Unix(0, 0).UTC()),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "span_breakdown",
 		},
-		Service: model.Service{
+		Service: &modelpb.Service{
 			Name:        "ow_service_name",
 			Environment: "service_environment",
 		},
-		Transaction: &model.Transaction{
+		Transaction: &modelpb.Transaction{
 			Name: "transaction_name",
 			Type: "transaction_type",
 		},
-		Span: &model.Span{
+		Span: &modelpb.Span{
 			Type:    "span_type",
 			Subtype: "span_subtype",
-			SelfTime: model.AggregatedDuration{
+			SelfTime: &modelpb.AggregatedDuration{
 				Count: 123,
-				Sum:   456 * time.Microsecond,
+				Sum:   durationpb.New(456 * time.Microsecond),
 			},
 		},
-	}}, batch)
+	}}, batch, protocmp.Transform()))
 }
 
 func TestDecodeMetricsetServiceNameAndVersion(t *testing.T) {
@@ -323,7 +328,7 @@ func TestDecodeMetricsetServiceNameAndVersion(t *testing.T) {
 			},
 		},
 	}
-	var batch model.Batch
+	var batch modelpb.Batch
 
 	err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`{
 		"metricset": {
@@ -348,30 +353,30 @@ func TestDecodeMetricsetServiceNameAndVersion(t *testing.T) {
 	}`)), input, &batch)
 	require.NoError(t, err)
 
-	assert.Equal(t, model.Batch{{
-		Timestamp: time.Unix(0, 0).UTC(),
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+	assert.Empty(t, cmp.Diff(modelpb.Batch{{
+		Timestamp: timestamppb.New(time.Unix(0, 0).UTC()),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "span_breakdown",
 		},
-		Service: model.Service{
+		Service: &modelpb.Service{
 			Name:        "ow_service_name",
 			Version:     "ow_service_version",
 			Environment: "service_environment",
 		},
-		Transaction: &model.Transaction{
+		Transaction: &modelpb.Transaction{
 			Name: "transaction_name",
 			Type: "transaction_type",
 		},
-		Span: &model.Span{
+		Span: &modelpb.Span{
 			Type:    "span_type",
 			Subtype: "span_subtype",
-			SelfTime: model.AggregatedDuration{
+			SelfTime: &modelpb.AggregatedDuration{
 				Count: 123,
-				Sum:   456 * time.Microsecond,
+				Sum:   durationpb.New(456 * time.Microsecond),
 			},
 		},
-	}}, batch)
+	}}, batch, protocmp.Transform()))
 }
 
 func TestDecodeMetricsetServiceVersion(t *testing.T) {
@@ -384,7 +389,7 @@ func TestDecodeMetricsetServiceVersion(t *testing.T) {
 			},
 		},
 	}
-	var batch model.Batch
+	var batch modelpb.Batch
 
 	err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`{
 		"metricset": {
@@ -408,30 +413,30 @@ func TestDecodeMetricsetServiceVersion(t *testing.T) {
 	}`)), input, &batch)
 	require.NoError(t, err)
 
-	assert.Equal(t, model.Batch{{
-		Timestamp: time.Unix(0, 0).UTC(),
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+	assert.Empty(t, cmp.Diff(modelpb.Batch{{
+		Timestamp: timestamppb.New(time.Unix(0, 0).UTC()),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "span_breakdown",
 		},
-		Service: model.Service{
+		Service: &modelpb.Service{
 			Name:        "service_name",
 			Version:     "service_version",
 			Environment: "service_environment",
 		},
-		Transaction: &model.Transaction{
+		Transaction: &modelpb.Transaction{
 			Name: "transaction_name",
 			Type: "transaction_type",
 		},
-		Span: &model.Span{
+		Span: &modelpb.Span{
 			Type:    "span_type",
 			Subtype: "span_subtype",
-			SelfTime: model.AggregatedDuration{
+			SelfTime: &modelpb.AggregatedDuration{
 				Count: 123,
-				Sum:   456 * time.Microsecond,
+				Sum:   durationpb.New(456 * time.Microsecond),
 			},
 		},
-	}}, batch)
+	}}, batch, protocmp.Transform()))
 }
 
 func repeatInt64(v int64, n int) []int64 {

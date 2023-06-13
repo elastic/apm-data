@@ -34,6 +34,7 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 func TestResetSpanOnRelease(t *testing.T) {
@@ -52,7 +53,7 @@ func TestDecodeNestedSpan(t *testing.T) {
 		input := modeldecoder.Input{Base: eventBase}
 		str := `{"span":{"duration":100,"id":"a-b-c","name":"s","parent_id":"parent-123","trace_id":"trace-ab","type":"db","start":143}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
-		var batch model.Batch
+		var batch modelpb.Batch
 		require.NoError(t, DecodeNestedSpan(dec, &input, &batch))
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Span)
@@ -65,7 +66,7 @@ func TestDecodeNestedSpan(t *testing.T) {
 	})
 
 	t.Run("validate", func(t *testing.T) {
-		var batch model.Batch
+		var batch modelpb.Batch
 		err := DecodeNestedSpan(decoder.NewJSONDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &batch)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "validation")

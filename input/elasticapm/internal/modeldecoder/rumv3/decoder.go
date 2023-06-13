@@ -31,6 +31,7 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecoderutil"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 var (
@@ -95,7 +96,7 @@ func DecodeNestedMetadata(d decoder.Decoder, out *model.APMEvent) error {
 // DecodeNestedError decodes an error from d, appending it to batch.
 //
 // DecodeNestedError should be used when the stream in the decoder contains the `error` key
-func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *model.Batch) error {
+func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
 	root := fetchErrorRoot()
 	defer releaseErrorRoot(root)
 	if err := d.Decode(root); err != nil && err != io.EOF {
@@ -106,7 +107,9 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *mode
 	}
 	event := input.Base
 	mapToErrorModel(&root.Error, &event)
-	*batch = append(*batch, event)
+	var out modelpb.APMEvent
+	event.ToModelProtobuf(&out)
+	*batch = append(*batch, &out)
 	return nil
 }
 
@@ -114,7 +117,7 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *mode
 // metricsets, appending them to batch.
 //
 // DecodeNestedTransaction should be used when the decoder contains the `transaction` key
-func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch *model.Batch) error {
+func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
 	root := fetchTransactionRoot()
 	defer releaseTransactionRoot(root)
 	if err := d.Decode(root); err != nil && err != io.EOF {
@@ -126,7 +129,9 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 
 	transaction := input.Base
 	mapToTransactionModel(&root.Transaction, &transaction)
-	*batch = append(*batch, transaction)
+	var out modelpb.APMEvent
+	transaction.ToModelProtobuf(&out)
+	*batch = append(*batch, &out)
 
 	for _, m := range root.Transaction.Metricsets {
 		event := input.Base
@@ -135,7 +140,9 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 			Type: transaction.Transaction.Type,
 		}
 		if mapToTransactionMetricsetModel(&m, &event) {
-			*batch = append(*batch, event)
+			var out modelpb.APMEvent
+			event.ToModelProtobuf(&out)
+			*batch = append(*batch, &out)
 		}
 	}
 
@@ -146,12 +153,14 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 		event.Transaction = &model.Transaction{ID: transaction.Transaction.ID}
 		event.Parent.ID = transaction.Transaction.ID // may be overridden later
 		event.Trace = transaction.Trace
-		*batch = append(*batch, event)
+		var out modelpb.APMEvent
+		event.ToModelProtobuf(&out)
+		*batch = append(*batch, &out)
 	}
 	spans := (*batch)[offset:]
 	for i, s := range root.Transaction.Spans {
 		if s.ParentIndex.IsSet() && s.ParentIndex.Val >= 0 && s.ParentIndex.Val < len(spans) {
-			spans[i].Parent.ID = spans[s.ParentIndex.Val].Span.ID
+			spans[i].Parent.Id = spans[s.ParentIndex.Val].Span.Id
 		}
 	}
 	return nil

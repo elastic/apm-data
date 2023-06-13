@@ -36,6 +36,7 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
@@ -153,7 +154,7 @@ func DecodeNestedMetadata(d decoder.Decoder, out *model.APMEvent) error {
 // DecodeNestedError decodes an error from d, appending it to batch.
 //
 // DecodeNestedError should be used when the stream in the decoder contains the `error` key
-func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *model.Batch) error {
+func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
 	root := fetchErrorRoot()
 	defer releaseErrorRoot(root)
 	err := d.Decode(root)
@@ -165,14 +166,16 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *mode
 	}
 	event := input.Base
 	mapToErrorModel(&root.Error, &event)
-	*batch = append(*batch, event)
+	var out modelpb.APMEvent
+	event.ToModelProtobuf(&out)
+	*batch = append(*batch, &out)
 	return err
 }
 
 // DecodeNestedMetricset decodes a metricset from d, appending it to batch.
 //
 // DecodeNestedMetricset should be used when the stream in the decoder contains the `metricset` key
-func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, batch *model.Batch) error {
+func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
 	root := fetchMetricsetRoot()
 	defer releaseMetricsetRoot(root)
 	var err error
@@ -184,7 +187,9 @@ func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, batch *
 	}
 	event := input.Base
 	if mapToMetricsetModel(&root.Metricset, &event) {
-		*batch = append(*batch, event)
+		var out modelpb.APMEvent
+		event.ToModelProtobuf(&out)
+		*batch = append(*batch, &out)
 	}
 	return err
 }
@@ -192,7 +197,7 @@ func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, batch *
 // DecodeNestedSpan decodes a span from d, appending it to batch.
 //
 // DecodeNestedSpan should be used when the stream in the decoder contains the `span` key
-func DecodeNestedSpan(d decoder.Decoder, input *modeldecoder.Input, batch *model.Batch) error {
+func DecodeNestedSpan(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
 	root := fetchSpanRoot()
 	defer releaseSpanRoot(root)
 	var err error
@@ -204,14 +209,16 @@ func DecodeNestedSpan(d decoder.Decoder, input *modeldecoder.Input, batch *model
 	}
 	event := input.Base
 	mapToSpanModel(&root.Span, &event)
-	*batch = append(*batch, event)
+	var out modelpb.APMEvent
+	event.ToModelProtobuf(&out)
+	*batch = append(*batch, &out)
 	return err
 }
 
 // DecodeNestedTransaction decodes a transaction from d, appending it to batch.
 //
 // DecodeNestedTransaction should be used when the stream in the decoder contains the `transaction` key
-func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch *model.Batch) error {
+func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
 	root := fetchTransactionRoot()
 	defer releaseTransactionRoot(root)
 	var err error
@@ -223,14 +230,16 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 	}
 	event := input.Base
 	mapToTransactionModel(&root.Transaction, &event)
-	*batch = append(*batch, event)
+	var out modelpb.APMEvent
+	event.ToModelProtobuf(&out)
+	*batch = append(*batch, &out)
 	return err
 }
 
 // DecodeNestedLog decodes a log event from d, appending it to batch.
 //
 // DecodeNestedLog should be used when the stream in the decoder contains the `log` key
-func DecodeNestedLog(d decoder.Decoder, input *modeldecoder.Input, batch *model.Batch) error {
+func DecodeNestedLog(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
 	root := fetchLogRoot()
 	defer releaseLogRoot(root)
 	var err error
@@ -246,7 +255,9 @@ func DecodeNestedLog(d decoder.Decoder, input *modeldecoder.Input, batch *model.
 	}
 	event := input.Base
 	mapToLogModel(&root.Log, &event)
-	*batch = append(*batch, event)
+	var out modelpb.APMEvent
+	event.ToModelProtobuf(&out)
+	*batch = append(*batch, &out)
 	return err
 }
 

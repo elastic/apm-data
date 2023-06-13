@@ -24,13 +24,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 func TestResetTransactionOnRelease(t *testing.T) {
@@ -44,13 +47,13 @@ func TestResetTransactionOnRelease(t *testing.T) {
 
 func TestDecodeNestedTransaction(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
-		now := time.Now()
+		now := time.Now().UTC()
 		eventBase := initializedMetadata()
 		eventBase.Timestamp = now
 		input := modeldecoder.Input{Base: eventBase}
 		str := `{"x":{"n":"tr-a","d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"y":[{"n":"a","d":10,"t":"http","id":"123","s":20}],"me":[{"sa":{"ysc":{"v":5}},"y":{"t":"span_type","su":"span_subtype"}}]}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
-		var batch model.Batch
+		var batch modelpb.Batch
 		require.NoError(t, DecodeNestedTransaction(dec, &input, &batch))
 		require.Len(t, batch, 3) // 1 transaction, 1 metricset, 1 span
 		require.NotNil(t, batch[0].Transaction)
@@ -59,30 +62,30 @@ func TestDecodeNestedTransaction(t *testing.T) {
 
 		assert.Equal(t, "request", batch[0].Transaction.Type)
 		// fall back to request time
-		assert.Equal(t, now, batch[0].Timestamp)
+		assert.Equal(t, now, batch[0].Timestamp.AsTime())
 
 		// Ensure nested metricsets are decoded. RUMv3 only sends
 		// breakdown metrics, so the Metricsets will be empty and
 		// metrics will be recorded on the Transaction and Span
 		// fields.
-		assert.Equal(t, &model.Metricset{}, batch[1].Metricset)
-		assert.Equal(t, &model.Transaction{
+		assert.Empty(t, cmp.Diff(&modelpb.Metricset{}, batch[1].Metricset, protocmp.Transform()))
+		assert.Empty(t, cmp.Diff(&modelpb.Transaction{
 			Name: "tr-a",
 			Type: "request",
-		}, batch[1].Transaction)
-		assert.Equal(t, &model.Span{
+		}, batch[1].Transaction, protocmp.Transform()))
+		assert.Empty(t, cmp.Diff(&modelpb.Span{
 			Type:     "span_type",
 			Subtype:  "span_subtype",
-			SelfTime: model.AggregatedDuration{Count: 5},
-		}, batch[1].Span)
-		assert.Equal(t, now, batch[1].Timestamp)
+			SelfTime: &modelpb.AggregatedDuration{Count: 5},
+		}, batch[1].Span, protocmp.Transform()))
+		assert.Equal(t, now, batch[1].Timestamp.AsTime())
 
 		// ensure nested spans are decoded
 		start := time.Duration(20 * 1000 * 1000)
-		assert.Equal(t, now.Add(start), batch[2].Timestamp) // add start to timestamp
-		assert.Equal(t, "100", batch[2].Transaction.ID)
-		assert.Equal(t, "1", batch[2].Trace.ID)
-		assert.Equal(t, "100", batch[2].Parent.ID)
+		assert.Equal(t, now.Add(start), batch[2].Timestamp.AsTime()) // add start to timestamp
+		assert.Equal(t, "100", batch[2].Transaction.Id)
+		assert.Equal(t, "1", batch[2].Trace.Id)
+		assert.Equal(t, "100", batch[2].Parent.Id)
 
 		for _, event := range batch {
 			modeldecodertest.AssertStructValues(
@@ -103,46 +106,52 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		input := modeldecoder.Input{Base: eventBase}
 		str := `{"x":{"d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"k":{"a":{"dc":0.1,"di":0.2,"ds":0.3,"de":0.4,"fb":0.5,"fp":0.6,"lp":0.7,"long":0.8},"nt":{"fs":0.1,"ls":0.2,"le":0.3,"cs":0.4,"ce":0.5,"qs":0.6,"rs":0.7,"re":0.8,"dl":0.9,"di":0.11,"ds":0.21,"de":0.31,"dc":0.41,"es":0.51,"ee":6,"long":0.99},"long":{"long":0.1}}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
-		var batch model.Batch
+		var batch modelpb.Batch
 		require.NoError(t, DecodeNestedTransaction(dec, &input, &batch))
-		marks := model.TransactionMarks{
-			"agent": map[string]float64{
-				"domComplete":                0.1,
-				"domInteractive":             0.2,
-				"domContentLoadedEventStart": 0.3,
-				"domContentLoadedEventEnd":   0.4,
-				"timeToFirstByte":            0.5,
-				"firstContentfulPaint":       0.6,
-				"largestContentfulPaint":     0.7,
-				"long":                       0.8,
+		marks := map[string]*modelpb.TransactionMark{
+			"agent": {
+				Measurements: map[string]float64{
+					"domComplete":                0.1,
+					"domInteractive":             0.2,
+					"domContentLoadedEventStart": 0.3,
+					"domContentLoadedEventEnd":   0.4,
+					"timeToFirstByte":            0.5,
+					"firstContentfulPaint":       0.6,
+					"largestContentfulPaint":     0.7,
+					"long":                       0.8,
+				},
 			},
-			"navigationTiming": map[string]float64{
-				"fetchStart":                 0.1,
-				"domainLookupStart":          0.2,
-				"domainLookupEnd":            0.3,
-				"connectStart":               0.4,
-				"connectEnd":                 0.5,
-				"requestStart":               0.6,
-				"responseStart":              0.7,
-				"responseEnd":                0.8,
-				"domLoading":                 0.9,
-				"domInteractive":             0.11,
-				"domContentLoadedEventStart": 0.21,
-				"domContentLoadedEventEnd":   0.31,
-				"domComplete":                0.41,
-				"loadEventStart":             0.51,
-				"loadEventEnd":               6,
-				"long":                       0.99,
+			"navigationTiming": {
+				Measurements: map[string]float64{
+					"fetchStart":                 0.1,
+					"domainLookupStart":          0.2,
+					"domainLookupEnd":            0.3,
+					"connectStart":               0.4,
+					"connectEnd":                 0.5,
+					"requestStart":               0.6,
+					"responseStart":              0.7,
+					"responseEnd":                0.8,
+					"domLoading":                 0.9,
+					"domInteractive":             0.11,
+					"domContentLoadedEventStart": 0.21,
+					"domContentLoadedEventEnd":   0.31,
+					"domComplete":                0.41,
+					"loadEventStart":             0.51,
+					"loadEventEnd":               6,
+					"long":                       0.99,
+				},
 			},
-			"long": map[string]float64{
-				"long": 0.1,
+			"long": {
+				Measurements: map[string]float64{
+					"long": 0.1,
+				},
 			},
 		}
 		assert.Equal(t, marks, batch[0].Transaction.Marks)
 	})
 
 	t.Run("validate", func(t *testing.T) {
-		var batch model.Batch
+		var batch modelpb.Batch
 		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &batch)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "validation")
