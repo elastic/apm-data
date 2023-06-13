@@ -17,7 +17,10 @@
 
 package model
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modelpb"
+	"google.golang.org/protobuf/types/known/structpb"
+)
 
 var (
 	// ErrorProcessor is the Processor value that should be assigned to error events.
@@ -62,63 +65,69 @@ type ErrorLog struct {
 	Stacktrace   Stacktrace
 }
 
-func (e *Error) toModelJSON(out *modeljson.Error) {
-	*out = modeljson.Error{
-		ID:          e.ID,
+func (e *Error) toModelProtobuf(out *modelpb.Error) {
+	*out = modelpb.Error{
+		Id:          e.ID,
 		GroupingKey: e.GroupingKey,
 		Culprit:     e.Culprit,
 		Message:     e.Message,
 		Type:        e.Type,
 		StackTrace:  e.StackTrace,
-		Custom:      customFields(e.Custom),
+	}
+	if len(e.Custom) != 0 {
+		if cf, err := structpb.NewStruct(e.Custom); err == nil {
+			out.Custom = cf
+		}
 	}
 	if e.Exception != nil {
-		out.Exception = &modeljson.Exception{}
-		e.Exception.toModelJSON(out.Exception)
+		out.Exception = &modelpb.Exception{}
+		e.Exception.toModelProtobuf(out.Exception)
 	}
 	if e.Log != nil {
-		out.Log = &modeljson.ErrorLog{
+		out.Log = &modelpb.ErrorLog{
 			Message:      e.Log.Message,
 			ParamMessage: e.Log.ParamMessage,
 			LoggerName:   e.Log.LoggerName,
 			Level:        e.Log.Level,
 		}
 		if n := len(e.Log.Stacktrace); n > 0 {
-			out.Log.Stacktrace = make([]modeljson.StacktraceFrame, n)
+			out.Log.Stacktrace = make([]*modelpb.StacktraceFrame, n)
 			for i, frame := range e.Log.Stacktrace {
-				frame.toModelJSON(&out.Log.Stacktrace[i])
+				s := modelpb.StacktraceFrame{}
+				frame.toModelProtobuf(&s)
+				out.Log.Stacktrace[i] = &s
 			}
 		}
 	}
 }
 
-func (e *Exception) toModelJSON(out *modeljson.Exception) {
-	*out = modeljson.Exception{
+func (e *Exception) toModelProtobuf(out *modelpb.Exception) {
+	*out = modelpb.Exception{
 		Message: e.Message,
 		Module:  e.Module,
 		Code:    e.Code,
 		Type:    e.Type,
 		Handled: e.Handled,
 	}
-	if e.Attributes != nil {
-		if attr, ok := e.Attributes.(map[string]any); ok {
-			if n := len(attr); n > 0 {
-				out.Attributes = e.Attributes
-			}
-		} else {
-			out.Attributes = e.Attributes
+	if m, ok := e.Attributes.(map[string]any); ok && len(m) != 0 {
+		if a, err := structpb.NewStruct(m); err == nil {
+			out.Attributes = a
 		}
 	}
 	if n := len(e.Cause); n > 0 {
-		out.Cause = make([]modeljson.Exception, n)
+		out.Cause = make([]*modelpb.Exception, n)
 		for i, cause := range e.Cause {
-			cause.toModelJSON(&out.Cause[i])
+			outCause := modelpb.Exception{}
+			cause.toModelProtobuf(&outCause)
+			out.Cause[i] = &outCause
 		}
 	}
 	if n := len(e.Stacktrace); n > 0 {
-		out.Stacktrace = make([]modeljson.StacktraceFrame, n)
+		out.Stacktrace = make([]*modelpb.StacktraceFrame, n)
 		for i, frame := range e.Stacktrace {
-			frame.toModelJSON(&out.Stacktrace[i])
+			outFrame := modelpb.StacktraceFrame{}
+			frame.toModelProtobuf(&outFrame)
+			out.Stacktrace[i] = &outFrame
 		}
 	}
 }

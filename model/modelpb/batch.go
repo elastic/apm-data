@@ -15,13 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package modelpb
 
-import (
-	"context"
-
-	"github.com/elastic/apm-data/model/modelpb"
-)
+import "context"
 
 // BatchProcessor can be used to process a batch of events, giving the
 // opportunity to update, add or remove events.
@@ -47,21 +43,4 @@ func (f ProcessBatchFunc) ProcessBatch(ctx context.Context, b *Batch) error {
 }
 
 // Batch is a collection of APM events.
-type Batch []APMEvent
-
-// ProtoBatchProcessor is a compatibility layer to make it easier to migrate to modelpb.BatchProcessor
-func ProtoBatchProcessor(p modelpb.BatchProcessor) BatchProcessor {
-	return ProcessBatchFunc(func(ctx context.Context, b *Batch) error {
-		batch := make(modelpb.Batch, 0, len(*b))
-		for _, v := range *b {
-			batch = append(batch, toPb(&v))
-		}
-		return p.ProcessBatch(ctx, &batch)
-	})
-}
-
-func toPb(e *APMEvent) *modelpb.APMEvent {
-	var out modelpb.APMEvent
-	e.ToModelProtobuf(&out)
-	return &out
-}
+type Batch []*APMEvent
