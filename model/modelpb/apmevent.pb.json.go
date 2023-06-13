@@ -112,14 +112,11 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 	//
 	// TODO(axw) change @timestamp to use date_nanos, and remove this field.
 	var timestampStruct modeljson.Timestamp
-	if !e.Timestamp.AsTime().IsZero() {
-		if e.Processor != nil {
-			processorName := e.Processor.Name
-			processorEvent := e.Processor.Event
-			if (processorName == "error" && processorEvent == "error") || (processorName == "transaction" && (processorEvent == "transaction" || processorEvent == "span")) {
-				timestampStruct.US = int(e.Timestamp.AsTime().UnixNano() / 1000)
-				doc.TimestampStruct = &timestampStruct
-			}
+	if e.Timestamp != nil && !e.Timestamp.AsTime().IsZero() {
+		switch {
+		case e.Processor.IsTransaction(), e.Processor.IsSpan(), e.Processor.IsError():
+			timestampStruct.US = int(e.Timestamp.AsTime().UnixNano() / 1000)
+			doc.TimestampStruct = &timestampStruct
 		}
 	}
 
