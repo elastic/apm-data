@@ -332,10 +332,10 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			}
 			out.Service.Language.Name = versionParts[1]
 		}
+		if out.Agent == nil {
+			out.Agent = &modelpb.Agent{}
+		}
 		if v := versionParts[len(versionParts)-1]; v != "" {
-			if out.Agent == nil {
-				out.Agent = &modelpb.Agent{}
-			}
 			out.Agent.Version = v
 		}
 		out.Agent.Name = AgentNameJaeger
