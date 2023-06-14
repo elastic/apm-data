@@ -24,28 +24,28 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
 )
 
 func TestSetDefaultServiceEnvironment(t *testing.T) {
-	nonEmptyServiceEnvironment := model.APMEvent{Service: model.Service{Environment: "nonempty"}}
-	defaultServiceEnvironment := model.APMEvent{Service: model.Service{Environment: "default"}}
+	nonEmptyServiceEnvironment := modelpb.APMEvent{Service: &modelpb.Service{Environment: "nonempty"}}
+	defaultServiceEnvironment := modelpb.APMEvent{Service: &modelpb.Service{Environment: "default"}}
 
 	processor := modelprocessor.SetDefaultServiceEnvironment{
 		DefaultServiceEnvironment: "default",
 	}
-	testProcessBatch(t, &processor, nonEmptyServiceEnvironment, nonEmptyServiceEnvironment)
-	testProcessBatch(t, &processor, model.APMEvent{}, defaultServiceEnvironment)
+	testProcessBatch(t, &processor, &nonEmptyServiceEnvironment, &nonEmptyServiceEnvironment)
+	testProcessBatch(t, &processor, &modelpb.APMEvent{}, &defaultServiceEnvironment)
 }
 
-func testProcessBatch(t *testing.T, processor model.BatchProcessor, in, out model.APMEvent) {
+func testProcessBatch(t *testing.T, processor modelpb.BatchProcessor, in, out *modelpb.APMEvent) {
 	t.Helper()
 
-	batch := &model.Batch{in}
+	batch := &modelpb.Batch{in}
 	err := processor.ProcessBatch(context.Background(), batch)
 	require.NoError(t, err)
 
-	expected := &model.Batch{out}
+	expected := &modelpb.Batch{out}
 	assert.Equal(t, expected, batch)
 }

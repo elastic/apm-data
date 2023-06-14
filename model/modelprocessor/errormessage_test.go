@@ -23,39 +23,39 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
 )
 
 func TestSetErrorMessage(t *testing.T) {
 	tests := []struct {
-		input   model.Error
+		input   *modelpb.Error
 		message string
 	}{{
-		input:   model.Error{},
+		input:   &modelpb.Error{},
 		message: "",
 	}, {
-		input:   model.Error{Log: &model.ErrorLog{Message: "log_message"}},
+		input:   &modelpb.Error{Log: &modelpb.ErrorLog{Message: "log_message"}},
 		message: "log_message",
 	}, {
-		input:   model.Error{Exception: &model.Exception{Message: "exception_message"}},
+		input:   &modelpb.Error{Exception: &modelpb.Exception{Message: "exception_message"}},
 		message: "exception_message",
 	}, {
-		input: model.Error{
-			Log:       &model.ErrorLog{},
-			Exception: &model.Exception{Message: "exception_message"},
+		input: &modelpb.Error{
+			Log:       &modelpb.ErrorLog{},
+			Exception: &modelpb.Exception{Message: "exception_message"},
 		},
 		message: "exception_message",
 	}, {
-		input: model.Error{
-			Log:       &model.ErrorLog{Message: "log_message"},
-			Exception: &model.Exception{Message: "exception_message"},
+		input: &modelpb.Error{
+			Log:       &modelpb.ErrorLog{Message: "log_message"},
+			Exception: &modelpb.Exception{Message: "exception_message"},
 		},
 		message: "log_message",
 	}}
 
 	for _, test := range tests {
-		batch := model.Batch{{Error: &test.input}}
+		batch := modelpb.Batch{{Error: test.input}}
 		processor := modelprocessor.SetErrorMessage{}
 		err := processor.ProcessBatch(context.Background(), &batch)
 		assert.NoError(t, err)

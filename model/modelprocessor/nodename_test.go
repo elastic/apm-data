@@ -20,36 +20,45 @@ package modelprocessor_test
 import (
 	"testing"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestSetServiceNodeName(t *testing.T) {
-	withServiceNodeName := model.APMEvent{
-		Service: model.Service{
-			Node: model.ServiceNode{
+	withServiceNodeName := modelpb.APMEvent{
+		Service: &modelpb.Service{
+			Node: &modelpb.ServiceNode{
 				Name: "node_name",
 			},
 		},
 	}
-	withConfiguredHostname := model.APMEvent{
-		Host: model.Host{Name: "configured_hostname"},
+	withConfiguredHostname := modelpb.APMEvent{
+		Host: &modelpb.Host{Name: "configured_hostname"},
 	}
-	withContainerID := withConfiguredHostname
-	withContainerID.Container.ID = "container_id"
+	withContainerID := proto.Clone(&withConfiguredHostname).(*modelpb.APMEvent)
+	withContainerID.Container = &modelpb.Container{
+		Id: "container_id",
+	}
 
 	processor := modelprocessor.SetServiceNodeName{}
 
-	testProcessBatch(t, processor, withServiceNodeName, withServiceNodeName) // unchanged
-	testProcessBatch(t, processor, withConfiguredHostname,
-		eventWithServiceNodeName(withConfiguredHostname, "configured_hostname"),
+	testProcessBatch(t, processor, &withServiceNodeName, &withServiceNodeName) // unchanged
+	testProcessBatch(t, processor, &withConfiguredHostname,
+		eventWithServiceNodeName(&withConfiguredHostname, "configured_hostname"),
 	)
 	testProcessBatch(t, processor, withContainerID,
 		eventWithServiceNodeName(withContainerID, "container_id"),
 	)
 }
 
-func eventWithServiceNodeName(in model.APMEvent, nodeName string) model.APMEvent {
+func eventWithServiceNodeName(in *modelpb.APMEvent, nodeName string) *modelpb.APMEvent {
+	if in.Service == nil {
+		in.Service = &modelpb.Service{}
+	}
+	if in.Service.Node == nil {
+		in.Service.Node = &modelpb.ServiceNode{}
+	}
 	in.Service.Node.Name = nodeName
 	return in
 }
