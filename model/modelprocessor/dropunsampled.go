@@ -52,7 +52,7 @@ func NewDropUnsampled(dropRUM bool, droppedCallback func(int64)) modelpb.BatchPr
 }
 
 func shouldDropUnsampled(event *modelpb.APMEvent, dropRUM bool) bool {
-	if !event.Processor.IsTransaction() || event.Transaction == nil || event.Transaction.Sampled {
+	if !event.Processor.IsTransaction() || event.GetTransaction().GetSampled() {
 		return false
 	}
 	return dropRUM || !isRUMAgentName(event.GetAgent().GetName())
