@@ -20,6 +20,7 @@ package otlp
 import (
 	"sync/atomic"
 
+	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/model"
 	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
@@ -27,18 +28,23 @@ import (
 
 // ConsumerConfig holds configuration for Consumer.
 type ConsumerConfig struct {
+	// Logger holds a logger for the consumer. If this is nil, then
+	// no logging will be performed.
+	Logger *zap.Logger
+
 	// Processor holds the model.BatchProcessor which will be invoked
 	// with event batches when consuming OTLP payloads.
 	Processor model.BatchProcessor
 
-	// Logger holds a logger for the consumer. If this is nil, then
-	// no logging will be performed.
-	Logger *zap.Logger
+	// Semaphore holds a semaphore on which Processor.HandleStream will acquire a
+	// token before proceeding, to limit concurrency.
+	Semaphore input.Semaphore
 }
 
 // Consumer transforms OpenTelemetry data to the Elastic APM data model,
 // sending each payload as a batch to the configured BatchProcessor.
 type Consumer struct {
+	sem    input.Semaphore
 	config ConsumerConfig
 	stats  consumerStats
 }
@@ -50,7 +56,10 @@ func NewConsumer(config ConsumerConfig) *Consumer {
 	} else {
 		config.Logger = config.Logger.Named("otel")
 	}
-	return &Consumer{config: config}
+	return &Consumer{
+		config: config,
+		sem:    config.Semaphore,
+	}
 }
 
 // ConsumerStats holds a snapshot of statistics about data consumption.

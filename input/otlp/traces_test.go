@@ -54,6 +54,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
+	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc/codes"
 
 	"github.com/elastic/apm-data/input/otlp"
@@ -66,7 +67,10 @@ func TestConsumer_ConsumeTraces_Empty(t *testing.T) {
 		return nil
 	}
 
-	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: processor})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor: processor,
+		Semaphore: semaphore.NewWeighted(100),
+	})
 	traces := ptrace.NewTraces()
 	assert.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
 }
@@ -801,6 +805,37 @@ func TestSpanLinks(t *testing.T) {
 	}
 }
 
+func TestConsumeTracesSemaphore(t *testing.T) {
+	traces := ptrace.NewTraces()
+	var batches []*model.Batch
+
+	doneCh := make(chan struct{})
+	recorder := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+		<-doneCh
+		batches = append(batches, batch)
+		return nil
+	})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor: recorder,
+		Semaphore: semaphore.NewWeighted(1),
+	})
+
+	startCh := make(chan struct{})
+	go func() {
+		close(startCh)
+		assert.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+	}()
+
+	<-startCh
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+	defer cancel()
+	err := consumer.ConsumeTraces(ctx, traces)
+	assert.Equal(t, err.Error(), "context deadline exceeded")
+	close(doneCh)
+
+	assert.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+}
+
 func TestConsumer_JaegerMetadata(t *testing.T) {
 	jaegerBatch := &jaegermodel.Batch{
 		Spans: []*jaegermodel.Span{{
@@ -839,7 +874,10 @@ func TestConsumer_JaegerMetadata(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var batches []*model.Batch
 			recorder := batchRecorderBatchProcessor(&batches)
-			consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: recorder})
+			consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+				Processor: recorder,
+				Semaphore: semaphore.NewWeighted(1),
+			})
 
 			jaegerBatch.Process = tc.process
 			traces, err := jaegertranslator.ProtoToTraces([]*jaegermodel.Batch{jaegerBatch})
@@ -894,7 +932,10 @@ func TestConsumer_JaegerSampleRate(t *testing.T) {
 
 	var batches []*model.Batch
 	recorder := batchRecorderBatchProcessor(&batches)
-	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: recorder})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor: recorder,
+		Semaphore: semaphore.NewWeighted(100),
+	})
 	require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
 	require.Len(t, batches, 1)
 	batch := *batches[0]
@@ -913,7 +954,10 @@ func TestConsumer_JaegerSampleRate(t *testing.T) {
 func TestConsumer_JaegerTraceID(t *testing.T) {
 	var batches []*model.Batch
 	recorder := batchRecorderBatchProcessor(&batches)
-	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: recorder})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor: recorder,
+		Semaphore: semaphore.NewWeighted(100),
+	})
 
 	traces, err := jaegertranslator.ProtoToTraces([]*jaegermodel.Batch{{
 		Process: jaegermodel.NewProcess("", jaegerKeyValues("jaeger.version", "unknown")),
@@ -1050,7 +1094,10 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 
 			var batches []*model.Batch
 			recorder := batchRecorderBatchProcessor(&batches)
-			consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: recorder})
+			consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+				Processor: recorder,
+				Semaphore: semaphore.NewWeighted(100),
+			})
 			require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
 
 			docs := encodeBatch(t, batches...)
@@ -1167,7 +1214,10 @@ func TestConsumer_JaegerSpan(t *testing.T) {
 
 			var batches []*model.Batch
 			recorder := batchRecorderBatchProcessor(&batches)
-			consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: recorder})
+			consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+				Processor: recorder,
+				Semaphore: semaphore.NewWeighted(100),
+			})
 			require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
 
 			docs := encodeBatch(t, batches...)
@@ -1197,7 +1247,10 @@ func TestJaegerServiceVersion(t *testing.T) {
 
 	var batches []*model.Batch
 	recorder := batchRecorderBatchProcessor(&batches)
-	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: recorder})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor: recorder,
+		Semaphore: semaphore.NewWeighted(100),
+	})
 	require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
 
 	batch := *batches[0]
@@ -1588,7 +1641,10 @@ func transformTraces(t *testing.T, traces ptrace.Traces) model.Batch {
 		processed = *batch
 		return nil
 	})
-	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: processor})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor: processor,
+		Semaphore: semaphore.NewWeighted(100),
+	})
 	require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
 	return processed
 }
