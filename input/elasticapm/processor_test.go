@@ -30,6 +30,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/model"
 )
@@ -52,7 +53,7 @@ func TestHandleStreamReaderError(t *testing.T) {
 
 	sp := NewProcessor(Config{
 		MaxEventSize: 100 * 1024,
-		Semaphore:    make(chan struct{}, 1),
+		Semaphore:    semaphore.NewWeighted(1),
 	})
 
 	var actualResult Result
@@ -84,7 +85,7 @@ func TestHandleStreamBatchProcessorError(t *testing.T) {
 	}} {
 		sp := NewProcessor(Config{
 			MaxEventSize: 100 * 1024,
-			Semaphore:    make(chan struct{}, 1),
+			Semaphore:    semaphore.NewWeighted(1),
 		})
 		processor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
 			return test.err
@@ -185,7 +186,7 @@ func TestHandleStreamErrors(t *testing.T) {
 			var actualResult Result
 			p := NewProcessor(Config{
 				MaxEventSize: len(validMetadata) + 1,
-				Semaphore:    make(chan struct{}, 1),
+				Semaphore:    semaphore.NewWeighted(1),
 			})
 			err := p.HandleStream(
 				context.Background(), false, model.APMEvent{},
@@ -220,7 +221,7 @@ func TestHandleStream(t *testing.T) {
 
 	p := NewProcessor(Config{
 		MaxEventSize: 100 * 1024,
-		Semaphore:    make(chan struct{}, 1),
+		Semaphore:    semaphore.NewWeighted(1),
 	})
 	err := p.HandleStream(
 		context.Background(), false, model.APMEvent{},
@@ -258,7 +259,7 @@ func TestHandleStreamRUMv3(t *testing.T) {
 
 	p := NewProcessor(Config{
 		MaxEventSize: 100 * 1024,
-		Semaphore:    make(chan struct{}, 1),
+		Semaphore:    semaphore.NewWeighted(1),
 	})
 	err := p.HandleStream(
 		context.Background(), false, model.APMEvent{},
@@ -306,7 +307,7 @@ func TestHandleStreamBaseEvent(t *testing.T) {
 	payload := validMetadata + "\n" + validRUMv2Span + "\n"
 	p := NewProcessor(Config{
 		MaxEventSize: 100 * 1024,
-		Semaphore:    make(chan struct{}, 1),
+		Semaphore:    semaphore.NewWeighted(1),
 	})
 	err := p.HandleStream(
 		context.Background(), false, baseEvent,
@@ -339,7 +340,7 @@ func TestLabelLeak(t *testing.T) {
 
 	p := NewProcessor(Config{
 		MaxEventSize: 100 * 1024,
-		Semaphore:    make(chan struct{}, 1),
+		Semaphore:    semaphore.NewWeighted(1),
 	})
 	var actualResult Result
 	err := p.HandleStream(context.Background(), false, baseEvent, strings.NewReader(payload), 10, batchProcessor, &actualResult)
@@ -369,9 +370,10 @@ func TestConcurrentAsync(t *testing.T) {
 
 	base := model.APMEvent{Host: model.Host{IP: []netip.Addr{netip.MustParseAddr("192.0.0.1")}}}
 	type testCase struct {
-		payload       string
-		sem, requests int
-		fullSem       bool
+		payload  string
+		sem      int64
+		requests int
+		fullSem  bool
 	}
 
 	test := func(tc testCase) (pResult Result) {
@@ -379,11 +381,11 @@ func TestConcurrentAsync(t *testing.T) {
 		var mu sync.Mutex
 		p := NewProcessor(Config{
 			MaxEventSize: 100 * 1024,
-			Semaphore:    make(chan struct{}, tc.sem),
+			Semaphore:    semaphore.NewWeighted(tc.sem),
 		})
 		if tc.fullSem {
-			for i := 0; i < tc.sem; i++ {
-				p.sem <- struct{}{}
+			for i := int64(0); i < tc.sem; i++ {
+				p.semAcquire(context.Background(), false)
 			}
 		}
 		handleStream := func(ctx context.Context, bp *accountProcessor) {
@@ -418,7 +420,7 @@ func TestConcurrentAsync(t *testing.T) {
 		if !tc.fullSem {
 			// Try to acquire the lock to make sure all the requests have been handled
 			// and the locks have been released.
-			for i := 0; i < tc.sem; i++ {
+			for i := int64(0); i < tc.sem; i++ {
 				p.semAcquire(context.Background(), false)
 			}
 		}
