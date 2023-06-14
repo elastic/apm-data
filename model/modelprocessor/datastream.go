@@ -105,8 +105,7 @@ func getAppLogsDataset(event *modelpb.APMEvent) string {
 }
 
 func metricsetDataset(event *modelpb.APMEvent) string {
-	if event.Transaction != nil || event.Span != nil || event.GetService().GetName() == "" ||
-		(event.Metricset != nil && event.Metricset.Name == "service_summary") {
+	if event.Transaction != nil || event.Span != nil || event.GetService().GetName() == "" || event.GetMetricset().GetName() == "service_summary" {
 		// Metrics that include well-defined transaction/span fields
 		// (i.e. breakdown metrics, transaction and span metrics) will
 		// be stored separately from custom application metrics.
