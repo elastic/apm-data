@@ -44,10 +44,10 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
+	"golang.org/x/sync/semaphore"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -126,10 +126,10 @@ func TestConsumerConsumeLogs(t *testing.T) {
 
 func TestConsumeLogsSemaphore(t *testing.T) {
 	logs := plog.NewLogs()
-	var batches []*model.Batch
+	var batches []*modelpb.Batch
 
 	doneCh := make(chan struct{})
-	recorder := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
 		<-doneCh
 		batches = append(batches, batch)
 		return nil

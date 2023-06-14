@@ -807,10 +807,10 @@ func TestSpanLinks(t *testing.T) {
 
 func TestConsumeTracesSemaphore(t *testing.T) {
 	traces := ptrace.NewTraces()
-	var batches []*model.Batch
+	var batches []*modelpb.Batch
 
 	doneCh := make(chan struct{})
-	recorder := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
 		<-doneCh
 		batches = append(batches, batch)
 		return nil

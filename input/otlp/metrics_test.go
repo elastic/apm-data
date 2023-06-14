@@ -48,9 +48,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"golang.org/x/sync/semaphore"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -222,10 +222,10 @@ func TestConsumeMetrics(t *testing.T) {
 
 func TestConsumeMetricsSemaphore(t *testing.T) {
 	metrics := pmetric.NewMetrics()
-	var batches []*model.Batch
+	var batches []*modelpb.Batch
 
 	doneCh := make(chan struct{})
-	recorder := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
 		<-doneCh
 		batches = append(batches, batch)
 		return nil
