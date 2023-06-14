@@ -24,24 +24,24 @@ import (
 	"hash"
 	"io"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
-// SetGroupingKey is a model.BatchProcessor that sets the grouping key for errors
+// SetGroupingKey is a modelpb.BatchProcessor that sets the grouping key for errors
 // by hashing their stack frames.
 type SetGroupingKey struct{}
 
 // ProcessBatch sets the grouping key for errors.
-func (s SetGroupingKey) ProcessBatch(ctx context.Context, b *model.Batch) error {
+func (s SetGroupingKey) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	for _, event := range *b {
-		if event.Processor == model.ErrorProcessor && event.Error != nil {
+		if event.Processor.IsError() && event.Error != nil {
 			s.processError(ctx, event.Error)
 		}
 	}
 	return nil
 }
 
-func (s SetGroupingKey) processError(ctx context.Context, event *model.Error) {
+func (s SetGroupingKey) processError(ctx context.Context, event *modelpb.Error) {
 	hash := md5.New()
 	var updated bool
 	if event.Exception != nil {
@@ -75,29 +75,29 @@ func (s SetGroupingKey) processError(ctx context.Context, event *model.Error) {
 	event.GroupingKey = hex.EncodeToString(hash.Sum(nil))
 }
 
-func (s SetGroupingKey) hashExceptionTree(e *model.Exception, out hash.Hash, f func(*model.Exception, hash.Hash) bool) bool {
+func (s SetGroupingKey) hashExceptionTree(e *modelpb.Exception, out hash.Hash, f func(*modelpb.Exception, hash.Hash) bool) bool {
 	updated := f(e, out)
 	for _, cause := range e.Cause {
-		if s.hashExceptionTree(&cause, out, f) {
+		if s.hashExceptionTree(cause, out, f) {
 			updated = true
 		}
 	}
 	return updated
 }
 
-func (s SetGroupingKey) hashExceptionType(e *model.Exception, out hash.Hash) bool {
+func (s SetGroupingKey) hashExceptionType(e *modelpb.Exception, out hash.Hash) bool {
 	return s.maybeWriteString(e.Type, out)
 }
 
-func (s SetGroupingKey) hashExceptionMessage(e *model.Exception, out hash.Hash) bool {
+func (s SetGroupingKey) hashExceptionMessage(e *modelpb.Exception, out hash.Hash) bool {
 	return s.maybeWriteString(e.Message, out)
 }
 
-func (s SetGroupingKey) hashExceptionStacktrace(e *model.Exception, out hash.Hash) bool {
+func (s SetGroupingKey) hashExceptionStacktrace(e *modelpb.Exception, out hash.Hash) bool {
 	return s.hashStacktrace(e.Stacktrace, out)
 }
 
-func (s SetGroupingKey) hashStacktrace(stacktrace model.Stacktrace, out hash.Hash) bool {
+func (s SetGroupingKey) hashStacktrace(stacktrace []*modelpb.StacktraceFrame, out hash.Hash) bool {
 	var updated bool
 	for _, frame := range stacktrace {
 		if frame.ExcludeFromGrouping {

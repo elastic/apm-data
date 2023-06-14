@@ -20,33 +20,36 @@ package modelprocessor_test
 import (
 	"testing"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestSetHostHostname(t *testing.T) {
-	withConfiguredHostname := model.APMEvent{
-		Host: model.Host{
+	withConfiguredHostname := modelpb.APMEvent{
+		Host: &modelpb.Host{
 			Name:     "configured_hostname",
 			Hostname: "detected_hostname",
 		},
 	}
-	withDetectedHostname := model.APMEvent{
-		Host: model.Host{
+	withDetectedHostname := modelpb.APMEvent{
+		Host: &modelpb.Host{
 			Hostname: "detected_hostname",
 		},
 	}
-	withKubernetesPodName := withDetectedHostname
-	withKubernetesPodName.Kubernetes.PodName = "kubernetes.pod.name"
-	withKubernetesNodeName := withKubernetesPodName
+	withKubernetesPodName := proto.Clone(&withDetectedHostname).(*modelpb.APMEvent)
+	withKubernetesPodName.Kubernetes = &modelpb.Kubernetes{
+		PodName: "kubernetes.pod.name",
+	}
+	withKubernetesNodeName := proto.Clone(withKubernetesPodName).(*modelpb.APMEvent)
 	withKubernetesNodeName.Kubernetes.NodeName = "kubernetes.node.name"
 
 	processor := modelprocessor.SetHostHostname{}
 
-	testProcessBatch(t, processor, withConfiguredHostname, withConfiguredHostname) // unchanged
-	testProcessBatch(t, processor, withDetectedHostname,
+	testProcessBatch(t, processor, &withConfiguredHostname, &withConfiguredHostname) // unchanged
+	testProcessBatch(t, processor, &withDetectedHostname,
 		eventWithHostName(
-			eventWithHostHostname(withDetectedHostname, "detected_hostname"),
+			eventWithHostHostname(&withDetectedHostname, "detected_hostname"),
 			"detected_hostname",
 		),
 	)
@@ -61,12 +64,12 @@ func TestSetHostHostname(t *testing.T) {
 	)
 }
 
-func eventWithHostHostname(in model.APMEvent, detectedHostname string) model.APMEvent {
+func eventWithHostHostname(in *modelpb.APMEvent, detectedHostname string) *modelpb.APMEvent {
 	in.Host.Hostname = detectedHostname
 	return in
 }
 
-func eventWithHostName(in model.APMEvent, configuredHostname string) model.APMEvent {
+func eventWithHostName(in *modelpb.APMEvent, configuredHostname string) *modelpb.APMEvent {
 	in.Host.Name = configuredHostname
 	return in
 }

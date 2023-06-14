@@ -20,7 +20,7 @@ package modelprocessor
 import (
 	"context"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // SetErrorMessage is a model.BatchProcessor that sets the APMEvent.Message
@@ -28,9 +28,9 @@ import (
 type SetErrorMessage struct{}
 
 // ProcessBatch sets the message for errors.
-func (s SetErrorMessage) ProcessBatch(ctx context.Context, b *model.Batch) error {
+func (s SetErrorMessage) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	for i := range *b {
-		event := &(*b)[i]
+		event := (*b)[i]
 		if event.Error != nil {
 			event.Message = s.setErrorMessage(event)
 		}
@@ -38,12 +38,12 @@ func (s SetErrorMessage) ProcessBatch(ctx context.Context, b *model.Batch) error
 	return nil
 }
 
-func (s SetErrorMessage) setErrorMessage(event *model.APMEvent) string {
-	if event.Error.Log != nil && event.Error.Log.Message != "" {
-		return event.Error.Log.Message
+func (s SetErrorMessage) setErrorMessage(event *modelpb.APMEvent) string {
+	if msg := event.GetError().GetLog().GetMessage(); msg != "" {
+		return msg
 	}
-	if event.Error.Exception != nil && event.Error.Exception.Message != "" {
-		return event.Error.Exception.Message
+	if msg := event.GetError().GetException().GetMessage(); msg != "" {
+		return msg
 	}
 	return ""
 }

@@ -25,87 +25,87 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
 )
 
 func TestSetGroupingKey(t *testing.T) {
 	tests := map[string]struct {
-		input       model.Error
+		input       *modelpb.Error
 		groupingKey string
 	}{
 		"empty": {
-			input:       model.Error{},
+			input:       &modelpb.Error{},
 			groupingKey: hashStrings( /*empty*/ ),
 		},
 		"exception_type_log_parammessage": {
-			input: model.Error{
-				Exception: &model.Exception{
+			input: &modelpb.Error{
+				Exception: &modelpb.Exception{
 					Type: "exception_type",
 				},
-				Log: &model.ErrorLog{
+				Log: &modelpb.ErrorLog{
 					ParamMessage: "log_parammessage",
 				},
 			},
 			groupingKey: hashStrings("exception_type", "log_parammessage"),
 		},
 		"exception_stacktrace": {
-			input: model.Error{
-				Exception: &model.Exception{
-					Stacktrace: model.Stacktrace{
+			input: &modelpb.Error{
+				Exception: &modelpb.Exception{
+					Stacktrace: []*modelpb.StacktraceFrame{
 						{Module: "module", Filename: "filename", Classname: "classname", Function: "func_1"},
 						{Filename: "filename", Classname: "classname", Function: "func_2"},
 						{ExcludeFromGrouping: true, Function: "func_3"},
 					},
-					Cause: []model.Exception{{
-						Stacktrace: model.Stacktrace{
+					Cause: []*modelpb.Exception{{
+						Stacktrace: []*modelpb.StacktraceFrame{
 							{Classname: "classname", Function: "func_4"},
 						},
-						Cause: []model.Exception{{
-							Stacktrace: model.Stacktrace{
+						Cause: []*modelpb.Exception{{
+							Stacktrace: []*modelpb.StacktraceFrame{
 								{Function: "func_5"},
 							},
 						}},
 					}, {
-						Stacktrace: model.Stacktrace{
+						Stacktrace: []*modelpb.StacktraceFrame{
 							{Function: "func_6"},
 						},
 					}},
 				},
-				Log: &model.ErrorLog{Stacktrace: model.Stacktrace{{Filename: "abc"}}}, // ignored
+				Log: &modelpb.ErrorLog{Stacktrace: []*modelpb.StacktraceFrame{{Filename: "abc"}}}, // ignored
 			},
 			groupingKey: hashStrings(
 				"module", "func_1", "filename", "func_2", "classname", "func_4", "func_5", "func_6",
 			),
 		},
 		"log_stacktrace": {
-			input: model.Error{
-				Log: &model.ErrorLog{
-					Stacktrace: model.Stacktrace{{Function: "function"}},
+			input: &modelpb.Error{
+				Log: &modelpb.ErrorLog{
+					Stacktrace: []*modelpb.StacktraceFrame{{Function: "function"}},
 				},
 			},
 			groupingKey: hashStrings("function"),
 		},
 		"exception_message": {
-			input: model.Error{
-				Exception: &model.Exception{
+			input: &modelpb.Error{
+				Exception: &modelpb.Exception{
 					Message: "message_1",
-					Cause: []model.Exception{{
+					Cause: []*modelpb.Exception{{
 						Message: "message_2",
-						Cause: []model.Exception{
+						Cause: []*modelpb.Exception{
 							{Message: "message_3"},
 						},
 					}, {
 						Message: "message_4",
 					}},
 				},
-				Log: &model.ErrorLog{Message: "log_message"}, // ignored
+				Log: &modelpb.ErrorLog{Message: "log_message"}, // ignored
 			},
 			groupingKey: hashStrings("message_1", "message_2", "message_3", "message_4"),
 		},
 		"log_message": {
-			input: model.Error{
-				Log: &model.ErrorLog{Message: "log_message"}, // ignored
+			input: &modelpb.Error{
+				Log: &modelpb.ErrorLog{Message: "log_message"}, // ignored
 			},
 			groupingKey: hashStrings("log_message"),
 		},
@@ -113,9 +113,9 @@ func TestSetGroupingKey(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			batch := model.Batch{{
-				Processor: model.ErrorProcessor,
-				Error:     &test.input,
+			batch := modelpb.Batch{{
+				Processor: modelpb.ErrorProcessor(),
+				Error:     test.input,
 			}}
 			processor := modelprocessor.SetGroupingKey{}
 			err := processor.ProcessBatch(context.Background(), &batch)

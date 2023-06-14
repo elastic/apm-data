@@ -20,7 +20,7 @@ package modelprocessor
 import (
 	"context"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // SetDefaultServiceEnvironment is a transform.Processor that sets a default
@@ -32,9 +32,12 @@ type SetDefaultServiceEnvironment struct {
 }
 
 // ProcessBatch sets a default service.value for events without one already set.
-func (s *SetDefaultServiceEnvironment) ProcessBatch(ctx context.Context, b *model.Batch) error {
+func (s *SetDefaultServiceEnvironment) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	for i := range *b {
-		event := &(*b)[i]
+		event := (*b)[i]
+		if event.Service == nil {
+			event.Service = &modelpb.Service{}
+		}
 		if event.Service.Environment == "" {
 			event.Service.Environment = s.DefaultServiceEnvironment
 		}

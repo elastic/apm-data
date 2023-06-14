@@ -23,41 +23,41 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
 )
 
 func TestSetCulprit(t *testing.T) {
 	tests := []struct {
-		input   model.Error
+		input   *modelpb.Error
 		culprit string
 	}{{
-		input:   model.Error{},
+		input:   &modelpb.Error{},
 		culprit: "",
 	}, {
-		input:   model.Error{Culprit: "already_set"},
+		input:   &modelpb.Error{Culprit: "already_set"},
 		culprit: "already_set",
 	}, {
-		input: model.Error{
+		input: &modelpb.Error{
 			Culprit: "already_set",
-			Log: &model.ErrorLog{
-				Stacktrace: model.Stacktrace{{SourcemapUpdated: false, Filename: "foo.go"}},
+			Log: &modelpb.ErrorLog{
+				Stacktrace: []*modelpb.StacktraceFrame{{SourcemapUpdated: false, Filename: "foo.go"}},
 			},
 		},
 		culprit: "already_set",
 	}, {
-		input: model.Error{
+		input: &modelpb.Error{
 			Culprit: "already_set",
-			Log: &model.ErrorLog{
-				Stacktrace: model.Stacktrace{{SourcemapUpdated: true, LibraryFrame: true, Filename: "foo.go"}},
+			Log: &modelpb.ErrorLog{
+				Stacktrace: []*modelpb.StacktraceFrame{{SourcemapUpdated: true, LibraryFrame: true, Filename: "foo.go"}},
 			},
 		},
 		culprit: "already_set",
 	}, {
-		input: model.Error{
+		input: &modelpb.Error{
 			Culprit: "already_set",
-			Log: &model.ErrorLog{
-				Stacktrace: model.Stacktrace{
+			Log: &modelpb.ErrorLog{
+				Stacktrace: []*modelpb.StacktraceFrame{
 					{SourcemapUpdated: true, LibraryFrame: true, Filename: "foo.go"},
 					{SourcemapUpdated: true, LibraryFrame: false, Filename: "foo2.go"},
 				},
@@ -65,20 +65,20 @@ func TestSetCulprit(t *testing.T) {
 		},
 		culprit: "foo2.go",
 	}, {
-		input: model.Error{
+		input: &modelpb.Error{
 			Culprit: "already_set",
-			Log: &model.ErrorLog{
-				Stacktrace: model.Stacktrace{{SourcemapUpdated: true, LibraryFrame: true, Filename: "foo.go"}},
+			Log: &modelpb.ErrorLog{
+				Stacktrace: []*modelpb.StacktraceFrame{{SourcemapUpdated: true, LibraryFrame: true, Filename: "foo.go"}},
 			},
-			Exception: &model.Exception{
-				Stacktrace: model.Stacktrace{{SourcemapUpdated: true, LibraryFrame: false, Filename: "foo2.go"}},
+			Exception: &modelpb.Exception{
+				Stacktrace: []*modelpb.StacktraceFrame{{SourcemapUpdated: true, LibraryFrame: false, Filename: "foo2.go"}},
 			},
 		},
 		culprit: "foo2.go",
 	}, {
-		input: model.Error{
-			Log: &model.ErrorLog{
-				Stacktrace: model.Stacktrace{
+		input: &modelpb.Error{
+			Log: &modelpb.ErrorLog{
+				Stacktrace: []*modelpb.StacktraceFrame{
 					{SourcemapUpdated: true, Classname: "AbstractFactoryManagerBean", Function: "toString"},
 				},
 			},
@@ -87,7 +87,7 @@ func TestSetCulprit(t *testing.T) {
 	}}
 
 	for _, test := range tests {
-		batch := model.Batch{{Error: &test.input}}
+		batch := modelpb.Batch{{Error: test.input}}
 		processor := modelprocessor.SetCulprit{}
 		err := processor.ProcessBatch(context.Background(), &batch)
 		assert.NoError(t, err)

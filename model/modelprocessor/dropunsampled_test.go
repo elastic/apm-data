@@ -23,7 +23,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
 )
 
@@ -34,34 +34,34 @@ func TestNewDropUnsampled(t *testing.T) {
 			dropped += i
 		})
 
-		rumAgent := model.Agent{Name: "rum-js"}
-		t1 := &model.Transaction{ID: "t1", Sampled: false}
-		t2 := &model.Transaction{ID: "t2", Sampled: true}
-		t3 := &model.Transaction{ID: "t3", Sampled: false}
-		t4 := &model.Transaction{ID: "t4", Sampled: true}
-		t5 := &model.Transaction{ID: "t5", Sampled: false}
+		rumAgent := modelpb.Agent{Name: "rum-js"}
+		t1 := &modelpb.Transaction{Id: "t1", Sampled: false}
+		t2 := &modelpb.Transaction{Id: "t2", Sampled: true}
+		t3 := &modelpb.Transaction{Id: "t3", Sampled: false}
+		t4 := &modelpb.Transaction{Id: "t4", Sampled: true}
+		t5 := &modelpb.Transaction{Id: "t5", Sampled: false}
 
-		batch := model.Batch{{
-			Processor:   model.TransactionProcessor,
+		batch := modelpb.Batch{{
+			Processor:   modelpb.TransactionProcessor(),
 			Transaction: t1,
 		}, {
-			Processor:   model.TransactionProcessor,
+			Processor:   modelpb.TransactionProcessor(),
 			Transaction: t2,
 		}, {
-			Processor: model.ErrorProcessor,
+			Processor: modelpb.ErrorProcessor(),
 			// Transaction.Sampled should be disregarded, as
 			// Processor == ErrorProcessor, i.e. this is an
 			// error event with the transaction.sampled field.
-			Transaction: &model.Transaction{},
+			Transaction: &modelpb.Transaction{},
 		}, {
-			Processor:   model.TransactionProcessor,
+			Processor:   modelpb.TransactionProcessor(),
 			Transaction: t3,
 		}, {
-			Processor:   model.TransactionProcessor,
+			Processor:   modelpb.TransactionProcessor(),
 			Transaction: t4,
 		}, {
-			Agent:       rumAgent,
-			Processor:   model.TransactionProcessor,
+			Agent:       &rumAgent,
+			Processor:   modelpb.TransactionProcessor(),
 			Transaction: t5,
 		}}
 
@@ -69,15 +69,15 @@ func TestNewDropUnsampled(t *testing.T) {
 		assert.NoError(t, err)
 
 		var expectedTransactionsDropped int64 = 3
-		expectedRemainingBatch := model.Batch{
-			{Processor: model.TransactionProcessor, Transaction: t4},
-			{Processor: model.TransactionProcessor, Transaction: t2},
-			{Processor: model.ErrorProcessor, Transaction: &model.Transaction{}},
+		expectedRemainingBatch := modelpb.Batch{
+			{Processor: modelpb.TransactionProcessor(), Transaction: t4},
+			{Processor: modelpb.TransactionProcessor(), Transaction: t2},
+			{Processor: modelpb.ErrorProcessor(), Transaction: &modelpb.Transaction{}},
 		}
 		if !dropRUM {
 			expectedTransactionsDropped--
-			expectedRemainingBatch = append(expectedRemainingBatch, model.APMEvent{
-				Agent: rumAgent, Processor: model.TransactionProcessor, Transaction: t5,
+			expectedRemainingBatch = append(expectedRemainingBatch, &modelpb.APMEvent{
+				Agent: &rumAgent, Processor: modelpb.TransactionProcessor(), Transaction: t5,
 			})
 		}
 
