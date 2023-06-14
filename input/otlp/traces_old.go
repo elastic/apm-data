@@ -32,6 +32,8 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
+// NOTE: if you are updating any of these methods, keep them in sync with the modelpb methods.
+
 // TranslateTransactionOld is used by the v2 decoder and not by the otlp input.
 // It exists for compatibility reason and to migrate the otlp input to protobuf
 // without touching the decoder.
