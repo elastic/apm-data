@@ -681,4 +681,3 @@ func TranslateSpanOld(spanKind ptrace.SpanKind, attributes pcommon.Map, event *m
 		parseSamplerAttributesOld(samplerType, samplerParam, event)
 	}
 }
-

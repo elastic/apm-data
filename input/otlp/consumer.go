@@ -20,8 +20,8 @@ package otlp
 import (
 	"sync/atomic"
 
-	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/input"
+	"github.com/elastic/apm-data/model/modelpb"
 	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
 )
