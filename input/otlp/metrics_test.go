@@ -48,6 +48,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model"
@@ -228,8 +229,8 @@ func TestConsumeMetricsSemaphore(t *testing.T) {
 		return nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
-		Processor:      recorder,
-		MaxConcurrency: 1,
+		Processor: recorder,
+		Semaphore: semaphore.NewWeighted(1),
 	})
 
 	startCh := make(chan struct{})
@@ -743,8 +744,8 @@ func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]model.APMEvent, 
 	recorder := batchRecorderBatchProcessor(&batches)
 
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
-		Processor:      recorder,
-		MaxConcurrency: 100,
+		Processor: recorder,
+		Semaphore: semaphore.NewWeighted(100),
 	})
 	err := consumer.ConsumeMetrics(context.Background(), metrics)
 	require.NoError(t, err)

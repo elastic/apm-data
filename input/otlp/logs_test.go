@@ -46,6 +46,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
+	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model"
@@ -59,8 +60,8 @@ func TestConsumerConsumeLogs(t *testing.T) {
 		}
 
 		consumer := otlp.NewConsumer(otlp.ConsumerConfig{
-			Processor:      processor,
-			MaxConcurrency: 100,
+			Processor: processor,
+			Semaphore: semaphore.NewWeighted(100),
 		})
 		logs := plog.NewLogs()
 		assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
@@ -105,8 +106,8 @@ func TestConsumerConsumeLogs(t *testing.T) {
 				return nil
 			}
 			consumer := otlp.NewConsumer(otlp.ConsumerConfig{
-				Processor:      processor,
-				MaxConcurrency: 100,
+				Processor: processor,
+				Semaphore: semaphore.NewWeighted(100),
 			})
 			assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
@@ -133,8 +134,8 @@ func TestConsumeLogsSemaphore(t *testing.T) {
 		return nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
-		Processor:      recorder,
-		MaxConcurrency: 1,
+		Processor: recorder,
+		Semaphore: semaphore.NewWeighted(1),
 	})
 
 	startCh := make(chan struct{})
@@ -199,8 +200,8 @@ Caused by: LowLevelException
 		return nil
 	}
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
-		Processor:      processor,
-		MaxConcurrency: 100,
+		Processor: processor,
+		Semaphore: semaphore.NewWeighted(100),
 	})
 	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
@@ -340,8 +341,8 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 		return nil
 	}
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
-		Processor:      processor,
-		MaxConcurrency: 100,
+		Processor: processor,
+		Semaphore: semaphore.NewWeighted(100),
 	})
 	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
@@ -383,8 +384,8 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 		return nil
 	}
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
-		Processor:      processor,
-		MaxConcurrency: 100,
+		Processor: processor,
+		Semaphore: semaphore.NewWeighted(100),
 	})
 	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
