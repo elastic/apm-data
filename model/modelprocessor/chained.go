@@ -24,7 +24,7 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-// Chained is a chained model.BatchProcessor, calling each of
+// PbChained is a chained modelpb.BatchProcessor, calling each of
 // the processors in the slice in series.
 type PbChained []modelpb.BatchProcessor
 
@@ -38,8 +38,11 @@ func (c PbChained) ProcessBatch(ctx context.Context, batch *modelpb.Batch) error
 	return nil
 }
 
+// Chained is a chained model.BatchProcessor, calling each of
+// the processors in the slice in series.
 type Chained []model.BatchProcessor
 
+// ProcessBatch calls each of the processors in c in series.
 func (c Chained) ProcessBatch(ctx context.Context, batch *model.Batch) error {
 	for _, p := range c {
 		if err := p.ProcessBatch(ctx, batch); err != nil {
