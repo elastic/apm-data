@@ -39,11 +39,16 @@ func (SetHostHostname) ProcessBatch(ctx context.Context, b *modelpb.Batch) error
 func setHostHostname(event *modelpb.APMEvent) {
 	switch {
 	case event.GetKubernetes().GetNodeName() != "":
+		if event.Host == nil {
+			event.Host = &modelpb.Host{}
+		}
 		// host.kubernetes.node.name is set: set host.hostname to its value.
 		event.Host.Hostname = event.Kubernetes.NodeName
 	case event.GetKubernetes().GetPodName() != "" || event.GetKubernetes().GetPodUid() != "" || event.GetKubernetes().GetNamespace() != "":
-		// kubernetes.* is set, but kubernetes.node.name is not: don't set host.hostname at all.
-		event.Host.Hostname = ""
+		if event.Host != nil {
+			// kubernetes.* is set, but kubernetes.node.name is not: don't set host.hostname at all.
+			event.Host.Hostname = ""
+		}
 	default:
 		// Otherwise use the originally specified host.hostname value.
 	}
