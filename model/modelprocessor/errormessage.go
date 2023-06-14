@@ -39,11 +39,11 @@ func (s SetErrorMessage) ProcessBatch(ctx context.Context, b *modelpb.Batch) err
 }
 
 func (s SetErrorMessage) setErrorMessage(event *modelpb.APMEvent) string {
-	if event.Error.Log != nil && event.Error.Log.Message != "" {
-		return event.Error.Log.Message
+	if msg := event.GetError().GetLog().GetMessage(); msg != "" {
+		return msg
 	}
-	if event.Error.Exception != nil && event.Error.Exception.Message != "" {
-		return event.Error.Exception.Message
+	if msg := event.GetError().GetException().GetMessage(); msg != "" {
+		return msg
 	}
 	return ""
 }
