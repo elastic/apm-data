@@ -21,7 +21,14 @@ import "context"
 
 // Semaphore is used by inputs to limit the number of concurrent requests
 type Semaphore interface {
+	// Acquire acquires the semaphore with a weight of n, blocking until
+	// resources are available or ctx is done. On success, returns nil. On
+	// failure, returns ctx.Err() and leaves the semaphore unchanged.
 	Acquire(context.Context, int64) error
+	// TryAcquire acquires the semaphore with a weight of n without blocking. On
+	// success, returns true. On failure, returns false and leaves the semaphore
+	// unchanged.
 	TryAcquire(int64) bool
+	// Release releases the semaphore with a weight of n.
 	Release(int64)
 }
