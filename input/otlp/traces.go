@@ -78,6 +78,11 @@ const (
 // ConsumeTraces consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
 func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) error {
+	if err := c.sem.Acquire(ctx, 1); err != nil {
+		return err
+	}
+	defer c.sem.Release(1)
+
 	receiveTimestamp := time.Now()
 	c.config.Logger.Debug("consuming traces", zap.Stringer("traces", tracesStringer(traces)))
 

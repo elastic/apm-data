@@ -47,6 +47,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -59,7 +60,10 @@ func TestConsumerConsumeLogs(t *testing.T) {
 			return nil
 		}
 
-		consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: processor})
+		consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+			Processor: processor,
+			Semaphore: semaphore.NewWeighted(100),
+		})
 		logs := plog.NewLogs()
 		assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 	})
@@ -102,7 +106,10 @@ func TestConsumerConsumeLogs(t *testing.T) {
 				processed[0].Timestamp = nil
 				return nil
 			}
-			consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: processor})
+			consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+				Processor: processor,
+				Semaphore: semaphore.NewWeighted(100),
+			})
 			assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
 			expected := proto.Clone(&commonEvent).(*modelpb.APMEvent)
@@ -115,6 +122,36 @@ func TestConsumerConsumeLogs(t *testing.T) {
 	test("float_body", 1234.1234, "1234.1234")
 	test("bool_body", true, "true")
 	// TODO(marclop): How to test map body
+}
+
+func TestConsumeLogsSemaphore(t *testing.T) {
+	logs := plog.NewLogs()
+	var batches []*model.Batch
+
+	doneCh := make(chan struct{})
+	recorder := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+		<-doneCh
+		batches = append(batches, batch)
+		return nil
+	})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor: recorder,
+		Semaphore: semaphore.NewWeighted(1),
+	})
+
+	startCh := make(chan struct{})
+	go func() {
+		close(startCh)
+		assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
+	}()
+
+	<-startCh
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+	defer cancel()
+	assert.Equal(t, consumer.ConsumeLogs(ctx, logs).Error(), "context deadline exceeded")
+	close(doneCh)
+
+	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 }
 
 func TestConsumerConsumeLogsException(t *testing.T) {
@@ -163,7 +200,10 @@ Caused by: LowLevelException
 		processed[0].Timestamp = nil
 		return nil
 	}
-	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: processor})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor: processor,
+		Semaphore: semaphore.NewWeighted(100),
+	})
 	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
 	assert.Len(t, processed, 2)
@@ -305,7 +345,10 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 		processed[0].Timestamp = timestamppb.New(time.Time{})
 		return nil
 	}
-	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: processor})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor: processor,
+		Semaphore: semaphore.NewWeighted(100),
+	})
 	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
 	assert.Len(t, processed, 1)
@@ -345,7 +388,10 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 		processed[0].Timestamp = timestamppb.New(time.Time{})
 		return nil
 	}
-	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: processor})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor: processor,
+		Semaphore: semaphore.NewWeighted(100),
+	})
 	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
 	assert.Len(t, processed, 3)

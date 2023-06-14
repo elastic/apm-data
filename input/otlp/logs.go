@@ -50,6 +50,11 @@ import (
 )
 
 func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
+	if err := c.sem.Acquire(ctx, 1); err != nil {
+		return err
+	}
+	defer c.sem.Release(1)
+
 	receiveTimestamp := time.Now()
 	c.config.Logger.Debug("consuming logs", zap.Stringer("logs", logsStringer(logs)))
 	resourceLogs := logs.ResourceLogs()

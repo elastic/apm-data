@@ -50,6 +50,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -217,6 +218,36 @@ func TestConsumeMetrics(t *testing.T) {
 	}}
 
 	eventsMatch(t, expected, events)
+}
+
+func TestConsumeMetricsSemaphore(t *testing.T) {
+	metrics := pmetric.NewMetrics()
+	var batches []*model.Batch
+
+	doneCh := make(chan struct{})
+	recorder := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+		<-doneCh
+		batches = append(batches, batch)
+		return nil
+	})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor: recorder,
+		Semaphore: semaphore.NewWeighted(1),
+	})
+
+	startCh := make(chan struct{})
+	go func() {
+		close(startCh)
+		assert.NoError(t, consumer.ConsumeMetrics(context.Background(), metrics))
+	}()
+
+	<-startCh
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+	defer cancel()
+	assert.Equal(t, consumer.ConsumeMetrics(ctx, metrics).Error(), "context deadline exceeded")
+	close(doneCh)
+
+	assert.NoError(t, consumer.ConsumeMetrics(context.Background(), metrics))
 }
 
 func TestConsumeMetricsNaN(t *testing.T) {
@@ -714,7 +745,10 @@ func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEven
 	var batches []*modelpb.Batch
 	recorder := batchRecorderBatchProcessor(&batches)
 
-	consumer := otlp.NewConsumer(otlp.ConsumerConfig{Processor: recorder})
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor: recorder,
+		Semaphore: semaphore.NewWeighted(100),
+	})
 	err := consumer.ConsumeMetrics(context.Background(), metrics)
 	require.NoError(t, err)
 	require.Len(t, batches, 1)

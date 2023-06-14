@@ -28,6 +28,7 @@ import (
 	"go.elastic.co/apm/v2"
 	"go.uber.org/zap"
 
+	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/rumv3"
@@ -64,16 +65,16 @@ const (
 type Processor struct {
 	streamReaderPool sync.Pool
 	batchPool        sync.Pool
-	sem              chan struct{}
+	sem              input.Semaphore
 	logger           *zap.Logger
 	MaxEventSize     int
 }
 
 // Config holds configuration for Processor constructors.
 type Config struct {
-	// Semaphore holds a channel to which Processor.HandleStream
-	// will send an item before proceeding, to limit concurrency.
-	Semaphore chan struct{}
+	// Semaphore holds a semaphore on which Processor.HandleStream will acquire a
+	// token before proceeding, to limit concurrency.
+	Semaphore input.Semaphore
 	// Logger holds a logger for the processor. If Logger is nil,
 	// then no logging will be performed.
 	Logger *zap.Logger
@@ -250,7 +251,7 @@ func (p *Processor) HandleStream(
 	defer func() {
 		sr.release()
 		if shouldReleaseSemaphore {
-			p.semRelease()
+			p.sem.Release(1)
 		}
 	}()
 
@@ -314,7 +315,7 @@ func (p *Processor) handleStream(
 			// If no events have been read on an asynchronous request, release
 			// the semaphore since the processing goroutine isn't scheduled.
 			if n == 0 {
-				p.semRelease()
+				p.sem.Release(1)
 			}
 		}()
 	}
@@ -332,7 +333,7 @@ func (p *Processor) handleStream(
 	// been processed, the semaphore is released.
 	if async {
 		go func() {
-			defer p.semRelease()
+			defer p.sem.Release(1)
 			if err := p.processBatch(ctx, processor, &batch); err != nil {
 				p.logger.Error("failed handling async request", zap.Error(err))
 			}
@@ -365,22 +366,14 @@ func (p *Processor) getStreamReader(r io.Reader) *streamReader {
 }
 
 func (p *Processor) semAcquire(ctx context.Context, async bool) error {
-	select {
-	case p.sem <- struct{}{}:
-	default:
-		if async {
+	if async {
+		if ok := p.sem.TryAcquire(1); !ok {
 			return ErrQueueFull
 		}
-		select {
-		case p.sem <- struct{}{}:
-		case <-ctx.Done():
-			return ctx.Err()
-		}
+		return nil
 	}
-	return nil
+	return p.sem.Acquire(ctx, 1)
 }
-
-func (p *Processor) semRelease() { <-p.sem }
 
 // streamReader wraps NDJSONStreamReader, converting errors to stream errors.
 type streamReader struct {
