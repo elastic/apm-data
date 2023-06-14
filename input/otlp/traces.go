@@ -441,9 +441,7 @@ func TranslateTransaction(
 
 	switch foundSpanType {
 	case httpSpan:
-		if !proto.Equal(&http, &modelpb.HTTP{}) {
-			event.Http = &http
-		}
+		event.Http = &http
 
 		// Set outcome nad result from status code.
 		if statusCode := httpResponse.StatusCode; statusCode > 0 {
@@ -802,9 +800,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 		event.Span.Type = "external"
 		subtype := "http"
 		event.Span.Subtype = subtype
-		if !proto.Equal(&http, &modelpb.HTTP{}) {
-			event.Http = &http
-		}
+		event.Http = &http
 		if event.Url == nil {
 			event.Url = &modelpb.URL{}
 		}
