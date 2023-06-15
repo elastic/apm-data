@@ -44,7 +44,7 @@ type Codec interface {
 }
 
 // RecordEncodedBytes decorates an encoder with a metric that records the bytes
-// bytes that have been encoded.
+// that have been encoded.
 func RecordEncodedBytes(e Encoder, m metric.Int64Counter) Encoder {
 	return metricsRecorder{encoder: e, encoded: m}
 }
