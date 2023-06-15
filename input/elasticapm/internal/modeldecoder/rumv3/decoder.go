@@ -160,7 +160,12 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 	spans := (*batch)[offset:]
 	for i, s := range root.Transaction.Spans {
 		if s.ParentIndex.IsSet() && s.ParentIndex.Val >= 0 && s.ParentIndex.Val < len(spans) {
-			spans[i].Parent.Id = spans[s.ParentIndex.Val].Span.Id
+			if e := spans[s.ParentIndex.Val]; e != nil {
+				if spans[i].Parent == nil {
+					spans[i].Parent = &modelpb.Parent{}
+				}
+				spans[i].Parent.Id = e.Span.Id
+			}
 		}
 	}
 	return nil
