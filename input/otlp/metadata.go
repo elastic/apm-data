@@ -44,238 +44,144 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 		switch k {
 		// service.*
 		case semconv.AttributeServiceName:
-			if out.Service == nil {
-				out.Service = &modelpb.Service{}
-			}
+			out.Service = populateNil(out.Service)
 			out.Service.Name = cleanServiceName(v.Str())
 		case semconv.AttributeServiceVersion:
-			if out.Service == nil {
-				out.Service = &modelpb.Service{}
-			}
+			out.Service = populateNil(out.Service)
 			out.Service.Version = truncate(v.Str())
 		case semconv.AttributeServiceInstanceID:
 			out.Service.Node.Name = truncate(v.Str())
 
 		// deployment.*
 		case semconv.AttributeDeploymentEnvironment:
-			if out.Service == nil {
-				out.Service = &modelpb.Service{}
-			}
+			out.Service = populateNil(out.Service)
 			out.Service.Environment = truncate(v.Str())
 
 		// telemetry.sdk.*
 		case semconv.AttributeTelemetrySDKName:
-			if out.Agent == nil {
-				out.Agent = &modelpb.Agent{}
-			}
+			out.Agent = populateNil(out.Agent)
 			out.Agent.Name = truncate(v.Str())
 		case semconv.AttributeTelemetrySDKVersion:
-			if out.Agent == nil {
-				out.Agent = &modelpb.Agent{}
-			}
+			out.Agent = populateNil(out.Agent)
 			out.Agent.Version = truncate(v.Str())
 		case semconv.AttributeTelemetrySDKLanguage:
-			if out.Service == nil {
-				out.Service = &modelpb.Service{}
-			}
-			if out.Service.Language == nil {
-				out.Service.Language = &modelpb.Language{}
-			}
+			out.Service = populateNil(out.Service)
+			out.Service.Language = populateNil(out.Service.Language)
 			out.Service.Language.Name = truncate(v.Str())
 
 		// cloud.*
 		case semconv.AttributeCloudProvider:
-			if out.Cloud == nil {
-				out.Cloud = &modelpb.Cloud{}
-			}
+			out.Cloud = populateNil(out.Cloud)
 			out.Cloud.Provider = truncate(v.Str())
 		case semconv.AttributeCloudAccountID:
-			if out.Cloud == nil {
-				out.Cloud = &modelpb.Cloud{}
-			}
+			out.Cloud = populateNil(out.Cloud)
 			out.Cloud.AccountId = truncate(v.Str())
 		case semconv.AttributeCloudRegion:
-			if out.Cloud == nil {
-				out.Cloud = &modelpb.Cloud{}
-			}
+			out.Cloud = populateNil(out.Cloud)
 			out.Cloud.Region = truncate(v.Str())
 		case semconv.AttributeCloudAvailabilityZone:
-			if out.Cloud == nil {
-				out.Cloud = &modelpb.Cloud{}
-			}
+			out.Cloud = populateNil(out.Cloud)
 			out.Cloud.AvailabilityZone = truncate(v.Str())
 		case semconv.AttributeCloudPlatform:
-			if out.Cloud == nil {
-				out.Cloud = &modelpb.Cloud{}
-			}
+			out.Cloud = populateNil(out.Cloud)
 			out.Cloud.ServiceName = truncate(v.Str())
 
 		// container.*
 		case semconv.AttributeContainerName:
-			if out.Container == nil {
-				out.Container = &modelpb.Container{}
-			}
+			out.Container = populateNil(out.Container)
 			out.Container.Name = truncate(v.Str())
 		case semconv.AttributeContainerID:
-			if out.Container == nil {
-				out.Container = &modelpb.Container{}
-			}
+			out.Container = populateNil(out.Container)
 			out.Container.Id = truncate(v.Str())
 		case semconv.AttributeContainerImageName:
-			if out.Container == nil {
-				out.Container = &modelpb.Container{}
-			}
+			out.Container = populateNil(out.Container)
 			out.Container.ImageName = truncate(v.Str())
 		case semconv.AttributeContainerImageTag:
-			if out.Container == nil {
-				out.Container = &modelpb.Container{}
-			}
+			out.Container = populateNil(out.Container)
 			out.Container.ImageTag = truncate(v.Str())
 		case "container.runtime":
-			if out.Container == nil {
-				out.Container = &modelpb.Container{}
-			}
+			out.Container = populateNil(out.Container)
 			out.Container.Runtime = truncate(v.Str())
 
 		// k8s.*
 		case semconv.AttributeK8SNamespaceName:
-			if out.Kubernetes == nil {
-				out.Kubernetes = &modelpb.Kubernetes{}
-			}
+			out.Kubernetes = populateNil(out.Kubernetes)
 			out.Kubernetes.Namespace = truncate(v.Str())
 		case semconv.AttributeK8SNodeName:
-			if out.Kubernetes == nil {
-				out.Kubernetes = &modelpb.Kubernetes{}
-			}
+			out.Kubernetes = populateNil(out.Kubernetes)
 			out.Kubernetes.NodeName = truncate(v.Str())
 		case semconv.AttributeK8SPodName:
-			if out.Kubernetes == nil {
-				out.Kubernetes = &modelpb.Kubernetes{}
-			}
+			out.Kubernetes = populateNil(out.Kubernetes)
 			out.Kubernetes.PodName = truncate(v.Str())
 		case semconv.AttributeK8SPodUID:
-			if out.Kubernetes == nil {
-				out.Kubernetes = &modelpb.Kubernetes{}
-			}
+			out.Kubernetes = populateNil(out.Kubernetes)
 			out.Kubernetes.PodUid = truncate(v.Str())
 
 		// host.*
 		case semconv.AttributeHostName:
-			if out.Host == nil {
-				out.Host = &modelpb.Host{}
-			}
+			out.Host = populateNil(out.Host)
 			out.Host.Hostname = truncate(v.Str())
 		case semconv.AttributeHostID:
-			if out.Host == nil {
-				out.Host = &modelpb.Host{}
-			}
+			out.Host = populateNil(out.Host)
 			out.Host.Id = truncate(v.Str())
 		case semconv.AttributeHostType:
-			if out.Host == nil {
-				out.Host = &modelpb.Host{}
-			}
+			out.Host = populateNil(out.Host)
 			out.Host.Type = truncate(v.Str())
 		case "host.arch":
-			if out.Host == nil {
-				out.Host = &modelpb.Host{}
-			}
+			out.Host = populateNil(out.Host)
 			out.Host.Architecture = truncate(v.Str())
 
 		// process.*
 		case semconv.AttributeProcessPID:
-			if out.Process == nil {
-				out.Process = &modelpb.Process{}
-			}
+			out.Process = populateNil(out.Process)
 			out.Process.Pid = uint32(v.Int())
 		case semconv.AttributeProcessCommandLine:
-			if out.Process == nil {
-				out.Process = &modelpb.Process{}
-			}
+			out.Process = populateNil(out.Process)
 			out.Process.CommandLine = truncate(v.Str())
 		case semconv.AttributeProcessExecutablePath:
-			if out.Process == nil {
-				out.Process = &modelpb.Process{}
-			}
+			out.Process = populateNil(out.Process)
 			out.Process.Executable = truncate(v.Str())
 		case "process.runtime.name":
-			if out.Service == nil {
-				out.Service = &modelpb.Service{}
-			}
-			if out.Service.Runtime == nil {
-				out.Service.Runtime = &modelpb.Runtime{}
-			}
+			out.Service = populateNil(out.Service)
+			out.Service.Runtime = populateNil(out.Service.Runtime)
 			out.Service.Runtime.Name = truncate(v.Str())
 		case "process.runtime.version":
-			if out.Service == nil {
-				out.Service = &modelpb.Service{}
-			}
-			if out.Service.Runtime == nil {
-				out.Service.Runtime = &modelpb.Runtime{}
-			}
-
+			out.Service = populateNil(out.Service)
+			out.Service.Runtime = populateNil(out.Service.Runtime)
 			out.Service.Runtime.Version = truncate(v.Str())
 
 		// os.*
 		case semconv.AttributeOSType:
-			if out.Host == nil {
-				out.Host = &modelpb.Host{}
-			}
-			if out.Host.Os == nil {
-				out.Host.Os = &modelpb.OS{}
-			}
+			out.Host = populateNil(out.Host)
+			out.Host.Os = populateNil(out.Host.Os)
 			out.Host.Os.Platform = strings.ToLower(truncate(v.Str()))
 		case semconv.AttributeOSDescription:
-			if out.Host == nil {
-				out.Host = &modelpb.Host{}
-			}
-			if out.Host.Os == nil {
-				out.Host.Os = &modelpb.OS{}
-			}
-
+			out.Host = populateNil(out.Host)
+			out.Host.Os = populateNil(out.Host.Os)
 			out.Host.Os.Full = truncate(v.Str())
 		case semconv.AttributeOSName:
-			if out.Host == nil {
-				out.Host = &modelpb.Host{}
-			}
-			if out.Host.Os == nil {
-				out.Host.Os = &modelpb.OS{}
-			}
+			out.Host = populateNil(out.Host)
+			out.Host.Os = populateNil(out.Host.Os)
 			out.Host.Os.Name = truncate(v.Str())
 		case semconv.AttributeOSVersion:
-			if out.Host == nil {
-				out.Host = &modelpb.Host{}
-			}
-			if out.Host.Os == nil {
-				out.Host.Os = &modelpb.OS{}
-			}
+			out.Host = populateNil(out.Host)
+			out.Host.Os = populateNil(out.Host.Os)
 			out.Host.Os.Version = truncate(v.Str())
 
 		// device.*
 		case semconv.AttributeDeviceID:
-			if out.Device == nil {
-				out.Device = &modelpb.Device{}
-			}
+			out.Device = populateNil(out.Device)
 			out.Device.Id = truncate(v.Str())
 		case semconv.AttributeDeviceModelIdentifier:
-			if out.Device == nil {
-				out.Device = &modelpb.Device{}
-			}
-			if out.Device.Model == nil {
-				out.Device.Model = &modelpb.DeviceModel{}
-			}
+			out.Device = populateNil(out.Device)
+			out.Device.Model = populateNil(out.Device.Model)
 			out.Device.Model.Identifier = truncate(v.Str())
 		case semconv.AttributeDeviceModelName:
-			if out.Device == nil {
-				out.Device = &modelpb.Device{}
-			}
-			if out.Device.Model == nil {
-				out.Device.Model = &modelpb.DeviceModel{}
-			}
+			out.Device = populateNil(out.Device)
+			out.Device.Model = populateNil(out.Device.Model)
 			out.Device.Model.Name = truncate(v.Str())
 		case "device.manufacturer":
-			if out.Device == nil {
-				out.Device = &modelpb.Device{}
-			}
+			out.Device = populateNil(out.Device)
 			out.Device.Manufacturer = truncate(v.Str())
 
 		// Legacy OpenCensus attributes.
@@ -324,17 +230,11 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 		const nVersionParts = 3
 		versionParts := strings.SplitN(exporterVersion, "-", nVersionParts)
 		if out.GetService().GetLanguage().GetName() == "" && len(versionParts) == nVersionParts {
-			if out.Service == nil {
-				out.Service = &modelpb.Service{}
-			}
-			if out.Service.Language == nil {
-				out.Service.Language = &modelpb.Language{}
-			}
+			out.Service = populateNil(out.Service)
+			out.Service.Language = populateNil(out.Service.Language)
 			out.Service.Language.Name = versionParts[1]
 		}
-		if out.Agent == nil {
-			out.Agent = &modelpb.Agent{}
-		}
+		out.Agent = populateNil(out.Agent)
 		if v := versionParts[len(versionParts)-1]; v != "" {
 			out.Agent.Version = v
 		}
@@ -354,16 +254,12 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 	}
 
 	if out.GetService().GetName() == "" {
-		if out.Service == nil {
-			out.Service = &modelpb.Service{}
-		}
+		out.Service = populateNil(out.Service)
 		// service.name is a required field.
 		out.Service.Name = "unknown"
 	}
 	if out.GetAgent().GetName() == "" {
-		if out.Agent == nil {
-			out.Agent = &modelpb.Agent{}
-		}
+		out.Agent = populateNil(out.Agent)
 		// agent.name is a required field.
 		out.Agent.Name = "otlp"
 	}
@@ -372,17 +268,11 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 		out.Agent.Version = "unknown"
 	}
 	if out.GetService().GetLanguage().GetName() != "" {
-		if out.Agent == nil {
-			out.Agent = &modelpb.Agent{}
-		}
+		out.Agent = populateNil(out.Agent)
 		out.Agent.Name = fmt.Sprintf("%s/%s", out.Agent.Name, out.Service.Language.Name)
 	} else {
-		if out.Service == nil {
-			out.Service = &modelpb.Service{}
-		}
-		if out.Service.Language == nil {
-			out.Service.Language = &modelpb.Language{}
-		}
+		out.Service = populateNil(out.Service)
+		out.Service.Language = populateNil(out.Service.Language)
 		out.Service.Language.Name = "unknown"
 	}
 
@@ -460,4 +350,11 @@ func setLabel(key string, event *modelpb.APMEvent, v interface{}) {
 			modelpb.NumericLabels(event.NumericLabels).SetSlice(key, value)
 		}
 	}
+}
+
+func populateNil[T any](a *T) *T {
+	if a == nil {
+		return new(T)
+	}
+	return a
 }
