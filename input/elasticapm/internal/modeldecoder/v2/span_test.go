@@ -25,9 +25,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
@@ -57,8 +59,16 @@ func TestDecodeNestedSpan(t *testing.T) {
 		require.NoError(t, DecodeNestedSpan(dec, &input, &batch))
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Span)
-		defaultVal.Update(time.Time{}.Add(143 * time.Millisecond))
-		modeldecodertest.AssertStructValues(t, &batch[0], isMetadataException, defaultVal)
+		assert.Equal(t, time.Time{}.Add(143*time.Millisecond), batch[0].Timestamp.AsTime())
+		assert.Equal(t, 100*time.Millisecond, batch[0].Event.Duration.AsDuration())
+		assert.Equal(t, &modelpb.Parent{Id: "parent-123"}, batch[0].Parent, protocmp.Transform())
+		assert.Equal(t, &modelpb.Trace{Id: "trace-ab"}, batch[0].Trace, protocmp.Transform())
+		assert.Empty(t, cmp.Diff(&modelpb.Span{
+			Name:                "s",
+			Type:                "db",
+			Id:                  "a-b-c",
+			RepresentativeCount: 1,
+		}, batch[0].Span, protocmp.Transform()))
 
 		err := DecodeNestedSpan(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &batch)
 		require.Error(t, err)

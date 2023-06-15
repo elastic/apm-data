@@ -58,9 +58,14 @@ func TestDecodeNestedMetricset(t *testing.T) {
 		require.NoError(t, DecodeNestedMetricset(dec, &input, &batch))
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Metricset)
-		assert.Equal(t, []*modelpb.MetricsetSample{{Name: "a.b", Value: 2048}}, batch[0].Metricset.Samples)
-		defaultVal.Update(time.Unix(1599996822, 281000000).UTC())
-		modeldecodertest.AssertStructValues(t, &batch[0], isMetadataException, defaultVal)
+		assert.Equal(t, time.Unix(1599996822, 281000000).UTC(), batch[0].Timestamp.AsTime())
+		assert.Empty(t, cmp.Diff(&modelpb.Metricset{
+			Name: "app",
+			Samples: []*modelpb.MetricsetSample{{
+				Name:  "a.b",
+				Value: 2048,
+			}},
+		}, batch[0].Metricset, protocmp.Transform()))
 
 		// invalid type
 		err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &batch)

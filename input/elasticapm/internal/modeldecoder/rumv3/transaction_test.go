@@ -87,14 +87,6 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		assert.Equal(t, "1", batch[2].Trace.Id)
 		assert.Equal(t, "100", batch[2].Parent.Id)
 
-		for _, event := range batch {
-			modeldecodertest.AssertStructValues(
-				t, &event,
-				metadataExceptions("Timestamp"), // timestamp checked above
-				modeldecodertest.DefaultValues(),
-			)
-		}
-
 		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &batch)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "decode")

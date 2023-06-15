@@ -24,8 +24,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
@@ -56,9 +58,11 @@ func TestDecodeNestedError(t *testing.T) {
 		require.NoError(t, DecodeNestedError(dec, &input, &batch))
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Error)
-
-		defaultVal.Update(time.Unix(1599996822, 281000000).UTC())
-		modeldecodertest.AssertStructValues(t, &batch[0], isMetadataException, defaultVal)
+		assert.Equal(t, time.Unix(1599996822, 281000000).UTC(), batch[0].Timestamp.AsTime())
+		assert.Empty(t, cmp.Diff(&modelpb.Error{
+			Id:  "a-b-c",
+			Log: &modelpb.ErrorLog{Message: "abc"},
+		}, batch[0].Error, protocmp.Transform()))
 
 		str = `{"error":{"id":"a-b-c","log":{"message":"abc"},"context":{"experimental":"exp"}}}`
 		dec = decoder.NewJSONDecoder(strings.NewReader(str))

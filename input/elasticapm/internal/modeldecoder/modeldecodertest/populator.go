@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/model"
@@ -131,7 +132,7 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 		switch fKind := f.Kind(); fKind {
 		case reflect.String:
 			fieldVal = reflect.ValueOf(values.Str)
-		case reflect.Int, reflect.Int64:
+		case reflect.Int, reflect.Int32, reflect.Int64:
 			fieldVal = reflect.ValueOf(values.Int).Convert(f.Type())
 		case reflect.Float64:
 			fieldVal = reflect.ValueOf(values.Float).Convert(f.Type())
@@ -265,10 +266,6 @@ func SetZeroStructValue(i interface{}, callback func(string)) {
 // that values are equal to expected values
 func AssertStructValues(t *testing.T, i interface{}, isException func(string) bool,
 	values *Values) {
-	if true {
-		// TODO FIX no op protobuf support
-		return
-	}
 	IterateStruct(i, func(f reflect.Value, key string) {
 		if isException(key) {
 			return
@@ -308,7 +305,7 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 		case *int:
 			newVal = &values.Int
 		case int32:
-			newVal = values.Int
+			newVal = int32(values.Int)
 		case uint32:
 			newVal = uint32(values.Int)
 		case *uint32:
@@ -327,8 +324,8 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 			newVal = &values.Bool
 		case http.Header:
 			newVal = values.HTTPHeader
-		case time.Time:
-			newVal = values.Time
+		case *timestamppb.Timestamp:
+			newVal = timestamppb.New(values.Time)
 		case time.Duration:
 			newVal = values.Duration
 		case modelpb.MetricType:
