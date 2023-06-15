@@ -24,13 +24,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 func TestResetErrorOnRelease(t *testing.T) {
@@ -44,27 +47,29 @@ func TestResetErrorOnRelease(t *testing.T) {
 
 func TestDecodeNestedError(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
-		now := time.Now()
+		now := time.Now().UTC()
 		defaultVal := modeldecodertest.DefaultValues()
 		_, eventBase := initializedInputMetadata(defaultVal)
 		eventBase.Timestamp = now
 		input := modeldecoder.Input{Base: eventBase}
 		str := `{"error":{"id":"a-b-c","timestamp":1599996822281000,"log":{"message":"abc"}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
-		var batch model.Batch
+		var batch modelpb.Batch
 		require.NoError(t, DecodeNestedError(dec, &input, &batch))
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Error)
-
-		defaultVal.Update(time.Unix(1599996822, 281000000).UTC())
-		modeldecodertest.AssertStructValues(t, &batch[0], isMetadataException, defaultVal)
+		assert.Equal(t, time.Unix(1599996822, 281000000).UTC(), batch[0].Timestamp.AsTime())
+		assert.Empty(t, cmp.Diff(&modelpb.Error{
+			Id:  "a-b-c",
+			Log: &modelpb.ErrorLog{Message: "abc"},
+		}, batch[0].Error, protocmp.Transform()))
 
 		str = `{"error":{"id":"a-b-c","log":{"message":"abc"},"context":{"experimental":"exp"}}}`
 		dec = decoder.NewJSONDecoder(strings.NewReader(str))
-		batch = model.Batch{}
+		batch = modelpb.Batch{}
 		require.NoError(t, DecodeNestedError(dec, &input, &batch))
 		// if no timestamp is provided, leave base event time unmodified
-		assert.Equal(t, now, batch[0].Timestamp)
+		assert.Equal(t, now, batch[0].Timestamp.AsTime())
 
 		err := DecodeNestedError(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &batch)
 		require.Error(t, err)
@@ -72,7 +77,7 @@ func TestDecodeNestedError(t *testing.T) {
 	})
 
 	t.Run("validate", func(t *testing.T) {
-		var out model.Batch
+		var out modelpb.Batch
 		err := DecodeNestedError(decoder.NewJSONDecoder(strings.NewReader(`{}`)), &modeldecoder.Input{}, &out)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "validation")

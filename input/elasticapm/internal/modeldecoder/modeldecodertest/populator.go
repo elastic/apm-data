@@ -27,9 +27,11 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // Values used for populating the model structs
@@ -44,6 +46,7 @@ type Values struct {
 	HTTPHeader      http.Header
 	LabelVal        model.LabelValue
 	NumericLabelVal model.NumericLabelValue
+	MetricType      modelpb.MetricType
 	// N controls how many elements are added to a slice or a map
 	N int
 }
@@ -129,7 +132,7 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 		switch fKind := f.Kind(); fKind {
 		case reflect.String:
 			fieldVal = reflect.ValueOf(values.Str)
-		case reflect.Int, reflect.Int64:
+		case reflect.Int, reflect.Int32, reflect.Int64:
 			fieldVal = reflect.ValueOf(values.Int).Convert(f.Type())
 		case reflect.Float64:
 			fieldVal = reflect.ValueOf(values.Float).Convert(f.Type())
@@ -301,6 +304,8 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 			newVal = &val
 		case *int:
 			newVal = &values.Int
+		case int32:
+			newVal = int32(values.Int)
 		case uint32:
 			newVal = uint32(values.Int)
 		case *uint32:
@@ -319,10 +324,12 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 			newVal = &values.Bool
 		case http.Header:
 			newVal = values.HTTPHeader
-		case time.Time:
-			newVal = values.Time
+		case *timestamppb.Timestamp:
+			newVal = timestamppb.New(values.Time)
 		case time.Duration:
 			newVal = values.Duration
+		case modelpb.MetricType:
+			newVal = values
 		default:
 			// the populator recursively iterates over struct and structPtr
 			// calling this function for all fields;
@@ -356,6 +363,9 @@ func IterateStruct(i interface{}, fn func(reflect.Value, string)) {
 }
 
 func iterateStruct(v reflect.Value, key string, fn func(f reflect.Value, fKey string)) {
+	if v.Type().Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
 	t := v.Type()
 	if t.Kind() != reflect.Struct {
 		panic(fmt.Sprintf("iterateStruct: invalid type %s", t.Kind()))
