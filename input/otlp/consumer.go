@@ -21,7 +21,7 @@ import (
 	"sync/atomic"
 
 	"github.com/elastic/apm-data/input"
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
 )
@@ -34,7 +34,7 @@ type ConsumerConfig struct {
 
 	// Processor holds the model.BatchProcessor which will be invoked
 	// with event batches when consuming OTLP payloads.
-	Processor model.BatchProcessor
+	Processor modelpb.BatchProcessor
 
 	// Semaphore holds a semaphore on which Processor.HandleStream will acquire a
 	// token before proceeding, to limit concurrency.
