@@ -43,8 +43,10 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
@@ -56,17 +58,17 @@ func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
 	receiveTimestamp := time.Now()
 	c.config.Logger.Debug("consuming logs", zap.Stringer("logs", logsStringer(logs)))
 	resourceLogs := logs.ResourceLogs()
-	batch := make(model.Batch, 0, resourceLogs.Len())
+	batch := make(modelpb.Batch, 0, resourceLogs.Len())
 	for i := 0; i < resourceLogs.Len(); i++ {
 		c.convertResourceLogs(resourceLogs.At(i), receiveTimestamp, &batch)
 	}
 	return c.config.Processor.ProcessBatch(ctx, &batch)
 }
 
-func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTimestamp time.Time, out *model.Batch) {
+func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTimestamp time.Time, out *modelpb.Batch) {
 	var timeDelta time.Duration
 	resource := resourceLogs.Resource()
-	baseEvent := model.APMEvent{Processor: model.LogProcessor}
+	baseEvent := modelpb.APMEvent{Processor: modelpb.LogProcessor()}
 	translateResourceMetadata(resource, &baseEvent)
 
 	if exportTimestamp, ok := exportTimestamp(resource); ok {
@@ -74,15 +76,15 @@ func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTi
 	}
 	scopeLogs := resourceLogs.ScopeLogs()
 	for i := 0; i < scopeLogs.Len(); i++ {
-		c.convertInstrumentationLibraryLogs(scopeLogs.At(i), baseEvent, timeDelta, out)
+		c.convertInstrumentationLibraryLogs(scopeLogs.At(i), &baseEvent, timeDelta, out)
 	}
 }
 
 func (c *Consumer) convertInstrumentationLibraryLogs(
 	in plog.ScopeLogs,
-	baseEvent model.APMEvent,
+	baseEvent *modelpb.APMEvent,
 	timeDelta time.Duration,
-	out *model.Batch,
+	out *modelpb.Batch,
 ) {
 	otelLogs := in.LogRecords()
 	for i := 0; i < otelLogs.Len(); i++ {
@@ -93,28 +95,36 @@ func (c *Consumer) convertInstrumentationLibraryLogs(
 
 func (c *Consumer) convertLogRecord(
 	record plog.LogRecord,
-	baseEvent model.APMEvent,
+	baseEvent *modelpb.APMEvent,
 	timeDelta time.Duration,
-) model.APMEvent {
-	event := baseEvent
-	initEventLabels(&event)
-	event.Timestamp = record.Timestamp().AsTime().Add(timeDelta)
+) *modelpb.APMEvent {
+	event := proto.Clone(baseEvent).(*modelpb.APMEvent)
+	initEventLabels(event)
+	event.Timestamp = timestamppb.New(record.Timestamp().AsTime().Add(timeDelta))
+	if event.Event == nil {
+		event.Event = &modelpb.Event{}
+	}
 	event.Event.Severity = int64(record.SeverityNumber())
+	if event.Log == nil {
+		event.Log = &modelpb.Log{}
+	}
 	event.Log.Level = record.SeverityText()
 	if body := record.Body(); body.Type() != pcommon.ValueTypeEmpty {
 		event.Message = body.AsString()
 		if body.Type() == pcommon.ValueTypeMap {
-			setLabels(body.Map(), &event)
+			setLabels(body.Map(), event)
 		}
 	}
 	if traceID := record.TraceID(); !traceID.IsEmpty() {
-		event.Trace.ID = hex.EncodeToString(traceID[:])
+		event.Trace = &modelpb.Trace{
+			Id: hex.EncodeToString(traceID[:]),
+		}
 	}
 	if spanID := record.SpanID(); !spanID.IsEmpty() {
 		if event.Span == nil {
-			event.Span = &model.Span{}
+			event.Span = &modelpb.Span{}
 		}
-		event.Span.ID = hex.EncodeToString(spanID[:])
+		event.Span.Id = hex.EncodeToString(spanID[:])
 	}
 	attrs := record.Attributes()
 
@@ -139,9 +149,9 @@ func (c *Consumer) convertLogRecord(
 		case "event.domain":
 			eventDomain = v.Str()
 		case "session.id":
-			event.Session.ID = v.Str()
+			event.Session.Id = v.Str()
 		default:
-			setLabel(replaceDots(k), &event, ifaceAttributeValue(v))
+			setLabel(replaceDots(k), event, ifaceAttributeValue(v))
 		}
 		return true
 	})
@@ -161,7 +171,7 @@ func (c *Consumer) convertLogRecord(
 		event.Event.Category = "device"
 		if eventName == "crash" {
 			if event.Error == nil {
-				event.Error = &model.Error{}
+				event.Error = &modelpb.Error{}
 			}
 			event.Error.Type = "crash"
 		} else {
@@ -171,7 +181,7 @@ func (c *Consumer) convertLogRecord(
 	}
 
 	if event.Error != nil {
-		event.Processor = model.ErrorProcessor
+		event.Processor = modelpb.ErrorProcessor()
 		event.Event.Kind = "event"
 		event.Event.Type = "error"
 	}
@@ -179,7 +189,7 @@ func (c *Consumer) convertLogRecord(
 	return event
 }
 
-func setLabels(m pcommon.Map, event *model.APMEvent) {
+func setLabels(m pcommon.Map, event *modelpb.APMEvent) {
 	m.Range(func(k string, v pcommon.Value) bool {
 		setLabel(replaceDots(k), event, ifaceAttributeValue(v))
 		return true

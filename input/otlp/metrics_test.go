@@ -38,20 +38,22 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"net/netip"
+	"sort"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"golang.org/x/sync/semaphore"
+	"google.golang.org/protobuf/testing/protocmp"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/otlp"
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 func TestConsumeMetrics(t *testing.T) {
@@ -134,30 +136,30 @@ func TestConsumeMetrics(t *testing.T) {
 	events, stats := transformMetrics(t, metrics)
 	assert.Equal(t, expectDropped, stats.UnsupportedMetricsDropped)
 
-	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
-	agent := model.Agent{Name: "otlp", Version: "unknown"}
-	expected := []model.APMEvent{{
-		Agent:     agent,
-		Service:   service,
-		Timestamp: timestamp0,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+	service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
+	agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
+	expected := []*modelpb.APMEvent{{
+		Agent:     &agent,
+		Service:   &service,
+		Timestamp: timestamppb.New(timestamp0),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
-				{Name: "gauge_metric", Value: 1, Type: "gauge"},
-				{Name: "sum_metric", Value: 7, Type: "counter"},
+			Samples: []*modelpb.MetricsetSample{
+				{Name: "gauge_metric", Value: 1, Type: modelpb.MetricType_METRIC_TYPE_GAUGE},
+				{Name: "sum_metric", Value: 7, Type: modelpb.MetricType_METRIC_TYPE_COUNTER},
 				{
 					Name: "histogram_metric",
-					Type: "histogram",
-					Histogram: model.Histogram{
+					Type: modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
+					Histogram: &modelpb.Histogram{
 						Counts: []int64{1, 1, 2, 3},
 						Values: []float64{-1, 0.5, 2.75, 3.5},
 					},
 				},
 				{
 					Name: "summary_metric",
-					Type: "summary",
-					SummaryMetric: model.SummaryMetric{
+					Type: modelpb.MetricType_METRIC_TYPE_SUMMARY,
+					Summary: &modelpb.SummaryMetric{
 						Count: 10,
 						Sum:   123.456,
 					},
@@ -165,52 +167,52 @@ func TestConsumeMetrics(t *testing.T) {
 			},
 		},
 	}, {
-		Agent:     agent,
-		Service:   service,
-		Timestamp: timestamp1,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Agent:     &agent,
+		Service:   &service,
+		Timestamp: timestamppb.New(timestamp1),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
-				{Name: "gauge_metric", Value: 4, Type: "gauge"},
+			Samples: []*modelpb.MetricsetSample{
+				{Name: "gauge_metric", Value: 4, Type: modelpb.MetricType_METRIC_TYPE_GAUGE},
 			},
 		},
 	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"k": {Value: "v"}},
-		Timestamp: timestamp1,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"k": {Value: "v"}},
+		Timestamp: timestamppb.New(timestamp1),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
-				{Name: "gauge_metric", Value: 2.3, Type: "gauge"},
-				{Name: "sum_metric", Value: 8.9, Type: "counter"},
+			Samples: []*modelpb.MetricsetSample{
+				{Name: "gauge_metric", Value: 2.3, Type: modelpb.MetricType_METRIC_TYPE_GAUGE},
+				{Name: "sum_metric", Value: 8.9, Type: modelpb.MetricType_METRIC_TYPE_COUNTER},
 			},
 		},
 	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"k": {Value: "v2"}},
-		Timestamp: timestamp1,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"k": {Value: "v2"}},
+		Timestamp: timestamppb.New(timestamp1),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
-				{Name: "gauge_metric", Value: 5.6, Type: "gauge"},
-				{Name: "sum_metric", Value: 11.12, Type: "counter"},
+			Samples: []*modelpb.MetricsetSample{
+				{Name: "gauge_metric", Value: 5.6, Type: modelpb.MetricType_METRIC_TYPE_GAUGE},
+				{Name: "sum_metric", Value: 11.12, Type: modelpb.MetricType_METRIC_TYPE_COUNTER},
 			},
 		},
 	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"k2": {Value: "v"}},
-		Timestamp: timestamp1,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"k2": {Value: "v"}},
+		Timestamp: timestamppb.New(timestamp1),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
-				{Name: "sum_metric", Value: 10, Type: "counter"},
+			Samples: []*modelpb.MetricsetSample{
+				{Name: "sum_metric", Value: 10, Type: modelpb.MetricType_METRIC_TYPE_COUNTER},
 			},
 		},
 	}}
@@ -220,10 +222,10 @@ func TestConsumeMetrics(t *testing.T) {
 
 func TestConsumeMetricsSemaphore(t *testing.T) {
 	metrics := pmetric.NewMetrics()
-	var batches []*model.Batch
+	var batches []*modelpb.Batch
 
 	doneCh := make(chan struct{})
-	recorder := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
 		<-doneCh
 		batches = append(batches, batch)
 		return nil
@@ -339,196 +341,196 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 	})
 
 	events, _ := transformMetrics(t, metrics)
-	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
-	agent := model.Agent{Name: "otlp", Version: "unknown"}
-	expected := []model.APMEvent{{
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"state": {Value: "idle"}, "cpu": {Value: "0"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+	service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
+	agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
+	expected := []*modelpb.APMEvent{{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"state": {Value: "idle"}, "cpu": {Value: "0"}},
+		Timestamp: timestamppb.New(timestamp),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
-					Type:  "gauge",
+					Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
 					Value: 0.8,
 				},
 			},
 		},
 	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"state": {Value: "system"}, "cpu": {Value: "0"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"state": {Value: "system"}, "cpu": {Value: "0"}},
+		Timestamp: timestamppb.New(timestamp),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
-					Type:  "gauge",
+					Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
 					Value: 0.1,
 				},
 			},
 		},
 	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"state": {Value: "user"}, "cpu": {Value: "0"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"state": {Value: "user"}, "cpu": {Value: "0"}},
+		Timestamp: timestamppb.New(timestamp),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
-					Type:  "gauge",
+					Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
 					Value: 0.1,
 				},
 			},
 		},
 	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"state": {Value: "idle"}, "cpu": {Value: "1"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"state": {Value: "idle"}, "cpu": {Value: "1"}},
+		Timestamp: timestamppb.New(timestamp),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
-					Type:  "gauge",
+					Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
 					Value: 0.45,
 				},
 			},
 		},
 	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"state": {Value: "system"}, "cpu": {Value: "1"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"state": {Value: "system"}, "cpu": {Value: "1"}},
+		Timestamp: timestamppb.New(timestamp),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
-					Type:  "gauge",
+					Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
 					Value: 0.05,
 				},
 			},
 		},
 	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"state": {Value: "user"}, "cpu": {Value: "1"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"state": {Value: "user"}, "cpu": {Value: "1"}},
+		Timestamp: timestamppb.New(timestamp),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
-					Type:  "gauge",
+					Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
 					Value: 0.5,
 				},
 			},
 		},
 	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"state": {Value: "idle"}, "cpu": {Value: "2"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"state": {Value: "idle"}, "cpu": {Value: "2"}},
+		Timestamp: timestamppb.New(timestamp),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
-					Type:  "gauge",
+					Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
 					Value: 0.59,
 				},
 			},
 		},
 	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"state": {Value: "system"}, "cpu": {Value: "2"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"state": {Value: "system"}, "cpu": {Value: "2"}},
+		Timestamp: timestamppb.New(timestamp),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
-					Type:  "gauge",
+					Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
 					Value: 0.01,
 				},
 			},
 		},
 	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"state": {Value: "user"}, "cpu": {Value: "2"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"state": {Value: "user"}, "cpu": {Value: "2"}},
+		Timestamp: timestamppb.New(timestamp),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
-					Type:  "gauge",
+					Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
 					Value: 0.4,
 				},
 			},
 		},
 	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"state": {Value: "idle"}, "cpu": {Value: "3"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"state": {Value: "idle"}, "cpu": {Value: "3"}},
+		Timestamp: timestamppb.New(timestamp),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
-					Type:  "gauge",
+					Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
 					Value: 0.6,
 				},
 			},
 		},
 	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"state": {Value: "system"}, "cpu": {Value: "3"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"state": {Value: "system"}, "cpu": {Value: "3"}},
+		Timestamp: timestamppb.New(timestamp),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
-					Type:  "gauge",
+					Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
 					Value: 0.3,
 				},
 			},
 		},
 	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"state": {Value: "user"}, "cpu": {Value: "3"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"state": {Value: "user"}, "cpu": {Value: "3"}},
+		Timestamp: timestamppb.New(timestamp),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
 					Name:  "system.cpu.utilization",
-					Type:  "gauge",
+					Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
 					Value: 0.1,
 				},
 			},
@@ -561,36 +563,36 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 		"state": "used",
 	})
 	events, _ := transformMetrics(t, metrics)
-	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
-	agent := model.Agent{Name: "otlp", Version: "unknown"}
-	expected := []model.APMEvent{{
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"state": {Value: "free"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+	service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
+	agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
+	expected := []*modelpb.APMEvent{{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"state": {Value: "free"}},
+		Timestamp: timestamppb.New(timestamp),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
 					Name:  "system.memory.usage",
-					Type:  "counter",
+					Type:  modelpb.MetricType_METRIC_TYPE_COUNTER,
 					Value: 4773351424,
 				},
 			},
 		},
 	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"state": {Value: "used"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"state": {Value: "used"}},
+		Timestamp: timestamppb.New(timestamp),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
 					Name:  "system.memory.usage",
-					Type:  "counter",
+					Type:  modelpb.MetricType_METRIC_TYPE_COUNTER,
 					Value: 3563778048,
 				},
 			},
@@ -642,37 +644,37 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	})
 
 	events, _ := transformMetrics(t, metrics)
-	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
-	agent := model.Agent{Name: "otlp", Version: "unknown"}
-	expected := []model.APMEvent{{
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"type": {Value: "heap"}, "pool": {Value: "G1 Eden Space"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+	service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
+	agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
+	expected := []*modelpb.APMEvent{{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"type": {Value: "heap"}, "pool": {Value: "G1 Eden Space"}},
+		Timestamp: timestamppb.New(timestamp),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
 					Name:  "process.runtime.jvm.memory.limit",
-					Type:  "gauge",
+					Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
 					Value: 20000,
 				},
 			},
 		},
 	}, {
-		Agent:     agent,
-		Service:   service,
-		Labels:    model.Labels{"action": {Value: "end of minor GC"}, "gc": {Value: "G1 Young Generation"}},
-		Timestamp: timestamp,
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Agent:     &agent,
+		Service:   &service,
+		Labels:    modelpb.Labels{"action": {Value: "end of minor GC"}, "gc": {Value: "G1 Young Generation"}},
+		Timestamp: timestamppb.New(timestamp),
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name: "app",
-			Samples: []model.MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
 					Name: "process.runtime.jvm.gc.duration",
-					Type: "histogram",
-					Histogram: model.Histogram{
+					Type: modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
+					Histogram: &modelpb.Histogram{
 						Counts: []int64{1, 1, 2, 3},
 						Values: []float64{0.25, 1, 2, 2.5},
 					},
@@ -714,7 +716,7 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 
 	events, _ := transformMetrics(t, metrics)
 	require.Len(t, events, 1)
-	assert.InDelta(t, now.Add(dataPointOffset).Unix(), events[0].Timestamp.Unix(), allowedError)
+	assert.InDelta(t, now.Add(dataPointOffset).Unix(), events[0].Timestamp.AsTime().Unix(), allowedError)
 
 	for _, e := range events {
 		// telemetry.sdk.elastic_export_timestamp should not be sent as a label.
@@ -739,8 +741,8 @@ func TestMetricsLogging(t *testing.T) {
 }
 */
 
-func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]model.APMEvent, otlp.ConsumerStats) {
-	var batches []*model.Batch
+func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEvent, otlp.ConsumerStats) {
+	var batches []*modelpb.Batch
 	recorder := batchRecorderBatchProcessor(&batches)
 
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
@@ -753,24 +755,25 @@ func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]model.APMEvent, 
 	return *batches[0], consumer.Stats()
 }
 
-func eventsMatch(t *testing.T, expected []model.APMEvent, actual []model.APMEvent) {
+func eventsMatch(t *testing.T, expected []*modelpb.APMEvent, actual []*modelpb.APMEvent) {
 	t.Helper()
+	sort.Slice(expected, func(i, j int) bool {
+		return strings.Compare(expected[i].String(), expected[j].String()) == -1
+	})
+	sort.Slice(actual, func(i, j int) bool {
+		return strings.Compare(actual[i].String(), actual[j].String()) == -1
+	})
 	diff := cmp.Diff(
 		expected, actual,
+		protocmp.Transform(),
 		// Ignore order of events and their metrics. Some other slices
 		// have a defined order (e.g. histogram counts/values), so we
 		// don't ignore the order of all slices.
 		//
 		// Comparing string representations is a bit of a hack; ideally
 		// we would use like https://github.com/google/go-cmp/issues/67
-		cmpopts.SortSlices(func(x, y model.APMEvent) bool {
+		protocmp.SortRepeated(func(x, y *modelpb.MetricsetSample) bool {
 			return fmt.Sprint(x) < fmt.Sprint(y)
-		}),
-		cmpopts.SortSlices(func(x, y model.MetricsetSample) bool {
-			return fmt.Sprint(x) < fmt.Sprint(y)
-		}),
-		cmp.Comparer(func(x netip.Addr, y netip.Addr) bool {
-			return x == y
 		}),
 	)
 	if diff != "" {

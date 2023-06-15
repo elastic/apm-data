@@ -43,7 +43,7 @@ import (
 
 	"github.com/gofrs/uuid"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 var (
@@ -55,13 +55,13 @@ func convertOpenTelemetryExceptionSpanEvent(
 	exceptionType, exceptionMessage, exceptionStacktrace string,
 	exceptionEscaped bool,
 	language string,
-) *model.Error {
+) *modelpb.Error {
 	if exceptionMessage == "" {
 		exceptionMessage = "[EMPTY]"
 	}
 	exceptionHandled := !exceptionEscaped
-	exceptionError := model.Error{
-		Exception: &model.Exception{
+	exceptionError := modelpb.Error{
+		Exception: &modelpb.Exception{
 			Message: exceptionMessage,
 			Type:    exceptionType,
 			Handled: &exceptionHandled,
@@ -69,7 +69,7 @@ func convertOpenTelemetryExceptionSpanEvent(
 	}
 	// TODO(axw) replace github.com/gofrs/uuid, not worth having the dependency just for this.
 	if id, err := uuid.NewV4(); err == nil {
-		exceptionError.ID = id.String()
+		exceptionError.Id = id.String()
 	}
 	if exceptionStacktrace != "" {
 		if err := setExceptionStacktrace(exceptionStacktrace, language, exceptionError.Exception); err != nil {
@@ -82,7 +82,7 @@ func convertOpenTelemetryExceptionSpanEvent(
 	return &exceptionError
 }
 
-func setExceptionStacktrace(s, language string, out *model.Exception) error {
+func setExceptionStacktrace(s, language string, out *modelpb.Exception) error {
 	switch language {
 	case "java":
 		return setJavaExceptionStacktrace(s, out)
@@ -92,15 +92,15 @@ func setExceptionStacktrace(s, language string, out *model.Exception) error {
 
 // setJavaExceptionStacktrace parses a Java exception stack trace according to
 // https://docs.oracle.com/javase/7/docs/api/java/lang/Throwable.html#printStackTrace()
-func setJavaExceptionStacktrace(s string, out *model.Exception) error {
+func setJavaExceptionStacktrace(s string, out *modelpb.Exception) error {
 	const (
 		causedByPrefix   = "Caused by: "
 		suppressedPrefix = "Suppressed: "
 	)
 
 	type Exception struct {
-		*model.Exception
-		enclosing *model.Exception
+		*modelpb.Exception
+		enclosing *modelpb.Exception
 		indent    int
 	}
 	first := true
@@ -152,9 +152,10 @@ func setJavaExceptionStacktrace(s string, out *model.Exception) error {
 		case strings.HasPrefix(line, causedByPrefix):
 			// "Caused by:" lines are at the same level of indentation
 			// as the enclosing exception.
-			current.Cause = make([]model.Exception, 1)
+			current.Cause = make([]*modelpb.Exception, 1)
+			current.Cause[0] = &modelpb.Exception{}
 			current.enclosing = current.Exception
-			current.Exception = &current.Cause[0]
+			current.Exception = current.Cause[0]
 			current.Exception.Handled = current.enclosing.Handled
 			current.Message = line[len(causedByPrefix):]
 		case strings.HasPrefix(line, suppressedPrefix):
@@ -165,7 +166,7 @@ func setJavaExceptionStacktrace(s string, out *model.Exception) error {
 			// enclosing exception; we just account for the indentation here.
 			stack = append(stack, current)
 			current.enclosing = current.Exception
-			current.Exception = &model.Exception{}
+			current.Exception = &modelpb.Exception{}
 			current.indent = indent
 		default:
 			return fmt.Errorf("unexpected line %q", line)
@@ -174,7 +175,7 @@ func setJavaExceptionStacktrace(s string, out *model.Exception) error {
 	return scanner.Err()
 }
 
-func parseJavaStacktraceFrame(s string, out *model.Exception) error {
+func parseJavaStacktraceFrame(s string, out *modelpb.Exception) error {
 	submatch := javaStacktraceAtRegexp.FindStringSubmatch(s)
 	if submatch == nil {
 		return fmt.Errorf("failed to parse stacktrace line %q", s)
@@ -203,7 +204,7 @@ func parseJavaStacktraceFrame(s string, out *model.Exception) error {
 			lineno = &un
 		}
 	}
-	out.Stacktrace = append(out.Stacktrace, &model.StacktraceFrame{
+	out.Stacktrace = append(out.Stacktrace, &modelpb.StacktraceFrame{
 		Module:    module,
 		Classname: classname,
 		Function:  function,
