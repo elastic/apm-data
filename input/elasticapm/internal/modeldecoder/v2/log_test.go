@@ -178,7 +178,7 @@ func TestDecodeNestedLog(t *testing.T) {
 func TestDecodeMapToLogModel(t *testing.T) {
 	t.Run("log", func(t *testing.T) {
 		var input log
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		input.Level.Set("warn")
 		input.Logger.Set("testlogger")
 		input.OriginFileName.Set("testfile")
@@ -188,13 +188,13 @@ func TestDecodeMapToLogModel(t *testing.T) {
 		assert.Equal(t, "warn", out.Log.Level)
 		assert.Equal(t, "testlogger", out.Log.Logger)
 		assert.Equal(t, "testfile", out.Log.Origin.File.Name)
-		assert.Equal(t, 10, out.Log.Origin.File.Line)
+		assert.Equal(t, int32(10), out.Log.Origin.File.Line)
 		assert.Equal(t, "testfunc", out.Log.Origin.FunctionName)
 	})
 
 	t.Run("faas", func(t *testing.T) {
 		var input log
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		input.FAAS.ID.Set("faasID")
 		input.FAAS.Coldstart.Set(true)
 		input.FAAS.Execution.Set("execution")
@@ -203,18 +203,18 @@ func TestDecodeMapToLogModel(t *testing.T) {
 		input.FAAS.Name.Set("faasName")
 		input.FAAS.Version.Set("1.0.0")
 		mapToLogModel(&input, &out)
-		assert.Equal(t, "faasID", out.FAAS.ID)
-		assert.True(t, *out.FAAS.Coldstart)
-		assert.Equal(t, "execution", out.FAAS.Execution)
-		assert.Equal(t, "http", out.FAAS.TriggerType)
-		assert.Equal(t, "abc123", out.FAAS.TriggerRequestID)
-		assert.Equal(t, "faasName", out.FAAS.Name)
-		assert.Equal(t, "1.0.0", out.FAAS.Version)
+		assert.Equal(t, "faasID", out.Faas.Id)
+		assert.True(t, *out.Faas.ColdStart)
+		assert.Equal(t, "execution", out.Faas.Execution)
+		assert.Equal(t, "http", out.Faas.TriggerType)
+		assert.Equal(t, "abc123", out.Faas.TriggerRequestId)
+		assert.Equal(t, "faasName", out.Faas.Name)
+		assert.Equal(t, "1.0.0", out.Faas.Version)
 	})
 
 	t.Run("labels", func(t *testing.T) {
 		var input log
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		input.Labels = map[string]any{
 			"str":     "str",
 			"bool":    true,
@@ -222,13 +222,13 @@ func TestDecodeMapToLogModel(t *testing.T) {
 			"float64": float64(1.1),
 		}
 		mapToLogModel(&input, &out)
-		assert.Equal(t, model.Labels{
+		assert.Equal(t, modelpb.Labels{
 			"str":  {Value: "str"},
 			"bool": {Value: "true"},
-		}, out.Labels)
-		assert.Equal(t, model.NumericLabels{
+		}, modelpb.Labels(out.Labels))
+		assert.Equal(t, modelpb.NumericLabels{
 			"float":   {Value: 1.1},
 			"float64": {Value: 1.1},
-		}, out.NumericLabels)
+		}, modelpb.NumericLabels(out.NumericLabels))
 	})
 }

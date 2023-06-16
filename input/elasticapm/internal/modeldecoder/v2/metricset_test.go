@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -83,12 +84,12 @@ func TestDecodeNestedMetricset(t *testing.T) {
 
 func TestDecodeMapToMetricsetModel(t *testing.T) {
 	exceptions := func(key string) bool {
-		if key == "DocCount" ||
-			key == "Name" ||
+		if key == "doc_count" ||
+			key == "name" ||
 			key == "TimeseriesInstanceID" ||
-			key == "Interval" ||
+			key == "interval" ||
 			// test Samples separately
-			strings.HasPrefix(key, "Samples") {
+			strings.HasPrefix(key, "samples") {
 			return true
 		}
 		return false
@@ -96,7 +97,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 
 	t.Run("faas", func(t *testing.T) {
 		var input metricset
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		input.FAAS.ID.Set("faasID")
 		input.FAAS.Coldstart.Set(true)
 		input.FAAS.Execution.Set("execution")
@@ -105,19 +106,19 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		input.FAAS.Name.Set("faasName")
 		input.FAAS.Version.Set("1.0.0")
 		mapToMetricsetModel(&input, &out)
-		assert.Equal(t, "faasID", out.FAAS.ID)
-		assert.True(t, *out.FAAS.Coldstart)
-		assert.Equal(t, "execution", out.FAAS.Execution)
-		assert.Equal(t, "http", out.FAAS.TriggerType)
-		assert.Equal(t, "abc123", out.FAAS.TriggerRequestID)
-		assert.Equal(t, "faasName", out.FAAS.Name)
-		assert.Equal(t, "1.0.0", out.FAAS.Version)
+		assert.Equal(t, "faasID", out.Faas.Id)
+		assert.True(t, *out.Faas.ColdStart)
+		assert.Equal(t, "execution", out.Faas.Execution)
+		assert.Equal(t, "http", out.Faas.TriggerType)
+		assert.Equal(t, "abc123", out.Faas.TriggerRequestId)
+		assert.Equal(t, "faasName", out.Faas.Name)
+		assert.Equal(t, "1.0.0", out.Faas.Version)
 	})
 
 	t.Run("metricset-values", func(t *testing.T) {
 		var input metricset
-		var out1, out2 model.APMEvent
-		now := time.Now().Add(time.Second)
+		var out1, out2 modelpb.APMEvent
+		now := time.Now().Add(time.Second).UTC()
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		input.Transaction.Reset() // tested by TestDecodeMetricsetInternal
@@ -125,42 +126,47 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		mapToMetricsetModel(&input, &out1)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Metricset, exceptions, defaultVal)
-		defaultSamples := []model.MetricsetSample{
+		defaultSamples := []*modelpb.MetricsetSample{
 			{
 				Name:  defaultVal.Str + "0",
-				Type:  model.MetricType(defaultVal.Str),
+				Type:  modelpb.MetricType(modelpb.MetricType_value[defaultVal.Str]),
 				Unit:  defaultVal.Str,
 				Value: defaultVal.Float,
-				Histogram: model.Histogram{
+				Histogram: &modelpb.Histogram{
 					Counts: repeatInt64(int64(defaultVal.Int), defaultVal.N),
 					Values: repeatFloat64(defaultVal.Float, defaultVal.N),
 				},
 			},
 			{
 				Name:  defaultVal.Str + "1",
-				Type:  model.MetricType(defaultVal.Str),
+				Type:  modelpb.MetricType(modelpb.MetricType_value[defaultVal.Str]),
 				Unit:  defaultVal.Str,
 				Value: defaultVal.Float,
-				Histogram: model.Histogram{
+				Histogram: &modelpb.Histogram{
 					Counts: repeatInt64(int64(defaultVal.Int), defaultVal.N),
 					Values: repeatFloat64(defaultVal.Float, defaultVal.N),
 				},
 			},
 			{
 				Name:  defaultVal.Str + "2",
-				Type:  model.MetricType(defaultVal.Str),
+				Type:  modelpb.MetricType(modelpb.MetricType_value[defaultVal.Str]),
 				Unit:  defaultVal.Str,
 				Value: defaultVal.Float,
-				Histogram: model.Histogram{
+				Histogram: &modelpb.Histogram{
 					Counts: repeatInt64(int64(defaultVal.Int), defaultVal.N),
 					Values: repeatFloat64(defaultVal.Float, defaultVal.N),
 				},
 			},
 		}
-		assert.ElementsMatch(t, defaultSamples, out1.Metricset.Samples)
+		assert.Empty(t, cmp.Diff(defaultSamples, out1.Metricset.Samples,
+			cmpopts.SortSlices(func(x, y *modelpb.MetricsetSample) bool {
+				return x.Name < y.Name
+			}),
+			protocmp.Transform(),
+		))
 
 		// leave Timestamp unmodified if eventTime is zero
-		out1.Timestamp = now
+		out1.Timestamp = timestamppb.New(now)
 		defaultVal.Update(time.Time{})
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		input.Transaction.Reset()
@@ -175,31 +181,41 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		input.Transaction.Reset()
 		mapToMetricsetModel(&input, &out2)
 		modeldecodertest.AssertStructValues(t, out2.Metricset, exceptions, otherVal)
-		otherSamples := []model.MetricsetSample{
+		otherSamples := []*modelpb.MetricsetSample{
 			{
 				Name:  otherVal.Str + "0",
-				Type:  model.MetricType(otherVal.Str),
+				Type:  modelpb.MetricType(modelpb.MetricType_value[otherVal.Str]),
 				Unit:  otherVal.Str,
 				Value: otherVal.Float,
-				Histogram: model.Histogram{
+				Histogram: &modelpb.Histogram{
 					Counts: repeatInt64(int64(otherVal.Int), otherVal.N),
 					Values: repeatFloat64(otherVal.Float, otherVal.N),
 				},
 			},
 			{
 				Name:  otherVal.Str + "1",
-				Type:  model.MetricType(otherVal.Str),
+				Type:  modelpb.MetricType(modelpb.MetricType_value[otherVal.Str]),
 				Unit:  otherVal.Str,
 				Value: otherVal.Float,
-				Histogram: model.Histogram{
+				Histogram: &modelpb.Histogram{
 					Counts: repeatInt64(int64(otherVal.Int), otherVal.N),
 					Values: repeatFloat64(otherVal.Float, otherVal.N),
 				},
 			},
 		}
-		assert.ElementsMatch(t, otherSamples, out2.Metricset.Samples)
+		assert.Empty(t, cmp.Diff(otherSamples, out2.Metricset.Samples,
+			cmpopts.SortSlices(func(x, y *modelpb.MetricsetSample) bool {
+				return x.Name < y.Name
+			}),
+			protocmp.Transform(),
+		))
 		modeldecodertest.AssertStructValues(t, out1.Metricset, exceptions, defaultVal)
-		assert.ElementsMatch(t, defaultSamples, out1.Metricset.Samples)
+		assert.Empty(t, cmp.Diff(defaultSamples, out1.Metricset.Samples,
+			cmpopts.SortSlices(func(x, y *modelpb.MetricsetSample) bool {
+				return x.Name < y.Name
+			}),
+			protocmp.Transform(),
+		))
 	})
 }
 

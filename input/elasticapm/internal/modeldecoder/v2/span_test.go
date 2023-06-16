@@ -30,12 +30,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/testing/protocmp"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
-	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -89,41 +89,41 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		var input span
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		_, out := initializedInputMetadata(defaultVal)
-		mapToSpanModel(&input, &out)
+		_, out := initializedInputMetadataPb(defaultVal)
+		mapToSpanModel(&input, out)
 		modeldecodertest.AssertStructValues(t, &out.Service, exceptions, defaultVal)
 	})
 
 	t.Run("span-values", func(t *testing.T) {
 		exceptions := func(key string) bool {
-			if strings.HasPrefix(key, "Links") {
+			if strings.HasPrefix(key, "links") {
 				// Links are tested below in the 'links' test.
 				return true
 			}
 			switch key {
 			case
 				// RepresentativeCount is tested further down in test 'sample-rate'
-				"RepresentativeCount",
+				"representative_count",
 				// Kind is tested further down
-				"Kind",
+				"kind",
 
 				// Derived using service.target.*
-				"DestinationService.Resource",
+				"destination_service.Resource",
 
 				// Not set for spans:
-				"DestinationService.ResponseTime",
-				"DestinationService.ResponseTime.Count",
-				"DestinationService.ResponseTime.Sum",
-				"SelfTime",
+				"destination_service.response_time",
+				"destination_service.ResponseTime.Count",
+				"destination_service.ResponseTime.Sum",
+				"self_time",
 				"SelfTime.Count",
 				"SelfTime.Sum":
 				return true
 			}
 			for _, s := range []string{
 				// stacktrace values are set when sourcemapping is applied
-				"Stacktrace.Original",
-				"Stacktrace.Sourcemap",
-				"Stacktrace.ExcludeFromGrouping"} {
+				"stacktrace.original",
+				"stacktrace.sourcemap",
+				"stacktrace.exclude_from_grouping"} {
 				if strings.HasPrefix(key, s) {
 					return true
 				}
@@ -132,7 +132,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		}
 
 		var input span
-		var out1, out2 model.APMEvent
+		var out1, out2 modelpb.APMEvent
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		input.OTel.Reset()
@@ -153,7 +153,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 
 	t.Run("outcome", func(t *testing.T) {
 		var input span
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 		// set from input, ignore status code
 		input.Outcome.Set("failure")
@@ -179,27 +179,27 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 
 	t.Run("timestamp", func(t *testing.T) {
 		var input span
-		var out model.APMEvent
-		reqTime := time.Now().Add(time.Hour)
+		var out modelpb.APMEvent
+		reqTime := time.Now().Add(time.Hour).UTC()
 		// add start to requestTime if eventTime is zero and start is given
 		defaultVal := modeldecodertest.DefaultValues()
 		defaultVal.Update(20.5, time.Time{})
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		out.Timestamp = reqTime
+		out.Timestamp = timestamppb.New(reqTime)
 		mapToSpanModel(&input, &out)
-		timestamp := reqTime.Add(time.Duration((20.5) * float64(time.Millisecond)))
-		assert.Equal(t, timestamp, out.Timestamp)
+		timestamp := reqTime.Add(time.Duration((20.5) * float64(time.Millisecond))).UTC()
+		assert.Equal(t, timestamp, out.Timestamp.AsTime())
 		// leave event timestamp unmodified if eventTime is zero and start is not set
-		out = model.APMEvent{Timestamp: reqTime}
+		out = modelpb.APMEvent{Timestamp: timestamppb.New(reqTime)}
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		input.Start.Reset()
 		mapToSpanModel(&input, &out)
-		assert.Equal(t, reqTime, out.Timestamp)
+		assert.Equal(t, reqTime, out.Timestamp.AsTime())
 	})
 
 	t.Run("sample-rate", func(t *testing.T) {
 		var input span
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 		input.OTel.Reset()
 		// sample rate is set to > 0
@@ -251,7 +251,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				} else {
 					input.Action.Reset()
 				}
-				var out model.APMEvent
+				var out modelpb.APMEvent
 				mapToSpanModel(&input, &out)
 				assert.Equal(t, tc.typ, out.Span.Type)
 				assert.Equal(t, tc.subtype, out.Span.Subtype)
@@ -263,22 +263,22 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 	t.Run("http-request", func(t *testing.T) {
 		var input span
 		input.Context.HTTP.Request.ID.Set("some-request-id")
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		mapToSpanModel(&input, &out)
-		assert.Equal(t, "some-request-id", out.HTTP.Request.ID)
+		assert.Equal(t, "some-request-id", out.Http.Request.Id)
 	})
 
 	t.Run("http-headers", func(t *testing.T) {
 		var input span
 		input.Context.HTTP.Response.Headers.Set(http.Header{"a": []string{"b", "c"}})
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		mapToSpanModel(&input, &out)
-		assert.Equal(t, map[string]any{"a": []any{"b", "c"}}, out.HTTP.Response.Headers)
+		assert.Equal(t, map[string]any{"a": []any{"b", "c"}}, out.Http.Response.Headers.AsMap())
 	})
 
 	t.Run("otel-bridge", func(t *testing.T) {
 		t.Run("http", func(t *testing.T) {
-			expected := model.URL{
+			expected := modelpb.URL{
 				Original: "https://testing.invalid:80/foo?bar",
 			}
 			attrs := map[string]interface{}{
@@ -289,27 +289,27 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				"http.target":   "/foo?bar",
 			}
 			var input span
-			var event model.APMEvent
+			var event modelpb.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 			input.OTel.Attributes = attrs
 			input.OTel.SpanKind.Reset()
 			input.Type.Reset()
 
 			mapToSpanModel(&input, &event)
-			assert.Equal(t, expected, event.URL)
+			assert.Equal(t, &expected, event.Url)
 			assert.Equal(t, "CLIENT", event.Span.Kind)
-			assert.Equal(t, &model.ServiceTarget{
+			assert.Empty(t, cmp.Diff(&modelpb.ServiceTarget{
 				Type: "http",
 				Name: "testing.invalid:80",
-			}, event.Service.Target)
+			}, event.Service.Target, protocmp.Transform()))
 		})
 
 		t.Run("http-destination", func(t *testing.T) {
-			expectedDestination := model.Destination{
+			expectedDestination := modelpb.Destination{
 				Address: "testing.invalid",
 				Port:    443,
 			}
-			expectedDestinationService := &model.DestinationService{
+			expectedDestinationService := &modelpb.DestinationService{
 				Type:     "external",
 				Name:     "https://testing.invalid",
 				Resource: "testing.invalid:443",
@@ -319,20 +319,20 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			}
 
 			var input span
-			var event model.APMEvent
+			var event modelpb.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 			input.OTel.Attributes = attrs
 			input.OTel.SpanKind.Reset()
 			input.Type.Reset()
 
 			mapToSpanModel(&input, &event)
-			assert.Equal(t, expectedDestination, event.Destination)
-			assert.Equal(t, expectedDestinationService, event.Span.DestinationService)
+			assert.Equal(t, &expectedDestination, event.Destination)
+			assert.Empty(t, cmp.Diff(expectedDestinationService, event.Span.DestinationService, protocmp.Transform()))
 			assert.Equal(t, "CLIENT", event.Span.Kind)
-			assert.Equal(t, &model.ServiceTarget{
+			assert.Empty(t, cmp.Diff(&modelpb.ServiceTarget{
 				Type: "http",
 				Name: "testing.invalid:443",
-			}, event.Service.Target)
+			}, event.Service.Target, protocmp.Transform()))
 		})
 
 		t.Run("db", func(t *testing.T) {
@@ -350,7 +350,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			}
 
 			var input span
-			var event model.APMEvent
+			var event modelpb.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 			input.OTel.Attributes = attrs
 			input.OTel.SpanKind.Reset()
@@ -362,16 +362,16 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			assert.Equal(t, "mysql", event.Span.Subtype)
 			assert.Equal(t, "", event.Span.Action)
 			assert.Equal(t, "CLIENT", event.Span.Kind)
-			assert.Equal(t, &model.DB{
+			assert.Equal(t, &modelpb.DB{
 				Instance:  "ShopDb",
 				Statement: "SELECT * FROM orders WHERE order_id = 'o4711'",
 				Type:      "mysql",
 				UserName:  "billing_user",
-			}, event.Span.DB)
-			assert.Equal(t, &model.ServiceTarget{
+			}, event.Span.Db)
+			assert.Empty(t, cmp.Diff(&modelpb.ServiceTarget{
 				Type: "mysql",
 				Name: "ShopDb",
-			}, event.Service.Target)
+			}, event.Service.Target, protocmp.Transform()))
 		})
 
 		t.Run("rpc", func(t *testing.T) {
@@ -385,7 +385,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			}
 
 			var input span
-			var event model.APMEvent
+			var event modelpb.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 			input.OTel.Attributes = attrs
 			input.OTel.SpanKind.Reset()
@@ -395,20 +395,20 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 
 			assert.Equal(t, "external", event.Span.Type)
 			assert.Equal(t, "grpc", event.Span.Subtype)
-			assert.Equal(t, model.Destination{
+			assert.Equal(t, &modelpb.Destination{
 				Address: "10.20.30.40",
 				Port:    123,
 			}, event.Destination)
 			assert.Equal(t, "CLIENT", event.Span.Kind)
-			assert.Equal(t, &model.DestinationService{
+			assert.Empty(t, cmp.Diff(&modelpb.DestinationService{
 				Type:     "external",
 				Name:     "10.20.30.40:123",
 				Resource: "10.20.30.40:123",
-			}, event.Span.DestinationService)
-			assert.Equal(t, &model.ServiceTarget{
+			}, event.Span.DestinationService, protocmp.Transform()))
+			assert.Empty(t, cmp.Diff(&modelpb.ServiceTarget{
 				Type: "grpc",
 				Name: "myservice.EchoService",
-			}, event.Service.Target)
+			}, event.Service.Target, protocmp.Transform()))
 		})
 
 		t.Run("messaging", func(t *testing.T) {
@@ -420,7 +420,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			}
 
 			var input span
-			var event model.APMEvent
+			var event modelpb.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 			input.OTel.Attributes = attrs
 			input.OTel.SpanKind.Set("PRODUCER")
@@ -431,19 +431,19 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			assert.Equal(t, "kafka", event.Span.Subtype)
 			assert.Equal(t, "send", event.Span.Action)
 			assert.Equal(t, "PRODUCER", event.Span.Kind)
-			assert.Equal(t, model.Destination{
+			assert.Equal(t, &modelpb.Destination{
 				Address: "10.20.30.40",
 				Port:    123,
 			}, event.Destination)
-			assert.Equal(t, &model.DestinationService{
+			assert.Empty(t, cmp.Diff(&modelpb.DestinationService{
 				Type:     "messaging",
 				Name:     "kafka",
 				Resource: "kafka/myTopic",
-			}, event.Span.DestinationService)
-			assert.Equal(t, &model.ServiceTarget{
+			}, event.Span.DestinationService, protocmp.Transform()))
+			assert.Empty(t, cmp.Diff(&modelpb.ServiceTarget{
 				Type: "kafka",
 				Name: "myTopic",
-			}, event.Service.Target)
+			}, event.Service.Target, protocmp.Transform()))
 		})
 
 		t.Run("network", func(t *testing.T) {
@@ -456,22 +456,22 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				"net.host.carrier.icc":        "UK",
 			}
 			var input span
-			var event model.APMEvent
+			var event modelpb.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 			input.OTel.Attributes = attrs
 			input.Type.Reset()
 			mapToSpanModel(&input, &event)
 
-			expected := model.Network{
-				Connection: model.NetworkConnection{
+			expected := &modelpb.Network{
+				Connection: &modelpb.NetworkConnection{
 					Type:    "cell",
 					Subtype: "LTE",
 				},
-				Carrier: model.NetworkCarrier{
+				Carrier: &modelpb.NetworkCarrier{
 					Name: "Vodafone",
-					MNC:  "01",
-					MCC:  "101",
-					ICC:  "UK",
+					Mnc:  "01",
+					Mcc:  "101",
+					Icc:  "UK",
 				},
 			}
 			assert.Equal(t, expected, event.Network)
@@ -480,7 +480,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 
 		t.Run("kind", func(t *testing.T) {
 			var input span
-			var event model.APMEvent
+			var event modelpb.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 			input.OTel.SpanKind.Set("CONSUMER")
 
@@ -497,16 +497,16 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			"d": 12315124131.12315124131,
 			"e": true,
 		}
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		mapToSpanModel(&input, &out)
-		assert.Equal(t, model.Labels{
+		assert.Equal(t, modelpb.Labels{
 			"a": {Value: "b"},
 			"e": {Value: "true"},
-		}, out.Labels)
-		assert.Equal(t, model.NumericLabels{
+		}, modelpb.Labels(out.Labels))
+		assert.Equal(t, modelpb.NumericLabels{
 			"c": {Value: float64(12315124131)},
 			"d": {Value: float64(12315124131.12315124131)},
-		}, out.NumericLabels)
+		}, modelpb.NumericLabels(out.NumericLabels))
 	})
 
 	t.Run("links", func(t *testing.T) {
@@ -518,15 +518,15 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			SpanID:  nullable.String{Val: "span2"},
 			TraceID: nullable.String{Val: "trace2"},
 		}}
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		mapToSpanModel(&input, &out)
 
-		assert.Equal(t, []model.SpanLink{{
-			Span:  model.Span{ID: "span1"},
-			Trace: model.Trace{ID: "trace1"},
+		assert.Equal(t, []*modelpb.SpanLink{{
+			Span:  &modelpb.Span{Id: "span1"},
+			Trace: &modelpb.Trace{Id: "trace1"},
 		}, {
-			Span:  model.Span{ID: "span2"},
-			Trace: model.Trace{ID: "trace2"},
+			Span:  &modelpb.Span{Id: "span2"},
+			Trace: &modelpb.Trace{Id: "trace2"},
 		}}, out.Span.Links)
 	})
 
@@ -561,7 +561,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				} else {
 					input.Context.Destination.Service.Resource.Reset()
 				}
-				var out model.APMEvent
+				var out modelpb.APMEvent
 				mapToSpanModel(&input, &out)
 				assert.Equal(t, tc.outTargetType, out.Service.Target.Type)
 				assert.Equal(t, tc.outTargetName, out.Service.Target.Name)

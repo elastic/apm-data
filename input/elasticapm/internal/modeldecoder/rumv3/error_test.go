@@ -27,11 +27,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/testing/protocmp"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
-	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -91,10 +91,10 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 	t.Run("metadata-overwrite", func(t *testing.T) {
 		// overwrite defined metadata with event metadata values
 		var input errorEvent
-		out := initializedMetadata()
+		out := initializedMetadataPb()
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToErrorModel(&input, &out)
+		mapToErrorModel(&input, out)
 		input.Reset()
 
 		// ensure event Metadata are updated where expected
@@ -103,13 +103,13 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		assert.Equal(t, userAgent, out.UserAgent.Original)
 		// do not overwrite client.ip if already set in metadata
 		ip := modeldecodertest.DefaultValues().IP
-		assert.Equal(t, ip, out.Client.IP, out.Client.IP.String())
-		assert.Equal(t, model.Labels{
+		assert.Equal(t, ip.String(), out.Client.Ip)
+		assert.Equal(t, modelpb.Labels{
 			"init0": {Global: true, Value: "init"}, "init1": {Global: true, Value: "init"}, "init2": {Global: true, Value: "init"},
 			"overwritten0": {Value: "overwritten"}, "overwritten1": {Value: "overwritten"},
-		}, out.Labels)
+		}, modelpb.Labels(out.Labels))
 		// service and user values should be set
-		modeldecodertest.AssertStructValues(t, &out.Service, metadataExceptions("Node", "Agent.EphemeralID"), otherVal)
+		modeldecodertest.AssertStructValues(t, &out.Service, metadataExceptions("node", "Agent.EphemeralID"), otherVal)
 		modeldecodertest.AssertStructValues(t, &out.User, metadataExceptions(), otherVal)
 	})
 
@@ -117,25 +117,25 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		exceptions := func(key string) bool {
 			for _, s := range []string{
 				// GroupingKey is set by a model processor
-				"GroupingKey",
+				"grouping_key",
 				// StackTrace is only set by processor/otel
-				"StackTrace",
+				"stack_trace",
 				// stacktrace original and sourcemap values are set when sourcemapping is applied
-				"Exception.Stacktrace.Original",
-				"Exception.Stacktrace.Sourcemap",
-				"Log.Stacktrace.Original",
-				"Log.Stacktrace.Sourcemap",
+				"exception.stacktrace.original",
+				"exception.stacktrace.sourcemap",
+				"log.stacktrace.original",
+				"log.stacktrace.sourcemap",
 				// not set by rumv3
-				"Exception.Stacktrace.Vars",
-				"Log.Stacktrace.Vars",
-				"Exception.Stacktrace.LibraryFrame",
-				"Log.Stacktrace.LibraryFrame",
+				"exception.stacktrace.vars",
+				"log.stacktrace.vars",
+				"exception.stacktrace.library_frame",
+				"log.stacktrace.library_frame",
 				// ExcludeFromGrouping is set when processing the event
-				"Exception.Stacktrace.ExcludeFromGrouping",
-				"Log.Stacktrace.ExcludeFromGrouping",
+				"exception.stacktrace.exclude_from_grouping",
+				"log.stacktrace.exclude_from_grouping",
 				// Message and Type are only set for ECS compatible log event type
-				"Message",
-				"Type",
+				"message",
+				"type",
 			} {
 				if strings.HasPrefix(key, s) {
 					return true
@@ -144,9 +144,9 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 			return false
 		}
 		var input errorEvent
-		var out1, out2 model.APMEvent
-		reqTime := time.Now().Add(time.Second)
-		out1.Timestamp = reqTime
+		var out1, out2 modelpb.APMEvent
+		reqTime := time.Now().Add(time.Second).UTC()
+		out1.Timestamp = timestamppb.New(reqTime)
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToErrorModel(&input, &out1)
@@ -155,7 +155,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 
 		// leave event timestamp unmodified if eventTime is zero
 		defaultVal.Update(time.Time{})
-		out1.Timestamp = reqTime
+		out1.Timestamp = timestamppb.New(reqTime)
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToErrorModel(&input, &out1)
 		defaultVal.Update(reqTime)
@@ -164,7 +164,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 
 		// reuse input model for different event
 		// ensure memory is not shared by reusing input model
-		out2.Timestamp = reqTime
+		out2.Timestamp = timestamppb.New(reqTime)
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToErrorModel(&input, &out2)
@@ -175,23 +175,23 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 	t.Run("page.URL", func(t *testing.T) {
 		var input errorEvent
 		input.Context.Page.URL.Set("https://my.site.test:9201")
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		mapToErrorModel(&input, &out)
-		assert.Equal(t, "https://my.site.test:9201", out.URL.Full)
+		assert.Equal(t, "https://my.site.test:9201", out.Url.Full)
 	})
 
 	t.Run("page.referer", func(t *testing.T) {
 		var input errorEvent
 		input.Context.Page.Referer.Set("https://my.site.test:9201")
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		mapToErrorModel(&input, &out)
-		assert.Equal(t, "https://my.site.test:9201", out.HTTP.Request.Referrer)
+		assert.Equal(t, "https://my.site.test:9201", out.Http.Request.Referrer)
 	})
 
 	t.Run("loggerName", func(t *testing.T) {
 		var input errorEvent
 		input.Log.Message.Set("log message")
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		mapToErrorModel(&input, &out)
 		require.NotNil(t, out.Error.Log.LoggerName)
 		assert.Equal(t, "default", out.Error.Log.LoggerName)
@@ -201,15 +201,15 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		var input errorEvent
 		input.Context.Request.Headers.Set(http.Header{"a": []string{"b"}, "c": []string{"d", "e"}})
 		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		mapToErrorModel(&input, &out)
-		assert.Equal(t, map[string]any{"a": []any{"b"}, "c": []any{"d", "e"}}, out.HTTP.Request.Headers)
-		assert.Equal(t, map[string]any{"f": []any{"g"}}, out.HTTP.Response.Headers)
+		assert.Equal(t, map[string]any{"a": []any{"b"}, "c": []any{"d", "e"}}, out.Http.Request.Headers.AsMap())
+		assert.Equal(t, map[string]any{"f": []any{"g"}}, out.Http.Response.Headers.AsMap())
 	})
 
 	t.Run("exception-code", func(t *testing.T) {
 		var input errorEvent
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		input.Exception.Code.Set(123.456)
 		mapToErrorModel(&input, &out)
 		assert.Equal(t, "123", out.Error.Exception.Code)
@@ -217,7 +217,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 
 	t.Run("transaction-name", func(t *testing.T) {
 		var input errorEvent
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		input.Transaction.Name.Set("My Transaction")
 		mapToErrorModel(&input, &out)
 		assert.Equal(t, "My Transaction", out.Transaction.Name)

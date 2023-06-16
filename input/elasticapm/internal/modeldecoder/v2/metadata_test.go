@@ -29,6 +29,7 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 func isMetadataException(key string) bool {
@@ -192,6 +193,13 @@ func initializedInputMetadata(values *modeldecodertest.Values) (metadata, model.
 		return isUnmappedMetadataField(key) || isEventField(key)
 	})
 	return input, out
+}
+
+func initializedInputMetadataPb(values *modeldecodertest.Values) (metadata, *modelpb.APMEvent) {
+	var out modelpb.APMEvent
+	m, old := initializedInputMetadata(values)
+	old.ToModelProtobuf(&out)
+	return m, &out
 }
 
 func TestResetMetadataOnRelease(t *testing.T) {
