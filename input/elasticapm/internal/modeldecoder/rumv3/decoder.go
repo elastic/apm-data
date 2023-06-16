@@ -397,9 +397,7 @@ func mapToTransactionMetricsetModel(from *transactionMetricset, event *modelpb.A
 	if from.Samples.IsSet() {
 		if event.Span != nil {
 			if value := from.Samples.SpanSelfTimeCount.Value; value.IsSet() {
-				if event.Span.SelfTime == nil {
-					event.Span.SelfTime = &modelpb.AggregatedDuration{}
-				}
+				event.Span.SelfTime = populateNil(event.Span.SelfTime)
 				event.Span.SelfTime.Count = int64(value.Val)
 				ok = true
 			}
@@ -519,9 +517,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 	}
 	if from.Context.Destination.Address.IsSet() || from.Context.Destination.Port.IsSet() {
 		if from.Context.Destination.Address.IsSet() {
-			if event.Destination == nil {
-				event.Destination = &modelpb.Destination{}
-			}
+			event.Destination = populateNil(event.Destination)
 			event.Destination.Address = from.Context.Destination.Address.Val
 		}
 		if from.Context.Destination.Port.IsSet() {

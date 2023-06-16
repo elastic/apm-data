@@ -201,7 +201,6 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 					v.Set(values.Str)
 				}
 				fieldVal = reflect.ValueOf(v)
-
 			case nullable.Int:
 				v.Set(values.Int)
 				fieldVal = reflect.ValueOf(v)
@@ -339,10 +338,10 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 			newVal = &values.Bool
 		case http.Header:
 			newVal = values.HTTPHeader
-		case time.Duration:
-			newVal = values.Duration
 		case *timestamppb.Timestamp:
 			newVal = timestamppb.New(values.Time)
+		case time.Duration:
+			newVal = values.Duration
 		case modelpb.MetricType:
 			newVal = values.MetricType
 		case modelpb.CompressionStrategy:
