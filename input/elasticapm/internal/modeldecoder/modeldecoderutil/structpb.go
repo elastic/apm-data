@@ -36,6 +36,8 @@ func ToValue(a any) *structpb.Value {
 }
 
 func NormalizeMap(m map[string]any) map[string]any {
-	v := NormalizeHTTPRequestBody(m)
-	return v.(map[string]any)
+	if v := NormalizeHTTPRequestBody(m); v != nil {
+		return v.(map[string]any)
+	}
+	return nil
 }

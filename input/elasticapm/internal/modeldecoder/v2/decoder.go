@@ -414,6 +414,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			}
 		}
 		if from.Context.Response.IsSet() {
+			event.Http = populateNil(event.Http)
 			event.Http.Response = &modelpb.HTTPResponse{}
 			mapToResponseModel(from.Context.Response, event.Http.Response)
 		}
@@ -434,7 +435,9 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			}
 		}
 		if len(from.Context.Custom) > 0 {
-			out.Custom = modeldecoderutil.ToStruct(modeldecoderutil.NormalizeMap(from.Context.Custom))
+			if m := modeldecoderutil.NormalizeMap(from.Context.Custom); len(m) > 0 {
+				out.Custom = modeldecoderutil.ToStruct(m)
+			}
 		}
 	}
 	if from.Culprit.IsSet() {
@@ -1000,6 +1003,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 			event.Destination.Address = from.Context.Destination.Address.Val
 		}
 		if from.Context.Destination.Port.IsSet() {
+			event.Destination = populateNil(event.Destination)
 			event.Destination.Port = uint32(from.Context.Destination.Port.Val)
 		}
 	}
@@ -1085,6 +1089,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		mapToAgentModel(from.Context.Service.Agent, &event.Agent)
 	}
 	if !from.Context.Service.Target.Type.IsSet() && from.Context.Destination.Service.Resource.IsSet() {
+		event.Service = populateNil(event.Service)
 		outTarget := targetFromDestinationResource(from.Context.Destination.Service.Resource.Val)
 		event.Service.Target = &outTarget
 	}
@@ -1102,6 +1107,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 	if from.Name.IsSet() {
 		out.Name = from.Name.Val
 	}
+	event.Event = populateNil(event.Event)
 	if from.Outcome.IsSet() {
 		event.Event.Outcome = from.Outcome.Val
 	} else {
@@ -1113,7 +1119,6 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 				event.Event.Outcome = "success"
 			}
 		} else {
-			event.Event = populateNil(event.Event)
 			event.Event.Outcome = "unknown"
 		}
 	}
@@ -1244,7 +1249,9 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 
 	if from.Context.IsSet() {
 		if len(from.Context.Custom) > 0 {
-			out.Custom = modeldecoderutil.ToStruct(modeldecoderutil.NormalizeMap(from.Context.Custom))
+			if m := modeldecoderutil.NormalizeMap(from.Context.Custom); len(m) > 0 {
+				out.Custom = modeldecoderutil.ToStruct(m)
+			}
 		}
 		if len(from.Context.Tags) > 0 {
 			modeldecoderutil.MergeLabels(from.Context.Tags, event)
@@ -1281,6 +1288,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 			mapToRequestURLModel(from.Context.Request.URL, event.Url)
 		}
 		if from.Context.Response.IsSet() {
+			event.Http = populateNil(event.Http)
 			event.Http.Response = &modelpb.HTTPResponse{}
 			mapToResponseModel(from.Context.Response, event.Http.Response)
 		}
@@ -1318,6 +1326,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	if from.Name.IsSet() {
 		out.Name = from.Name.Val
 	}
+	event.Event = populateNil(event.Event)
 	if from.Outcome.IsSet() {
 		event.Event.Outcome = from.Outcome.Val
 	} else {
@@ -1329,7 +1338,6 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 				event.Event.Outcome = "success"
 			}
 		} else {
-			event.Event = populateNil(event.Event)
 			event.Event.Outcome = "unknown"
 		}
 	}
@@ -1453,17 +1461,24 @@ func mapToLogModel(from *log, event *modelpb.APMEvent) {
 		event.Log.Level = from.Level.Val
 	}
 	if from.Logger.IsSet() {
+		event.Log = populateNil(event.Log)
 		event.Log.Logger = from.Logger.Val
 	}
 	if from.OriginFunction.IsSet() {
+		event.Log = populateNil(event.Log)
 		event.Log.Origin = populateNil(event.Log.Origin)
 		event.Log.Origin.FunctionName = from.OriginFunction.Val
 	}
 	if from.OriginFileLine.IsSet() {
+		event.Log = populateNil(event.Log)
+		event.Log.Origin = populateNil(event.Log.Origin)
 		event.Log.Origin.File = populateNil(event.Log.Origin.File)
 		event.Log.Origin.File.Line = int32(from.OriginFileLine.Val)
 	}
 	if from.OriginFileName.IsSet() {
+		event.Log = populateNil(event.Log)
+		event.Log.Origin = populateNil(event.Log.Origin)
+		event.Log.Origin.File = populateNil(event.Log.Origin.File)
 		event.Log.Origin.File.Name = from.OriginFileName.Val
 	}
 	if from.ErrorType.IsSet() ||
@@ -1480,12 +1495,15 @@ func mapToLogModel(from *log, event *modelpb.APMEvent) {
 		event.Service.Name = from.ServiceName.Val
 	}
 	if from.ServiceVersion.IsSet() {
+		event.Service = populateNil(event.Service)
 		event.Service.Version = from.ServiceVersion.Val
 	}
 	if from.ServiceEnvironment.IsSet() {
+		event.Service = populateNil(event.Service)
 		event.Service.Environment = from.ServiceEnvironment.Val
 	}
 	if from.ServiceNodeName.IsSet() {
+		event.Service = populateNil(event.Service)
 		event.Service.Node = populateNil(event.Service.Node)
 		event.Service.Node.Name = from.ServiceNodeName.Val
 	}

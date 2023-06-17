@@ -203,6 +203,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			}
 		}
 		if from.Context.Response.IsSet() {
+			event.Http = populateNil(event.Http)
 			event.Http.Response = &modelpb.HTTPResponse{}
 			mapToResponseModel(from.Context.Response, event.Http.Response)
 		}
@@ -402,6 +403,7 @@ func mapToTransactionMetricsetModel(from *transactionMetricset, event *modelpb.A
 				ok = true
 			}
 			if value := from.Samples.SpanSelfTimeSum.Value; value.IsSet() {
+				event.Span.SelfTime = populateNil(event.Span.SelfTime)
 				event.Span.SelfTime.Sum = durationpb.New(time.Duration(value.Val * 1000))
 				ok = true
 			}
@@ -521,6 +523,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 			event.Destination.Address = from.Context.Destination.Address.Val
 		}
 		if from.Context.Destination.Port.IsSet() {
+			event.Destination = populateNil(event.Destination)
 			event.Destination.Port = uint32(from.Context.Destination.Port.Val)
 		}
 	}
@@ -545,6 +548,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 			event.Http.Request.Method = from.Context.HTTP.Method.Val
 		}
 		if from.Context.HTTP.StatusCode.IsSet() {
+			event.Http = populateNil(event.Http)
 			event.Http.Response = &response
 			event.Http.Response.StatusCode = int32(from.Context.HTTP.StatusCode.Val)
 		}
@@ -589,6 +593,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 	if from.Name.IsSet() {
 		out.Name = from.Name.Val
 	}
+	event.Event = populateNil(event.Event)
 	if from.Outcome.IsSet() {
 		event.Event.Outcome = from.Outcome.Val
 	} else {
@@ -600,7 +605,6 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 				event.Event.Outcome = "success"
 			}
 		} else {
-			event.Event = populateNil(event.Event)
 			event.Event.Outcome = "unknown"
 		}
 	}
@@ -702,6 +706,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 			}
 		}
 		if from.Context.Response.IsSet() {
+			event.Http = populateNil(event.Http)
 			event.Http.Response = &modelpb.HTTPResponse{}
 			mapToResponseModel(from.Context.Response, event.Http.Response)
 		}
@@ -737,6 +742,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	if from.Name.IsSet() {
 		out.Name = from.Name.Val
 	}
+	event.Event = populateNil(event.Event)
 	if from.Outcome.IsSet() {
 		event.Event.Outcome = from.Outcome.Val
 	} else {
@@ -748,7 +754,6 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 				event.Event.Outcome = "success"
 			}
 		} else {
-			event.Event = populateNil(event.Event)
 			event.Event.Outcome = "unknown"
 		}
 	}

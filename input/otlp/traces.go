@@ -157,9 +157,7 @@ func (c *Consumer) convertSpan(
 			Id: id,
 		}
 	}
-	if event.Event == nil {
-		event.Event = &modelpb.Event{}
-	}
+	event.Event = populateNil(event.Event)
 	event.Event.Duration = durationpb.New(duration)
 	event.Event.Outcome = spanStatusOutcome(otelSpan.Status())
 	if parentID != "" {
@@ -261,9 +259,7 @@ func TranslateTransaction(
 				httpResponse.StatusCode = int32(v.Int())
 				http.Response = &httpResponse
 			case semconv.AttributeNetPeerPort:
-				if event.Source == nil {
-					event.Source = &modelpb.Source{}
-				}
+				event.Source = populateNil(event.Source)
 				event.Source.Port = uint32(v.Int())
 			case semconv.AttributeNetHostPort:
 				netHostPort = int(v.Int())
@@ -313,81 +309,47 @@ func TranslateTransaction(
 				httpServerName = stringval
 			case semconv.AttributeHTTPClientIP:
 				if ip, err := netip.ParseAddr(stringval); err == nil {
-					if event.Client == nil {
-						event.Client = &modelpb.Client{}
-					}
+					event.Client = populateNil(event.Client)
 					event.Client.Ip = ip.String()
 				}
 			case semconv.AttributeHTTPUserAgent:
-				if event.UserAgent == nil {
-					event.UserAgent = &modelpb.UserAgent{}
-				}
+				event.UserAgent = populateNil(event.UserAgent)
 				event.UserAgent.Original = stringval
 
 			// net.*
 			case semconv.AttributeNetPeerIP:
-				if event.Source == nil {
-					event.Source = &modelpb.Source{}
-				}
+				event.Source = populateNil(event.Source)
 				if ip, err := netip.ParseAddr(stringval); err == nil {
 					event.Source.Ip = ip.String()
 				}
 			case semconv.AttributeNetPeerName:
-				if event.Source == nil {
-					event.Source = &modelpb.Source{}
-				}
+				event.Source = populateNil(event.Source)
 				event.Source.Domain = stringval
 			case semconv.AttributeNetHostName:
 				netHostName = stringval
 			case attributeNetworkConnectionType:
-				if event.Network == nil {
-					event.Network = &modelpb.Network{}
-				}
-				if event.Network.Connection == nil {
-					event.Network.Connection = &modelpb.NetworkConnection{}
-				}
+				event.Network = populateNil(event.Network)
+				event.Network.Connection = populateNil(event.Network.Connection)
 				event.Network.Connection.Type = stringval
 			case attributeNetworkConnectionSubtype:
-				if event.Network == nil {
-					event.Network = &modelpb.Network{}
-				}
-				if event.Network.Connection == nil {
-					event.Network.Connection = &modelpb.NetworkConnection{}
-				}
-
+				event.Network = populateNil(event.Network)
+				event.Network.Connection = populateNil(event.Network.Connection)
 				event.Network.Connection.Subtype = stringval
 			case attributeNetworkMCC:
-				if event.Network == nil {
-					event.Network = &modelpb.Network{}
-				}
-				if event.Network.Carrier == nil {
-					event.Network.Carrier = &modelpb.NetworkCarrier{}
-				}
+				event.Network = populateNil(event.Network)
+				event.Network.Carrier = populateNil(event.Network.Carrier)
 				event.Network.Carrier.Mcc = stringval
 			case attributeNetworkMNC:
-				if event.Network == nil {
-					event.Network = &modelpb.Network{}
-				}
-				if event.Network.Carrier == nil {
-					event.Network.Carrier = &modelpb.NetworkCarrier{}
-				}
-
+				event.Network = populateNil(event.Network)
+				event.Network.Carrier = populateNil(event.Network.Carrier)
 				event.Network.Carrier.Mnc = stringval
 			case attributeNetworkCarrierName:
-				if event.Network == nil {
-					event.Network = &modelpb.Network{}
-				}
-				if event.Network.Carrier == nil {
-					event.Network.Carrier = &modelpb.NetworkCarrier{}
-				}
+				event.Network = populateNil(event.Network)
+				event.Network.Carrier = populateNil(event.Network.Carrier)
 				event.Network.Carrier.Name = stringval
 			case attributeNetworkICC:
-				if event.Network == nil {
-					event.Network = &modelpb.Network{}
-				}
-				if event.Network.Carrier == nil {
-					event.Network.Carrier = &modelpb.NetworkCarrier{}
-				}
+				event.Network = populateNil(event.Network)
+				event.Network.Carrier = populateNil(event.Network.Carrier)
 				event.Network.Carrier.Icc = stringval
 
 			// messaging.*
@@ -411,9 +373,7 @@ func TranslateTransaction(
 			case "type":
 				event.Transaction.Type = stringval
 			case "session.id":
-				if event.Session == nil {
-					event.Session = &modelpb.Session{}
-				}
+				event.Session = populateNil(event.Session)
 				event.Session.Id = stringval
 			case semconv.AttributeServiceVersion:
 				// NOTE support for sending service.version as a span tag
@@ -489,14 +449,11 @@ func TranslateTransaction(
 		event.Transaction.Result = spanStatusResult(spanStatus)
 	}
 	if name := library.Name(); name != "" {
-		if event.Service == nil {
-			event.Service = &modelpb.Service{}
+		event.Service = populateNil(event.Service)
+		event.Service.Framework = &modelpb.Framework{
+			Name:    name,
+			Version: library.Version(),
 		}
-		if event.Service.Framework == nil {
-			event.Service.Framework = &modelpb.Framework{}
-		}
-		event.Service.Framework.Name = name
-		event.Service.Framework.Version = library.Version()
 	}
 }
 
@@ -511,7 +468,7 @@ const (
 // TranslateSpan converts incoming otlp/otel trace data into the
 // expected elasticsearch format.
 func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *modelpb.APMEvent) {
-	isJaeger := strings.HasPrefix(event.Agent.Name, "Jaeger")
+	isJaeger := strings.HasPrefix(event.GetAgent().GetName(), "Jaeger")
 
 	var (
 		netPeerName string
@@ -641,60 +598,33 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 			case "peer.address":
 				peerAddress = stringval
 			case attributeNetworkConnectionType:
-				if event.Network == nil {
-					event.Network = &modelpb.Network{}
-				}
-				if event.Network.Connection == nil {
-					event.Network.Connection = &modelpb.NetworkConnection{}
-				}
+				event.Network = populateNil(event.Network)
+				event.Network.Connection = populateNil(event.Network.Connection)
 				event.Network.Connection.Type = stringval
 			case attributeNetworkConnectionSubtype:
-				if event.Network == nil {
-					event.Network = &modelpb.Network{}
-				}
-				if event.Network.Connection == nil {
-					event.Network.Connection = &modelpb.NetworkConnection{}
-				}
+				event.Network = populateNil(event.Network)
+				event.Network.Connection = populateNil(event.Network.Connection)
 				event.Network.Connection.Subtype = stringval
 			case attributeNetworkMCC:
-				if event.Network == nil {
-					event.Network = &modelpb.Network{}
-				}
-				if event.Network.Carrier == nil {
-					event.Network.Carrier = &modelpb.NetworkCarrier{}
-				}
+				event.Network = populateNil(event.Network)
+				event.Network.Carrier = populateNil(event.Network.Carrier)
 				event.Network.Carrier.Mcc = stringval
 			case attributeNetworkMNC:
-				if event.Network == nil {
-					event.Network = &modelpb.Network{}
-				}
-				if event.Network.Carrier == nil {
-					event.Network.Carrier = &modelpb.NetworkCarrier{}
-				}
+				event.Network = populateNil(event.Network)
+				event.Network.Carrier = populateNil(event.Network.Carrier)
 				event.Network.Carrier.Mnc = stringval
 			case attributeNetworkCarrierName:
-				if event.Network == nil {
-					event.Network = &modelpb.Network{}
-				}
-				if event.Network.Carrier == nil {
-					event.Network.Carrier = &modelpb.NetworkCarrier{}
-				}
+				event.Network = populateNil(event.Network)
+				event.Network.Carrier = populateNil(event.Network.Carrier)
 				event.Network.Carrier.Name = stringval
 			case attributeNetworkICC:
-				if event.Network == nil {
-					event.Network = &modelpb.Network{}
-				}
-				if event.Network.Carrier == nil {
-					event.Network.Carrier = &modelpb.NetworkCarrier{}
-				}
-
+				event.Network = populateNil(event.Network)
+				event.Network.Carrier = populateNil(event.Network.Carrier)
 				event.Network.Carrier.Icc = stringval
 
 			// session.*
 			case "session.id":
-				if event.Session == nil {
-					event.Session = &modelpb.Session{}
-				}
+				event.Session = populateNil(event.Session)
 				event.Session.Id = stringval
 
 			// messaging.*
@@ -805,9 +735,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 		if !proto.Equal(&http, &modelpb.HTTP{}) {
 			event.Http = &http
 		}
-		if event.Url == nil {
-			event.Url = &modelpb.URL{}
-		}
+		event.Url = populateNil(event.Url)
 		event.Url.Original = httpURL
 		serviceTarget.Type = event.Span.Subtype
 		if fullURL != nil {
@@ -1080,10 +1008,9 @@ func setErrorContext(out *modelpb.APMEvent, parent *modelpb.APMEvent) {
 			Type:    parent.Transaction.Type,
 		}
 		out.Error.Custom = parent.Transaction.Custom
-		if out.Parent == nil {
-			out.Parent = &modelpb.Parent{}
+		out.Parent = &modelpb.Parent{
+			Id: parent.Transaction.Id,
 		}
-		out.Parent.Id = parent.Transaction.Id
 	}
 	if parent.Span != nil {
 		out.Parent.Id = parent.Span.Id
@@ -1095,9 +1022,7 @@ func translateSpanLinks(out *modelpb.APMEvent, in ptrace.SpanLinkSlice) {
 	if n == 0 {
 		return
 	}
-	if out.Span == nil {
-		out.Span = &modelpb.Span{}
-	}
+	out.Span = populateNil(out.Span)
 	out.Span.Links = make([]*modelpb.SpanLink, n)
 	for i := 0; i < n; i++ {
 		link := in.At(i)
