@@ -47,6 +47,9 @@ func TestJSONSchema(t *testing.T) {
 		if info.IsDir() {
 			return nil
 		}
+		if !strings.HasSuffix(info.Name(), ".ndjson") {
+			return nil
+		}
 		var valid bool
 		if !strings.HasPrefix(info.Name(), "invalid") {
 			valid = true
