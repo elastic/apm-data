@@ -102,6 +102,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			}
 			switch key {
 			case
+				"composite.compression_strategy",
 				// RepresentativeCount is tested further down in test 'sample-rate'
 				"representative_count",
 				// Kind is tested further down

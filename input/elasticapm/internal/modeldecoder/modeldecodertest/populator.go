@@ -36,18 +36,16 @@ import (
 
 // Values used for populating the model structs
 type Values struct {
-	Str                 string
-	Int                 int
-	Float               float64
-	Bool                bool
-	Time                time.Time
-	Duration            time.Duration
-	IP                  netip.Addr
-	HTTPHeader          http.Header
-	LabelVal            model.LabelValue
-	NumericLabelVal     model.NumericLabelValue
-	MetricType          modelpb.MetricType
-	CompressionStrategy modelpb.CompressionStrategy
+	Str             string
+	Int             int
+	Float           float64
+	Bool            bool
+	Time            time.Time
+	Duration        time.Duration
+	IP              netip.Addr
+	HTTPHeader      http.Header
+	LabelVal        model.LabelValue
+	NumericLabelVal model.NumericLabelValue
 	// N controls how many elements are added to a slice or a map
 	N int
 }
@@ -61,19 +59,17 @@ var compressionStrategyText = map[modelpb.CompressionStrategy]string{
 func DefaultValues() *Values {
 	initTime, _ := time.Parse(time.RFC3339, "2020-10-10T10:00:00Z")
 	return &Values{
-		Str:                 "init",
-		Int:                 1,
-		Float:               0.5,
-		Bool:                true,
-		Time:                initTime,
-		Duration:            time.Second,
-		IP:                  netip.MustParseAddr("127.0.0.1"),
-		HTTPHeader:          http.Header{http.CanonicalHeaderKey("user-agent"): []string{"a", "b", "c"}},
-		LabelVal:            model.LabelValue{Value: "init"},
-		NumericLabelVal:     model.NumericLabelValue{Value: 0.5},
-		MetricType:          modelpb.MetricType_METRIC_TYPE_COUNTER,
-		CompressionStrategy: modelpb.CompressionStrategy_COMPRESSION_STRATEGY_EXACT_MATCH,
-		N:                   3,
+		Str:             "init",
+		Int:             1,
+		Float:           0.5,
+		Bool:            true,
+		Time:            initTime,
+		Duration:        time.Second,
+		IP:              netip.MustParseAddr("127.0.0.1"),
+		HTTPHeader:      http.Header{http.CanonicalHeaderKey("user-agent"): []string{"a", "b", "c"}},
+		LabelVal:        model.LabelValue{Value: "init"},
+		NumericLabelVal: model.NumericLabelValue{Value: 0.5},
+		N:               3,
 	}
 }
 
@@ -81,19 +77,17 @@ func DefaultValues() *Values {
 func NonDefaultValues() *Values {
 	updatedTime, _ := time.Parse(time.RFC3339, "2020-12-10T10:00:00Z")
 	return &Values{
-		Str:                 "overwritten",
-		Int:                 12,
-		Float:               3.5,
-		Bool:                false,
-		Time:                updatedTime,
-		Duration:            time.Minute,
-		IP:                  netip.MustParseAddr("192.168.0.1"),
-		HTTPHeader:          http.Header{http.CanonicalHeaderKey("user-agent"): []string{"d", "e"}},
-		LabelVal:            model.LabelValue{Value: "overwritten"},
-		NumericLabelVal:     model.NumericLabelValue{Value: 3.5},
-		MetricType:          modelpb.MetricType_METRIC_TYPE_GAUGE,
-		CompressionStrategy: modelpb.CompressionStrategy_COMPRESSION_STRATEGY_SAME_KIND,
-		N:                   2,
+		Str:             "overwritten",
+		Int:             12,
+		Float:           3.5,
+		Bool:            false,
+		Time:            updatedTime,
+		Duration:        time.Minute,
+		IP:              netip.MustParseAddr("192.168.0.1"),
+		HTTPHeader:      http.Header{http.CanonicalHeaderKey("user-agent"): []string{"d", "e"}},
+		LabelVal:        model.LabelValue{Value: "overwritten"},
+		NumericLabelVal: model.NumericLabelValue{Value: 3.5},
+		N:               2,
 	}
 }
 
@@ -195,11 +189,7 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 		case reflect.Struct:
 			switch v := f.Interface().(type) {
 			case nullable.String:
-				if key == "composite.compression_strategy" {
-					v.Set(compressionStrategyText[values.CompressionStrategy])
-				} else {
-					v.Set(values.Str)
-				}
+				v.Set(values.Str)
 				fieldVal = reflect.ValueOf(v)
 			case nullable.Int:
 				v.Set(values.Int)
@@ -342,10 +332,6 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 			newVal = timestamppb.New(values.Time)
 		case time.Duration:
 			newVal = values.Duration
-		case modelpb.MetricType:
-			newVal = values.MetricType
-		case modelpb.CompressionStrategy:
-			newVal = values.CompressionStrategy
 		default:
 			// the populator recursively iterates over struct and structPtr
 			// calling this function for all fields;
