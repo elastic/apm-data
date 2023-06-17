@@ -31,7 +31,6 @@ import (
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/model"
-	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // Values used for populating the model structs
@@ -48,11 +47,6 @@ type Values struct {
 	NumericLabelVal model.NumericLabelValue
 	// N controls how many elements are added to a slice or a map
 	N int
-}
-
-var compressionStrategyText = map[modelpb.CompressionStrategy]string{
-	modelpb.CompressionStrategy_COMPRESSION_STRATEGY_EXACT_MATCH: "exact_match",
-	modelpb.CompressionStrategy_COMPRESSION_STRATEGY_SAME_KIND:   "same_kind",
 }
 
 // DefaultValues returns a Values struct initialized with non-zero values
