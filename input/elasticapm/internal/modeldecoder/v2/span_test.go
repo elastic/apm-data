@@ -490,6 +490,26 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		})
 	})
 
+	t.Run("composite", func(t *testing.T) {
+		var input span
+		var event modelpb.APMEvent
+		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+
+		input.Composite.CompressionStrategy.Set("invalid")
+		mapToSpanModel(&input, &event)
+		assert.Equal(t,
+			modelpb.CompressionStrategy_COMPRESSION_STRATEGY_UNSPECIFIED,
+			event.Span.Composite.CompressionStrategy,
+		)
+
+		input.Composite.CompressionStrategy.Set("exact_match")
+		mapToSpanModel(&input, &event)
+		assert.Equal(t,
+			modelpb.CompressionStrategy_COMPRESSION_STRATEGY_EXACT_MATCH,
+			event.Span.Composite.CompressionStrategy,
+		)
+	})
+
 	t.Run("labels", func(t *testing.T) {
 		var input span
 		input.Context.Tags = map[string]any{
