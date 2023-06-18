@@ -587,9 +587,11 @@ func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 	}
 	if from.Process.Ppid.IsSet() {
 		var pid = uint32(from.Process.Ppid.Val)
+		out.Process = populateNil(out.Process)
 		out.Process.Ppid = pid
 	}
 	if from.Process.Title.IsSet() {
+		out.Process = populateNil(out.Process)
 		out.Process.Title = from.Process.Title.Val
 	}
 
@@ -659,6 +661,7 @@ func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 		out.Host.Architecture = from.System.Architecture.Val
 	}
 	if from.System.ConfiguredHostname.IsSet() {
+		out.Host = populateNil(out.Host)
 		out.Host.Name = from.System.ConfiguredHostname.Val
 	}
 	if from.System.Container.ID.IsSet() {
@@ -666,10 +669,12 @@ func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 		out.Container.Id = from.System.Container.ID.Val
 	}
 	if from.System.DetectedHostname.IsSet() {
+		out.Host = populateNil(out.Host)
 		out.Host.Hostname = from.System.DetectedHostname.Val
 	}
 	if !from.System.ConfiguredHostname.IsSet() && !from.System.DetectedHostname.IsSet() &&
 		from.System.DeprecatedHostname.IsSet() {
+		out.Host = populateNil(out.Host)
 		out.Host.Hostname = from.System.DeprecatedHostname.Val
 	}
 	if from.System.Kubernetes.Namespace.IsSet() {
@@ -677,12 +682,15 @@ func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 		out.Kubernetes.Namespace = from.System.Kubernetes.Namespace.Val
 	}
 	if from.System.Kubernetes.Node.Name.IsSet() {
+		out.Kubernetes = populateNil(out.Kubernetes)
 		out.Kubernetes.NodeName = from.System.Kubernetes.Node.Name.Val
 	}
 	if from.System.Kubernetes.Pod.Name.IsSet() {
+		out.Kubernetes = populateNil(out.Kubernetes)
 		out.Kubernetes.PodName = from.System.Kubernetes.Pod.Name.Val
 	}
 	if from.System.Kubernetes.Pod.UID.IsSet() {
+		out.Kubernetes = populateNil(out.Kubernetes)
 		out.Kubernetes.PodUid = from.System.Kubernetes.Pod.UID.Val
 	}
 	if from.System.Platform.IsSet() {
@@ -701,9 +709,11 @@ func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 		out.User.Id = fmt.Sprint(from.User.ID.Val)
 	}
 	if from.User.Email.IsSet() {
+		out.User = populateNil(out.User)
 		out.User.Email = from.User.Email.Val
 	}
 	if from.User.Name.IsSet() {
+		out.User = populateNil(out.User)
 		out.User.Name = from.User.Name.Val
 	}
 
