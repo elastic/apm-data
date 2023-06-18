@@ -101,13 +101,9 @@ func (c *Consumer) convertLogRecord(
 	event := proto.Clone(baseEvent).(*modelpb.APMEvent)
 	initEventLabels(event)
 	event.Timestamp = timestamppb.New(record.Timestamp().AsTime().Add(timeDelta))
-	if event.Event == nil {
-		event.Event = &modelpb.Event{}
-	}
+	event.Event = populateNil(event.Event)
 	event.Event.Severity = int64(record.SeverityNumber())
-	if event.Log == nil {
-		event.Log = &modelpb.Log{}
-	}
+	event.Log = populateNil(event.Log)
 	event.Log.Level = record.SeverityText()
 	if body := record.Body(); body.Type() != pcommon.ValueTypeEmpty {
 		event.Message = body.AsString()
@@ -121,9 +117,7 @@ func (c *Consumer) convertLogRecord(
 		}
 	}
 	if spanID := record.SpanID(); !spanID.IsEmpty() {
-		if event.Span == nil {
-			event.Span = &modelpb.Span{}
-		}
+		event.Span = populateNil(event.Span)
 		event.Span.Id = hex.EncodeToString(spanID[:])
 	}
 	attrs := record.Attributes()
@@ -170,9 +164,7 @@ func (c *Consumer) convertLogRecord(
 	if eventDomain == "device" && eventName != "" {
 		event.Event.Category = "device"
 		if eventName == "crash" {
-			if event.Error == nil {
-				event.Error = &modelpb.Error{}
-			}
+			event.Error = populateNil(event.Error)
 			event.Error.Type = "crash"
 		} else {
 			event.Event.Kind = "event"

@@ -31,7 +31,6 @@ import (
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/model"
-	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // Values used for populating the model structs
@@ -46,7 +45,6 @@ type Values struct {
 	HTTPHeader      http.Header
 	LabelVal        model.LabelValue
 	NumericLabelVal model.NumericLabelValue
-	MetricType      modelpb.MetricType
 	// N controls how many elements are added to a slice or a map
 	N int
 }
@@ -328,8 +326,6 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 			newVal = timestamppb.New(values.Time)
 		case time.Duration:
 			newVal = values.Duration
-		case modelpb.MetricType:
-			newVal = values
 		default:
 			// the populator recursively iterates over struct and structPtr
 			// calling this function for all fields;
@@ -346,7 +342,7 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 				assert.NotZero(t, fVal, key)
 				return
 			}
-			panic(fmt.Sprintf("unhandled type %s for key %s", f.Type(), key))
+			panic(fmt.Sprintf("unhandled type %s %s for key %s", f.Kind(), f.Type(), key))
 		}
 		assert.Equal(t, newVal, fVal, key)
 	})

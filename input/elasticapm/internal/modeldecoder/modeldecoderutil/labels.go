@@ -22,14 +22,31 @@ import (
 	"strconv"
 
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // GlobalLabelsFrom populates the Labels and NumericLabels from global labels
 // in the metadata object.
-func GlobalLabelsFrom(from map[string]any, to *model.APMEvent) {
+func GlobalLabelsFrom(from map[string]any, to *modelpb.APMEvent) {
+	to.NumericLabels = make(modelpb.NumericLabels)
+	to.Labels = make(modelpb.Labels)
+	MergeLabels(from, to)
+	for k, v := range to.Labels {
+		v.Global = true
+		to.Labels[k] = v
+	}
+	for k, v := range to.NumericLabels {
+		v.Global = true
+		to.NumericLabels[k] = v
+	}
+}
+
+// GlobalLabelsFrom populates the Labels and NumericLabels from global labels
+// in the metadata object.
+func GlobalLabelsFromOld(from map[string]any, to *model.APMEvent) {
 	to.NumericLabels = make(model.NumericLabels)
 	to.Labels = make(model.Labels)
-	MergeLabels(from, to)
+	MergeLabelsOld(from, to)
 	for k, v := range to.Labels {
 		v.Global = true
 		to.Labels[k] = v
@@ -44,7 +61,7 @@ func GlobalLabelsFrom(from map[string]any, to *model.APMEvent) {
 // combining event-specific labels onto (metadata) global labels.
 //
 // If eventLabels is non-nil, it is first cloned.
-func MergeLabels(eventLabels map[string]any, to *model.APMEvent) {
+func MergeLabelsOld(eventLabels map[string]any, to *model.APMEvent) {
 	if to.NumericLabels == nil {
 		to.NumericLabels = make(model.NumericLabels)
 	}
@@ -54,14 +71,47 @@ func MergeLabels(eventLabels map[string]any, to *model.APMEvent) {
 	for k, v := range eventLabels {
 		switch v := v.(type) {
 		case string:
-			to.Labels.Set(k, v)
+			model.Labels(to.Labels).Set(k, v)
 		case bool:
-			to.Labels.Set(k, strconv.FormatBool(v))
+			model.Labels(to.Labels).Set(k, strconv.FormatBool(v))
 		case float64:
-			to.NumericLabels.Set(k, v)
+			model.NumericLabels(to.NumericLabels).Set(k, v)
 		case json.Number:
 			if floatVal, err := v.Float64(); err == nil {
-				to.NumericLabels.Set(k, floatVal)
+				model.NumericLabels(to.NumericLabels).Set(k, floatVal)
+			}
+		}
+	}
+	if len(to.NumericLabels) == 0 {
+		to.NumericLabels = nil
+	}
+	if len(to.Labels) == 0 {
+		to.Labels = nil
+	}
+}
+
+// MergeLabels merges eventLabels into the APMEvent. This is used for
+// combining event-specific labels onto (metadata) global labels.
+//
+// If eventLabels is non-nil, it is first cloned.
+func MergeLabels(eventLabels map[string]any, to *modelpb.APMEvent) {
+	if to.NumericLabels == nil {
+		to.NumericLabels = make(modelpb.NumericLabels)
+	}
+	if to.Labels == nil {
+		to.Labels = make(modelpb.Labels)
+	}
+	for k, v := range eventLabels {
+		switch v := v.(type) {
+		case string:
+			modelpb.Labels(to.Labels).Set(k, v)
+		case bool:
+			modelpb.Labels(to.Labels).Set(k, strconv.FormatBool(v))
+		case float64:
+			modelpb.NumericLabels(to.NumericLabels).Set(k, v)
+		case json.Number:
+			if floatVal, err := v.Float64(); err == nil {
+				modelpb.NumericLabels(to.NumericLabels).Set(k, floatVal)
 			}
 		}
 	}

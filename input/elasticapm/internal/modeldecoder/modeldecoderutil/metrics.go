@@ -20,7 +20,8 @@ package modeldecoderutil
 import (
 	"time"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 // SetInternalMetrics extracts well-known internal metrics from event.Metricset.Samples,
@@ -33,7 +34,7 @@ import (
 // SetInternalMetrics returns true if any known metric samples were found, and false
 // otherwise. If no known metric samples were found, the caller may opt to omit the
 // metricset altogether.
-func SetInternalMetrics(event *model.APMEvent) bool {
+func SetInternalMetrics(event *modelpb.APMEvent) bool {
 	if event.Transaction == nil {
 		// Not an internal metricset.
 		return false
@@ -43,10 +44,16 @@ func SetInternalMetrics(event *model.APMEvent) bool {
 		for _, v := range event.Metricset.Samples {
 			switch v.Name {
 			case "span.self_time.count":
-				event.Span.SelfTime.Count = int(v.Value)
+				if event.Span.SelfTime == nil {
+					event.Span.SelfTime = &modelpb.AggregatedDuration{}
+				}
+				event.Span.SelfTime.Count = int64(v.Value)
 				haveMetrics = true
 			case "span.self_time.sum.us":
-				event.Span.SelfTime.Sum = time.Duration(v.Value * 1000)
+				if event.Span.SelfTime == nil {
+					event.Span.SelfTime = &modelpb.AggregatedDuration{}
+				}
+				event.Span.SelfTime.Sum = durationpb.New(time.Duration(v.Value * 1000))
 				haveMetrics = true
 			}
 		}

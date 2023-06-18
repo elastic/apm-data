@@ -30,6 +30,7 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // initializedMetadata returns a model.APMEvent populated with default values
@@ -49,6 +50,15 @@ func initializedMetadata() model.APMEvent {
 	nat := &model.NAT{IP: netip.MustParseAddr("127.0.0.1")}
 	out.Source = model.Source{IP: out.Client.IP, Port: out.Client.Port, Domain: out.Client.Domain, NAT: nat}
 	return out
+}
+
+// initializedMetadata returns a model.APMEvent populated with default values
+// in the metadata-derived fields.
+func initializedMetadataPb() *modelpb.APMEvent {
+	var out modelpb.APMEvent
+	old := initializedMetadata()
+	old.ToModelProtobuf(&out)
+	return &out
 }
 
 func metadataExceptions(keys ...string) func(key string) bool {
@@ -71,11 +81,11 @@ func metadataExceptions(keys ...string) func(key string) bool {
 		"Experimental",
 		"HTTP",
 		"Kubernetes",
-		"Message",
+		"message",
 		"Network",
 		"Observer",
-		"Origin",
-		"Target",
+		"origin",
+		"target",
 		"Parent",
 		"Process",
 		"Processor",

@@ -20,6 +20,9 @@ package modeldecoderutil
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/elastic/apm-data/model/modelpb"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 // HTTPHeadersToMap converts h to a map[string]any, suitable for
@@ -35,6 +38,39 @@ func HTTPHeadersToMap(h http.Header) map[string]any {
 			arr = append(arr, s)
 		}
 		m[k] = arr
+	}
+	return m
+}
+
+// HTTPHeadersToStructPb converts h to a *structpb.Struct, suitable for
+// use in modelpb.HTTP.{Request,Response}.Headers.
+func HTTPHeadersToStructPb(h http.Header) *structpb.Struct {
+	if len(h) == 0 {
+		return nil
+	}
+	m := make(map[string]any, len(h))
+	for k, v := range h {
+		arr := make([]any, 0, len(v))
+		for _, s := range v {
+			arr = append(arr, s)
+		}
+		m[k] = arr
+	}
+	if str, err := structpb.NewStruct(m); err == nil {
+		return str
+	}
+	return nil
+}
+
+func HTTPHeadersToModelpb(h http.Header) map[string]*modelpb.HTTPHeaderValue {
+	if len(h) == 0 {
+		return nil
+	}
+	m := make(map[string]*modelpb.HTTPHeaderValue, len(h))
+	for k, v := range h {
+		m[k] = &modelpb.HTTPHeaderValue{
+			Values: v,
+		}
 	}
 	return m
 }

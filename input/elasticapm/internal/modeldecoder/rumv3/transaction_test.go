@@ -28,6 +28,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/testing/protocmp"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
@@ -156,21 +157,21 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 	t.Run("metadata-overwrite", func(t *testing.T) {
 		// overwrite defined metadata with transaction metadata values
 		var input transaction
-		out := initializedMetadata()
+		out := initializedMetadataPb()
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		mapToTransactionModel(&input, &out)
+		mapToTransactionModel(&input, out)
 
 		// user-agent should be set to context request header values
 		assert.Equal(t, "d, e", out.UserAgent.Original)
 		// do not overwrite client.ip if already set in metadata
-		assert.Equal(t, localhostIP, out.Client.IP, out.Client.IP.String())
-		assert.Equal(t, model.Labels{
+		assert.Equal(t, localhostIP.String(), out.Client.Ip)
+		assert.Equal(t, modelpb.Labels{
 			"init0": {Global: true, Value: "init"}, "init1": {Global: true, Value: "init"}, "init2": {Global: true, Value: "init"},
 			"overwritten0": {Value: "overwritten"}, "overwritten1": {Value: "overwritten"},
-		}, out.Labels)
+		}, modelpb.Labels(out.Labels))
 		// service values should be set
-		modeldecodertest.AssertStructValues(t, &out.Service, metadataExceptions("Node", "Agent.EphemeralID"), otherVal)
+		modeldecodertest.AssertStructValues(t, &out.Service, metadataExceptions("node", "Agent.EphemeralID"), otherVal)
 		// user values should be set
 		modeldecodertest.AssertStructValues(t, &out.User, metadataExceptions(), otherVal)
 	})
@@ -178,11 +179,11 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 	t.Run("overwrite-user", func(t *testing.T) {
 		// user should be populated by metadata or event specific, but not merged
 		var input transaction
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		input.Context.User.Email.Set("test@user.com")
 		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "test@user.com", out.User.Email)
-		assert.Zero(t, out.User.ID)
+		assert.Zero(t, out.User.Id)
 		assert.Zero(t, out.User.Name)
 	})
 
@@ -190,21 +191,21 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		exceptions := func(key string) bool {
 			for _, s := range []string{
 				// values not set for RUM v3
-				"Kind", "RepresentativeCount", "Message", "DroppedSpansStats",
+				"Kind", "representative_count", "message", "dropped_spans_stats",
 				// Not set for transaction events:
 				"AggregatedDuration",
 				"AggregatedDuration.Count",
 				"AggregatedDuration.Sum",
 				"BreakdownCount",
-				"DurationHistogram",
+				"duration_histogram",
 				"DurationHistogram.Counts",
 				"DurationHistogram.Values",
-				"DurationSummary",
+				"duration_summary",
 				"DurationSummary.Count",
 				"DurationSummary.Sum",
 				"FailureCount",
 				"SuccessCount",
-				"Root",
+				"root",
 			} {
 				if strings.HasPrefix(key, s) {
 					return true
@@ -214,9 +215,9 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		}
 
 		var input transaction
-		var out1, out2 model.APMEvent
+		var out1, out2 modelpb.APMEvent
 		reqTime := time.Now().Add(time.Second)
-		out1.Timestamp = reqTime
+		out1.Timestamp = timestamppb.New(reqTime)
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToTransactionModel(&input, &out1)
@@ -225,7 +226,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
-		out2.Timestamp = reqTime
+		out2.Timestamp = timestamppb.New(reqTime)
 		otherVal := modeldecodertest.NonDefaultValues()
 		otherVal.Update(reqTime) //for rumv3 the timestamp is always set from the base event
 		modeldecodertest.SetStructValues(&input, otherVal)
@@ -238,25 +239,25 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		exceptions := func(key string) bool {
 			for _, s := range []string{
 				// values not set for RUM v3
-				"Kind",
+				"kind",
 				"ChildIDs",
-				"Composite",
-				"DB",
-				"Message",
-				"RepresentativeCount",
-				"Stacktrace.LibraryFrame",
-				"Stacktrace.Vars",
+				"composite",
+				"db",
+				"message",
+				"representative_count",
+				"stacktrace.library_frame",
+				"stacktrace.vars",
 				// stacktrace original and sourcemap values are set when sourcemapping is applied
-				"Stacktrace.Original",
-				"Stacktrace.Sourcemap",
+				"stacktrace.original",
+				"stacktrace.sourcemap",
 				// ExcludeFromGrouping is set when processing the event
-				"Stacktrace.ExcludeFromGrouping",
+				"stacktrace.exclude_from_grouping",
 				// Not set for span events:
-				"Links",
-				"DestinationService.ResponseTime",
+				"links",
+				"destination_service.response_time",
 				"DestinationService.ResponseTime.Count",
 				"DestinationService.ResponseTime.Sum",
-				"SelfTime",
+				"self_time",
 				"SelfTime.Count",
 				"SelfTime.Sum",
 			} {
@@ -268,9 +269,9 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		}
 
 		var input span
-		var out1, out2 model.APMEvent
+		var out1, out2 modelpb.APMEvent
 		reqTime := time.Now().Add(time.Second)
-		out1.Timestamp = reqTime
+		out1.Timestamp = timestamppb.New(reqTime)
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToSpanModel(&input, &out1)
@@ -280,7 +281,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		modeldecodertest.AssertStructValues(t, out1.Span, exceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
-		out2.Timestamp = reqTime
+		out2.Timestamp = timestamppb.New(reqTime)
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToSpanModel(&input, &out2)
@@ -292,7 +293,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 
 	t.Run("span-outcome", func(t *testing.T) {
 		var input span
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 		// set from input, ignore status code
 		input.Outcome.Set("failure")
@@ -318,7 +319,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 
 	t.Run("transaction-outcome", func(t *testing.T) {
 		var input transaction
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 		// set from input, ignore status code
 		input.Outcome.Set("failure")
@@ -345,42 +346,42 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 	t.Run("page.URL", func(t *testing.T) {
 		var input transaction
 		input.Context.Page.URL.Set("https://my.site.test:9201")
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, "https://my.site.test:9201", out.URL.Full)
+		assert.Equal(t, "https://my.site.test:9201", out.Url.Full)
 	})
 
 	t.Run("page.referer", func(t *testing.T) {
 		var input transaction
 		input.Context.Page.Referer.Set("https://my.site.test:9201")
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, "https://my.site.test:9201", out.HTTP.Request.Referrer)
+		assert.Equal(t, "https://my.site.test:9201", out.Http.Request.Referrer)
 	})
 
 	t.Run("http-headers", func(t *testing.T) {
 		var input transaction
 		input.Context.Request.Headers.Set(http.Header{"a": []string{"b"}, "c": []string{"d", "e"}})
 		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, map[string]any{"a": []any{"b"}, "c": []any{"d", "e"}}, out.HTTP.Request.Headers)
-		assert.Equal(t, map[string]any{"f": []any{"g"}}, out.HTTP.Response.Headers)
+		assert.Equal(t, map[string]any{"a": []any{"b"}, "c": []any{"d", "e"}}, out.Http.Request.Headers.AsMap())
+		assert.Equal(t, map[string]any{"f": []any{"g"}}, out.Http.Response.Headers.AsMap())
 	})
 
 	t.Run("session", func(t *testing.T) {
 		var input transaction
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 		input.Session.ID.Reset()
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, model.Session{}, out.Session)
+		assert.Empty(t, &modelpb.Session{}, out.Session)
 
 		input.Session.ID.Set("session_id")
 		input.Session.Sequence.Set(123)
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, model.Session{
-			ID:       "session_id",
+		assert.Equal(t, &modelpb.Session{
+			Id:       "session_id",
 			Sequence: 123,
 		}, out.Session)
 	})
@@ -392,33 +393,33 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			"d": 12315124131.12315124131,
 			"e": true,
 		}
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, model.Labels{
+		assert.Equal(t, modelpb.Labels{
 			"a": {Value: "b"},
 			"e": {Value: "true"},
-		}, out.Labels)
-		assert.Equal(t, model.NumericLabels{
+		}, modelpb.Labels(out.Labels))
+		assert.Equal(t, modelpb.NumericLabels{
 			"c": {Value: float64(12315124131)},
 			"d": {Value: float64(12315124131.12315124131)},
-		}, out.NumericLabels)
+		}, modelpb.NumericLabels(out.NumericLabels))
 	})
 	t.Run("transaction.type", func(t *testing.T) {
 		var input transaction
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, model.Transaction{
+		assert.Equal(t, &modelpb.Transaction{
 			Type:                "unknown",
 			Sampled:             true,
 			RepresentativeCount: 1,
-		}, *out.Transaction)
+		}, out.Transaction)
 	})
 	t.Run("span.type", func(t *testing.T) {
 		var input span
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		mapToSpanModel(&input, &out)
-		assert.Equal(t, model.Span{
+		assert.Equal(t, &modelpb.Span{
 			Type: "unknown",
-		}, *out.Span)
+		}, out.Span)
 	})
 }
