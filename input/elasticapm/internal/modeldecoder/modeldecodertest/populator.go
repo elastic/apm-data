@@ -30,7 +30,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // Values used for populating the model structs
@@ -43,8 +43,8 @@ type Values struct {
 	Duration        time.Duration
 	IP              netip.Addr
 	HTTPHeader      http.Header
-	LabelVal        model.LabelValue
-	NumericLabelVal model.NumericLabelValue
+	LabelVal        *modelpb.LabelValue
+	NumericLabelVal *modelpb.NumericLabelValue
 	// N controls how many elements are added to a slice or a map
 	N int
 }
@@ -61,8 +61,8 @@ func DefaultValues() *Values {
 		Duration:        time.Second,
 		IP:              netip.MustParseAddr("127.0.0.1"),
 		HTTPHeader:      http.Header{http.CanonicalHeaderKey("user-agent"): []string{"a", "b", "c"}},
-		LabelVal:        model.LabelValue{Value: "init"},
-		NumericLabelVal: model.NumericLabelValue{Value: 0.5},
+		LabelVal:        &modelpb.LabelValue{Value: "init"},
+		NumericLabelVal: &modelpb.NumericLabelValue{Value: 0.5},
 		N:               3,
 	}
 }
@@ -79,8 +79,8 @@ func NonDefaultValues() *Values {
 		Duration:        time.Minute,
 		IP:              netip.MustParseAddr("192.168.0.1"),
 		HTTPHeader:      http.Header{http.CanonicalHeaderKey("user-agent"): []string{"d", "e"}},
-		LabelVal:        model.LabelValue{Value: "overwritten"},
-		NumericLabelVal: model.NumericLabelValue{Value: 3.5},
+		LabelVal:        &modelpb.LabelValue{Value: "overwritten"},
+		NumericLabelVal: &modelpb.NumericLabelValue{Value: 3.5},
 		N:               2,
 	}
 }
@@ -167,9 +167,9 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 				elemVal = reflect.ValueOf(values.Str)
 			case map[string]float64:
 				elemVal = reflect.ValueOf(values.Float)
-			case model.Labels:
+			case map[string]*modelpb.LabelValue:
 				elemVal = reflect.ValueOf(values.LabelVal)
-			case model.NumericLabels:
+			case map[string]*modelpb.NumericLabelValue:
 				elemVal = reflect.ValueOf(values.NumericLabelVal)
 			default:
 				if f.Type().Elem().Kind() != reflect.Struct {
@@ -277,10 +277,10 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 				m[fmt.Sprintf("%s%v", values.Str, i)] = values.Str
 			}
 			newVal = m
-		case model.Labels:
-			m := model.Labels{}
+		case map[string]*modelpb.LabelValue:
+			m := modelpb.Labels{}
 			for i := 0; i < values.N; i++ {
-				m[fmt.Sprintf("%s%v", values.Str, i)] = model.LabelValue{Value: values.Str}
+				m[fmt.Sprintf("%s%v", values.Str, i)] = &modelpb.LabelValue{Value: values.Str}
 			}
 			newVal = m
 		case []string:

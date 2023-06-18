@@ -89,7 +89,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		var input span
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		_, out := initializedInputMetadataPb(defaultVal)
+		_, out := initializedInputMetadata(defaultVal)
 		mapToSpanModel(&input, out)
 		modeldecodertest.AssertStructValues(t, &out.Service, exceptions, defaultVal)
 	})

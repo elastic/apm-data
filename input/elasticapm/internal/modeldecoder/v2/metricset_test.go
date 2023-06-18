@@ -33,7 +33,6 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
-	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -51,7 +50,7 @@ func TestDecodeNestedMetricset(t *testing.T) {
 		now := time.Now()
 		defaultVal := modeldecodertest.DefaultValues()
 		_, eventBase := initializedInputMetadata(defaultVal)
-		eventBase.Timestamp = now
+		eventBase.Timestamp = timestamppb.New(now)
 		input := modeldecoder.Input{Base: eventBase}
 		str := `{"metricset":{"timestamp":1599996822281000,"samples":{"a.b":{"value":2048}}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
@@ -236,7 +235,7 @@ func TestDecodeMetricsetInternal(t *testing.T) {
 				"type": "transaction_type"
 			}
 		}
-	}`)), &modeldecoder.Input{}, &batch)
+	}`)), &modeldecoder.Input{Base: &modelpb.APMEvent{}}, &batch)
 	require.NoError(t, err)
 	require.Empty(t, batch)
 
@@ -256,7 +255,7 @@ func TestDecodeMetricsetInternal(t *testing.T) {
 				"subtype": "span_subtype"
 			}
 		}
-	}`)), &modeldecoder.Input{}, &batch)
+	}`)), &modeldecoder.Input{Base: &modelpb.APMEvent{}}, &batch)
 	require.NoError(t, err)
 
 	assert.Empty(t, cmp.Diff(modelpb.Batch{{
@@ -282,8 +281,8 @@ func TestDecodeMetricsetInternal(t *testing.T) {
 
 func TestDecodeMetricsetServiceName(t *testing.T) {
 	var input = &modeldecoder.Input{
-		Base: model.APMEvent{
-			Service: model.Service{
+		Base: &modelpb.APMEvent{
+			Service: &modelpb.Service{
 				Name:        "service_name",
 				Version:     "service_version",
 				Environment: "service_environment",
@@ -341,8 +340,8 @@ func TestDecodeMetricsetServiceName(t *testing.T) {
 
 func TestDecodeMetricsetServiceNameAndVersion(t *testing.T) {
 	var input = &modeldecoder.Input{
-		Base: model.APMEvent{
-			Service: model.Service{
+		Base: &modelpb.APMEvent{
+			Service: &modelpb.Service{
 				Name:        "service_name",
 				Version:     "service_version",
 				Environment: "service_environment",
@@ -402,8 +401,8 @@ func TestDecodeMetricsetServiceNameAndVersion(t *testing.T) {
 
 func TestDecodeMetricsetServiceVersion(t *testing.T) {
 	var input = &modeldecoder.Input{
-		Base: model.APMEvent{
-			Service: model.Service{
+		Base: &modelpb.APMEvent{
+			Service: &modelpb.Service{
 				Name:        "service_name",
 				Version:     "service_version",
 				Environment: "service_environment",

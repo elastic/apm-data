@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"net/netip"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -31,8 +30,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/semaphore"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -59,7 +58,7 @@ func TestHandleStreamReaderError(t *testing.T) {
 
 	var actualResult Result
 	err := sp.HandleStream(
-		context.Background(), false, model.APMEvent{},
+		context.Background(), false, &modelpb.APMEvent{},
 		reader, 10, nopBatchProcessor{}, &actualResult,
 	)
 	assert.Equal(t, readErr, err)
@@ -94,7 +93,7 @@ func TestHandleStreamBatchProcessorError(t *testing.T) {
 
 		var actualResult Result
 		err := sp.HandleStream(
-			context.Background(), false, model.APMEvent{},
+			context.Background(), false, &modelpb.APMEvent{},
 			strings.NewReader(payload), 10, processor, &actualResult,
 		)
 		assert.Equal(t, test.err, err)
@@ -190,7 +189,7 @@ func TestHandleStreamErrors(t *testing.T) {
 				Semaphore:    semaphore.NewWeighted(1),
 			})
 			err := p.HandleStream(
-				context.Background(), false, model.APMEvent{},
+				context.Background(), false, &modelpb.APMEvent{},
 				strings.NewReader(test.payload), 10,
 				nopBatchProcessor{}, &actualResult,
 			)
@@ -225,7 +224,7 @@ func TestHandleStream(t *testing.T) {
 		Semaphore:    semaphore.NewWeighted(1),
 	})
 	err := p.HandleStream(
-		context.Background(), false, model.APMEvent{},
+		context.Background(), false, &modelpb.APMEvent{},
 		strings.NewReader(payload), 10, batchProcessor,
 		&Result{},
 	)
@@ -263,7 +262,7 @@ func TestHandleStreamRUMv3(t *testing.T) {
 		Semaphore:    semaphore.NewWeighted(1),
 	})
 	err := p.HandleStream(
-		context.Background(), false, model.APMEvent{},
+		context.Background(), false, &modelpb.APMEvent{},
 		strings.NewReader(payload), 10, batchProcessor,
 		&Result{},
 	)
@@ -292,11 +291,11 @@ func TestHandleStreamRUMv3(t *testing.T) {
 func TestHandleStreamBaseEvent(t *testing.T) {
 	requestTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
 
-	baseEvent := model.APMEvent{
-		Timestamp: requestTimestamp,
-		UserAgent: model.UserAgent{Original: "rum-2.0"},
-		Source:    model.Source{IP: netip.MustParseAddr("192.0.0.1")},
-		Client:    model.Client{IP: netip.MustParseAddr("192.0.0.2")}, // X-Forwarded-For
+	baseEvent := modelpb.APMEvent{
+		Timestamp: timestamppb.New(requestTimestamp),
+		UserAgent: &modelpb.UserAgent{Original: "rum-2.0"},
+		Source:    &modelpb.Source{Ip: "192.0.0.1"},
+		Client:    &modelpb.Client{Ip: "192.0.0.2"}, // X-Forwarded-For
 	}
 
 	var events []*modelpb.APMEvent
@@ -311,19 +310,16 @@ func TestHandleStreamBaseEvent(t *testing.T) {
 		Semaphore:    semaphore.NewWeighted(1),
 	})
 	err := p.HandleStream(
-		context.Background(), false, baseEvent,
+		context.Background(), false, &baseEvent,
 		strings.NewReader(payload), 10, batchProcessor,
 		&Result{},
 	)
 	require.NoError(t, err)
 
-	var basePb modelpb.APMEvent
-	baseEvent.ToModelProtobuf(&basePb)
-
 	assert.Len(t, events, 1)
 	assert.Equal(t, "rum-2.0", events[0].UserAgent.Original)
-	assert.Equal(t, basePb.Source, events[0].Source)
-	assert.Equal(t, basePb.Client, events[0].Client)
+	assert.Equal(t, baseEvent.Source, events[0].Source)
+	assert.Equal(t, baseEvent.Client, events[0].Client)
 	assert.Equal(t, requestTimestamp.Add(50*time.Millisecond), events[0].Timestamp.AsTime()) // span's start is "50"
 }
 
@@ -332,8 +328,8 @@ func TestLabelLeak(t *testing.T) {
 {"transaction": {"id": "88dee29a6571b948", "trace_id": "ba7f5d18ac4c7f39d1ff070c79b2bea5", "name": "GET /withlabels", "type": "request", "duration": 1.6199999999999999, "result": "HTTP 2xx", "timestamp": 1652185276804681, "outcome": "success", "sampled": true, "span_count": {"started": 0, "dropped": 0}, "sample_rate": 1.0, "context": {"request": {"env": {"REMOTE_ADDR": "127.0.0.1", "SERVER_NAME": "127.0.0.1", "SERVER_PORT": "5000"}, "method": "GET", "socket": {"remote_address": "127.0.0.1"}, "cookies": {}, "headers": {"host": "localhost:5000", "user-agent": "curl/7.81.0", "accept": "*/*", "app-os": "Android", "content-type": "application/json; charset=utf-8", "content-length": "29"}, "url": {"full": "http://localhost:5000/withlabels?second_with_labels", "protocol": "http:", "hostname": "localhost", "pathname": "/withlabels", "port": "5000", "search": "?second_with_labels"}}, "response": {"status_code": 200, "headers": {"Content-Type": "application/json", "Content-Length": "14"}}, "tags": {"appOs": "Android", "email_set": "hello@hello.com", "time_set": 1652185276}}}}
 {"transaction": {"id": "ba5c6d6c1ab44bd1", "trace_id": "88c0a00431531a80c5ca9a41fe115f41", "name": "GET /nolabels", "type": "request", "duration": 0.652, "result": "HTTP 2xx", "timestamp": 1652185278813952, "outcome": "success", "sampled": true, "span_count": {"started": 0, "dropped": 0}, "sample_rate": 1.0, "context": {"request": {"env": {"REMOTE_ADDR": "127.0.0.1", "SERVER_NAME": "127.0.0.1", "SERVER_PORT": "5000"}, "method": "GET", "socket": {"remote_address": "127.0.0.1"}, "cookies": {}, "headers": {"host": "localhost:5000", "user-agent": "curl/7.81.0", "accept": "*/*"}, "url": {"full": "http://localhost:5000/nolabels?third_no_label", "protocol": "http:", "hostname": "localhost", "pathname": "/nolabels", "port": "5000", "search": "?third_no_label"}}, "response": {"status_code": 200, "headers": {"Content-Type": "text/html; charset=utf-8", "Content-Length": "14"}}, "tags": {}}}}`
 
-	baseEvent := model.APMEvent{
-		Host: model.Host{IP: []netip.Addr{netip.MustParseAddr("192.0.0.1")}},
+	baseEvent := &modelpb.APMEvent{
+		Host: &modelpb.Host{Ip: []string{"192.0.0.1"}},
 	}
 
 	var processed *modelpb.Batch
@@ -372,7 +368,7 @@ func TestConcurrentAsync(t *testing.T) {
 	smallBatch := validMetadata + "\n" + validTransaction + "\n"
 	bigBatch := validMetadata + "\n" + strings.Repeat(validTransaction+"\n", 2000)
 
-	base := model.APMEvent{Host: model.Host{IP: []netip.Addr{netip.MustParseAddr("192.0.0.1")}}}
+	base := &modelpb.APMEvent{Host: &modelpb.Host{Ip: []string{"192.0.0.1"}}}
 	type testCase struct {
 		payload  string
 		sem      int64

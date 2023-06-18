@@ -36,8 +36,8 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/netutil"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/input/otlp"
-	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -155,14 +155,14 @@ func releaseLogRoot(root *logRoot) {
 //
 // DecodeMetadata should be used when the the stream in the decoder does not contain the
 // `metadata` key, but only the metadata data.
-func DecodeMetadata(d decoder.Decoder, out *model.APMEvent) error {
+func DecodeMetadata(d decoder.Decoder, out *modelpb.APMEvent) error {
 	return decodeMetadata(decodeIntoMetadata, d, out)
 }
 
 // DecodeNestedMetadata decodes metadata from d, updating out.
 //
 // DecodeNestedMetadata should be used when the stream in the decoder contains the `metadata` key
-func DecodeNestedMetadata(d decoder.Decoder, out *model.APMEvent) error {
+func DecodeNestedMetadata(d decoder.Decoder, out *modelpb.APMEvent) error {
 	return decodeMetadata(decodeIntoMetadataRoot, d, out)
 }
 
@@ -179,10 +179,9 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *mode
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-	var event modelpb.APMEvent
-	input.Base.ToModelProtobuf(&event)
-	mapToErrorModel(&root.Error, &event)
-	*batch = append(*batch, &event)
+	event := proto.Clone(input.Base).(*modelpb.APMEvent)
+	mapToErrorModel(&root.Error, event)
+	*batch = append(*batch, event)
 	return err
 }
 
@@ -199,10 +198,9 @@ func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, batch *
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-	var event modelpb.APMEvent
-	input.Base.ToModelProtobuf(&event)
-	if mapToMetricsetModel(&root.Metricset, &event) {
-		*batch = append(*batch, &event)
+	event := proto.Clone(input.Base).(*modelpb.APMEvent)
+	if mapToMetricsetModel(&root.Metricset, event) {
+		*batch = append(*batch, event)
 	}
 	return err
 }
@@ -220,10 +218,9 @@ func DecodeNestedSpan(d decoder.Decoder, input *modeldecoder.Input, batch *model
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-	var event modelpb.APMEvent
-	input.Base.ToModelProtobuf(&event)
-	mapToSpanModel(&root.Span, &event)
-	*batch = append(*batch, &event)
+	event := proto.Clone(input.Base).(*modelpb.APMEvent)
+	mapToSpanModel(&root.Span, event)
+	*batch = append(*batch, event)
 	return err
 }
 
@@ -240,10 +237,9 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-	var event modelpb.APMEvent
-	input.Base.ToModelProtobuf(&event)
-	mapToTransactionModel(&root.Transaction, &event)
-	*batch = append(*batch, &event)
+	event := proto.Clone(input.Base).(*modelpb.APMEvent)
+	mapToTransactionModel(&root.Transaction, event)
+	*batch = append(*batch, event)
 	return err
 }
 
@@ -264,14 +260,13 @@ func DecodeNestedLog(d decoder.Decoder, input *modeldecoder.Input, batch *modelp
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-	var event modelpb.APMEvent
-	input.Base.ToModelProtobuf(&event)
-	mapToLogModel(&root.Log, &event)
-	*batch = append(*batch, &event)
+	event := proto.Clone(input.Base).(*modelpb.APMEvent)
+	mapToLogModel(&root.Log, event)
+	*batch = append(*batch, event)
 	return err
 }
 
-func decodeMetadata(decFn func(d decoder.Decoder, m *metadataRoot) error, d decoder.Decoder, out *model.APMEvent) error {
+func decodeMetadata(decFn func(d decoder.Decoder, m *metadataRoot) error, d decoder.Decoder, out *modelpb.APMEvent) error {
 	m := fetchMetadataRoot()
 	defer releaseMetadataRoot(m)
 	var err error
@@ -377,7 +372,7 @@ func mapToClientModel(from contextRequest, source **modelpb.Source, client **mod
 	if _, err := netip.ParseAddr((*client).GetIp()); err != nil {
 		if (*source).GetIp() != "" {
 			*client = populateNil(*client)
-			(*client).Ip = (*source).GetIp()
+			(*client).Ip = (*source).Ip
 		}
 		if ip, port := netutil.ClientAddrFromHeaders(from.Headers.Val); ip.IsValid() {
 			(*source).Nat = &modelpb.NAT{Ip: (*source).Ip}
@@ -537,53 +532,58 @@ func mapToExceptionModel(from errorException, out *modelpb.Exception) {
 	}
 }
 
-func mapToMetadataModel(from *metadata, out *model.APMEvent) {
+func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 	// Cloud
-	if from.Cloud.Account.ID.IsSet() {
-		out.Cloud.AccountID = from.Cloud.Account.ID.Val
-	}
-	if from.Cloud.Account.Name.IsSet() {
-		out.Cloud.AccountName = from.Cloud.Account.Name.Val
-	}
-	if from.Cloud.AvailabilityZone.IsSet() {
-		out.Cloud.AvailabilityZone = from.Cloud.AvailabilityZone.Val
-	}
-	if from.Cloud.Instance.ID.IsSet() {
-		out.Cloud.InstanceID = from.Cloud.Instance.ID.Val
-	}
-	if from.Cloud.Instance.Name.IsSet() {
-		out.Cloud.InstanceName = from.Cloud.Instance.Name.Val
-	}
-	if from.Cloud.Machine.Type.IsSet() {
-		out.Cloud.MachineType = from.Cloud.Machine.Type.Val
-	}
-	if from.Cloud.Project.ID.IsSet() {
-		out.Cloud.ProjectID = from.Cloud.Project.ID.Val
-	}
-	if from.Cloud.Project.Name.IsSet() {
-		out.Cloud.ProjectName = from.Cloud.Project.Name.Val
-	}
-	if from.Cloud.Provider.IsSet() {
-		out.Cloud.Provider = from.Cloud.Provider.Val
-	}
-	if from.Cloud.Region.IsSet() {
-		out.Cloud.Region = from.Cloud.Region.Val
-	}
-	if from.Cloud.Service.Name.IsSet() {
-		out.Cloud.ServiceName = from.Cloud.Service.Name.Val
+	if from.Cloud.IsSet() {
+		out.Cloud = populateNil(out.Cloud)
+		if from.Cloud.Account.ID.IsSet() {
+			out.Cloud.AccountId = from.Cloud.Account.ID.Val
+		}
+		if from.Cloud.Account.Name.IsSet() {
+			out.Cloud.AccountName = from.Cloud.Account.Name.Val
+		}
+		if from.Cloud.AvailabilityZone.IsSet() {
+			out.Cloud.AvailabilityZone = from.Cloud.AvailabilityZone.Val
+		}
+		if from.Cloud.Instance.ID.IsSet() {
+			out.Cloud.InstanceId = from.Cloud.Instance.ID.Val
+		}
+		if from.Cloud.Instance.Name.IsSet() {
+			out.Cloud.InstanceName = from.Cloud.Instance.Name.Val
+		}
+		if from.Cloud.Machine.Type.IsSet() {
+			out.Cloud.MachineType = from.Cloud.Machine.Type.Val
+		}
+		if from.Cloud.Project.ID.IsSet() {
+			out.Cloud.ProjectId = from.Cloud.Project.ID.Val
+		}
+		if from.Cloud.Project.Name.IsSet() {
+			out.Cloud.ProjectName = from.Cloud.Project.Name.Val
+		}
+		if from.Cloud.Provider.IsSet() {
+			out.Cloud.Provider = from.Cloud.Provider.Val
+		}
+		if from.Cloud.Region.IsSet() {
+			out.Cloud.Region = from.Cloud.Region.Val
+		}
+		if from.Cloud.Service.Name.IsSet() {
+			out.Cloud.ServiceName = from.Cloud.Service.Name.Val
+		}
 	}
 
 	// Labels
 	if len(from.Labels) > 0 {
-		modeldecoderutil.GlobalLabelsFromOld(from.Labels, out)
+		modeldecoderutil.GlobalLabelsFrom(from.Labels, out)
 	}
 
 	// Process
 	if len(from.Process.Argv) > 0 {
+		out.Process = populateNil(out.Process)
 		out.Process.Argv = append(out.Process.Argv[:0], from.Process.Argv...)
 	}
 	if from.Process.Pid.IsSet() {
-		out.Process.Pid = from.Process.Pid.Val
+		out.Process = populateNil(out.Process)
+		out.Process.Pid = uint32(from.Process.Pid.Val)
 	}
 	if from.Process.Ppid.IsSet() {
 		var pid = uint32(from.Process.Ppid.Val)
@@ -594,58 +594,76 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 	}
 
 	// Service
-	if from.Service.Agent.ActivationMethod.IsSet() {
-		out.Agent.ActivationMethod = from.Service.Agent.ActivationMethod.Val
+	if from.Service.Agent.IsSet() {
+		out.Agent = populateNil(out.Agent)
+		if from.Service.Agent.ActivationMethod.IsSet() {
+			out.Agent.ActivationMethod = from.Service.Agent.ActivationMethod.Val
+		}
+		if from.Service.Agent.EphemeralID.IsSet() {
+			out.Agent.EphemeralId = from.Service.Agent.EphemeralID.Val
+		}
+		if from.Service.Agent.Name.IsSet() {
+			out.Agent.Name = from.Service.Agent.Name.Val
+		}
+		if from.Service.Agent.Version.IsSet() {
+			out.Agent.Version = from.Service.Agent.Version.Val
+		}
 	}
-	if from.Service.Agent.EphemeralID.IsSet() {
-		out.Agent.EphemeralID = from.Service.Agent.EphemeralID.Val
-	}
-	if from.Service.Agent.Name.IsSet() {
-		out.Agent.Name = from.Service.Agent.Name.Val
-	}
-	if from.Service.Agent.Version.IsSet() {
-		out.Agent.Version = from.Service.Agent.Version.Val
-	}
-	if from.Service.Environment.IsSet() {
-		out.Service.Environment = from.Service.Environment.Val
-	}
-	if from.Service.Framework.Name.IsSet() {
-		out.Service.Framework.Name = from.Service.Framework.Name.Val
-	}
-	if from.Service.Framework.Version.IsSet() {
-		out.Service.Framework.Version = from.Service.Framework.Version.Val
-	}
-	if from.Service.Language.Name.IsSet() {
-		out.Service.Language.Name = from.Service.Language.Name.Val
-	}
-	if from.Service.Language.Version.IsSet() {
-		out.Service.Language.Version = from.Service.Language.Version.Val
-	}
-	if from.Service.Name.IsSet() {
-		out.Service.Name = from.Service.Name.Val
-	}
-	if from.Service.Node.Name.IsSet() {
-		out.Service.Node.Name = from.Service.Node.Name.Val
-	}
-	if from.Service.Runtime.Name.IsSet() {
-		out.Service.Runtime.Name = from.Service.Runtime.Name.Val
-	}
-	if from.Service.Runtime.Version.IsSet() {
-		out.Service.Runtime.Version = from.Service.Runtime.Version.Val
-	}
-	if from.Service.Version.IsSet() {
-		out.Service.Version = from.Service.Version.Val
+	if from.Service.IsSet() {
+		out.Service = populateNil(out.Service)
+		if from.Service.Environment.IsSet() {
+			out.Service.Environment = from.Service.Environment.Val
+		}
+		if from.Service.Framework.IsSet() {
+			out.Service.Framework = populateNil(out.Service.Framework)
+			if from.Service.Framework.Name.IsSet() {
+				out.Service.Framework.Name = from.Service.Framework.Name.Val
+			}
+			if from.Service.Framework.Version.IsSet() {
+				out.Service.Framework.Version = from.Service.Framework.Version.Val
+			}
+		}
+		if from.Service.Language.IsSet() {
+			out.Service.Language = populateNil(out.Service.Language)
+			if from.Service.Language.Name.IsSet() {
+				out.Service.Language.Name = from.Service.Language.Name.Val
+			}
+			if from.Service.Language.Version.IsSet() {
+				out.Service.Language.Version = from.Service.Language.Version.Val
+			}
+		}
+		if from.Service.Name.IsSet() {
+			out.Service.Name = from.Service.Name.Val
+		}
+		if from.Service.Node.Name.IsSet() {
+			out.Service.Node = populateNil(out.Service.Node)
+			out.Service.Node.Name = from.Service.Node.Name.Val
+		}
+		if from.Service.Runtime.IsSet() {
+			out.Service.Runtime = populateNil(out.Service.Runtime)
+			if from.Service.Runtime.Name.IsSet() {
+				out.Service.Runtime.Name = from.Service.Runtime.Name.Val
+			}
+			if from.Service.Runtime.Version.IsSet() {
+				out.Service.Runtime.Version = from.Service.Runtime.Version.Val
+			}
+		}
+		if from.Service.Version.IsSet() {
+			out.Service.Version = from.Service.Version.Val
+		}
 	}
 
 	// System
 	if from.System.Architecture.IsSet() {
+		out.Host = populateNil(out.Host)
 		out.Host.Architecture = from.System.Architecture.Val
 	}
 	if from.System.ConfiguredHostname.IsSet() {
 		out.Host.Name = from.System.ConfiguredHostname.Val
 	}
 	if from.System.Container.ID.IsSet() {
-		out.Container.ID = from.System.Container.ID.Val
+		out.Container = populateNil(out.Container)
+		out.Container.Id = from.System.Container.ID.Val
 	}
 	if from.System.DetectedHostname.IsSet() {
 		out.Host.Hostname = from.System.DetectedHostname.Val
@@ -655,6 +673,7 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 		out.Host.Hostname = from.System.DeprecatedHostname.Val
 	}
 	if from.System.Kubernetes.Namespace.IsSet() {
+		out.Kubernetes = populateNil(out.Kubernetes)
 		out.Kubernetes.Namespace = from.System.Kubernetes.Namespace.Val
 	}
 	if from.System.Kubernetes.Node.Name.IsSet() {
@@ -664,18 +683,22 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 		out.Kubernetes.PodName = from.System.Kubernetes.Pod.Name.Val
 	}
 	if from.System.Kubernetes.Pod.UID.IsSet() {
-		out.Kubernetes.PodUID = from.System.Kubernetes.Pod.UID.Val
+		out.Kubernetes.PodUid = from.System.Kubernetes.Pod.UID.Val
 	}
 	if from.System.Platform.IsSet() {
-		out.Host.OS.Platform = from.System.Platform.Val
+		out.Host = populateNil(out.Host)
+		out.Host.Os = populateNil(out.Host.Os)
+		out.Host.Os.Platform = from.System.Platform.Val
 	}
 
 	// User
 	if from.User.Domain.IsSet() {
+		out.User = populateNil(out.User)
 		out.User.Domain = fmt.Sprint(from.User.Domain.Val)
 	}
 	if from.User.ID.IsSet() {
-		out.User.ID = fmt.Sprint(from.User.ID.Val)
+		out.User = populateNil(out.User)
+		out.User.Id = fmt.Sprint(from.User.ID.Val)
 	}
 	if from.User.Email.IsSet() {
 		out.User.Email = from.User.Email.Val
@@ -686,6 +709,8 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 
 	// Network
 	if from.Network.Connection.Type.IsSet() {
+		out.Network = populateNil(out.Network)
+		out.Network.Connection = populateNil(out.Network.Connection)
 		out.Network.Connection.Type = from.Network.Connection.Type.Val
 	}
 }
@@ -1153,7 +1178,11 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		// event.Timestamp should have been initialized to the time the
 		// payload was received; offset that by "start" milliseconds for
 		// RUM.
-		event.Timestamp = timestamppb.New(event.Timestamp.AsTime().Add(
+		base := time.Time{}
+		if event.Timestamp != nil {
+			base = event.Timestamp.AsTime()
+		}
+		event.Timestamp = timestamppb.New(base.Add(
 			time.Duration(float64(time.Millisecond) * from.Start.Val),
 		))
 	}

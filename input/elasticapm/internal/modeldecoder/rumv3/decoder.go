@@ -30,8 +30,8 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecoderutil"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
-	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -82,7 +82,7 @@ func releaseTransactionRoot(m *transactionRoot) {
 }
 
 // DecodeNestedMetadata decodes metadata from d, updating out.
-func DecodeNestedMetadata(d decoder.Decoder, out *model.APMEvent) error {
+func DecodeNestedMetadata(d decoder.Decoder, out *modelpb.APMEvent) error {
 	root := fetchMetadataRoot()
 	defer releaseMetadataRoot(root)
 	if err := d.Decode(root); err != nil && err != io.EOF {
@@ -107,10 +107,9 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *mode
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-	var event modelpb.APMEvent
-	input.Base.ToModelProtobuf(&event)
-	mapToErrorModel(&root.Error, &event)
-	*batch = append(*batch, &event)
+	event := proto.Clone(input.Base).(*modelpb.APMEvent)
+	mapToErrorModel(&root.Error, event)
+	*batch = append(*batch, event)
 	return nil
 }
 
@@ -127,35 +126,31 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-
-	var transaction modelpb.APMEvent
-	input.Base.ToModelProtobuf(&transaction)
-	mapToTransactionModel(&root.Transaction, &transaction)
-	*batch = append(*batch, &transaction)
+	transaction := proto.Clone(input.Base).(*modelpb.APMEvent)
+	mapToTransactionModel(&root.Transaction, transaction)
+	*batch = append(*batch, transaction)
 
 	for _, m := range root.Transaction.Metricsets {
-		var event modelpb.APMEvent
-		input.Base.ToModelProtobuf(&event)
+		event := proto.Clone(input.Base).(*modelpb.APMEvent)
 		event.Transaction = &modelpb.Transaction{
 			Name: transaction.Transaction.Name,
 			Type: transaction.Transaction.Type,
 		}
-		if mapToTransactionMetricsetModel(&m, &event) {
-			*batch = append(*batch, &event)
+		if mapToTransactionMetricsetModel(&m, event) {
+			*batch = append(*batch, event)
 		}
 	}
 
 	offset := len(*batch)
 	for _, s := range root.Transaction.Spans {
-		var event modelpb.APMEvent
-		input.Base.ToModelProtobuf(&event)
-		mapToSpanModel(&s, &event)
+		event := proto.Clone(input.Base).(*modelpb.APMEvent)
+		mapToSpanModel(&s, event)
 		event.Transaction = &modelpb.Transaction{Id: transaction.Transaction.Id}
 		event.Parent = &modelpb.Parent{
 			Id: transaction.GetTransaction().GetId(), // may be overridden later
 		}
 		event.Trace = transaction.Trace
-		*batch = append(*batch, &event)
+		*batch = append(*batch, event)
 	}
 	spans := (*batch)[offset:]
 	for i, s := range root.Transaction.Spans {
@@ -319,63 +314,83 @@ func mapToExceptionModel(from errorException, out *modelpb.Exception) {
 	}
 }
 
-func mapToMetadataModel(m *metadata, out *model.APMEvent) {
+func mapToMetadataModel(m *metadata, out *modelpb.APMEvent) {
 	// Labels
 	if len(m.Labels) > 0 {
-		modeldecoderutil.GlobalLabelsFromOld(m.Labels, out)
+		modeldecoderutil.GlobalLabelsFrom(m.Labels, out)
 	}
 
 	// Service
-	if m.Service.Agent.Name.IsSet() {
-		out.Agent.Name = m.Service.Agent.Name.Val
+	if m.Service.Agent.IsSet() {
+		out.Agent = populateNil(out.Agent)
+		if m.Service.Agent.Name.IsSet() {
+			out.Agent.Name = m.Service.Agent.Name.Val
+		}
+		if m.Service.Agent.Version.IsSet() {
+			out.Agent.Version = m.Service.Agent.Version.Val
+		}
 	}
-	if m.Service.Agent.Version.IsSet() {
-		out.Agent.Version = m.Service.Agent.Version.Val
-	}
-	if m.Service.Environment.IsSet() {
-		out.Service.Environment = m.Service.Environment.Val
-	}
-	if m.Service.Framework.Name.IsSet() {
-		out.Service.Framework.Name = m.Service.Framework.Name.Val
-	}
-	if m.Service.Framework.Version.IsSet() {
-		out.Service.Framework.Version = m.Service.Framework.Version.Val
-	}
-	if m.Service.Language.Name.IsSet() {
-		out.Service.Language.Name = m.Service.Language.Name.Val
-	}
-	if m.Service.Language.Version.IsSet() {
-		out.Service.Language.Version = m.Service.Language.Version.Val
-	}
-	if m.Service.Name.IsSet() {
-		out.Service.Name = m.Service.Name.Val
-	}
-	if m.Service.Runtime.Name.IsSet() {
-		out.Service.Runtime.Name = m.Service.Runtime.Name.Val
-	}
-	if m.Service.Runtime.Version.IsSet() {
-		out.Service.Runtime.Version = m.Service.Runtime.Version.Val
-	}
-	if m.Service.Version.IsSet() {
-		out.Service.Version = m.Service.Version.Val
+	if m.Service.IsSet() {
+		out.Service = populateNil(out.Service)
+		if m.Service.Environment.IsSet() {
+			out.Service.Environment = m.Service.Environment.Val
+		}
+		if m.Service.Framework.IsSet() {
+			out.Service.Framework = populateNil(out.Service.Framework)
+			if m.Service.Framework.Name.IsSet() {
+				out.Service.Framework.Name = m.Service.Framework.Name.Val
+			}
+			if m.Service.Framework.Version.IsSet() {
+				out.Service.Framework.Version = m.Service.Framework.Version.Val
+			}
+		}
+		if m.Service.Language.IsSet() {
+			out.Service.Language = populateNil(out.Service.Language)
+			if m.Service.Language.Name.IsSet() {
+				out.Service.Language.Name = m.Service.Language.Name.Val
+			}
+			if m.Service.Language.Version.IsSet() {
+				out.Service.Language.Version = m.Service.Language.Version.Val
+			}
+		}
+		if m.Service.Name.IsSet() {
+			out.Service.Name = m.Service.Name.Val
+		}
+		if m.Service.Runtime.IsSet() {
+			out.Service.Runtime = populateNil(out.Service.Runtime)
+			if m.Service.Runtime.Name.IsSet() {
+				out.Service.Runtime.Name = m.Service.Runtime.Name.Val
+			}
+			if m.Service.Runtime.Version.IsSet() {
+				out.Service.Runtime.Version = m.Service.Runtime.Version.Val
+			}
+		}
+		if m.Service.Version.IsSet() {
+			out.Service.Version = m.Service.Version.Val
+		}
 	}
 
 	// User
-	if m.User.Domain.IsSet() {
-		out.User.Domain = fmt.Sprint(m.User.Domain.Val)
-	}
-	if m.User.ID.IsSet() {
-		out.User.ID = fmt.Sprint(m.User.ID.Val)
-	}
-	if m.User.Email.IsSet() {
-		out.User.Email = m.User.Email.Val
-	}
-	if m.User.Name.IsSet() {
-		out.User.Name = m.User.Name.Val
+	if m.User.IsSet() {
+		out.User = populateNil(out.User)
+		if m.User.Domain.IsSet() {
+			out.User.Domain = fmt.Sprint(m.User.Domain.Val)
+		}
+		if m.User.ID.IsSet() {
+			out.User.Id = fmt.Sprint(m.User.ID.Val)
+		}
+		if m.User.Email.IsSet() {
+			out.User.Email = m.User.Email.Val
+		}
+		if m.User.Name.IsSet() {
+			out.User.Name = m.User.Name.Val
+		}
 	}
 
 	// Network
 	if m.Network.Connection.Type.IsSet() {
+		out.Network = populateNil(out.Network)
+		out.Network.Connection = populateNil(out.Network.Connection)
 		out.Network.Connection.Type = m.Network.Connection.Type.Val
 	}
 }

@@ -33,7 +33,6 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
-	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -50,7 +49,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		now := time.Now().UTC()
 		eventBase := initializedMetadata()
-		eventBase.Timestamp = now
+		eventBase.Timestamp = timestamppb.New(now)
 		input := modeldecoder.Input{Base: eventBase}
 		str := `{"x":{"n":"tr-a","d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"y":[{"n":"a","d":10,"t":"http","id":"123","s":20}],"me":[{"sa":{"ysc":{"v":5}},"y":{"t":"span_type","su":"span_subtype"}}]}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
@@ -95,8 +94,8 @@ func TestDecodeNestedTransaction(t *testing.T) {
 
 	t.Run("decode-marks", func(t *testing.T) {
 		now := time.Now()
-		eventBase := model.APMEvent{Timestamp: now}
-		input := modeldecoder.Input{Base: eventBase}
+		eventBase := modelpb.APMEvent{Timestamp: timestamppb.New(now)}
+		input := modeldecoder.Input{Base: &eventBase}
 		str := `{"x":{"d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"k":{"a":{"dc":0.1,"di":0.2,"ds":0.3,"de":0.4,"fb":0.5,"fp":0.6,"lp":0.7,"long":0.8},"nt":{"fs":0.1,"ls":0.2,"le":0.3,"cs":0.4,"ce":0.5,"qs":0.6,"rs":0.7,"re":0.8,"dl":0.9,"di":0.11,"ds":0.21,"de":0.31,"dc":0.41,"es":0.51,"ee":6,"long":0.99},"long":{"long":0.1}}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 		var batch modelpb.Batch
@@ -157,7 +156,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 	t.Run("metadata-overwrite", func(t *testing.T) {
 		// overwrite defined metadata with transaction metadata values
 		var input transaction
-		out := initializedMetadataPb()
+		out := initializedMetadata()
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToTransactionModel(&input, out)
