@@ -822,7 +822,7 @@ func mapToRequestModel(from contextRequest, out *modelpb.HTTPRequest) {
 		out.Cookies = modeldecoderutil.ToStruct(from.Cookies)
 	}
 	if from.Headers.IsSet() {
-		out.Headers = modeldecoderutil.HTTPHeadersToStructPb(from.Headers.Val)
+		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
 	}
 }
 
@@ -863,7 +863,7 @@ func mapToResponseModel(from contextResponse, out *modelpb.HTTPResponse) {
 		out.Finished = &val
 	}
 	if from.Headers.IsSet() {
-		out.Headers = modeldecoderutil.HTTPHeadersToStructPb(from.Headers.Val)
+		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
 	}
 	if from.HeadersSent.IsSet() {
 		val := from.HeadersSent.Val
@@ -1078,7 +1078,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 				response.EncodedBodySize = &val
 			}
 			if from.Context.HTTP.Response.Headers.IsSet() {
-				response.Headers = modeldecoderutil.HTTPHeadersToStructPb(from.Context.HTTP.Response.Headers.Val.Clone())
+				response.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Context.HTTP.Response.Headers.Val)
 			}
 			if from.Context.HTTP.Response.StatusCode.IsSet() {
 				response.StatusCode = int32(from.Context.HTTP.Response.StatusCode.Val)

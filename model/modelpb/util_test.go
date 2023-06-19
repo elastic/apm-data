@@ -42,6 +42,15 @@ func randomStructPb(t testing.TB) *structpb.Struct {
 	return s
 }
 
+func randomHTTPHeaders(t testing.TB) []*HTTPHeader {
+	return []*HTTPHeader{
+		&HTTPHeader{
+			Key:   t.Name() + ".key." + randString(),
+			Value: []string{t.Name() + ".value." + randString()},
+		},
+	}
+}
+
 func uintPtr(i uint32) *uint32 {
 	return &i
 }

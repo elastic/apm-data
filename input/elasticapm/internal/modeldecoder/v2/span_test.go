@@ -102,6 +102,8 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			}
 			switch key {
 			case
+				"message.headers.key",
+				"message.headers.value",
 				"composite.compression_strategy",
 				// RepresentativeCount is tested further down in test 'sample-rate'
 				"representative_count",
@@ -272,7 +274,12 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		input.Context.HTTP.Response.Headers.Set(http.Header{"a": []string{"b", "c"}})
 		var out modelpb.APMEvent
 		mapToSpanModel(&input, &out)
-		assert.Equal(t, map[string]any{"a": []any{"b", "c"}}, out.Http.Response.Headers.AsMap())
+		assert.Equal(t, []*modelpb.HTTPHeader{
+			{
+				Key:   "a",
+				Value: []string{"b", "c"},
+			},
+		}, out.Http.Response.Headers)
 	})
 
 	t.Run("otel-bridge", func(t *testing.T) {

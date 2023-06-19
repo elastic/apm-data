@@ -180,8 +180,22 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
 		var out modelpb.APMEvent
 		mapToErrorModel(&input, &out)
-		assert.Equal(t, map[string]any{"a": []any{"b"}, "c": []any{"d", "e"}}, out.Http.Request.Headers.AsMap())
-		assert.Equal(t, map[string]any{"f": []any{"g"}}, out.Http.Response.Headers.AsMap())
+		assert.Equal(t, []*modelpb.HTTPHeader{
+			{
+				Key:   "a",
+				Value: []string{"b"},
+			},
+			{
+				Key:   "c",
+				Value: []string{"d", "e"},
+			},
+		}, out.Http.Request.Headers)
+		assert.Equal(t, []*modelpb.HTTPHeader{
+			{
+				Key:   "f",
+				Value: []string{"g"},
+			},
+		}, out.Http.Response.Headers)
 	})
 
 	t.Run("page.URL", func(t *testing.T) {
