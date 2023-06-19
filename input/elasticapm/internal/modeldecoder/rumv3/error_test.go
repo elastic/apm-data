@@ -154,11 +154,9 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		modeldecodertest.AssertStructValues(t, out1.Error, exceptions, defaultVal)
 
 		// leave event timestamp unmodified if eventTime is zero
-		defaultVal.Update(time.Time{})
 		out1.Timestamp = timestamppb.New(reqTime)
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToErrorModel(&input, &out1)
-		defaultVal.Update(reqTime)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Error, exceptions, defaultVal)
 

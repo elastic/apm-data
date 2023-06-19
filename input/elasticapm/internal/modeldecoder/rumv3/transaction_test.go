@@ -221,13 +221,11 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToTransactionModel(&input, &out1)
 		input.Reset()
-		defaultVal.Update(reqTime) //for rumv3 the timestamp is always set from the base event
 		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
 		out2.Timestamp = timestamppb.New(reqTime)
 		otherVal := modeldecodertest.NonDefaultValues()
-		otherVal.Update(reqTime) //for rumv3 the timestamp is always set from the base event
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToTransactionModel(&input, &out2)
 		modeldecodertest.AssertStructValues(t, out2.Transaction, exceptions, otherVal)
@@ -275,8 +273,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToSpanModel(&input, &out1)
 		input.Reset()
-		defaultStart := time.Duration(defaultVal.Float * 1000 * 1000)
-		defaultVal.Update(reqTime.Add(defaultStart)) //for rumv3 the timestamp is always set from the base event
 		modeldecodertest.AssertStructValues(t, out1.Span, exceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
@@ -284,8 +280,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToSpanModel(&input, &out2)
-		otherStart := time.Duration(otherVal.Float * 1000 * 1000)
-		otherVal.Update(reqTime.Add(otherStart)) //for rumv3 the timestamp is always set from the base event
 		modeldecodertest.AssertStructValues(t, out2.Span, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, out1.Span, exceptions, defaultVal)
 	})
