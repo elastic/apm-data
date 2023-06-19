@@ -368,7 +368,6 @@ func TestConcurrentAsync(t *testing.T) {
 	smallBatch := validMetadata + "\n" + validTransaction + "\n"
 	bigBatch := validMetadata + "\n" + strings.Repeat(validTransaction+"\n", 2000)
 
-	base := &modelpb.APMEvent{Host: &modelpb.Host{Ip: []string{"192.0.0.1"}}}
 	type testCase struct {
 		payload  string
 		sem      int64
@@ -393,6 +392,7 @@ func TestConcurrentAsync(t *testing.T) {
 			go func() {
 				defer wg.Done()
 				var result Result
+				base := &modelpb.APMEvent{Host: &modelpb.Host{Ip: []string{"192.0.0.1"}}}
 				err := p.HandleStream(ctx, true, base, strings.NewReader(tc.payload), 10, bp, &result)
 				if err != nil {
 					result.addError(err)
