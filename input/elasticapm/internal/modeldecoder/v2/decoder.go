@@ -378,9 +378,9 @@ func mapToClientModel(from contextRequest, source **modelpb.Source, client **mod
 			if (*source).GetIp() != "" {
 				(*source).Nat = &modelpb.NAT{Ip: (*source).Ip}
 			}
-			*source = populateNil(*source)
-			(*client).Ip, (*client).Port = ip.String(), uint32(port)
 			*client = populateNil(*client)
+			(*client).Ip, (*client).Port = ip.String(), uint32(port)
+			*source = populateNil(*source)
 			(*source).Ip, (*source).Port = ip.String(), uint32(port)
 		}
 	}
