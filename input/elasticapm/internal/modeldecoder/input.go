@@ -18,11 +18,11 @@
 package modeldecoder
 
 import (
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // Input holds the input required for decoding an event.
 type Input struct {
 	// Base holds the base for decoding events.
-	Base model.APMEvent
+	Base *modelpb.APMEvent
 }

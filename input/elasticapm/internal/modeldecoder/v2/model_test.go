@@ -25,6 +25,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -506,6 +507,7 @@ func TestSpanRequiredValidationRules(t *testing.T) {
 	// setup: create full struct with arbitrary values set
 	var event span
 	modeldecodertest.InitStructValues(&event)
+	event.Timestamp.Set(time.Now())
 	event.Outcome.Set("failure")
 	// Composite.Count must be > 1
 	event.Composite.Count.Set(2)

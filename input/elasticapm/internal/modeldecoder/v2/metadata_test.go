@@ -18,7 +18,6 @@
 package v2
 
 import (
-	"net/netip"
 	"reflect"
 	"strings"
 	"testing"
@@ -28,7 +27,6 @@ import (
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
-	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -37,7 +35,7 @@ func isMetadataException(key string) bool {
 }
 
 func isIgnoredPrefix(key string) bool {
-	ignore := []string{"Labels", "NumericLabels", "GlobalLabels", "GlobalNumericLabels"}
+	ignore := []string{"labels", "numeric_labels", "GlobalLabels", "GlobalNumericLabels"}
 	for _, k := range ignore {
 		if strings.HasPrefix(key, k) {
 			return true
@@ -51,132 +49,135 @@ func isIgnoredPrefix(key string) bool {
 func isUnmappedMetadataField(key string) bool {
 	switch key {
 	case
-		"Child",
-		"Child.ID",
-		"Client.Domain",
-		"Client.IP",
-		"Client.Port",
-		"Cloud.Origin",
-		"Container.Runtime",
-		"Container.ImageName",
-		"Container.ImageTag",
-		"Container.Name",
-		"DataStream",
-		"DataStream.Type",
-		"DataStream.Dataset",
-		"DataStream.Namespace",
-		"Destination",
-		"Destination.Address",
-		"Destination.IP",
-		"Destination.Port",
+		"child",
+		"child.id",
+		"client.domain",
+		"client",
+		"client.ip",
+		"client.port",
+		"cloud.origin",
+		"container.runtime",
+		"container.image_name",
+		"container.image_tag",
+		"container.name",
+		"data_stream",
+		"data_stream.type",
+		"data_stream.dataset",
+		"data_stream.namespace",
+		"destination",
+		"destination.address",
+		"destination.ip",
+		"destination.port",
 		"ECSVersion",
-		"FAAS",
-		"FAAS.ID",
-		"FAAS.Coldstart",
-		"FAAS.Execution",
-		"FAAS.TriggerType",
-		"FAAS.TriggerRequestID",
-		"FAAS.Name",
-		"FAAS.Version",
-		"HTTP",
-		"HTTP.Request",
-		"HTTP.Response",
-		"HTTP.Version",
-		"Message",
-		"Network",
-		"Network.Connection",
-		"Network.Connection.Subtype",
-		"Network.Carrier",
-		"Network.Carrier.Name",
-		"Network.Carrier.MCC",
-		"Network.Carrier.MNC",
-		"Network.Carrier.ICC",
-		"Observer",
-		"Observer.EphemeralID",
-		"Observer.Hostname",
-		"Observer.ID",
-		"Observer.Name",
-		"Observer.Type",
-		"Observer.Version",
-		"Observer.VersionMajor",
-		"Parent",
-		"Parent.ID",
-		"Process.CommandLine",
-		"Process.Executable",
-		"Process.Thread",
-		"Process.Thread.ID",
-		"Process.Thread.Name",
-		"Processor",
-		"Processor.Event",
-		"Processor.Name",
-		"Device",
-		"Device.ID",
-		"Device.Model",
-		"Device.Model.Name",
-		"Device.Model.Identifier",
-		"Device.Manufacturer",
-		"Host.OS.Full",
-		"Host.OS.Type",
-		"Host.OS.Name",
-		"Host.OS.Version",
-		"Host.ID",
-		"Host.IP",
-		"Host.Type",
-		"UserAgent",
-		"UserAgent.Name",
-		"UserAgent.Original",
-		"Event",
-		"Event.Duration",
-		"Event.Outcome",
-		"Event.SuccessCount",
-		"Event.SuccessCount.Sum",
-		"Event.SuccessCount.Count",
-		"Event.Dataset",
-		"Event.Severity",
-		"Event.Action",
-		"Event.Kind",
-		"Event.Type",
-		"Event.Category",
-		"Log",
-		"Log.Level",
-		"Log.Logger",
-		"Log.Origin",
-		"Log.Origin.FunctionName",
-		"Log.Origin.File",
-		"Log.Origin.File.Name",
-		"Log.Origin.File.Line",
-		"Service.Origin",
-		"Service.Origin.ID",
-		"Service.Origin.Name",
-		"Service.Origin.Version",
-		"Service.Target",
-		"Service.Target.Name",
-		"Service.Target.Type",
-		"Session.ID",
-		"Session",
-		"Session.Sequence",
-		"Source.Domain",
-		"Source.IP",
-		"Source.Port",
-		"Source.NAT",
-		"Trace",
-		"Trace.ID",
-		"URL",
-		"URL.Original",
-		"URL.Scheme",
-		"URL.Full",
-		"URL.Domain",
-		"URL.Port",
-		"URL.Path",
-		"URL.Query",
-		"URL.Fragment":
+		"faas",
+		"faas.id",
+		"faas.cold_start",
+		"faas.execution",
+		"faas.trigger_type",
+		"faas.trigger_request_id",
+		"faas.name",
+		"faas.version",
+		"http",
+		"http.request",
+		"http.response",
+		"http.version",
+		"message",
+		"network",
+		"network.connection",
+		"network.connection.subtype",
+		"network.carrier",
+		"network.carrier.name",
+		"network.carrier.mcc",
+		"network.carrier.mnc",
+		"network.carrier.icc",
+		"observer",
+		"observer.ephemeral_id",
+		"observer.hostname",
+		"observer.id",
+		"observer.name",
+		"observer.type",
+		"observer.version",
+		"observer.version_major",
+		"parent",
+		"parent.id",
+		"process.command_line",
+		"process.executable",
+		"process.thread",
+		"process.thread.id",
+		"process.thread.name",
+		"processor",
+		"processor.event",
+		"processor.name",
+		"device",
+		"device.id",
+		"device.model",
+		"device.model.name",
+		"device.model.identifier",
+		"device.manufacturer",
+		"host.os.full",
+		"host.os.type",
+		"host.os.name",
+		"host.os.version",
+		"host.id",
+		"host.ip",
+		"host.type",
+		"user_agent",
+		"user_agent.name",
+		"user_agent.original",
+		"event",
+		"event.duration",
+		"event.outcome",
+		"event.success_count",
+		"event.success_count.sum",
+		"event.success_count.count",
+		"event.dataset",
+		"event.severity",
+		"event.action",
+		"event.kind",
+		"event.type",
+		"event.category",
+		"log",
+		"log.level",
+		"log.logger",
+		"log.origin",
+		"log.origin.functionName",
+		"log.origin.file",
+		"log.origin.file.name",
+		"log.origin.file.line",
+		"service.origin",
+		"service.origin.id",
+		"service.origin.name",
+		"service.origin.version",
+		"service.target",
+		"service.target.name",
+		"service.target.type",
+		"session.id",
+		"session",
+		"session.sequence",
+		"source",
+		"source.domain",
+		"source.ip",
+		"source.port",
+		"source.nat",
+		"timestamp",
+		"trace",
+		"trace.id",
+		"url",
+		"url.original",
+		"url.scheme",
+		"url.full",
+		"url.domain",
+		"url.port",
+		"url.path",
+		"url.query",
+		"url.fragment":
 		return true
 	}
 	return false
 }
 
 func isEventField(key string) bool {
-	for _, prefix := range []string{"Error", "Metricset", "Span", "Transaction"} {
+	for _, prefix := range []string{"error", "metricset", "span", "transaction"} {
 		if key == prefix || strings.HasPrefix(key, prefix+".") {
 			return true
 		}
@@ -184,22 +185,16 @@ func isEventField(key string) bool {
 	return false
 }
 
-func initializedInputMetadata(values *modeldecodertest.Values) (metadata, model.APMEvent) {
+func initializedInputMetadata(values *modeldecodertest.Values) (metadata, *modelpb.APMEvent) {
 	var input metadata
-	var out model.APMEvent
+	var out modelpb.APMEvent
 	modeldecodertest.SetStructValues(&input, values)
 	mapToMetadataModel(&input, &out)
 	modeldecodertest.SetStructValues(&out, values, func(key string, field, value reflect.Value) bool {
 		return isUnmappedMetadataField(key) || isEventField(key)
 	})
-	return input, out
-}
-
-func initializedInputMetadataPb(values *modeldecodertest.Values) (metadata, *modelpb.APMEvent) {
-	var out modelpb.APMEvent
-	m, old := initializedInputMetadata(values)
-	old.ToModelProtobuf(&out)
-	return m, &out
+	out.Client = &modelpb.Client{Ip: values.IP.String()}
+	return input, &out
 }
 
 func TestResetMetadataOnRelease(t *testing.T) {
@@ -215,7 +210,7 @@ func TestDecodeMetadata(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
 		input    string
-		decodeFn func(decoder.Decoder, *model.APMEvent) error
+		decodeFn func(decoder.Decoder, *modelpb.APMEvent) error
 	}{
 		{name: "decodeMetadata", decodeFn: DecodeMetadata,
 			input: `{"labels":{"a":"b","c":true,"d":1234,"e":1234.11},"service":{"name":"user-service","agent":{"name":"go","version":"1.0.0"}}}`},
@@ -223,21 +218,21 @@ func TestDecodeMetadata(t *testing.T) {
 			input: `{"metadata":{"labels":{"a":"b","c":true,"d":1234,"e":1234.11},"service":{"name":"user-service","agent":{"name":"go","version":"1.0.0"}}}}`},
 	} {
 		t.Run("decode", func(t *testing.T) {
-			var out model.APMEvent
+			var out modelpb.APMEvent
 			dec := decoder.NewJSONDecoder(strings.NewReader(tc.input))
 			require.NoError(t, tc.decodeFn(dec, &out))
-			assert.Equal(t, model.APMEvent{
-				Service: model.Service{Name: "user-service"},
-				Agent:   model.Agent{Name: "go", Version: "1.0.0"},
-				Labels: model.Labels{
+			assert.Equal(t, &modelpb.APMEvent{
+				Service: &modelpb.Service{Name: "user-service"},
+				Agent:   &modelpb.Agent{Name: "go", Version: "1.0.0"},
+				Labels: modelpb.Labels{
 					"a": {Global: true, Value: "b"},
 					"c": {Global: true, Value: "true"},
 				},
-				NumericLabels: model.NumericLabels{
+				NumericLabels: modelpb.NumericLabels{
 					"d": {Global: true, Value: float64(1234)},
 					"e": {Global: true, Value: float64(1234.11)},
 				},
-			}, out)
+			}, &out)
 
 			err := tc.decodeFn(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &out)
 			require.Error(t, err)
@@ -246,7 +241,7 @@ func TestDecodeMetadata(t *testing.T) {
 
 		t.Run("validate", func(t *testing.T) {
 			inp := `{}`
-			var out model.APMEvent
+			var out modelpb.APMEvent
 			err := tc.decodeFn(decoder.NewJSONDecoder(strings.NewReader(inp)), &out)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), "validation")
@@ -263,7 +258,6 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		// enhanced data that are never set by the modeldecoder
 		defaultVal := modeldecodertest.DefaultValues()
 		input, out := initializedInputMetadata(defaultVal)
-		out.Timestamp = defaultVal.Time
 
 		// iterate through model and assert values are set
 		modeldecodertest.AssertStructValues(t, &out, isMetadataException, defaultVal)
@@ -276,23 +270,21 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		otherVal.Update(defaultVal.IP)
 		input.Reset()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		out.Timestamp = otherVal.Time
-		mapToMetadataModel(&input, &out)
+		mapToMetadataModel(&input, out)
 		modeldecodertest.AssertStructValues(t, &out, isMetadataException, otherVal)
 
 		// map an empty modeldecoder metadata to the model
 		// and assert values are unchanged
 		input.Reset()
 		modeldecodertest.SetZeroStructValues(&input)
-		mapToMetadataModel(&input, &out)
+		mapToMetadataModel(&input, out)
 		modeldecodertest.AssertStructValues(t, &out, isMetadataException, otherVal)
 	})
 
 	t.Run("reused-memory", func(t *testing.T) {
-		var out2 model.APMEvent
+		var out2 modelpb.APMEvent
 		defaultVal := modeldecodertest.DefaultValues()
 		input, out1 := initializedInputMetadata(defaultVal)
-		out1.Timestamp = defaultVal.Time
 
 		// iterate through model and assert values are set
 		modeldecodertest.AssertStructValues(t, &out1, isMetadataException, defaultVal)
@@ -306,17 +298,18 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		input.Reset()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, &out2)
-		out2.Timestamp = otherVal.Time
-		out2.Host.IP = []netip.Addr{defaultVal.IP}
-		out2.Client.IP = defaultVal.IP
-		out2.Source.IP = defaultVal.IP
+		out2.Host.Ip = []string{defaultVal.IP.String()}
+		out2.Client = populateNil(out2.Client)
+		out2.Client.Ip = defaultVal.IP.String()
+		out2.Source = populateNil(out2.Source)
+		out2.Source.Ip = defaultVal.IP.String()
 		modeldecodertest.AssertStructValues(t, &out2, isMetadataException, otherVal)
 		modeldecodertest.AssertStructValues(t, &out1, isMetadataException, defaultVal)
 	})
 
 	t.Run("system", func(t *testing.T) {
 		var input metadata
-		var out model.APMEvent
+		var out modelpb.APMEvent
 		// full input information
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 		input.System.ConfiguredHostname.Set("configured-host")
@@ -326,21 +319,21 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		assert.Equal(t, "configured-host", out.Host.Name)
 		assert.Equal(t, "detected-host", out.Host.Hostname)
 		// no detected-host information
-		out = model.APMEvent{}
+		out = modelpb.APMEvent{}
 		input.System.DetectedHostname.Reset()
 		mapToMetadataModel(&input, &out)
 		assert.Equal(t, "configured-host", out.Host.Name)
 		assert.Empty(t, out.Host.Hostname)
 		// no configured-host information
-		out = model.APMEvent{}
+		out = modelpb.APMEvent{}
 		input.System.ConfiguredHostname.Reset()
 		mapToMetadataModel(&input, &out)
 		assert.Empty(t, out.Host.Name)
 		assert.Equal(t, "deprecated-host", out.Host.Hostname)
 		// no host information given
-		out = model.APMEvent{}
+		out = modelpb.APMEvent{}
 		input.System.DeprecatedHostname.Reset()
-		assert.Empty(t, out.Host.Name)
-		assert.Empty(t, out.Host.Hostname)
+		assert.Empty(t, out.GetHost().GetName())
+		assert.Empty(t, out.GetHost().GetHostname())
 	})
 }
