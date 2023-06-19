@@ -90,7 +90,6 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 
 	exceptions := func(key string) bool { return false }
 	t.Run("metadata-overwrite", func(t *testing.T) {
-		t.Skip("TODO FIX")
 		// overwrite defined metadata with event metadata values
 		var input errorEvent
 		_, out := initializedInputMetadata(modeldecodertest.DefaultValues())
@@ -102,6 +101,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		// ensure event Metadata are updated where expected
 		userAgent := strings.Join(otherVal.HTTPHeader.Values("User-Agent"), ", ")
 		assert.Equal(t, userAgent, out.UserAgent.Original)
+
 		// do not overwrite client.ip if already set in metadata
 		ip := modeldecodertest.DefaultValues().IP
 		assert.Equal(t, ip.String(), out.GetClient().GetIp())

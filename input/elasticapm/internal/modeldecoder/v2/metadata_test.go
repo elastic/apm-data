@@ -24,7 +24,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
@@ -53,6 +52,7 @@ func isUnmappedMetadataField(key string) bool {
 		"child",
 		"child.id",
 		"client.domain",
+		"client",
 		"client.ip",
 		"client.port",
 		"cloud.origin",
@@ -154,10 +154,12 @@ func isUnmappedMetadataField(key string) bool {
 		"session.id",
 		"session",
 		"session.sequence",
+		"source",
 		"source.domain",
 		"source.ip",
 		"source.port",
 		"source.nat",
+		"timestamp",
 		"trace",
 		"trace.id",
 		"url",
@@ -191,6 +193,7 @@ func initializedInputMetadata(values *modeldecodertest.Values) (metadata, *model
 	modeldecodertest.SetStructValues(&out, values, func(key string, field, value reflect.Value) bool {
 		return isUnmappedMetadataField(key) || isEventField(key)
 	})
+	out.Client = &modelpb.Client{Ip: values.IP.String()}
 	return input, &out
 }
 
@@ -249,14 +252,12 @@ func TestDecodeMetadata(t *testing.T) {
 func TestDecodeMapToMetadataModel(t *testing.T) {
 
 	t.Run("overwrite", func(t *testing.T) {
-		t.Skip("TODO FIX")
 		// setup:
 		// create initialized modeldecoder and empty model metadata
 		// map modeldecoder to model metadata and manually set
 		// enhanced data that are never set by the modeldecoder
 		defaultVal := modeldecodertest.DefaultValues()
 		input, out := initializedInputMetadata(defaultVal)
-		out.Timestamp = timestamppb.New(defaultVal.Time)
 
 		// iterate through model and assert values are set
 		modeldecodertest.AssertStructValues(t, &out, isMetadataException, defaultVal)
@@ -269,7 +270,6 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		otherVal.Update(defaultVal.IP)
 		input.Reset()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		out.Timestamp = timestamppb.New(otherVal.Time)
 		mapToMetadataModel(&input, out)
 		modeldecodertest.AssertStructValues(t, &out, isMetadataException, otherVal)
 
@@ -282,11 +282,9 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 	})
 
 	t.Run("reused-memory", func(t *testing.T) {
-		t.Skip("TODO FIX")
 		var out2 modelpb.APMEvent
 		defaultVal := modeldecodertest.DefaultValues()
 		input, out1 := initializedInputMetadata(defaultVal)
-		out1.Timestamp = timestamppb.New(defaultVal.Time)
 
 		// iterate through model and assert values are set
 		modeldecodertest.AssertStructValues(t, &out1, isMetadataException, defaultVal)
@@ -300,7 +298,6 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		input.Reset()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, &out2)
-		out2.Timestamp = timestamppb.New(otherVal.Time)
 		out2.Host.Ip = []string{defaultVal.IP.String()}
 		out2.Client = populateNil(out2.Client)
 		out2.Client.Ip = defaultVal.IP.String()

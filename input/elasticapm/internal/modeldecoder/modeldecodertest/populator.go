@@ -27,7 +27,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -39,7 +38,6 @@ type Values struct {
 	Int             int
 	Float           float64
 	Bool            bool
-	Time            time.Time
 	Duration        time.Duration
 	IP              netip.Addr
 	HTTPHeader      http.Header
@@ -51,13 +49,11 @@ type Values struct {
 
 // DefaultValues returns a Values struct initialized with non-zero values
 func DefaultValues() *Values {
-	initTime, _ := time.Parse(time.RFC3339, "2020-10-10T10:00:00Z")
 	return &Values{
 		Str:             "init",
 		Int:             1,
 		Float:           0.5,
 		Bool:            true,
-		Time:            initTime,
 		Duration:        time.Second,
 		IP:              netip.MustParseAddr("127.0.0.1"),
 		HTTPHeader:      http.Header{http.CanonicalHeaderKey("user-agent"): []string{"a", "b", "c"}},
@@ -69,13 +65,11 @@ func DefaultValues() *Values {
 
 // NonDefaultValues returns a Values struct initialized with non-zero values
 func NonDefaultValues() *Values {
-	updatedTime, _ := time.Parse(time.RFC3339, "2020-12-10T10:00:00Z")
 	return &Values{
 		Str:             "overwritten",
 		Int:             12,
 		Float:           3.5,
 		Bool:            false,
-		Time:            updatedTime,
 		Duration:        time.Minute,
 		IP:              netip.MustParseAddr("192.168.0.1"),
 		HTTPHeader:      http.Header{http.CanonicalHeaderKey("user-agent"): []string{"d", "e"}},
@@ -97,8 +91,6 @@ func (v *Values) Update(args ...interface{}) {
 			v.Float = a
 		case bool:
 			v.Bool = a
-		case time.Time:
-			v.Time = a
 		case netip.Addr:
 			v.IP = a
 		case http.Header:
@@ -200,9 +192,6 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 				fieldVal = reflect.ValueOf(v)
 			case nullable.Float64:
 				v.Set(values.Float)
-				fieldVal = reflect.ValueOf(v)
-			case nullable.TimeMicrosUnix:
-				v.Set(values.Time)
 				fieldVal = reflect.ValueOf(v)
 			case nullable.HTTPHeader:
 				v.Set(values.HTTPHeader.Clone())
@@ -322,8 +311,6 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 			newVal = &values.Bool
 		case http.Header:
 			newVal = values.HTTPHeader
-		case *timestamppb.Timestamp:
-			newVal = timestamppb.New(values.Time)
 		case time.Duration:
 			newVal = values.Duration
 		default:
@@ -395,7 +382,7 @@ func iterateStruct(v reflect.Value, key string, fn func(f reflect.Value, fKey st
 		case reflect.Struct:
 			switch f.Interface().(type) {
 			case nullable.String, nullable.Int, nullable.Bool, nullable.Float64,
-				nullable.Interface, nullable.HTTPHeader, nullable.TimeMicrosUnix:
+				nullable.Interface, nullable.HTTPHeader:
 			default:
 				iterateStruct(f, fKey, fn)
 			}

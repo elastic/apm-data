@@ -91,7 +91,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 	randomIP := net.ParseIP("71.0.54.1")
 
 	t.Run("metadata-overwrite", func(t *testing.T) {
-		t.Skip("TODO FIX")
 		// overwrite defined metadata with event metadata values
 		var input transaction
 		_, out := initializedInputMetadata(modeldecodertest.DefaultValues())
@@ -304,17 +303,17 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
 
-		// leave event timestamp unmodified if eventTime is zero
+		// leave base event timestamp unmodified if event timestamp is unspecified
 		out1.Timestamp = timestamppb.New(reqTime)
-		defaultVal.Update(time.Time{})
-		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToTransactionModel(&input, &out1)
-		defaultVal.Update(reqTime)
+		assert.Equal(t, reqTime.UTC(), out1.Timestamp.AsTime())
 		input.Reset()
-		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
 		out2.Timestamp = timestamppb.New(reqTime)
+		modeldecodertest.SetStructValues(&input, defaultVal)
+		mapToTransactionModel(&input, &out1)
+		input.Reset()
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		input.OTel.Reset()

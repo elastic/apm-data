@@ -179,20 +179,18 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 	})
 
 	t.Run("timestamp", func(t *testing.T) {
+		// add start to base event timestamp if event timestamp is unspecified and start is given
 		var input span
 		var out modelpb.APMEvent
 		reqTime := time.Now().Add(time.Hour).UTC()
-		// add start to requestTime if eventTime is zero and start is given
-		defaultVal := modeldecodertest.DefaultValues()
-		defaultVal.Update(20.5, time.Time{})
-		modeldecodertest.SetStructValues(&input, defaultVal)
 		out.Timestamp = timestamppb.New(reqTime)
+		input.Start.Set(20.5)
 		mapToSpanModel(&input, &out)
-		timestamp := reqTime.Add(time.Duration((20.5) * float64(time.Millisecond))).UTC()
+		timestamp := reqTime.Add(time.Duration(input.Start.Val * float64(time.Millisecond))).UTC()
 		assert.Equal(t, timestamp, out.Timestamp.AsTime())
-		// leave event timestamp unmodified if eventTime is zero and start is not set
+
+		// leave base event timestamp unmodified if neither event timestamp nor start is specified
 		out = modelpb.APMEvent{Timestamp: timestamppb.New(reqTime)}
-		modeldecodertest.SetStructValues(&input, defaultVal)
 		input.Start.Reset()
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, reqTime, out.Timestamp.AsTime())

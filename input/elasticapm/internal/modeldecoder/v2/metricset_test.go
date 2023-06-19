@@ -67,6 +67,15 @@ func TestDecodeNestedMetricset(t *testing.T) {
 			}},
 		}, batch[0].Metricset, protocmp.Transform()))
 
+		// use base event's Timestamp if unspecified in input
+		str = `{"metricset":{"samples":{"a.b":{"value":2048}}}}`
+		dec = decoder.NewJSONDecoder(strings.NewReader(str))
+		batch = batch[:0]
+		require.NoError(t, DecodeNestedMetricset(dec, &input, &batch))
+		require.Len(t, batch, 1)
+		require.NotNil(t, batch[0].Metricset)
+		assert.Equal(t, now.UTC(), batch[0].Timestamp.AsTime())
+
 		// invalid type
 		err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &batch)
 		require.Error(t, err)
@@ -117,7 +126,6 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 	t.Run("metricset-values", func(t *testing.T) {
 		var input metricset
 		var out1, out2 modelpb.APMEvent
-		now := time.Now().Add(time.Second).UTC()
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		input.Transaction.Reset() // tested by TestDecodeMetricsetInternal
@@ -163,16 +171,6 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 			}),
 			protocmp.Transform(),
 		))
-
-		// leave Timestamp unmodified if eventTime is zero
-		out1.Timestamp = timestamppb.New(now)
-		defaultVal.Update(time.Time{})
-		modeldecodertest.SetStructValues(&input, defaultVal)
-		input.Transaction.Reset()
-		mapToMetricsetModel(&input, &out1)
-		defaultVal.Update(now)
-		input.Reset()
-		modeldecodertest.AssertStructValues(t, out1.Metricset, exceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
