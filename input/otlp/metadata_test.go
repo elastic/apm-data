@@ -47,6 +47,7 @@ func TestResourceConventions(t *testing.T) {
 			attrs: map[string]interface{}{
 				"service.name":           "service_name",
 				"service.version":        "service_version",
+				"service.instance.id":    "service_node_name",
 				"deployment.environment": "service_environment",
 			},
 			expected: &modelpb.APMEvent{
@@ -55,6 +56,7 @@ func TestResourceConventions(t *testing.T) {
 					Name:        "service_name",
 					Version:     "service_version",
 					Environment: "service_environment",
+					Node:        &modelpb.ServiceNode{Name: "service_node_name"},
 					Language:    &modelpb.Language{Name: "unknown"},
 				},
 			},
