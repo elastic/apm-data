@@ -375,9 +375,13 @@ func mapToClientModel(from contextRequest, source **modelpb.Source, client **mod
 			(*client).Ip = (*source).Ip
 		}
 		if ip, port := netutil.ClientAddrFromHeaders(from.Headers.Val); ip.IsValid() {
-			(*source).Nat = &modelpb.NAT{Ip: (*source).Ip}
+			if (*source).GetIp() != "" {
+				(*source).Nat = &modelpb.NAT{Ip: (*source).Ip}
+			}
+			*source = populateNil(*source)
 			(*client).Ip, (*client).Port = ip.String(), uint32(port)
-			(*source).Ip, (*source).Port = (*client).Ip, (*client).Port
+			*client = populateNil(*client)
+			(*source).Ip, (*source).Port = ip.String(), uint32(port)
 		}
 	}
 }
