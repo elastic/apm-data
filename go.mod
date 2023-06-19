@@ -12,7 +12,7 @@ require (
 	github.com/stretchr/testify v1.8.3
 	github.com/xeipuuv/gojsonschema v1.2.0
 	go.elastic.co/apm/v2 v2.2.0
-	go.elastic.co/fastjson v1.2.1-0.20230619075946-485c9d6890d9
+	go.elastic.co/fastjson v1.3.0
 	go.opentelemetry.io/collector/consumer v0.76.1
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0011
 	go.opentelemetry.io/collector/semconv v0.76.1
