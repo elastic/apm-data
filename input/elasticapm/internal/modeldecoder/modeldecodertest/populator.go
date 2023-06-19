@@ -27,10 +27,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // Values used for populating the model structs
@@ -39,48 +38,43 @@ type Values struct {
 	Int             int
 	Float           float64
 	Bool            bool
-	Time            time.Time
 	Duration        time.Duration
 	IP              netip.Addr
 	HTTPHeader      http.Header
-	LabelVal        model.LabelValue
-	NumericLabelVal model.NumericLabelValue
+	LabelVal        *modelpb.LabelValue
+	NumericLabelVal *modelpb.NumericLabelValue
 	// N controls how many elements are added to a slice or a map
 	N int
 }
 
 // DefaultValues returns a Values struct initialized with non-zero values
 func DefaultValues() *Values {
-	initTime, _ := time.Parse(time.RFC3339, "2020-10-10T10:00:00Z")
 	return &Values{
 		Str:             "init",
 		Int:             1,
 		Float:           0.5,
 		Bool:            true,
-		Time:            initTime,
 		Duration:        time.Second,
 		IP:              netip.MustParseAddr("127.0.0.1"),
 		HTTPHeader:      http.Header{http.CanonicalHeaderKey("user-agent"): []string{"a", "b", "c"}},
-		LabelVal:        model.LabelValue{Value: "init"},
-		NumericLabelVal: model.NumericLabelValue{Value: 0.5},
+		LabelVal:        &modelpb.LabelValue{Value: "init"},
+		NumericLabelVal: &modelpb.NumericLabelValue{Value: 0.5},
 		N:               3,
 	}
 }
 
 // NonDefaultValues returns a Values struct initialized with non-zero values
 func NonDefaultValues() *Values {
-	updatedTime, _ := time.Parse(time.RFC3339, "2020-12-10T10:00:00Z")
 	return &Values{
 		Str:             "overwritten",
 		Int:             12,
 		Float:           3.5,
 		Bool:            false,
-		Time:            updatedTime,
 		Duration:        time.Minute,
 		IP:              netip.MustParseAddr("192.168.0.1"),
 		HTTPHeader:      http.Header{http.CanonicalHeaderKey("user-agent"): []string{"d", "e"}},
-		LabelVal:        model.LabelValue{Value: "overwritten"},
-		NumericLabelVal: model.NumericLabelValue{Value: 3.5},
+		LabelVal:        &modelpb.LabelValue{Value: "overwritten"},
+		NumericLabelVal: &modelpb.NumericLabelValue{Value: 3.5},
 		N:               2,
 	}
 }
@@ -97,8 +91,6 @@ func (v *Values) Update(args ...interface{}) {
 			v.Float = a
 		case bool:
 			v.Bool = a
-		case time.Time:
-			v.Time = a
 		case netip.Addr:
 			v.IP = a
 		case http.Header:
@@ -167,9 +159,9 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 				elemVal = reflect.ValueOf(values.Str)
 			case map[string]float64:
 				elemVal = reflect.ValueOf(values.Float)
-			case model.Labels:
+			case map[string]*modelpb.LabelValue:
 				elemVal = reflect.ValueOf(values.LabelVal)
-			case model.NumericLabels:
+			case map[string]*modelpb.NumericLabelValue:
 				elemVal = reflect.ValueOf(values.NumericLabelVal)
 			default:
 				if f.Type().Elem().Kind() != reflect.Struct {
@@ -200,9 +192,6 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 				fieldVal = reflect.ValueOf(v)
 			case nullable.Float64:
 				v.Set(values.Float)
-				fieldVal = reflect.ValueOf(v)
-			case nullable.TimeMicrosUnix:
-				v.Set(values.Time)
 				fieldVal = reflect.ValueOf(v)
 			case nullable.HTTPHeader:
 				v.Set(values.HTTPHeader.Clone())
@@ -277,10 +266,10 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 				m[fmt.Sprintf("%s%v", values.Str, i)] = values.Str
 			}
 			newVal = m
-		case model.Labels:
-			m := model.Labels{}
+		case map[string]*modelpb.LabelValue:
+			m := modelpb.Labels{}
 			for i := 0; i < values.N; i++ {
-				m[fmt.Sprintf("%s%v", values.Str, i)] = model.LabelValue{Value: values.Str}
+				m[fmt.Sprintf("%s%v", values.Str, i)] = &modelpb.LabelValue{Value: values.Str}
 			}
 			newVal = m
 		case []string:
@@ -322,8 +311,6 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 			newVal = &values.Bool
 		case http.Header:
 			newVal = values.HTTPHeader
-		case *timestamppb.Timestamp:
-			newVal = timestamppb.New(values.Time)
 		case time.Duration:
 			newVal = values.Duration
 		default:
@@ -395,7 +382,7 @@ func iterateStruct(v reflect.Value, key string, fn func(f reflect.Value, fKey st
 		case reflect.Struct:
 			switch f.Interface().(type) {
 			case nullable.String, nullable.Int, nullable.Bool, nullable.Float64,
-				nullable.Interface, nullable.HTTPHeader, nullable.TimeMicrosUnix:
+				nullable.Interface, nullable.HTTPHeader:
 			default:
 				iterateStruct(f, fKey, fn)
 			}

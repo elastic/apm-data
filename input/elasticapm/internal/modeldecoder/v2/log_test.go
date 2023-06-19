@@ -24,10 +24,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
-	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -43,7 +43,7 @@ func TestResetLogOnRelease(t *testing.T) {
 func TestDecodeNestedLog(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		t.Run("withTimestamp", func(t *testing.T) {
-			input := modeldecoder.Input{}
+			input := modeldecoder.Input{Base: &modelpb.APMEvent{}}
 			str := `{"log":{"message":"something happened","@timestamp":1662616971000000,"trace.id":"trace-id","transaction.id":"transaction-id","log.level":"warn","log.logger":"testLogger","log.origin.file.name":"testFile","log.origin.file.line":10,"log.origin.function":"testFunc","service.name":"testsvc","service.version":"v1.2.0","service.environment":"prod","service.node.name":"testNode","process.thread.name":"testThread","event.dataset":"accesslog","labels":{"k":"v"}}}`
 			dec := decoder.NewJSONDecoder(strings.NewReader(str))
 			var batch modelpb.Batch
@@ -69,7 +69,7 @@ func TestDecodeNestedLog(t *testing.T) {
 
 		t.Run("withoutTimestamp", func(t *testing.T) {
 			now := time.Now().UTC()
-			input := modeldecoder.Input{Base: model.APMEvent{Timestamp: now}}
+			input := modeldecoder.Input{Base: &modelpb.APMEvent{Timestamp: timestamppb.New(now)}}
 			str := `{"log":{"message":"something happened"}}`
 			dec := decoder.NewJSONDecoder(strings.NewReader(str))
 			var batch modelpb.Batch
@@ -78,7 +78,7 @@ func TestDecodeNestedLog(t *testing.T) {
 		})
 
 		t.Run("withError", func(t *testing.T) {
-			input := modeldecoder.Input{}
+			input := modeldecoder.Input{Base: &modelpb.APMEvent{}}
 			str := `{"log":{"@timestamp":1662616971000000,"trace.id":"trace-id","transaction.id":"transaction-id","log.level":"error","log.logger":"testLogger","log.origin.file.name":"testFile","log.origin.file.line":10,"log.origin.function":"testFunc","service.name":"testsvc","service.version":"v1.2.0","service.environment":"prod","service.node.name":"testNode","process.thread.name":"testThread","event.dataset":"accesslog","labels":{"k":"v"}, "error.type": "illegal-argument", "error.message": "illegal argument received", "error.stack_trace": "stack_trace_as_string"}}`
 			dec := decoder.NewJSONDecoder(strings.NewReader(str))
 			var batch modelpb.Batch
@@ -105,7 +105,7 @@ func TestDecodeNestedLog(t *testing.T) {
 		})
 
 		t.Run("withNestedJSON", func(t *testing.T) {
-			input := modeldecoder.Input{}
+			input := modeldecoder.Input{Base: &modelpb.APMEvent{}}
 			str := `{"log":{"@timestamp":1662616971000000,"trace.id":"trace-id","transaction.id":"transaction-id","log": {"logger": "testLogger","origin": {"file": {"name": "testFile","line":10},"function": "testFunc"}},"log.level":"error","service": {"name": "testsvc","version": "v1.2.0","environment": "prod","node": {"name": "testNode"}},"process": {"thread": {"name": "testThread"}},"event": {"dataset":"accesslog"},"labels":{"k":"v"},"error": {"type": "illegal-argument","message": "illegal argument received","stack_trace": "stack_trace_as_string"}}}`
 			dec := decoder.NewJSONDecoder(strings.NewReader(str))
 			var batch modelpb.Batch
@@ -132,7 +132,7 @@ func TestDecodeNestedLog(t *testing.T) {
 		})
 
 		t.Run("withNestedJSONOverridesFlatJSON", func(t *testing.T) {
-			input := modeldecoder.Input{}
+			input := modeldecoder.Input{Base: &modelpb.APMEvent{}}
 			str := `{"log":{"@timestamp":1662616971000000,"trace.id":"trace-id","transaction.id":"transaction-id","log.logger":"404","log.origin.file.name":"404","log.origin.file.line":404,"log": {"logger": "testLogger","origin": {"file": {"name": "testFile","line":10},"function": "testFunc"}},"log.level":"error","service.name": "404","service.version": "404", "service.environment": "404","service.node.name": "404","service": {"name": "testsvc","version": "v1.2.0","environment": "prod","node": {"name": "testNode"}},"process.therad.name": "404","process": {"thread": {"name": "testThread"}},"event.dataset":"not_accesslog","event":{"dataset":"accesslog"},"labels":{"k":"v"},"error.type": "404","error.message":"404","error.stack_trace":"404","error": {"type": "illegal-argument","message": "illegal argument received","stack_trace": "stack_trace_as_string"}}}`
 			dec := decoder.NewJSONDecoder(strings.NewReader(str))
 			var batch modelpb.Batch

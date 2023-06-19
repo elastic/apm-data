@@ -33,7 +33,6 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
-	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -51,7 +50,7 @@ func TestDecodeNestedMetricset(t *testing.T) {
 		now := time.Now()
 		defaultVal := modeldecodertest.DefaultValues()
 		_, eventBase := initializedInputMetadata(defaultVal)
-		eventBase.Timestamp = now
+		eventBase.Timestamp = timestamppb.New(now)
 		input := modeldecoder.Input{Base: eventBase}
 		str := `{"metricset":{"timestamp":1599996822281000,"samples":{"a.b":{"value":2048}}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
@@ -67,6 +66,15 @@ func TestDecodeNestedMetricset(t *testing.T) {
 				Value: 2048,
 			}},
 		}, batch[0].Metricset, protocmp.Transform()))
+
+		// use base event's Timestamp if unspecified in input
+		str = `{"metricset":{"samples":{"a.b":{"value":2048}}}}`
+		dec = decoder.NewJSONDecoder(strings.NewReader(str))
+		batch = batch[:0]
+		require.NoError(t, DecodeNestedMetricset(dec, &input, &batch))
+		require.Len(t, batch, 1)
+		require.NotNil(t, batch[0].Metricset)
+		assert.Equal(t, now.UTC(), batch[0].Timestamp.AsTime())
 
 		// invalid type
 		err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &batch)
@@ -118,7 +126,6 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 	t.Run("metricset-values", func(t *testing.T) {
 		var input metricset
 		var out1, out2 modelpb.APMEvent
-		now := time.Now().Add(time.Second).UTC()
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		input.Transaction.Reset() // tested by TestDecodeMetricsetInternal
@@ -164,16 +171,6 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 			}),
 			protocmp.Transform(),
 		))
-
-		// leave Timestamp unmodified if eventTime is zero
-		out1.Timestamp = timestamppb.New(now)
-		defaultVal.Update(time.Time{})
-		modeldecodertest.SetStructValues(&input, defaultVal)
-		input.Transaction.Reset()
-		mapToMetricsetModel(&input, &out1)
-		defaultVal.Update(now)
-		input.Reset()
-		modeldecodertest.AssertStructValues(t, out1.Metricset, exceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
@@ -236,7 +233,7 @@ func TestDecodeMetricsetInternal(t *testing.T) {
 				"type": "transaction_type"
 			}
 		}
-	}`)), &modeldecoder.Input{}, &batch)
+	}`)), &modeldecoder.Input{Base: &modelpb.APMEvent{}}, &batch)
 	require.NoError(t, err)
 	require.Empty(t, batch)
 
@@ -256,7 +253,7 @@ func TestDecodeMetricsetInternal(t *testing.T) {
 				"subtype": "span_subtype"
 			}
 		}
-	}`)), &modeldecoder.Input{}, &batch)
+	}`)), &modeldecoder.Input{Base: &modelpb.APMEvent{}}, &batch)
 	require.NoError(t, err)
 
 	assert.Empty(t, cmp.Diff(modelpb.Batch{{
@@ -282,8 +279,8 @@ func TestDecodeMetricsetInternal(t *testing.T) {
 
 func TestDecodeMetricsetServiceName(t *testing.T) {
 	var input = &modeldecoder.Input{
-		Base: model.APMEvent{
-			Service: model.Service{
+		Base: &modelpb.APMEvent{
+			Service: &modelpb.Service{
 				Name:        "service_name",
 				Version:     "service_version",
 				Environment: "service_environment",
@@ -341,8 +338,8 @@ func TestDecodeMetricsetServiceName(t *testing.T) {
 
 func TestDecodeMetricsetServiceNameAndVersion(t *testing.T) {
 	var input = &modeldecoder.Input{
-		Base: model.APMEvent{
-			Service: model.Service{
+		Base: &modelpb.APMEvent{
+			Service: &modelpb.Service{
 				Name:        "service_name",
 				Version:     "service_version",
 				Environment: "service_environment",
@@ -402,8 +399,8 @@ func TestDecodeMetricsetServiceNameAndVersion(t *testing.T) {
 
 func TestDecodeMetricsetServiceVersion(t *testing.T) {
 	var input = &modeldecoder.Input{
-		Base: model.APMEvent{
-			Service: model.Service{
+		Base: &modelpb.APMEvent{
+			Service: &modelpb.Service{
 				Name:        "service_name",
 				Version:     "service_version",
 				Environment: "service_environment",

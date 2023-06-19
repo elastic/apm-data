@@ -48,7 +48,7 @@ func TestDecodeNestedError(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		now := time.Now().UTC()
 		eventBase := initializedMetadata()
-		eventBase.Timestamp = now
+		eventBase.Timestamp = timestamppb.New(now)
 		input := modeldecoder.Input{Base: eventBase}
 		str := `{"e":{"id":"a-b-c","timestamp":1599996822281000,"log":{"mg":"abc"}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
@@ -91,7 +91,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 	t.Run("metadata-overwrite", func(t *testing.T) {
 		// overwrite defined metadata with event metadata values
 		var input errorEvent
-		out := initializedMetadataPb()
+		out := initializedMetadata()
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToErrorModel(&input, out)
@@ -154,11 +154,9 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		modeldecodertest.AssertStructValues(t, out1.Error, exceptions, defaultVal)
 
 		// leave event timestamp unmodified if eventTime is zero
-		defaultVal.Update(time.Time{})
 		out1.Timestamp = timestamppb.New(reqTime)
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToErrorModel(&input, &out1)
-		defaultVal.Update(reqTime)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Error, exceptions, defaultVal)
 

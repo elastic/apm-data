@@ -39,7 +39,6 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
-	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -55,7 +54,7 @@ func TestResetTransactionOnRelease(t *testing.T) {
 func TestDecodeNestedTransaction(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		now := time.Now().UTC()
-		input := modeldecoder.Input{}
+		input := modeldecoder.Input{Base: &modelpb.APMEvent{}}
 		str := `{"transaction":{"duration":100,"timestamp":1599996822281000,"id":"100","trace_id":"1","type":"request","span_count":{"started":2}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
 
@@ -66,7 +65,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		assert.Equal(t, "request", batch[0].Transaction.Type)
 		assert.Equal(t, "2020-09-13 11:33:42.281 +0000 UTC", batch[0].Timestamp.AsTime().String())
 
-		input = modeldecoder.Input{Base: model.APMEvent{Timestamp: now}}
+		input = modeldecoder.Input{Base: &modelpb.APMEvent{Timestamp: timestamppb.New(now)}}
 		str = `{"transaction":{"duration":100,"id":"100","trace_id":"1","type":"request","span_count":{"started":2}}}`
 		dec = decoder.NewJSONDecoder(strings.NewReader(str))
 		batch = modelpb.Batch{}
@@ -94,7 +93,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 	t.Run("metadata-overwrite", func(t *testing.T) {
 		// overwrite defined metadata with event metadata values
 		var input transaction
-		_, out := initializedInputMetadataPb(modeldecodertest.DefaultValues())
+		_, out := initializedInputMetadata(modeldecodertest.DefaultValues())
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToTransactionModel(&input, out)
@@ -106,7 +105,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		assert.Equal(t, userAgent, out.UserAgent.Original)
 		// do not overwrite client.ip if already set in metadata
 		ip := modeldecodertest.DefaultValues().IP
-		assert.Equal(t, ip.String(), out.Client.Ip)
+		assert.Equal(t, ip.String(), out.GetClient().GetIp())
 		assert.Equal(t, modelpb.Labels{
 			"init0": {Global: true, Value: "init"}, "init1": {Global: true, Value: "init"}, "init2": {Global: true, Value: "init"},
 			"overwritten0": {Value: "overwritten"}, "overwritten1": {Value: "overwritten"},
@@ -254,7 +253,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 	t.Run("overwrite-user", func(t *testing.T) {
 		// user should be populated by metadata or event specific, but not merged
 		var input transaction
-		_, out := initializedInputMetadataPb(modeldecodertest.DefaultValues())
+		_, out := initializedInputMetadata(modeldecodertest.DefaultValues())
 		input.Context.User.Email.Set("test@user.com")
 		mapToTransactionModel(&input, out)
 		assert.Equal(t, "test@user.com", out.User.Email)
@@ -304,17 +303,17 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
 
-		// leave event timestamp unmodified if eventTime is zero
+		// leave base event timestamp unmodified if event timestamp is unspecified
 		out1.Timestamp = timestamppb.New(reqTime)
-		defaultVal.Update(time.Time{})
-		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToTransactionModel(&input, &out1)
-		defaultVal.Update(reqTime)
+		assert.Equal(t, reqTime.UTC(), out1.Timestamp.AsTime())
 		input.Reset()
-		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
 		out2.Timestamp = timestamppb.New(reqTime)
+		modeldecodertest.SetStructValues(&input, defaultVal)
+		mapToTransactionModel(&input, &out1)
+		input.Reset()
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		input.OTel.Reset()
