@@ -1531,7 +1531,7 @@ func encodeBatch(t testing.TB, batches ...*modelpb.Batch) [][]byte {
 }
 
 // TODO(axw) don't use approval testing here. The input should only care about the
-// conversion to model.APMEvent, not the final Elasticsearch document encoding.
+// conversion to modelpb.APMEvent, not the final Elasticsearch document encoding.
 func approveEventDocs(t testing.TB, name string, docs [][]byte) {
 	t.Helper()
 

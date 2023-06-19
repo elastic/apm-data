@@ -32,7 +32,7 @@ type ConsumerConfig struct {
 	// no logging will be performed.
 	Logger *zap.Logger
 
-	// Processor holds the model.BatchProcessor which will be invoked
+	// Processor holds the modelpb.BatchProcessor which will be invoked
 	// with event batches when consuming OTLP payloads.
 	Processor modelpb.BatchProcessor
 

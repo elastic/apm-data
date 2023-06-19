@@ -23,7 +23,7 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-// SetErrorMessage is a model.BatchProcessor that sets the APMEvent.Message
+// SetErrorMessage is a modelpb.BatchProcessor that sets the APMEvent.Message
 // field for error events.
 type SetErrorMessage struct{}
 
