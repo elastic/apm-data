@@ -15,6 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// Package modelprocessor is meant to be used to enrich model.Batch implementing
-// the model.BatchProcessor interface.
+// Package modelprocessor is meant to be used to enrich modelpb.Batch implementing
+// the modelpb.BatchProcessor interface.
 package modelprocessor

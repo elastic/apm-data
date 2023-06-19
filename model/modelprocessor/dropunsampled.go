@@ -23,13 +23,13 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-// NewDropUnsampled returns a model.BatchProcessor which drops unsampled transaction events,
+// NewDropUnsampled returns a modelpb.BatchProcessor which drops unsampled transaction events,
 // and runs the specified callback.
 //
 // If dropRUM is false, only non-RUM unsampled transaction events are dropped; otherwise all
 // unsampled transaction events are dropped.
 //
-// This model.BatchProcessor does not guarantee order preservation of the remaining events.
+// This modelpb.BatchProcessor does not guarantee order preservation of the remaining events.
 func NewDropUnsampled(dropRUM bool, droppedCallback func(int64)) modelpb.BatchProcessor {
 	return modelpb.ProcessBatchFunc(func(_ context.Context, batch *modelpb.Batch) error {
 		events := *batch

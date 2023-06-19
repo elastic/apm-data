@@ -23,7 +23,7 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-// SetCulprit is a model.BatchProcessor that sets or updates the culprit for RUM
+// SetCulprit is a modelpb.BatchProcessor that sets or updates the culprit for RUM
 // errors, after source mapping and identifying library frames.
 type SetCulprit struct{}
 

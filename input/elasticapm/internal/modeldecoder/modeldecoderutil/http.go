@@ -25,23 +25,6 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-// HTTPHeadersToMap converts h to a map[string]any, suitable for
-// use in model.HTTP.{Request,Response}.Headers.
-func HTTPHeadersToMap(h http.Header) map[string]any {
-	if len(h) == 0 {
-		return nil
-	}
-	m := make(map[string]any, len(h))
-	for k, v := range h {
-		arr := make([]any, 0, len(v))
-		for _, s := range v {
-			arr = append(arr, s)
-		}
-		m[k] = arr
-	}
-	return m
-}
-
 // HTTPHeadersToStructPb converts h to a *structpb.Struct, suitable for
 // use in modelpb.HTTP.{Request,Response}.Headers.
 func HTTPHeadersToStructPb(h http.Header) *structpb.Struct {
