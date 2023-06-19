@@ -50,6 +50,8 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			out.Service = populateNil(out.Service)
 			out.Service.Version = truncate(v.Str())
 		case semconv.AttributeServiceInstanceID:
+			out.Service = populateNil(out.Service)
+			out.Service.Node = populateNil(out.Service.Node)
 			out.Service.Node.Name = truncate(v.Str())
 
 		// deployment.*
