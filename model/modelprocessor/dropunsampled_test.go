@@ -35,33 +35,27 @@ func TestNewDropUnsampled(t *testing.T) {
 		})
 
 		rumAgent := modelpb.Agent{Name: "rum-js"}
-		t1 := &modelpb.Transaction{Id: "t1", Sampled: false}
-		t2 := &modelpb.Transaction{Id: "t2", Sampled: true}
-		t3 := &modelpb.Transaction{Id: "t3", Sampled: false}
-		t4 := &modelpb.Transaction{Id: "t4", Sampled: true}
-		t5 := &modelpb.Transaction{Id: "t5", Sampled: false}
+		t1 := &modelpb.Transaction{Type: "type", Id: "t1", Sampled: false}
+		t2 := &modelpb.Transaction{Type: "type", Id: "t2", Sampled: true}
+		t3 := &modelpb.Transaction{Type: "type", Id: "t3", Sampled: false}
+		t4 := &modelpb.Transaction{Type: "type", Id: "t4", Sampled: true}
+		t5 := &modelpb.Transaction{Type: "type", Id: "t5", Sampled: false}
 
 		batch := modelpb.Batch{{
-			Processor:   modelpb.TransactionProcessor(),
 			Transaction: t1,
 		}, {
-			Processor:   modelpb.TransactionProcessor(),
 			Transaction: t2,
 		}, {
-			Processor: modelpb.ErrorProcessor(),
-			// Transaction.Sampled should be disregarded, as
-			// Processor == ErrorProcessor, i.e. this is an
-			// error event with the transaction.sampled field.
+			// Transaction.Sampled should be disregarded, as this is
+			// an error event with the transaction.sampled field.
+			Error:       &modelpb.Error{},
 			Transaction: &modelpb.Transaction{},
 		}, {
-			Processor:   modelpb.TransactionProcessor(),
 			Transaction: t3,
 		}, {
-			Processor:   modelpb.TransactionProcessor(),
 			Transaction: t4,
 		}, {
 			Agent:       &rumAgent,
-			Processor:   modelpb.TransactionProcessor(),
 			Transaction: t5,
 		}}
 
@@ -70,14 +64,14 @@ func TestNewDropUnsampled(t *testing.T) {
 
 		var expectedTransactionsDropped int64 = 3
 		expectedRemainingBatch := modelpb.Batch{
-			{Processor: modelpb.TransactionProcessor(), Transaction: t4},
-			{Processor: modelpb.TransactionProcessor(), Transaction: t2},
-			{Processor: modelpb.ErrorProcessor(), Transaction: &modelpb.Transaction{}},
+			{Transaction: t4},
+			{Transaction: t2},
+			{Error: &modelpb.Error{}, Transaction: &modelpb.Transaction{}},
 		}
 		if !dropRUM {
 			expectedTransactionsDropped--
 			expectedRemainingBatch = append(expectedRemainingBatch, &modelpb.APMEvent{
-				Agent: &rumAgent, Processor: modelpb.TransactionProcessor(), Transaction: t5,
+				Agent: &rumAgent, Transaction: t5,
 			})
 		}
 

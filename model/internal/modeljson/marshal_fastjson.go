@@ -747,12 +747,6 @@ func (v *Document) MarshalFastJSON(w *fastjson.Writer) error {
 			firstErr = err
 		}
 	}
-	if !v.Processor.isZero() {
-		w.RawString(",\"processor\":")
-		if err := v.Processor.MarshalFastJSON(w); err != nil && firstErr == nil {
-			firstErr = err
-		}
-	}
 	if v.Service != nil {
 		w.RawString(",\"service\":")
 		if err := v.Service.MarshalFastJSON(w); err != nil && firstErr == nil {
@@ -2278,33 +2272,6 @@ func (v *ProcessThread) MarshalFastJSON(w *fastjson.Writer) error {
 			w.RawString(prefix)
 		}
 		w.Int64(int64(v.ID))
-	}
-	if v.Name != "" {
-		const prefix = ",\"name\":"
-		if first {
-			first = false
-			w.RawString(prefix[1:])
-		} else {
-			w.RawString(prefix)
-		}
-		w.String(v.Name)
-	}
-	w.RawByte('}')
-	return nil
-}
-
-func (v *Processor) MarshalFastJSON(w *fastjson.Writer) error {
-	w.RawByte('{')
-	first := true
-	if v.Event != "" {
-		const prefix = ",\"event\":"
-		if first {
-			first = false
-			w.RawString(prefix[1:])
-		} else {
-			w.RawString(prefix)
-		}
-		w.String(v.Event)
 	}
 	if v.Name != "" {
 		const prefix = ",\"name\":"

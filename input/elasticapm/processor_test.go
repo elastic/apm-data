@@ -230,16 +230,16 @@ func TestHandleStream(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	processors := make([]*modelpb.Processor, len(events))
+	processors := make([]modelpb.APMEventType, len(events))
 	for i, event := range events {
-		processors[i] = event.Processor
+		processors[i] = event.Type()
 	}
-	assert.Equal(t, []*modelpb.Processor{
-		modelpb.ErrorProcessor(),
-		modelpb.MetricsetProcessor(),
-		modelpb.SpanProcessor(),
-		modelpb.TransactionProcessor(),
-		modelpb.LogProcessor(),
+	assert.Equal(t, []modelpb.APMEventType{
+		modelpb.ErrorEventType,
+		modelpb.MetricEventType,
+		modelpb.SpanEventType,
+		modelpb.TransactionEventType,
+		modelpb.LogEventType,
 	}, processors)
 }
 
@@ -268,23 +268,23 @@ func TestHandleStreamRUMv3(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	processors := make([]*modelpb.Processor, len(events))
+	processors := make([]modelpb.APMEventType, len(events))
 	for i, event := range events {
-		processors[i] = event.Processor
+		processors[i] = event.Type()
 	}
-	assert.Equal(t, []*modelpb.Processor{
-		modelpb.ErrorProcessor(),
-		modelpb.TransactionProcessor(),
-		modelpb.MetricsetProcessor(),
-		modelpb.MetricsetProcessor(),
-		modelpb.SpanProcessor(),
-		modelpb.SpanProcessor(),
-		modelpb.SpanProcessor(),
-		modelpb.SpanProcessor(),
-		modelpb.SpanProcessor(),
-		modelpb.SpanProcessor(),
-		modelpb.SpanProcessor(),
-		modelpb.SpanProcessor(),
+	assert.Equal(t, []modelpb.APMEventType{
+		modelpb.ErrorEventType,
+		modelpb.TransactionEventType,
+		modelpb.MetricEventType,
+		modelpb.MetricEventType,
+		modelpb.SpanEventType,
+		modelpb.SpanEventType,
+		modelpb.SpanEventType,
+		modelpb.SpanEventType,
+		modelpb.SpanEventType,
+		modelpb.SpanEventType,
+		modelpb.SpanEventType,
+		modelpb.SpanEventType,
 	}, processors)
 }
 

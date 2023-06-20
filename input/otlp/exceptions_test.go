@@ -63,8 +63,8 @@ func TestEncodeSpanEventsNonExceptions(t *testing.T) {
 
 	_, events := transformTransactionSpanEvents(t, "java", nonExceptionEvent, incompleteExceptionEvent)
 	require.Len(t, events, 2)
-	assert.True(t, events[0].Processor.IsLog())
-	assert.True(t, events[1].Processor.IsLog())
+	assert.Equal(t, modelpb.LogEventType, events[0].Type())
+	assert.Equal(t, modelpb.LogEventType, events[1].Type())
 }
 
 func TestEncodeSpanEventsJavaExceptions(t *testing.T) {
@@ -117,7 +117,6 @@ Caused by: LowLevelException
 		Timestamp:     timestamppb.New(timestamp),
 		Labels:        modelpb.Labels{},
 		NumericLabels: modelpb.NumericLabels{},
-		Processor:     modelpb.ErrorProcessor(),
 		Trace:         transactionEvent.Trace,
 		ParentId:      transactionEvent.Transaction.Id,
 		Transaction: &modelpb.Transaction{
@@ -170,7 +169,6 @@ Caused by: LowLevelException
 		Timestamp:     timestamppb.New(timestamp),
 		Labels:        modelpb.Labels{},
 		NumericLabels: modelpb.NumericLabels{},
-		Processor:     modelpb.ErrorProcessor(),
 		Trace:         transactionEvent.Trace,
 		ParentId:      transactionEvent.Transaction.Id,
 		Transaction: &modelpb.Transaction{
@@ -332,7 +330,6 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 		Timestamp:     timestamppb.New(timestamp),
 		Labels:        modelpb.Labels{},
 		NumericLabels: modelpb.NumericLabels{},
-		Processor:     modelpb.ErrorProcessor(),
 		Trace:         transactionEvent.Trace,
 		ParentId:      transactionEvent.Transaction.Id,
 		Transaction: &modelpb.Transaction{

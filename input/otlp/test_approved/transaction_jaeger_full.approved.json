@@ -31,10 +31,6 @@
                 "double_a": 14.65,
                 "int_a": 148
             },
-            "processor": {
-                "event": "transaction",
-                "name": "transaction"
-            },
             "service": {
                 "language": {
                     "name": "unknown"
@@ -95,10 +91,6 @@
             "parent": {
                 "id": "0000000041414646"
             },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
             "service": {
                 "language": {
                     "name": "unknown"
@@ -151,10 +143,6 @@
             "parent": {
                 "id": "0000000041414646"
             },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
             "service": {
                 "language": {
                     "name": "unknown"
@@ -209,10 +197,6 @@
             "parent": {
                 "id": "0000000041414646"
             },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
             "service": {
                 "language": {
                     "name": "unknown"
@@ -266,10 +250,6 @@
             },
             "parent": {
                 "id": "0000000041414646"
-            },
-            "processor": {
-                "event": "error",
-                "name": "error"
             },
             "service": {
                 "language": {
@@ -325,10 +305,6 @@
             "parent": {
                 "id": "0000000041414646"
             },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
             "service": {
                 "language": {
                     "name": "unknown"
@@ -381,10 +357,6 @@
             "parent": {
                 "id": "0000000041414646"
             },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
             "service": {
                 "language": {
                     "name": "unknown"
@@ -417,6 +389,9 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
+	    "event": {
+                "kind": "event"
+	    },
             "host": {
                 "hostname": "host-abc"
             },
@@ -433,10 +408,6 @@
                 "isValid": "false"
             },
             "message": "baggage",
-            "processor": {
-                "event": "log",
-                "name": "log"
-            },
             "service": {
                 "language": {
                     "name": "unknown"
@@ -464,6 +435,9 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
+	    "event": {
+                "kind": "event"
+	    },
             "host": {
                 "hostname": "host-abc"
             },
@@ -480,10 +454,6 @@
                 "level": "info"
             },
             "message": "retrying connection",
-            "processor": {
-                "event": "log",
-                "name": "log"
-            },
             "service": {
                 "language": {
                     "name": "unknown"
@@ -511,6 +481,9 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
+	    "event": {
+                "kind": "event"
+	    },
             "host": {
                 "hostname": "host-abc"
             },
@@ -525,10 +498,6 @@
             },
             "labels": {
                 "level": "error"
-            },
-            "processor": {
-                "event": "log",
-                "name": "log"
             },
             "service": {
                 "language": {

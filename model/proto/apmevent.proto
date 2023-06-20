@@ -39,7 +39,6 @@ import "metricset.proto";
 import "network.proto";
 import "observer.proto";
 import "process.proto";
-import "processor.proto";
 import "service.proto";
 import "session.proto";
 import "source.proto";
@@ -71,24 +70,23 @@ message APMEvent {
   Observer observer = 16;
   DataStream data_stream = 17;
   Agent agent = 18;
-  Processor processor = 19;
-  HTTP http = 20;
-  UserAgent user_agent = 21;
+  HTTP http = 19;
+  UserAgent user_agent = 20;
   // parent_id holds an optional parent span/transaction ID.
-  string parent_id = 22;
-  string message = 23;
-  Trace trace = 24;
-  Host host = 25;
-  URL url = 26;
-  Log log = 27;
-  Source source = 28;
-  Client client = 29;
+  string parent_id = 21;
+  string message = 22;
+  Trace trace = 23;
+  Host host = 24;
+  URL url = 25;
+  Log log = 26;
+  Source source = 27;
+  Client client = 28;
   // child_ids holds an optional set of child span IDs. This is used for exotic
   // use cases where the parent knows the child ID, but the child does not know
   // the parent ID; namely for profiler-inferred spans.
-  repeated string child_ids = 30;
-  Destination destination = 31;
-  Session session = 32;
-  Process process = 33;
-  Event event = 34;
+  repeated string child_ids = 29;
+  Destination destination = 30;
+  Session session = 31;
+  Process process = 32;
+  Event event = 33;
 }

@@ -354,10 +354,6 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			EphemeralId:      "ephemeralid",
 			ActivationMethod: "activationmethod",
 		},
-		Processor: &modelpb.Processor{
-			Name:  "name",
-			Event: "event",
-		},
 		Http: &modelpb.HTTP{
 			Request: &modelpb.HTTPRequest{
 				Headers:  randomHTTPHeaders(t),
