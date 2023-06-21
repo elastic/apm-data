@@ -874,8 +874,8 @@ func (c *Consumer) convertSpanEvent(
 ) *modelpb.APMEvent {
 	event := proto.Clone(parent).(*modelpb.APMEvent)
 	initEventLabels(event)
-	event.Transaction = nil
-	event.Span = nil
+	event.Transaction = nil // populate fields as required from parent
+	event.Span = nil        // populate fields as required from parent
 	event.Timestamp = timestamppb.New(spanEvent.Timestamp().AsTime().Add(timeDelta))
 
 	isJaeger := strings.HasPrefix(parent.Agent.Name, "Jaeger")
@@ -922,6 +922,7 @@ func (c *Consumer) convertSpanEvent(
 	} else {
 		event.Processor = modelpb.LogProcessor()
 		event.Message = spanEvent.Name()
+		setLogContext(event, parent)
 		spanEvent.Attributes().Range(func(k string, v pcommon.Value) bool {
 			k = replaceDots(k)
 			if isJaeger && k == "message" {
@@ -1011,6 +1012,19 @@ func setErrorContext(out *modelpb.APMEvent, parent *modelpb.APMEvent) {
 	}
 	if parent.Span != nil {
 		out.Parent.Id = parent.Span.Id
+	}
+}
+
+func setLogContext(out *modelpb.APMEvent, parent *modelpb.APMEvent) {
+	if parent.Transaction != nil {
+		out.Transaction = &modelpb.Transaction{
+			Id: parent.Transaction.Id,
+		}
+	}
+	if parent.Span != nil {
+		out.Span = &modelpb.Span{
+			Id: parent.Span.Id,
+		}
 	}
 }
 
