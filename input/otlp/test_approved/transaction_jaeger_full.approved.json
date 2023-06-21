@@ -447,6 +447,9 @@
             "trace": {
                 "id": "00000000000000000000000046467830"
             },
+            "transaction": {
+                "id": "0000000041414646"
+            },
             "url": {
                 "domain": "foo.bar.com",
                 "full": "http://foo.bar.com?a=12",
@@ -491,6 +494,9 @@
             "trace": {
                 "id": "00000000000000000000000046467830"
             },
+            "transaction": {
+                "id": "0000000041414646"
+            },
             "url": {
                 "domain": "foo.bar.com",
                 "full": "http://foo.bar.com?a=12",
@@ -533,6 +539,9 @@
             },
             "trace": {
                 "id": "00000000000000000000000046467830"
+            },
+            "transaction": {
+                "id": "0000000041414646"
             },
             "url": {
                 "domain": "foo.bar.com",
