@@ -641,6 +641,46 @@ func TestSpanType(t *testing.T) {
 	assert.Equal(t, "", event.Span.Subtype)
 }
 
+func TestTransactionTypePriorities(t *testing.T) {
+
+	transactionWithAttribs := func(attributes map[string]interface{}) *modelpb.APMEvent {
+		return transformTransactionWithAttributes(t, attributes, func(s ptrace.Span) {
+			s.SetKind(ptrace.SpanKindServer)
+		})
+	}
+
+	attribs := map[string]interface{}{
+		"http.scheme": "https",
+	}
+	assert.Equal(t, "request", transactionWithAttribs(attribs).Transaction.Type)
+
+	attribs["messaging.destination"] = "foobar"
+	assert.Equal(t, "messaging", transactionWithAttribs(attribs).Transaction.Type)
+}
+
+func TestSpanTypePriorities(t *testing.T) {
+
+	spanWithAttribs := func(attributes map[string]interface{}) *modelpb.APMEvent {
+		return transformSpanWithAttributes(t, attributes, func(s ptrace.Span) {
+			s.SetKind(ptrace.SpanKindClient)
+		})
+	}
+
+	attribs := map[string]interface{}{
+		"http.scheme": "https",
+	}
+	assert.Equal(t, "http", spanWithAttribs(attribs).Span.Subtype)
+
+	attribs["rpc.grpc.status_code"] = int64(codes.Unavailable)
+	assert.Equal(t, "grpc", spanWithAttribs(attribs).Span.Subtype)
+
+	attribs["messaging.destination"] = "foobar"
+	assert.Equal(t, "messaging", spanWithAttribs(attribs).Span.Type)
+
+	attribs["db.statement"] = "SELECT * FROM FOO"
+	assert.Equal(t, "db", spanWithAttribs(attribs).Span.Type)
+}
+
 func TestSpanNetworkAttributes(t *testing.T) {
 	networkAttributes := map[string]interface{}{
 		"net.host.connection.type":    "cell",
