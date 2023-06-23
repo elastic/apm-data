@@ -23,7 +23,6 @@ import (
 
 	"github.com/elastic/apm-data/model/internal/modeljson"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -83,7 +82,9 @@ func TestEventToModelJSON(t *testing.T) {
 			var out modeljson.Event
 			tc.proto.toModelJSON(&out)
 			diff := cmp.Diff(*tc.expected, out,
-				cmpopts.IgnoreUnexported(modeljson.Time{}))
+				cmp.Comparer(func(a modeljson.Time, b modeljson.Time) bool {
+					return time.Time(a).Compare(time.Time(b)) == 0
+				}))
 			require.Empty(t, diff)
 		})
 	}
