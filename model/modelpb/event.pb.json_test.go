@@ -23,11 +23,20 @@ import (
 
 	"github.com/elastic/apm-data/model/internal/modeljson"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
+)
+
+const (
+	testTime = "2006-01-02T15:04:05Z"
 )
 
 func TestEventToModelJSON(t *testing.T) {
+	now, err := time.Parse(time.RFC3339, testTime)
+	require.NoError(t, err)
+
 	testCases := map[string]struct {
 		proto    *Event
 		expected *modeljson.Event
@@ -50,6 +59,7 @@ func TestEventToModelJSON(t *testing.T) {
 				},
 				Duration: durationpb.New(3 * time.Second),
 				Severity: 4,
+				Received: timestamppb.New(now),
 			},
 			expected: &modeljson.Event{
 				Outcome:  "outcome",
@@ -64,6 +74,7 @@ func TestEventToModelJSON(t *testing.T) {
 				},
 				Duration: int64(3 * time.Second),
 				Severity: 4,
+				Received: modeljson.Time(now),
 			},
 		},
 	}
@@ -71,7 +82,8 @@ func TestEventToModelJSON(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			var out modeljson.Event
 			tc.proto.toModelJSON(&out)
-			diff := cmp.Diff(*tc.expected, out)
+			diff := cmp.Diff(*tc.expected, out,
+				cmpopts.IgnoreUnexported(modeljson.Time{}))
 			require.Empty(t, diff)
 		})
 	}
