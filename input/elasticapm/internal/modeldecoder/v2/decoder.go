@@ -434,9 +434,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			}
 		}
 		if len(from.Context.Custom) > 0 {
-			if m := modeldecoderutil.NormalizeMap(from.Context.Custom); len(m) > 0 {
-				out.Custom = modeldecoderutil.ToStruct(m)
-			}
+			out.Custom = modeldecoderutil.ToStruct(from.Context.Custom)
 		}
 	}
 	if from.Culprit.IsSet() {
@@ -1292,9 +1290,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 
 	if from.Context.IsSet() {
 		if len(from.Context.Custom) > 0 {
-			if m := modeldecoderutil.NormalizeMap(from.Context.Custom); len(m) > 0 {
-				out.Custom = modeldecoderutil.ToStruct(m)
-			}
+			out.Custom = modeldecoderutil.ToStruct(from.Context.Custom)
 		}
 		if len(from.Context.Tags) > 0 {
 			modeldecoderutil.MergeLabels(from.Context.Tags, event)
