@@ -18,19 +18,20 @@ else
 fi
 
 TOOLS_DIR=$(dirname "$(readlink -f -- "$0")")
+BUILD_DIR="${TOOLS_DIR}/build"
 PROTOBUF_ZIP="/tmp/protobuf.zip"
 
 curl -L "${PROTOBUF_URL}" -o "${PROTOBUF_ZIP}"
 
-if ! unzip -j -o "${PROTOBUF_ZIP}" "bin/protoc" -d "${TOOLS_DIR}/bin"; then
+if ! unzip -o "${PROTOBUF_ZIP}" -d "${BUILD_DIR}"; then
 	echo "failed to extract protobuf"
 	exit 1
 fi
 
-if ! PATH="${TOOLS_DIR}/bin" protoc --version; then 
+if ! PATH="${BUILD_DIR}/bin" protoc --version; then
 	echo "failed to verify protobuf installation"
 	exit 1
 fi
 
-GOBIN="${TOOLS_DIR}/bin" go install "google.golang.org/protobuf/cmd/protoc-gen-go@${PROTOC_GO_VERSION}"
-GOBIN="${TOOLS_DIR}/bin" go install "github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto@${VTPROTOBUF_VERSION}"
+GOBIN="${BUILD_DIR}/bin" go install "google.golang.org/protobuf/cmd/protoc-gen-go@${PROTOC_GO_VERSION}"
+GOBIN="${BUILD_DIR}/bin" go install "github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto@${VTPROTOBUF_VERSION}"
