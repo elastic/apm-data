@@ -1066,6 +1066,18 @@ func (v *Event) MarshalFastJSON(w *fastjson.Writer) error {
 		}
 		w.String(v.Outcome)
 	}
+	if !v.Received.isZero() {
+		const prefix = ",\"received\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		if err := v.Received.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
 	if v.Severity != 0 {
 		const prefix = ",\"severity\":"
 		if first {
