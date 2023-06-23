@@ -83,7 +83,7 @@ func TestEventToModelJSON(t *testing.T) {
 			tc.proto.toModelJSON(&out)
 			diff := cmp.Diff(*tc.expected, out,
 				cmp.Comparer(func(a modeljson.Time, b modeljson.Time) bool {
-					return time.Time(a).Compare(time.Time(b)) == 0
+					return time.Time(a).Equal(time.Time(b))
 				}))
 			require.Empty(t, diff)
 		})
