@@ -85,3 +85,7 @@ func (t Time) MarshalFastJSON(w *fastjson.Writer) error {
 	w.RawByte('"')
 	return nil
 }
+
+func (t Time) isZero() bool {
+	return time.Time(t).IsZero()
+}
