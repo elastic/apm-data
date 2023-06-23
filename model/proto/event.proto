@@ -20,6 +20,7 @@ syntax = "proto3";
 package elastic.apm.v1;
 
 import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
 import "metricset.proto";
 
 option go_package = "github.com/elastic/apm-data/model/modelpb";
@@ -36,4 +37,6 @@ message Event {
   SummaryMetric success_count = 7;
   google.protobuf.Duration duration = 8;
   int64 severity = 9;
+
+  google.protobuf.Timestamp received = 10;
 }
