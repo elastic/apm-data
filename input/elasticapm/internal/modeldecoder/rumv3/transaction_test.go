@@ -358,7 +358,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
 		var out modelpb.APMEvent
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, []*modelpb.HTTPHeader{
+		assert.Empty(t, cmp.Diff([]*modelpb.HTTPHeader{
 			{
 				Key:   "a",
 				Value: []string{"b"},
@@ -367,7 +367,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				Key:   "c",
 				Value: []string{"d", "e"},
 			},
-		}, out.Http.Request.Headers)
+		}, out.Http.Request.Headers, protocmp.Transform()))
 		assert.Equal(t, []*modelpb.HTTPHeader{
 			{
 				Key:   "f",
