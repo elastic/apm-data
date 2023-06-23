@@ -1427,9 +1427,14 @@ func (v *HTTPRequest) MarshalFastJSON(w *fastjson.Writer) error {
 				}
 				w.String(k)
 				w.RawByte(':')
-				if err := fastjson.Marshal(w, v); err != nil && firstErr == nil {
-					firstErr = err
+				w.RawByte('[')
+				for i, v := range v {
+					if i != 0 {
+						w.RawByte(',')
+					}
+					w.String(v)
 				}
+				w.RawByte(']')
 			}
 		}
 		w.RawByte('}')
@@ -1482,7 +1487,6 @@ func (v *HTTPRequestBody) MarshalFastJSON(w *fastjson.Writer) error {
 }
 
 func (v *HTTPResponse) MarshalFastJSON(w *fastjson.Writer) error {
-	var firstErr error
 	w.RawByte('{')
 	first := true
 	if v.DecodedBodySize != nil {
@@ -1534,9 +1538,14 @@ func (v *HTTPResponse) MarshalFastJSON(w *fastjson.Writer) error {
 				}
 				w.String(k)
 				w.RawByte(':')
-				if err := fastjson.Marshal(w, v); err != nil && firstErr == nil {
-					firstErr = err
+				w.RawByte('[')
+				for i, v := range v {
+					if i != 0 {
+						w.RawByte(',')
+					}
+					w.String(v)
 				}
+				w.RawByte(']')
 			}
 		}
 		w.RawByte('}')
@@ -1572,7 +1581,7 @@ func (v *HTTPResponse) MarshalFastJSON(w *fastjson.Writer) error {
 		w.Int64(*v.TransferSize)
 	}
 	w.RawByte('}')
-	return firstErr
+	return nil
 }
 
 func (v *Kubernetes) MarshalFastJSON(w *fastjson.Writer) error {

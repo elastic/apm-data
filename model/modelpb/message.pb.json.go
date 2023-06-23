@@ -28,9 +28,9 @@ func (m *Message) toModelJSON(out *modeljson.Message) {
 	}
 	if n := len(m.Headers); n > 0 {
 		headers := make(map[string][]string, n)
-		for k, hv := range m.Headers {
+		for _, hv := range m.Headers {
 			if hv != nil {
-				headers[k] = hv.Values
+				headers[hv.Key] = hv.Value
 			}
 		}
 		out.Headers = headers

@@ -19,14 +19,9 @@ syntax = "proto3";
 
 package elastic.apm.v1;
 
-import "headers.proto";
-
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
-message Message {
-  string body = 1;
-  repeated HTTPHeader headers = 2;
-  optional int64 age_millis = 3;
-  string queue_name = 4;
-  string routing_key = 5;
+message HTTPHeader {
+  string key = 1;
+  repeated string value = 2;
 }
