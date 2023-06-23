@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -339,7 +340,12 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				Key:   "c",
 				Value: []string{"d", "e"},
 			},
-		}, out.Http.Request.Headers, protocmp.Transform()))
+		}, out.Http.Request.Headers,
+			cmpopts.SortSlices(func(x, y *modelpb.HTTPHeader) bool {
+				return x.Key < y.Key
+			}),
+			protocmp.Transform(),
+		))
 		assert.Empty(t, cmp.Diff([]*modelpb.HTTPHeader{
 			{
 				Key:   "f",
