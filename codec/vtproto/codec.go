@@ -17,10 +17,15 @@
 
 package vtproto
 
-import "fmt"
-
-type vtprotoMessage interface {
+// VTProtoMarshaler expects a struct to have MarshalVT() method that
+// returns a byte slice representation the object
+type VTProtoMarshaler interface {
 	MarshalVT() ([]byte, error)
+}
+
+// VTProtoUnmarshaler expects a struct to have UnmarshalVT() method that
+// parses a given byte slice and places the decoded results in the object.
+type VTProtoUnmarshaler interface {
 	UnmarshalVT([]byte) error
 }
 
@@ -29,19 +34,11 @@ type Codec struct {
 }
 
 // Encode encodes vtprotoMessage type into byte slice
-func (Codec) Encode(in any) ([]byte, error) {
-	vt, ok := in.(vtprotoMessage)
-	if !ok {
-		return nil, fmt.Errorf("failed to encode, message is %T (missing vtprotobuf helpers)", in)
-	}
-	return vt.MarshalVT()
+func (Codec) Encode(in VTProtoMarshaler) ([]byte, error) {
+	return in.MarshalVT()
 }
 
 // Decode decodes a byte slice into vtprotoMessage type.
-func (Codec) Decode(in []byte, out any) error {
-	vt, ok := out.(vtprotoMessage)
-	if !ok {
-		return fmt.Errorf("failed to decode, message is %T (missing vtprotobuf helpers)", out)
-	}
-	return vt.UnmarshalVT(in)
+func (Codec) Decode(in []byte, out VTProtoUnmarshaler) error {
+	return out.UnmarshalVT(in)
 }
