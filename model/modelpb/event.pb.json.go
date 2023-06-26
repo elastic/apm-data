@@ -17,7 +17,9 @@
 
 package modelpb
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/internal/modeljson"
+)
 
 func (e *Event) toModelJSON(out *modeljson.Event) {
 	*out = modeljson.Event{
@@ -35,5 +37,8 @@ func (e *Event) toModelJSON(out *modeljson.Event) {
 			Count: e.SuccessCount.Count,
 			Sum:   e.SuccessCount.Sum,
 		}
+	}
+	if e.Received.IsValid() {
+		out.Received = modeljson.Time(e.Received.AsTime())
 	}
 }

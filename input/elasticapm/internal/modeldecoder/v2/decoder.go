@@ -434,9 +434,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			}
 		}
 		if len(from.Context.Custom) > 0 {
-			if m := modeldecoderutil.NormalizeMap(from.Context.Custom); len(m) > 0 {
-				out.Custom = modeldecoderutil.ToStruct(m)
-			}
+			out.Custom = modeldecoderutil.ToStruct(from.Context.Custom)
 		}
 	}
 	if from.Culprit.IsSet() {
@@ -826,7 +824,7 @@ func mapToRequestModel(from contextRequest, out *modelpb.HTTPRequest) {
 		out.Cookies = modeldecoderutil.ToStruct(from.Cookies)
 	}
 	if from.Headers.IsSet() {
-		out.Headers = modeldecoderutil.HTTPHeadersToStructPb(from.Headers.Val)
+		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
 	}
 }
 
@@ -867,7 +865,7 @@ func mapToResponseModel(from contextResponse, out *modelpb.HTTPResponse) {
 		out.Finished = &val
 	}
 	if from.Headers.IsSet() {
-		out.Headers = modeldecoderutil.HTTPHeadersToStructPb(from.Headers.Val)
+		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
 	}
 	if from.HeadersSent.IsSet() {
 		val := from.HeadersSent.Val
@@ -1082,7 +1080,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 				response.EncodedBodySize = &val
 			}
 			if from.Context.HTTP.Response.Headers.IsSet() {
-				response.Headers = modeldecoderutil.HTTPHeadersToStructPb(from.Context.HTTP.Response.Headers.Val.Clone())
+				response.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Context.HTTP.Response.Headers.Val)
 			}
 			if from.Context.HTTP.Response.StatusCode.IsSet() {
 				response.StatusCode = int32(from.Context.HTTP.Response.StatusCode.Val)
@@ -1292,9 +1290,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 
 	if from.Context.IsSet() {
 		if len(from.Context.Custom) > 0 {
-			if m := modeldecoderutil.NormalizeMap(from.Context.Custom); len(m) > 0 {
-				out.Custom = modeldecoderutil.ToStruct(m)
-			}
+			out.Custom = modeldecoderutil.ToStruct(from.Context.Custom)
 		}
 		if len(from.Context.Tags) > 0 {
 			modeldecoderutil.MergeLabels(from.Context.Tags, event)

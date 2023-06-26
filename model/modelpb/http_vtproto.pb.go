@@ -192,27 +192,17 @@ func (m *HTTPRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
-	if m.Headers != nil {
-		if vtmsg, ok := interface{}(m.Headers).(interface {
-			MarshalToSizedBufferVT([]byte) (int, error)
-		}); ok {
-			size, err := vtmsg.MarshalToSizedBufferVT(dAtA[:i])
+	if len(m.Headers) > 0 {
+		for iNdEx := len(m.Headers) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Headers[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
 			i -= size
 			i = encodeVarint(dAtA, i, uint64(size))
-		} else {
-			encoded, err := proto.Marshal(m.Headers)
-			if err != nil {
-				return 0, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = encodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x12
 		}
-		i--
-		dAtA[i] = 0x12
 	}
 	if m.Body != nil {
 		if vtmsg, ok := interface{}(m.Body).(interface {
@@ -309,27 +299,17 @@ func (m *HTTPResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x10
 	}
-	if m.Headers != nil {
-		if vtmsg, ok := interface{}(m.Headers).(interface {
-			MarshalToSizedBufferVT([]byte) (int, error)
-		}); ok {
-			size, err := vtmsg.MarshalToSizedBufferVT(dAtA[:i])
+	if len(m.Headers) > 0 {
+		for iNdEx := len(m.Headers) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Headers[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
 			i -= size
 			i = encodeVarint(dAtA, i, uint64(size))
-		} else {
-			encoded, err := proto.Marshal(m.Headers)
-			if err != nil {
-				return 0, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = encodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0xa
 		}
-		i--
-		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -372,15 +352,11 @@ func (m *HTTPRequest) SizeVT() (n int) {
 		}
 		n += 1 + l + sov(uint64(l))
 	}
-	if m.Headers != nil {
-		if size, ok := interface{}(m.Headers).(interface {
-			SizeVT() int
-		}); ok {
-			l = size.SizeVT()
-		} else {
-			l = proto.Size(m.Headers)
+	if len(m.Headers) > 0 {
+		for _, e := range m.Headers {
+			l = e.SizeVT()
+			n += 1 + l + sov(uint64(l))
 		}
-		n += 1 + l + sov(uint64(l))
 	}
 	if m.Env != nil {
 		if size, ok := interface{}(m.Env).(interface {
@@ -424,15 +400,11 @@ func (m *HTTPResponse) SizeVT() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Headers != nil {
-		if size, ok := interface{}(m.Headers).(interface {
-			SizeVT() int
-		}); ok {
-			l = size.SizeVT()
-		} else {
-			l = proto.Size(m.Headers)
+	if len(m.Headers) > 0 {
+		for _, e := range m.Headers {
+			l = e.SizeVT()
+			n += 1 + l + sov(uint64(l))
 		}
-		n += 1 + l + sov(uint64(l))
 	}
 	if m.Finished != nil {
 		n += 2
@@ -713,19 +685,9 @@ func (m *HTTPRequest) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Headers == nil {
-				m.Headers = &structpb.Struct{}
-			}
-			if unmarshal, ok := interface{}(m.Headers).(interface {
-				UnmarshalVT([]byte) error
-			}); ok {
-				if err := unmarshal.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-					return err
-				}
-			} else {
-				if err := proto.Unmarshal(dAtA[iNdEx:postIndex], m.Headers); err != nil {
-					return err
-				}
+			m.Headers = append(m.Headers, &HTTPHeader{})
+			if err := m.Headers[len(m.Headers)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		case 3:
@@ -992,19 +954,9 @@ func (m *HTTPResponse) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Headers == nil {
-				m.Headers = &structpb.Struct{}
-			}
-			if unmarshal, ok := interface{}(m.Headers).(interface {
-				UnmarshalVT([]byte) error
-			}); ok {
-				if err := unmarshal.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-					return err
-				}
-			} else {
-				if err := proto.Unmarshal(dAtA[iNdEx:postIndex], m.Headers); err != nil {
-					return err
-				}
+			m.Headers = append(m.Headers, &HTTPHeader{})
+			if err := m.Headers[len(m.Headers)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		case 2:

@@ -17,6 +17,8 @@
 
 package modeljson
 
+import "net/http"
+
 type HTTP struct {
 	Request  *HTTPRequest  `json:"request,omitempty"`
 	Response *HTTPResponse `json:"response,omitempty"`
@@ -25,7 +27,7 @@ type HTTP struct {
 
 type HTTPRequest struct {
 	Body     *HTTPRequestBody `json:"body,omitempty"`
-	Headers  map[string]any   `json:"headers,omitempty"` // Non-ECS field.
+	Headers  http.Header      `json:"headers,omitempty"` // Non-ECS field.
 	Env      map[string]any   `json:"env,omitempty"`     // Non-ECS field.
 	Cookies  map[string]any   `json:"cookies,omitempty"` // Non-ECS field.
 	ID       string           `json:"id,omitempty"`
@@ -38,11 +40,11 @@ type HTTPRequestBody struct {
 }
 
 type HTTPResponse struct {
-	Finished        *bool          `json:"finished,omitempty"`          // Non-ECS field.
-	HeadersSent     *bool          `json:"headers_sent,omitempty"`      // Non-ECS field.
-	TransferSize    *int64         `json:"transfer_size,omitempty"`     // Non-ECS field.
-	EncodedBodySize *int64         `json:"encoded_body_size,omitempty"` // Non-ECS field.
-	DecodedBodySize *int64         `json:"decoded_body_size,omitempty"` // Non-ECS field.
-	Headers         map[string]any `json:"headers,omitempty"`           // Non-ECS field.
-	StatusCode      int            `json:"status_code,omitempty"`
+	Finished        *bool       `json:"finished,omitempty"`          // Non-ECS field.
+	HeadersSent     *bool       `json:"headers_sent,omitempty"`      // Non-ECS field.
+	TransferSize    *int64      `json:"transfer_size,omitempty"`     // Non-ECS field.
+	EncodedBodySize *int64      `json:"encoded_body_size,omitempty"` // Non-ECS field.
+	DecodedBodySize *int64      `json:"decoded_body_size,omitempty"` // Non-ECS field.
+	Headers         http.Header `json:"headers,omitempty"`           // Non-ECS field.
+	StatusCode      int         `json:"status_code,omitempty"`
 }

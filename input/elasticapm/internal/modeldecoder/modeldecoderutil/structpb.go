@@ -18,26 +18,68 @@
 package modeldecoderutil
 
 import (
+	"encoding/json"
+
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func ToStruct(m map[string]any) *structpb.Struct {
-	if str, err := structpb.NewStruct(m); err == nil {
+	nm := normalizeMap(m)
+	if len(nm) == 0 {
+		return nil
+	}
+
+	if str, err := structpb.NewStruct(nm); err == nil {
 		return str
 	}
 	return nil
 }
 
 func ToValue(a any) *structpb.Value {
-	if v, err := structpb.NewValue(a); err == nil {
+	nv := normalizeValue(a)
+	if nv == nil {
+		return nil
+	}
+
+	if v, err := structpb.NewValue(nv); err == nil {
 		return v
 	}
 	return nil
 }
 
-func NormalizeMap(m map[string]any) map[string]any {
-	if v := NormalizeHTTPRequestBody(m); v != nil {
+func normalizeMap(m map[string]any) map[string]any {
+	if v := normalizeValue(m); v != nil {
 		return v.(map[string]any)
 	}
 	return nil
+}
+
+func normalizeValue(v interface{}) interface{} {
+	switch v := v.(type) {
+	case []interface{}:
+		for i, elem := range v {
+			v[i] = normalizeValue(elem)
+		}
+		if len(v) == 0 {
+			return nil
+		}
+	case map[string]interface{}:
+		m := v
+		for k, v := range v {
+			v := normalizeValue(v)
+			if v != nil {
+				m[k] = v
+			} else {
+				delete(m, k)
+			}
+		}
+		if len(m) == 0 {
+			return nil
+		}
+	case json.Number:
+		if floatVal, err := v.Float64(); err == nil {
+			return floatVal
+		}
+	}
+	return v
 }

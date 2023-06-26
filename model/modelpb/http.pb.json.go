@@ -17,7 +17,11 @@
 
 package modelpb
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"net/http"
+
+	"github.com/elastic/apm-data/model/internal/modeljson"
+)
 
 func (h *HTTP) toModelJSON(out *modeljson.HTTP) {
 	*out = modeljson.HTTP{
@@ -30,7 +34,7 @@ func (h *HTTP) toModelJSON(out *modeljson.HTTP) {
 			Referrer: h.Request.Referrer,
 		}
 		if h.Request.Headers != nil {
-			out.Request.Headers = h.Request.Headers.AsMap()
+			out.Request.Headers = ToHTTPHeaders(h.Request.Headers)
 		}
 		if h.Request.Env != nil {
 			out.Request.Env = h.Request.Env.AsMap()
@@ -54,7 +58,18 @@ func (h *HTTP) toModelJSON(out *modeljson.HTTP) {
 			DecodedBodySize: h.Response.DecodedBodySize,
 		}
 		if h.Response.Headers != nil {
-			out.Response.Headers = h.Response.Headers.AsMap()
+			out.Response.Headers = ToHTTPHeaders(h.Response.Headers)
 		}
 	}
+}
+
+func ToHTTPHeaders(h []*HTTPHeader) http.Header {
+	if len(h) == 0 {
+		return nil
+	}
+	headers := make(http.Header, len(h))
+	for _, v := range h {
+		headers[v.Key] = v.Value
+	}
+	return headers
 }

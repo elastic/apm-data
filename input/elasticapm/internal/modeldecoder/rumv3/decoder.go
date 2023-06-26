@@ -429,7 +429,7 @@ func mapToTransactionMetricsetModel(from *transactionMetricset, event *modelpb.A
 
 func mapToResponseModel(from contextResponse, out *modelpb.HTTPResponse) {
 	if from.Headers.IsSet() {
-		out.Headers = modeldecoderutil.HTTPHeadersToStructPb(from.Headers.Val.Clone())
+		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
 	}
 	if from.StatusCode.IsSet() {
 		out.StatusCode = int32(from.StatusCode.Val)
@@ -456,7 +456,7 @@ func mapToRequestModel(from contextRequest, out *modelpb.HTTPRequest) {
 		out.Env = modeldecoderutil.ToStruct(from.Env)
 	}
 	if from.Headers.IsSet() {
-		out.Headers = modeldecoderutil.HTTPHeadersToStructPb(from.Headers.Val.Clone())
+		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
 	}
 }
 

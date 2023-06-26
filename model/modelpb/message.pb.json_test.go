@@ -39,9 +39,10 @@ func TestMessageToModelJSON(t *testing.T) {
 		"full": {
 			proto: &Message{
 				Body: "body",
-				Headers: map[string]*HTTPHeaderValue{
-					"foo": {
-						Values: []string{"bar"},
+				Headers: []*HTTPHeader{
+					{
+						Key:   "foo",
+						Value: []string{"bar"},
 					},
 				},
 				AgeMillis:  &millis,

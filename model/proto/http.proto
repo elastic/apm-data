@@ -20,6 +20,7 @@ syntax = "proto3";
 package elastic.apm.v1;
 
 import "google/protobuf/struct.proto";
+import "headers.proto";
 
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
@@ -31,7 +32,7 @@ message HTTP {
 
 message HTTPRequest {
   google.protobuf.Value body = 1;
-  google.protobuf.Struct headers = 2;
+  repeated HTTPHeader headers = 2;
   google.protobuf.Struct env = 3;
   google.protobuf.Struct cookies = 4;
   string id = 5;
@@ -40,7 +41,7 @@ message HTTPRequest {
 }
 
 message HTTPResponse {
-  google.protobuf.Struct headers = 1;
+  repeated HTTPHeader headers = 1;
   optional bool finished = 2;
   optional bool headers_sent = 3;
   optional int64 transfer_size = 4;

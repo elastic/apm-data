@@ -41,9 +41,10 @@ func fullEvent(t testing.TB) *APMEvent {
 		Span: &Span{
 			Message: &Message{
 				Body: "body",
-				Headers: map[string]*HTTPHeaderValue{
-					"foo": {
-						Values: []string{"bar"},
+				Headers: []*HTTPHeader{
+					{
+						Key:   "foo",
+						Value: []string{"bar"},
 					},
 				},
 				AgeMillis:  int64Ptr(2),
@@ -169,9 +170,10 @@ func fullEvent(t testing.TB) *APMEvent {
 			},
 			Message: &Message{
 				Body: "body",
-				Headers: map[string]*HTTPHeaderValue{
-					"foo": {
-						Values: []string{"bar"},
+				Headers: []*HTTPHeader{
+					{
+						Key:   "foo",
+						Value: []string{"bar"},
 					},
 				},
 				AgeMillis:  int64Ptr(2),
@@ -376,7 +378,7 @@ func fullEvent(t testing.TB) *APMEvent {
 		},
 		Http: &HTTP{
 			Request: &HTTPRequest{
-				Headers:  randomStructPb(t),
+				Headers:  randomHTTPHeaders(t),
 				Env:      randomStructPb(t),
 				Cookies:  randomStructPb(t),
 				Id:       "id",
@@ -384,7 +386,7 @@ func fullEvent(t testing.TB) *APMEvent {
 				Referrer: "referrer",
 			},
 			Response: &HTTPResponse{
-				Headers:         randomStructPb(t),
+				Headers:         randomHTTPHeaders(t),
 				Finished:        boolPtr(true),
 				HeadersSent:     boolPtr(true),
 				TransferSize:    int64Ptr(1),
