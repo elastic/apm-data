@@ -25,8 +25,7 @@ type vtprotoMessage interface {
 }
 
 // Codec is a composite of Encoder and Decoder.
-type Codec struct {
-}
+type Codec struct{}
 
 // Encode encodes vtprotoMessage type into byte slice
 func (Codec) Encode(in any) ([]byte, error) {
