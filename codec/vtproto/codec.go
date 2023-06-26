@@ -19,6 +19,8 @@ package vtproto
 
 import "fmt"
 
+// vtprotoMessage expects a struct to have MarshalVT() and UnmarshalVT() methods
+// that coverts data between byte slices and the desired format
 type vtprotoMessage interface {
 	MarshalVT() ([]byte, error)
 	UnmarshalVT([]byte) error
