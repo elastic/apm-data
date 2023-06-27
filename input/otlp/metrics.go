@@ -44,7 +44,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -102,7 +101,7 @@ func (c *Consumer) convertScopeMetrics(
 		}
 	}
 	for key, ms := range ms {
-		event := proto.Clone(baseEvent).(*modelpb.APMEvent)
+		event := baseEvent.CloneVT()
 		event.Processor = modelpb.MetricsetProcessor()
 		event.Timestamp = timestamppb.New(key.timestamp.Add(timeDelta))
 		metrs := make([]*modelpb.MetricsetSample, 0, len(ms.samples))
