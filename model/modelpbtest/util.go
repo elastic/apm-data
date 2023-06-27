@@ -15,18 +15,19 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package modelpb
+package modelpbtest
 
 import (
 	"math/rand"
 	"strings"
 	"testing"
 
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-func randomStruct(t testing.TB) (*structpb.Struct, map[string]any) {
+func RandomStruct(t testing.TB) (*structpb.Struct, map[string]any) {
 	m := map[string]any{
 		t.Name() + ".key." + randString(): t.Name() + ".value." + randString(),
 	}
@@ -37,29 +38,29 @@ func randomStruct(t testing.TB) (*structpb.Struct, map[string]any) {
 	return s, m
 }
 
-func randomStructPb(t testing.TB) *structpb.Struct {
-	s, _ := randomStruct(t)
+func RandomStructPb(t testing.TB) *structpb.Struct {
+	s, _ := RandomStruct(t)
 	return s
 }
 
-func randomHTTPHeaders(t testing.TB) []*HTTPHeader {
-	return []*HTTPHeader{
-		&HTTPHeader{
+func RandomHTTPHeaders(t testing.TB) []*modelpb.HTTPHeader {
+	return []*modelpb.HTTPHeader{
+		&modelpb.HTTPHeader{
 			Key:   t.Name() + ".key." + randString(),
 			Value: []string{t.Name() + ".value." + randString()},
 		},
 	}
 }
 
-func uintPtr(i uint32) *uint32 {
+func UintPtr(i uint32) *uint32 {
 	return &i
 }
 
-func int64Ptr(i int64) *int64 {
+func Int64Ptr(i int64) *int64 {
 	return &i
 }
 
-func boolPtr(b bool) *bool {
+func BoolPtr(b bool) *bool {
 	return &b
 }
 

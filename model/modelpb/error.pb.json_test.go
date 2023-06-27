@@ -21,6 +21,7 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modelpbtest"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 )
@@ -28,7 +29,7 @@ import (
 func TestErrorToModelJSON(t *testing.T) {
 	handled := true
 
-	attrs, attrsMap := randomStruct(t)
+	attrs, attrsMap := modelpbtest.RandomStruct(t)
 
 	testCases := map[string]struct {
 		proto    *Error

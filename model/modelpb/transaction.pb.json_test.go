@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modelpbtest"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -70,8 +71,8 @@ func TestTransactionToModelJSON(t *testing.T) {
 		"full": {
 			proto: &Transaction{
 				SpanCount: &SpanCount{
-					Started: uintPtr(1),
-					Dropped: uintPtr(2),
+					Started: modelpbtest.UintPtr(1),
+					Dropped: modelpbtest.UintPtr(2),
 				},
 				// TODO investigat valid values
 				Custom: nil,
@@ -112,8 +113,8 @@ func TestTransactionToModelJSON(t *testing.T) {
 			},
 			expectedNoMetricset: &modeljson.Transaction{
 				SpanCount: modeljson.SpanCount{
-					Started: uintPtr(1),
-					Dropped: uintPtr(2),
+					Started: modelpbtest.UintPtr(1),
+					Dropped: modelpbtest.UintPtr(2),
 				},
 				// TODO investigat valid values
 				Custom: nil,
@@ -140,8 +141,8 @@ func TestTransactionToModelJSON(t *testing.T) {
 			},
 			expectedMetricset: &modeljson.Transaction{
 				SpanCount: modeljson.SpanCount{
-					Started: uintPtr(1),
-					Dropped: uintPtr(2),
+					Started: modelpbtest.UintPtr(1),
+					Dropped: modelpbtest.UintPtr(2),
 				},
 				// TODO investigat valid values
 				Custom: nil,

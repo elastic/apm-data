@@ -21,12 +21,13 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modelpbtest"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 )
 
 func TestStacktraceToModelJSON(t *testing.T) {
-	vars, varsMap := randomStruct(t)
+	vars, varsMap := modelpbtest.RandomStruct(t)
 
 	testCases := map[string]struct {
 		proto    *StacktraceFrame
@@ -83,8 +84,8 @@ func TestStacktraceToModelJSON(t *testing.T) {
 		"full": {
 			proto: &StacktraceFrame{
 				Vars:           vars,
-				Lineno:         uintPtr(1),
-				Colno:          uintPtr(2),
+				Lineno:         modelpbtest.UintPtr(1),
+				Colno:          modelpbtest.UintPtr(2),
 				Filename:       "frame_filename",
 				Classname:      "frame_classname",
 				ContextLine:    "frame_contextline",
@@ -96,8 +97,8 @@ func TestStacktraceToModelJSON(t *testing.T) {
 					AbsPath:      "orig_abspath",
 					Filename:     "orig_filename",
 					Classname:    "orig_classname",
-					Lineno:       uintPtr(3),
-					Colno:        uintPtr(4),
+					Lineno:       modelpbtest.UintPtr(3),
+					Colno:        modelpbtest.UintPtr(4),
 					Function:     "orig_function",
 					LibraryFrame: true,
 				},
@@ -114,8 +115,8 @@ func TestStacktraceToModelJSON(t *testing.T) {
 				},
 				Vars: varsMap,
 				Line: &modeljson.StacktraceFrameLine{
-					Number:  uintPtr(1),
-					Column:  uintPtr(2),
+					Number:  modelpbtest.UintPtr(1),
+					Column:  modelpbtest.UintPtr(2),
 					Context: "frame_contextline",
 				},
 				Filename:  "frame_filename",
@@ -127,8 +128,8 @@ func TestStacktraceToModelJSON(t *testing.T) {
 					AbsPath:      "orig_abspath",
 					Filename:     "orig_filename",
 					Classname:    "orig_classname",
-					Lineno:       uintPtr(3),
-					Colno:        uintPtr(4),
+					Lineno:       modelpbtest.UintPtr(3),
+					Colno:        modelpbtest.UintPtr(4),
 					Function:     "orig_function",
 					LibraryFrame: true,
 				},

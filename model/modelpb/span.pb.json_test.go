@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modelpbtest"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -75,7 +76,7 @@ func TestSpanToModelJSON(t *testing.T) {
 					},
 				},
 				Db: &DB{
-					RowsAffected: uintPtr(5),
+					RowsAffected: modelpbtest.UintPtr(5),
 					Instance:     "db_instace",
 					Statement:    "db_statement",
 					Type:         "db_type",
@@ -130,7 +131,7 @@ func TestSpanToModelJSON(t *testing.T) {
 					},
 				},
 				DB: &modeljson.DB{
-					RowsAffected: uintPtr(5),
+					RowsAffected: modelpbtest.UintPtr(5),
 					Instance:     "db_instace",
 					Statement:    "db_statement",
 					Type:         "db_type",
