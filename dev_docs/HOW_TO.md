@@ -11,14 +11,17 @@ Adding a new intake field requires changes to both apm-data and apm-server repos
    - RUM v3: [input/elasticapm/internal/modeldecoder/rumv3/model.go](/input/elasticapm/internal/modeldecoder/rumv3/model.go)
 2. Run `make generate` to generate the corresponding `model_generated.go` and JSON specification from the modified `model.go` in step 1.
 3. Run `make update-licenses` to add license header to `model_generated.go` generated in step 2.
-4. Add the new field to the corresponding file in `model/`, e.g. `span.go`.
-   1. Add the field to the struct.
-   2. Modify the `fields` function to include the field.
+4. Add the new field to the corresponding file in `model/proto/`, e.g. `span.proto`.
+   1. Run `make generate-modelpb` to generate the corresponding `span.pb.go`.
+   2. Run `make update-licenses fmt` to add license header to `span.pb.go` generated in step 1.
+5. Add the new field to the corresponding file in `model/internal/modeljson/`, e.g. `span.go`.
+   1. Update `span.pb.json.go` to include the field in the modeljson struct.
+   2. Run `make generate` to generate the corresponding `marshal_fastjson.go` and JSON specification from the modified `span.go`.
    3. Add a test to the corresponding `*_test.go` file.
-5. Modify the modeldecoder `decoder.go` to map the modeldecoder model in step 1 to the internal model in step 4.
+6. Modify the modeldecoder `decoder.go` to map the modeldecoder model in step 1 to the internal model in step 4.
    - Intake v2: [input/elasticapm/internal/modeldecoder/v2/decoder.go](/input/elasticapm/internal/modeldecoder/v2/decoder.go)
    - RUM v3: [input/elasticapm/internal/modeldecoder/rumv3/decoder.go](/input/elasticapm/internal/modeldecoder/rumv3/decoder.go)
-6. Run `make test`
+7. Run `make test`
 
 ### 2. Make changes in [apm-server](https://github.com/elastic/apm-server/)
 
@@ -75,9 +78,12 @@ Mapping an OTel field is similar to adding a field to Intake.
 ### 1. Make changes in apm-data (this repo)
 
 1. Modify OTel parsing code in [input/otlp](/input/otlp)
-2. Add the new field to the corresponding file in `model/`, e.g. `span.go`.
-   1. Add the field to the struct.
-   2. Modify the `fields` function to include the field.
+2. Add the new field to the corresponding file in `model/proto/`, e.g. `span.proto`.
+   1. Run `make generate-modelpb` to generate the corresponding `span.pb.go`.
+   2. Run `make update-licenses fmt` to add license header to `span.pb.go` generated in step 1.
+3. Add the new field to the corresponding file in `model/internal/modeljson/`, e.g. `span.go`.
+   1. Update `span.pb.json.go` to include the field in the modeljson struct.
+   2. Run `make generate` to generate the corresponding `marshal_fastjson.go` and JSON specification from the modified `span.go`.
    3. Add a test to the corresponding `*_test.go` file.
 3. Run `make test`
 
