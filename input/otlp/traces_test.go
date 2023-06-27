@@ -824,6 +824,21 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	}
 }
 
+func TestConsumeTracesEventReceived(t *testing.T) {
+	traces, otelSpans := newTracesSpans()
+	now := time.Now()
+
+	otelSpan1 := otelSpans.Spans().AppendEmpty()
+	otelSpan1.SetTraceID(pcommon.TraceID{1})
+	otelSpan1.SetSpanID(pcommon.SpanID{2})
+
+	batch := transformTraces(t, traces)
+	require.Len(t, *batch, 1)
+
+	const allowedDelta = 2 // seconds
+	require.InDelta(t, now.Unix(), (*batch)[0].Event.Received.AsTime().Unix(), allowedDelta)
+}
+
 func TestSpanLinks(t *testing.T) {
 	linkedTraceID := pcommon.TraceID{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
 	linkedSpanID := pcommon.SpanID{7, 6, 5, 4, 3, 2, 1, 0}
