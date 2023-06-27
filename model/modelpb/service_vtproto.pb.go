@@ -25,6 +25,7 @@ import (
 	fmt "fmt"
 	io "io"
 
+	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
@@ -34,6 +35,146 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+func (m *Service) CloneVT() *Service {
+	if m == nil {
+		return (*Service)(nil)
+	}
+	r := &Service{
+		Origin:      m.Origin.CloneVT(),
+		Target:      m.Target.CloneVT(),
+		Language:    m.Language.CloneVT(),
+		Runtime:     m.Runtime.CloneVT(),
+		Framework:   m.Framework.CloneVT(),
+		Name:        m.Name,
+		Version:     m.Version,
+		Environment: m.Environment,
+		Node:        m.Node.CloneVT(),
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Service) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *ServiceOrigin) CloneVT() *ServiceOrigin {
+	if m == nil {
+		return (*ServiceOrigin)(nil)
+	}
+	r := &ServiceOrigin{
+		Id:      m.Id,
+		Name:    m.Name,
+		Version: m.Version,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *ServiceOrigin) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *ServiceTarget) CloneVT() *ServiceTarget {
+	if m == nil {
+		return (*ServiceTarget)(nil)
+	}
+	r := &ServiceTarget{
+		Name: m.Name,
+		Type: m.Type,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *ServiceTarget) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *Language) CloneVT() *Language {
+	if m == nil {
+		return (*Language)(nil)
+	}
+	r := &Language{
+		Name:    m.Name,
+		Version: m.Version,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Language) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *Runtime) CloneVT() *Runtime {
+	if m == nil {
+		return (*Runtime)(nil)
+	}
+	r := &Runtime{
+		Name:    m.Name,
+		Version: m.Version,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Runtime) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *Framework) CloneVT() *Framework {
+	if m == nil {
+		return (*Framework)(nil)
+	}
+	r := &Framework{
+		Name:    m.Name,
+		Version: m.Version,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Framework) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *ServiceNode) CloneVT() *ServiceNode {
+	if m == nil {
+		return (*ServiceNode)(nil)
+	}
+	r := &ServiceNode{
+		Name: m.Name,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *ServiceNode) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
 
 func (m *Service) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {

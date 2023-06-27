@@ -25,6 +25,7 @@ import (
 	fmt "fmt"
 	io "io"
 
+	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
@@ -34,6 +35,27 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+func (m *Child) CloneVT() *Child {
+	if m == nil {
+		return (*Child)(nil)
+	}
+	r := &Child{}
+	if rhs := m.Id; rhs != nil {
+		tmpContainer := make([]string, len(rhs))
+		copy(tmpContainer, rhs)
+		r.Id = tmpContainer
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Child) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
 
 func (m *Child) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {

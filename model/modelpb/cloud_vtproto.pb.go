@@ -25,6 +25,7 @@ import (
 	fmt "fmt"
 	io "io"
 
+	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
@@ -34,6 +35,56 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+func (m *Cloud) CloneVT() *Cloud {
+	if m == nil {
+		return (*Cloud)(nil)
+	}
+	r := &Cloud{
+		Origin:           m.Origin.CloneVT(),
+		AccountId:        m.AccountId,
+		AccountName:      m.AccountName,
+		AvailabilityZone: m.AvailabilityZone,
+		InstanceId:       m.InstanceId,
+		InstanceName:     m.InstanceName,
+		MachineType:      m.MachineType,
+		ProjectId:        m.ProjectId,
+		ProjectName:      m.ProjectName,
+		Provider:         m.Provider,
+		Region:           m.Region,
+		ServiceName:      m.ServiceName,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Cloud) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *CloudOrigin) CloneVT() *CloudOrigin {
+	if m == nil {
+		return (*CloudOrigin)(nil)
+	}
+	r := &CloudOrigin{
+		AccountId:   m.AccountId,
+		Provider:    m.Provider,
+		Region:      m.Region,
+		ServiceName: m.ServiceName,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *CloudOrigin) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
 
 func (m *Cloud) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {

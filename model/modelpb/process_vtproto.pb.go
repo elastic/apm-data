@@ -25,6 +25,7 @@ import (
 	fmt "fmt"
 	io "io"
 
+	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
@@ -34,6 +35,53 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+func (m *Process) CloneVT() *Process {
+	if m == nil {
+		return (*Process)(nil)
+	}
+	r := &Process{
+		Ppid:        m.Ppid,
+		Thread:      m.Thread.CloneVT(),
+		Title:       m.Title,
+		CommandLine: m.CommandLine,
+		Executable:  m.Executable,
+		Pid:         m.Pid,
+	}
+	if rhs := m.Argv; rhs != nil {
+		tmpContainer := make([]string, len(rhs))
+		copy(tmpContainer, rhs)
+		r.Argv = tmpContainer
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Process) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *ProcessThread) CloneVT() *ProcessThread {
+	if m == nil {
+		return (*ProcessThread)(nil)
+	}
+	r := &ProcessThread{
+		Name: m.Name,
+		Id:   m.Id,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *ProcessThread) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
 
 func (m *Process) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {

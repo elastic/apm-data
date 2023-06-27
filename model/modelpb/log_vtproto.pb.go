@@ -25,6 +25,7 @@ import (
 	fmt "fmt"
 	io "io"
 
+	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
@@ -34,6 +35,64 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+func (m *Log) CloneVT() *Log {
+	if m == nil {
+		return (*Log)(nil)
+	}
+	r := &Log{
+		Level:  m.Level,
+		Logger: m.Logger,
+		Origin: m.Origin.CloneVT(),
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Log) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *LogOrigin) CloneVT() *LogOrigin {
+	if m == nil {
+		return (*LogOrigin)(nil)
+	}
+	r := &LogOrigin{
+		FunctionName: m.FunctionName,
+		File:         m.File.CloneVT(),
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *LogOrigin) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *LogOriginFile) CloneVT() *LogOriginFile {
+	if m == nil {
+		return (*LogOriginFile)(nil)
+	}
+	r := &LogOriginFile{
+		Name: m.Name,
+		Line: m.Line,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *LogOriginFile) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
 
 func (m *Log) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {

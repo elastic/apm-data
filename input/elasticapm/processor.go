@@ -27,7 +27,6 @@ import (
 
 	"go.elastic.co/apm/v2"
 	"go.uber.org/zap"
-	"google.golang.org/protobuf/proto"
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
@@ -196,7 +195,7 @@ func (p *Processor) readBatch(
 		}
 		// We copy the event for each iteration of the batch, as to avoid
 		// shallow copies of Labels and NumericLabels.
-		input := modeldecoder.Input{Base: copyEvent(baseEvent)}
+		input := modeldecoder.Input{Base: baseEvent}
 		switch eventType := p.identifyEventType(body); string(eventType) {
 		case errorEventType:
 			err = v2.DecodeNestedError(reader, &input, batch)
@@ -423,17 +422,4 @@ func (sr *streamReader) wrapError(err error) error {
 		}
 	}
 	return err
-}
-
-// copyEvent returns a shallow copy of the APMEvent with a deep copy of the
-// labels and numeric labels.
-func copyEvent(e *modelpb.APMEvent) *modelpb.APMEvent {
-	out := proto.Clone(e).(*modelpb.APMEvent)
-	if out.Labels != nil {
-		out.Labels = modelpb.Labels(out.Labels).Clone()
-	}
-	if out.NumericLabels != nil {
-		out.NumericLabels = modelpb.NumericLabels(out.NumericLabels).Clone()
-	}
-	return out
 }

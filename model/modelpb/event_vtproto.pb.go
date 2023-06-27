@@ -38,6 +38,45 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+func (m *Event) CloneVT() *Event {
+	if m == nil {
+		return (*Event)(nil)
+	}
+	r := &Event{
+		Outcome:      m.Outcome,
+		Action:       m.Action,
+		Dataset:      m.Dataset,
+		Kind:         m.Kind,
+		Category:     m.Category,
+		Type:         m.Type,
+		SuccessCount: m.SuccessCount.CloneVT(),
+		Severity:     m.Severity,
+	}
+	if rhs := m.Duration; rhs != nil {
+		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *durationpb.Duration }); ok {
+			r.Duration = vtpb.CloneVT()
+		} else {
+			r.Duration = proto.Clone(rhs).(*durationpb.Duration)
+		}
+	}
+	if rhs := m.Received; rhs != nil {
+		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *timestamppb.Timestamp }); ok {
+			r.Received = vtpb.CloneVT()
+		} else {
+			r.Received = proto.Clone(rhs).(*timestamppb.Timestamp)
+		}
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Event) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
 func (m *Event) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil

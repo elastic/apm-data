@@ -27,6 +27,7 @@ import (
 	io "io"
 	math "math"
 
+	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
@@ -36,6 +37,139 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+func (m *Span) CloneVT() *Span {
+	if m == nil {
+		return (*Span)(nil)
+	}
+	r := &Span{
+		Message:             m.Message.CloneVT(),
+		Composite:           m.Composite.CloneVT(),
+		DestinationService:  m.DestinationService.CloneVT(),
+		Db:                  m.Db.CloneVT(),
+		Kind:                m.Kind,
+		Action:              m.Action,
+		Subtype:             m.Subtype,
+		Id:                  m.Id,
+		Type:                m.Type,
+		Name:                m.Name,
+		SelfTime:            m.SelfTime.CloneVT(),
+		RepresentativeCount: m.RepresentativeCount,
+	}
+	if rhs := m.Sync; rhs != nil {
+		tmpVal := *rhs
+		r.Sync = &tmpVal
+	}
+	if rhs := m.Stacktrace; rhs != nil {
+		tmpContainer := make([]*StacktraceFrame, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
+		}
+		r.Stacktrace = tmpContainer
+	}
+	if rhs := m.Links; rhs != nil {
+		tmpContainer := make([]*SpanLink, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
+		}
+		r.Links = tmpContainer
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Span) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *DB) CloneVT() *DB {
+	if m == nil {
+		return (*DB)(nil)
+	}
+	r := &DB{
+		Instance:  m.Instance,
+		Statement: m.Statement,
+		Type:      m.Type,
+		UserName:  m.UserName,
+		Link:      m.Link,
+	}
+	if rhs := m.RowsAffected; rhs != nil {
+		tmpVal := *rhs
+		r.RowsAffected = &tmpVal
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *DB) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *DestinationService) CloneVT() *DestinationService {
+	if m == nil {
+		return (*DestinationService)(nil)
+	}
+	r := &DestinationService{
+		Type:         m.Type,
+		Name:         m.Name,
+		Resource:     m.Resource,
+		ResponseTime: m.ResponseTime.CloneVT(),
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *DestinationService) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *Composite) CloneVT() *Composite {
+	if m == nil {
+		return (*Composite)(nil)
+	}
+	r := &Composite{
+		CompressionStrategy: m.CompressionStrategy,
+		Count:               m.Count,
+		Sum:                 m.Sum,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Composite) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *SpanLink) CloneVT() *SpanLink {
+	if m == nil {
+		return (*SpanLink)(nil)
+	}
+	r := &SpanLink{
+		Trace: m.Trace.CloneVT(),
+		Span:  m.Span.CloneVT(),
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *SpanLink) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
 
 func (m *Span) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {

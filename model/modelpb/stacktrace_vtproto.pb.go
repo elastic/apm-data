@@ -37,6 +37,89 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+func (m *StacktraceFrame) CloneVT() *StacktraceFrame {
+	if m == nil {
+		return (*StacktraceFrame)(nil)
+	}
+	r := &StacktraceFrame{
+		Filename:            m.Filename,
+		Classname:           m.Classname,
+		ContextLine:         m.ContextLine,
+		Module:              m.Module,
+		Function:            m.Function,
+		AbsPath:             m.AbsPath,
+		SourcemapError:      m.SourcemapError,
+		Original:            m.Original.CloneVT(),
+		LibraryFrame:        m.LibraryFrame,
+		SourcemapUpdated:    m.SourcemapUpdated,
+		ExcludeFromGrouping: m.ExcludeFromGrouping,
+	}
+	if rhs := m.Vars; rhs != nil {
+		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *structpb.Struct }); ok {
+			r.Vars = vtpb.CloneVT()
+		} else {
+			r.Vars = proto.Clone(rhs).(*structpb.Struct)
+		}
+	}
+	if rhs := m.Lineno; rhs != nil {
+		tmpVal := *rhs
+		r.Lineno = &tmpVal
+	}
+	if rhs := m.Colno; rhs != nil {
+		tmpVal := *rhs
+		r.Colno = &tmpVal
+	}
+	if rhs := m.PreContext; rhs != nil {
+		tmpContainer := make([]string, len(rhs))
+		copy(tmpContainer, rhs)
+		r.PreContext = tmpContainer
+	}
+	if rhs := m.PostContext; rhs != nil {
+		tmpContainer := make([]string, len(rhs))
+		copy(tmpContainer, rhs)
+		r.PostContext = tmpContainer
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *StacktraceFrame) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *Original) CloneVT() *Original {
+	if m == nil {
+		return (*Original)(nil)
+	}
+	r := &Original{
+		AbsPath:      m.AbsPath,
+		Filename:     m.Filename,
+		Classname:    m.Classname,
+		Function:     m.Function,
+		LibraryFrame: m.LibraryFrame,
+	}
+	if rhs := m.Lineno; rhs != nil {
+		tmpVal := *rhs
+		r.Lineno = &tmpVal
+	}
+	if rhs := m.Colno; rhs != nil {
+		tmpVal := *rhs
+		r.Colno = &tmpVal
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Original) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
 func (m *StacktraceFrame) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil

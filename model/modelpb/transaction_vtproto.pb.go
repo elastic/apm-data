@@ -39,6 +39,125 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+func (m *Transaction) CloneVT() *Transaction {
+	if m == nil {
+		return (*Transaction)(nil)
+	}
+	r := &Transaction{
+		SpanCount:           m.SpanCount.CloneVT(),
+		UserExperience:      m.UserExperience.CloneVT(),
+		Message:             m.Message.CloneVT(),
+		Type:                m.Type,
+		Name:                m.Name,
+		Result:              m.Result,
+		Id:                  m.Id,
+		DurationHistogram:   m.DurationHistogram.CloneVT(),
+		DurationSummary:     m.DurationSummary.CloneVT(),
+		RepresentativeCount: m.RepresentativeCount,
+		Sampled:             m.Sampled,
+		Root:                m.Root,
+	}
+	if rhs := m.Custom; rhs != nil {
+		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *structpb.Struct }); ok {
+			r.Custom = vtpb.CloneVT()
+		} else {
+			r.Custom = proto.Clone(rhs).(*structpb.Struct)
+		}
+	}
+	if rhs := m.Marks; rhs != nil {
+		tmpContainer := make(map[string]*TransactionMark, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
+		}
+		r.Marks = tmpContainer
+	}
+	if rhs := m.DroppedSpansStats; rhs != nil {
+		tmpContainer := make([]*DroppedSpanStats, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
+		}
+		r.DroppedSpansStats = tmpContainer
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Transaction) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *SpanCount) CloneVT() *SpanCount {
+	if m == nil {
+		return (*SpanCount)(nil)
+	}
+	r := &SpanCount{}
+	if rhs := m.Dropped; rhs != nil {
+		tmpVal := *rhs
+		r.Dropped = &tmpVal
+	}
+	if rhs := m.Started; rhs != nil {
+		tmpVal := *rhs
+		r.Started = &tmpVal
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *SpanCount) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *TransactionMark) CloneVT() *TransactionMark {
+	if m == nil {
+		return (*TransactionMark)(nil)
+	}
+	r := &TransactionMark{}
+	if rhs := m.Measurements; rhs != nil {
+		tmpContainer := make(map[string]float64, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v
+		}
+		r.Measurements = tmpContainer
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *TransactionMark) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *DroppedSpanStats) CloneVT() *DroppedSpanStats {
+	if m == nil {
+		return (*DroppedSpanStats)(nil)
+	}
+	r := &DroppedSpanStats{
+		DestinationServiceResource: m.DestinationServiceResource,
+		ServiceTargetType:          m.ServiceTargetType,
+		ServiceTargetName:          m.ServiceTargetName,
+		Outcome:                    m.Outcome,
+		Duration:                   m.Duration.CloneVT(),
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *DroppedSpanStats) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
 func (m *Transaction) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil

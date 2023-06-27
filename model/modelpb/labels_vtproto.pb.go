@@ -27,6 +27,7 @@ import (
 	io "io"
 	math "math"
 
+	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
@@ -36,6 +37,54 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+func (m *LabelValue) CloneVT() *LabelValue {
+	if m == nil {
+		return (*LabelValue)(nil)
+	}
+	r := &LabelValue{
+		Value:  m.Value,
+		Global: m.Global,
+	}
+	if rhs := m.Values; rhs != nil {
+		tmpContainer := make([]string, len(rhs))
+		copy(tmpContainer, rhs)
+		r.Values = tmpContainer
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *LabelValue) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *NumericLabelValue) CloneVT() *NumericLabelValue {
+	if m == nil {
+		return (*NumericLabelValue)(nil)
+	}
+	r := &NumericLabelValue{
+		Value:  m.Value,
+		Global: m.Global,
+	}
+	if rhs := m.Values; rhs != nil {
+		tmpContainer := make([]float64, len(rhs))
+		copy(tmpContainer, rhs)
+		r.Values = tmpContainer
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *NumericLabelValue) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
 
 func (m *LabelValue) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {

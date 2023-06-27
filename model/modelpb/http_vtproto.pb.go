@@ -37,6 +37,119 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+func (m *HTTP) CloneVT() *HTTP {
+	if m == nil {
+		return (*HTTP)(nil)
+	}
+	r := &HTTP{
+		Request:  m.Request.CloneVT(),
+		Response: m.Response.CloneVT(),
+		Version:  m.Version,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *HTTP) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *HTTPRequest) CloneVT() *HTTPRequest {
+	if m == nil {
+		return (*HTTPRequest)(nil)
+	}
+	r := &HTTPRequest{
+		Id:       m.Id,
+		Method:   m.Method,
+		Referrer: m.Referrer,
+	}
+	if rhs := m.Body; rhs != nil {
+		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *structpb.Value }); ok {
+			r.Body = vtpb.CloneVT()
+		} else {
+			r.Body = proto.Clone(rhs).(*structpb.Value)
+		}
+	}
+	if rhs := m.Headers; rhs != nil {
+		tmpContainer := make([]*HTTPHeader, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
+		}
+		r.Headers = tmpContainer
+	}
+	if rhs := m.Env; rhs != nil {
+		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *structpb.Struct }); ok {
+			r.Env = vtpb.CloneVT()
+		} else {
+			r.Env = proto.Clone(rhs).(*structpb.Struct)
+		}
+	}
+	if rhs := m.Cookies; rhs != nil {
+		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *structpb.Struct }); ok {
+			r.Cookies = vtpb.CloneVT()
+		} else {
+			r.Cookies = proto.Clone(rhs).(*structpb.Struct)
+		}
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *HTTPRequest) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *HTTPResponse) CloneVT() *HTTPResponse {
+	if m == nil {
+		return (*HTTPResponse)(nil)
+	}
+	r := &HTTPResponse{
+		StatusCode: m.StatusCode,
+	}
+	if rhs := m.Headers; rhs != nil {
+		tmpContainer := make([]*HTTPHeader, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
+		}
+		r.Headers = tmpContainer
+	}
+	if rhs := m.Finished; rhs != nil {
+		tmpVal := *rhs
+		r.Finished = &tmpVal
+	}
+	if rhs := m.HeadersSent; rhs != nil {
+		tmpVal := *rhs
+		r.HeadersSent = &tmpVal
+	}
+	if rhs := m.TransferSize; rhs != nil {
+		tmpVal := *rhs
+		r.TransferSize = &tmpVal
+	}
+	if rhs := m.EncodedBodySize; rhs != nil {
+		tmpVal := *rhs
+		r.EncodedBodySize = &tmpVal
+	}
+	if rhs := m.DecodedBodySize; rhs != nil {
+		tmpVal := *rhs
+		r.DecodedBodySize = &tmpVal
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *HTTPResponse) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
 func (m *HTTP) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil

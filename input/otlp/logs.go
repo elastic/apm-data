@@ -43,7 +43,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 	"go.uber.org/zap"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -98,7 +97,7 @@ func (c *Consumer) convertLogRecord(
 	baseEvent *modelpb.APMEvent,
 	timeDelta time.Duration,
 ) *modelpb.APMEvent {
-	event := proto.Clone(baseEvent).(*modelpb.APMEvent)
+	event := baseEvent.CloneVT()
 	initEventLabels(event)
 	event.Timestamp = timestamppb.New(record.Timestamp().AsTime().Add(timeDelta))
 	event.Event = populateNil(event.Event)
