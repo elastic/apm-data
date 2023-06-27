@@ -13,7 +13,7 @@ Adding a new intake field requires changes to both apm-data and apm-server repos
 3. Run `make update-licenses` to add license header to `model_generated.go` generated in step 2.
 4. Add the new field to the corresponding file in `model/proto/`, e.g. `span.proto`.
    1. Run `make generate-modelpb` to generate the corresponding `span.pb.go`.
-   2. Run `make update-licenses fmt` to add license header to `span.pb.go` generated in step 1.
+   2. Run `make update-licenses fmt` to add license header to `span.pb.go` generated in the previous step.
 5. Add the new field to the corresponding file in `model/internal/modeljson/`, e.g. `span.go`.
    1. Update `span.pb.json.go` to include the field in the modeljson struct.
    2. Run `make generate` to generate the corresponding `marshal_fastjson.go` and JSON specification from the modified `span.go`.
@@ -80,7 +80,7 @@ Mapping an OTel field is similar to adding a field to Intake.
 1. Modify OTel parsing code in [input/otlp](/input/otlp)
 2. Add the new field to the corresponding file in `model/proto/`, e.g. `span.proto`.
    1. Run `make generate-modelpb` to generate the corresponding `span.pb.go`.
-   2. Run `make update-licenses fmt` to add license header to `span.pb.go` generated in step 1.
+   2. Run `make update-licenses fmt` to add license header to `span.pb.go` generated in the previous step.
 3. Add the new field to the corresponding file in `model/internal/modeljson/`, e.g. `span.go`.
    1. Update `span.pb.json.go` to include the field in the modeljson struct.
    2. Run `make generate` to generate the corresponding `marshal_fastjson.go` and JSON specification from the modified `span.go`.
