@@ -27,6 +27,7 @@ import (
 	io "io"
 	math "math"
 
+	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
@@ -36,6 +37,47 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+func (m *UserExperience) CloneVT() *UserExperience {
+	if m == nil {
+		return (*UserExperience)(nil)
+	}
+	r := &UserExperience{
+		CumulativeLayoutShift: m.CumulativeLayoutShift,
+		FirstInputDelay:       m.FirstInputDelay,
+		TotalBlockingTime:     m.TotalBlockingTime,
+		LongTask:              m.LongTask.CloneVT(),
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *UserExperience) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *LongtaskMetrics) CloneVT() *LongtaskMetrics {
+	if m == nil {
+		return (*LongtaskMetrics)(nil)
+	}
+	r := &LongtaskMetrics{
+		Count: m.Count,
+		Sum:   m.Sum,
+		Max:   m.Max,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *LongtaskMetrics) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
 
 func (m *UserExperience) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {

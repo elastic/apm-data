@@ -37,6 +37,112 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+func (m *Error) CloneVT() *Error {
+	if m == nil {
+		return (*Error)(nil)
+	}
+	r := &Error{
+		Exception:   m.Exception.CloneVT(),
+		Log:         m.Log.CloneVT(),
+		Id:          m.Id,
+		GroupingKey: m.GroupingKey,
+		Culprit:     m.Culprit,
+		StackTrace:  m.StackTrace,
+		Message:     m.Message,
+		Type:        m.Type,
+	}
+	if rhs := m.Custom; rhs != nil {
+		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *structpb.Struct }); ok {
+			r.Custom = vtpb.CloneVT()
+		} else {
+			r.Custom = proto.Clone(rhs).(*structpb.Struct)
+		}
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Error) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *Exception) CloneVT() *Exception {
+	if m == nil {
+		return (*Exception)(nil)
+	}
+	r := &Exception{
+		Message: m.Message,
+		Module:  m.Module,
+		Code:    m.Code,
+		Type:    m.Type,
+	}
+	if rhs := m.Attributes; rhs != nil {
+		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *structpb.Struct }); ok {
+			r.Attributes = vtpb.CloneVT()
+		} else {
+			r.Attributes = proto.Clone(rhs).(*structpb.Struct)
+		}
+	}
+	if rhs := m.Stacktrace; rhs != nil {
+		tmpContainer := make([]*StacktraceFrame, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
+		}
+		r.Stacktrace = tmpContainer
+	}
+	if rhs := m.Handled; rhs != nil {
+		tmpVal := *rhs
+		r.Handled = &tmpVal
+	}
+	if rhs := m.Cause; rhs != nil {
+		tmpContainer := make([]*Exception, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
+		}
+		r.Cause = tmpContainer
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Exception) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *ErrorLog) CloneVT() *ErrorLog {
+	if m == nil {
+		return (*ErrorLog)(nil)
+	}
+	r := &ErrorLog{
+		Message:      m.Message,
+		Level:        m.Level,
+		ParamMessage: m.ParamMessage,
+		LoggerName:   m.LoggerName,
+	}
+	if rhs := m.Stacktrace; rhs != nil {
+		tmpContainer := make([]*StacktraceFrame, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
+		}
+		r.Stacktrace = tmpContainer
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *ErrorLog) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
 func (m *Error) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil

@@ -26,6 +26,7 @@ import (
 	io "io"
 	bits "math/bits"
 
+	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
@@ -35,6 +36,27 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+func (m *Agent) CloneVT() *Agent {
+	if m == nil {
+		return (*Agent)(nil)
+	}
+	r := &Agent{
+		Name:             m.Name,
+		Version:          m.Version,
+		EphemeralId:      m.EphemeralId,
+		ActivationMethod: m.ActivationMethod,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Agent) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
 
 func (m *Agent) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {

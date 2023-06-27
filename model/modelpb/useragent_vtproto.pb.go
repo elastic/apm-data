@@ -25,6 +25,7 @@ import (
 	fmt "fmt"
 	io "io"
 
+	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
@@ -34,6 +35,25 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+func (m *UserAgent) CloneVT() *UserAgent {
+	if m == nil {
+		return (*UserAgent)(nil)
+	}
+	r := &UserAgent{
+		Original: m.Original,
+		Name:     m.Name,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *UserAgent) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
 
 func (m *UserAgent) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {

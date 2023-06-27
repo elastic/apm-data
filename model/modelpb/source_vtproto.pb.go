@@ -25,6 +25,7 @@ import (
 	fmt "fmt"
 	io "io"
 
+	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
@@ -34,6 +35,45 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+func (m *Source) CloneVT() *Source {
+	if m == nil {
+		return (*Source)(nil)
+	}
+	r := &Source{
+		Ip:     m.Ip,
+		Nat:    m.Nat.CloneVT(),
+		Domain: m.Domain,
+		Port:   m.Port,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Source) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *NAT) CloneVT() *NAT {
+	if m == nil {
+		return (*NAT)(nil)
+	}
+	r := &NAT{
+		Ip: m.Ip,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *NAT) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
 
 func (m *Source) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {

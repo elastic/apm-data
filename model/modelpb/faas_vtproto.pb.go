@@ -25,6 +25,7 @@ import (
 	fmt "fmt"
 	io "io"
 
+	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
@@ -34,6 +35,33 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+func (m *Faas) CloneVT() *Faas {
+	if m == nil {
+		return (*Faas)(nil)
+	}
+	r := &Faas{
+		Id:               m.Id,
+		Execution:        m.Execution,
+		TriggerType:      m.TriggerType,
+		TriggerRequestId: m.TriggerRequestId,
+		Name:             m.Name,
+		Version:          m.Version,
+	}
+	if rhs := m.ColdStart; rhs != nil {
+		tmpVal := *rhs
+		r.ColdStart = &tmpVal
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Faas) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
 
 func (m *Faas) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {

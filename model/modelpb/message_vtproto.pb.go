@@ -25,6 +25,7 @@ import (
 	fmt "fmt"
 	io "io"
 
+	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
@@ -34,6 +35,37 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+func (m *Message) CloneVT() *Message {
+	if m == nil {
+		return (*Message)(nil)
+	}
+	r := &Message{
+		Body:       m.Body,
+		QueueName:  m.QueueName,
+		RoutingKey: m.RoutingKey,
+	}
+	if rhs := m.Headers; rhs != nil {
+		tmpContainer := make([]*HTTPHeader, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
+		}
+		r.Headers = tmpContainer
+	}
+	if rhs := m.AgeMillis; rhs != nil {
+		tmpVal := *rhs
+		r.AgeMillis = &tmpVal
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Message) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
 
 func (m *Message) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
