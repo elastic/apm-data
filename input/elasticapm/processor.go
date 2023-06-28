@@ -42,6 +42,8 @@ var (
 	// ErrQueueFull may be returned by HandleStream when the internal
 	// queue is full.
 	ErrQueueFull = errors.New("queue is full")
+
+	batchPool sync.Pool
 )
 
 const (
@@ -64,7 +66,6 @@ const (
 // the concurrency limit is shared between all the intake endpoints.
 type Processor struct {
 	streamReaderPool sync.Pool
-	batchPool        sync.Pool
 	sem              input.Semaphore
 	logger           *zap.Logger
 	MaxEventSize     int
@@ -334,13 +335,13 @@ func (p *Processor) handleStream(
 		}()
 	}
 	var batch modelpb.Batch
-	if b, ok := p.batchPool.Get().(*modelpb.Batch); ok {
+	if b, ok := batchPool.Get().(*modelpb.Batch); ok {
 		batch = (*b)[:0]
 	}
 	n, readErr = p.readBatch(ctx, baseEvent, batchSize, &batch, sr, result)
 	if n == 0 {
 		// No events to process, return the batch to the pool.
-		p.batchPool.Put(&batch)
+		batchPool.Put(&batch)
 		return readErr
 	}
 	// Async requests are processed in the background and once the batch has
@@ -363,7 +364,12 @@ func (p *Processor) handleStream(
 
 // processBatch processes the batch and returns it to the pool after it's been processed.
 func (p *Processor) processBatch(ctx context.Context, processor modelpb.BatchProcessor, batch *modelpb.Batch) error {
-	defer p.batchPool.Put(batch)
+	defer func() {
+		for i := range *batch {
+			(*batch)[i] = nil
+		}
+		batchPool.Put(batch)
+	}()
 	return processor.ProcessBatch(ctx, batch)
 }
 
