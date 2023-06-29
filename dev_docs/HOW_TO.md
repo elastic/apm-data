@@ -120,14 +120,14 @@ reference. If you need to create a copy of a protobuf model use the `CloneVT` me
 ```golang
 func foo(event *modelpb.APMEvent) {
 	base := *event // NOT SAFE, don't do this
-    ...
+	...
 }
 ```
 
 ```golang
 func foo(event *modelpb.APMEvent) {
 	base := event.CloneVT() // OK
-    ...
+	...
 }
 ```
 
