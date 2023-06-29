@@ -99,7 +99,11 @@ func (c *Consumer) convertResourceSpans(
 	receiveTimestamp time.Time,
 	out *modelpb.Batch,
 ) {
-	var baseEvent modelpb.APMEvent
+	baseEvent := modelpb.APMEvent{
+		Event: &modelpb.Event{
+			Received: timestamppb.New(receiveTimestamp),
+		},
+	}
 	var timeDelta time.Duration
 	resource := resourceSpans.Resource()
 	translateResourceMetadata(resource, &baseEvent)
