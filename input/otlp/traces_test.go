@@ -1592,11 +1592,20 @@ func approveEventDocs(t testing.TB, name string, docs [][]byte) {
 
 	events := make([]any, len(docs))
 	for i, doc := range docs {
-		var event map[string]any
-		if err := json.Unmarshal(doc, &event); err != nil {
+		var m map[string]any
+		if err := json.Unmarshal(doc, &m); err != nil {
 			t.Fatal(err)
 		}
-		events[i] = event
+
+		// Ignore the specific value for "event.received", as it is dynamic.
+		// Skip this for test data that does not have event information.
+		if e, ok := m["event"]; ok {
+			event := e.(map[string]any)
+			require.Contains(t, event, "received")
+			delete(event, "received")
+		}
+
+		events[i] = m
 	}
 	received := map[string]any{"events": events}
 
@@ -1607,59 +1616,9 @@ func approveEventDocs(t testing.TB, name string, docs [][]byte) {
 		t.Fatal(err)
 	}
 
-	if diff := cmp.Diff(approved, received, filterKeyInValues("received")); diff != "" {
+	if diff := cmp.Diff(approved, received); diff != "" {
 		t.Fatalf("%s\n", diff)
 	}
-}
-
-// filterKeyInValues apply a cmp.FilterValues based on the specified key.
-// It expects to work on map[string]any and will trigger a custom comparer when the map contains
-// the specified key.
-//
-// Cons:
-//   - works for `received` as there is no other key named like that in the test values; when multiple
-//     keys in different objects are present it will apply to all
-//   - extracts all other keys siblings of the specified ones so the test exclude only a single key
-//     while testing for others
-//
-// TODO(endorama): remove this and verify that `received` is a timestamp in proper format.
-func filterKeyInValues(key string) cmp.Option {
-	filterEvent := func(a, b map[string]any) bool {
-		_, aok := a[key]
-		_, bok := b[key]
-		if aok || bok {
-			return true
-		}
-		return false
-	}
-	getMapsKeyExcept := func(a map[string]any) []string {
-		keys := []string{}
-		for k := range a {
-			if k == key {
-				continue
-			}
-			keys = append(keys, k)
-		}
-		return keys
-	}
-	compareEvent := func(a, b map[string]any) bool {
-		aKeys := getMapsKeyExcept(a)
-		bKeys := getMapsKeyExcept(b)
-
-		for _, k := range aKeys {
-			if a[k] != b[k] {
-				return false
-			}
-		}
-		for _, k := range bKeys {
-			if b[k] != a[k] {
-				return false
-			}
-		}
-
-		return true
-	}
-	return cmp.FilterValues(filterEvent, cmp.Comparer(compareEvent))
 }
 
 func jaegerKeyValues(kv ...interface{}) []jaegermodel.KeyValue {
