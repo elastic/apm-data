@@ -18,6 +18,7 @@
 package vtproto
 
 import (
+	"sync/atomic"
 	"testing"
 
 	"github.com/elastic/apm-data/codec/internal/testutils"
@@ -28,16 +29,18 @@ func BenchmarkCodec(b *testing.B) {
 	codec := Codec{}
 
 	b.Run("Encode", func(b *testing.B) {
-		var output int64
+		var output atomic.Int64
 		b.RunParallel(func(p *testing.PB) {
+			var localOutput int64
 			for p.Next() {
 				by, _ := codec.Encode(testutils.FullEvent(b))
-				output += int64(len(by))
+				localOutput += int64(len(by))
 			}
+			output.Add(localOutput)
 		})
 
-		bytePerOp := float64(output) / float64(b.N)
-		b.ReportMetric(bytePerOp, "bytes/op")
+		// bytePerOp := float64(output) / float64(b.N)
+		// b.ReportMetric(bytePerOp, "bytes/op")
 	})
 
 	b.Run("Decode", func(b *testing.B) {
