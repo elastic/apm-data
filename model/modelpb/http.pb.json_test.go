@@ -21,18 +21,17 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-data/model/internal/modeljson"
-	"github.com/elastic/apm-data/model/modelpbtest"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 )
 
 func TestHTTPToModelJSON(t *testing.T) {
-	headers := modelpbtest.RandomHTTPHeaders(t)
+	headers := randomHTTPHeaders(t)
 	headersMap := ToHTTPHeaders(headers)
-	headers2 := modelpbtest.RandomHTTPHeaders(t)
+	headers2 := randomHTTPHeaders(t)
 	headersMap2 := ToHTTPHeaders(headers2)
-	cookies, cookiesMap := modelpbtest.RandomStruct(t)
-	envs, envsMap := modelpbtest.RandomStruct(t)
+	cookies, cookiesMap := randomStruct(t)
+	envs, envsMap := randomStruct(t)
 	tru := true
 
 	testCases := map[string]struct {
@@ -71,9 +70,9 @@ func TestHTTPToModelJSON(t *testing.T) {
 					Headers:         headers2,
 					Finished:        &tru,
 					HeadersSent:     &tru,
-					TransferSize:    Int64Ptr(1),
-					EncodedBodySize: Int64Ptr(2),
-					DecodedBodySize: Int64Ptr(3),
+					TransferSize:    int64Ptr(1),
+					EncodedBodySize: int64Ptr(2),
+					DecodedBodySize: int64Ptr(3),
 					StatusCode:      200,
 				},
 			},
@@ -81,9 +80,9 @@ func TestHTTPToModelJSON(t *testing.T) {
 				Response: &modeljson.HTTPResponse{
 					Finished:        &tru,
 					HeadersSent:     &tru,
-					TransferSize:    Int64Ptr(1),
-					EncodedBodySize: Int64Ptr(2),
-					DecodedBodySize: Int64Ptr(3),
+					TransferSize:    int64Ptr(1),
+					EncodedBodySize: int64Ptr(2),
+					DecodedBodySize: int64Ptr(3),
 					Headers:         headersMap2,
 					StatusCode:      200,
 				},
@@ -127,9 +126,9 @@ func TestHTTPToModelJSON(t *testing.T) {
 					Headers:         headers2,
 					Finished:        &tru,
 					HeadersSent:     &tru,
-					TransferSize:    Int64Ptr(1),
-					EncodedBodySize: Int64Ptr(2),
-					DecodedBodySize: Int64Ptr(3),
+					TransferSize:    int64Ptr(1),
+					EncodedBodySize: int64Ptr(2),
+					DecodedBodySize: int64Ptr(3),
 					StatusCode:      200,
 				},
 				Version: "version",
@@ -146,9 +145,9 @@ func TestHTTPToModelJSON(t *testing.T) {
 				Response: &modeljson.HTTPResponse{
 					Finished:        &tru,
 					HeadersSent:     &tru,
-					TransferSize:    Int64Ptr(1),
-					EncodedBodySize: Int64Ptr(2),
-					DecodedBodySize: Int64Ptr(3),
+					TransferSize:    int64Ptr(1),
+					EncodedBodySize: int64Ptr(2),
+					DecodedBodySize: int64Ptr(3),
 					Headers:         headersMap2,
 					StatusCode:      200,
 				},

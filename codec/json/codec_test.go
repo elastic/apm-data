@@ -20,8 +20,8 @@ package json
 import (
 	"testing"
 
+	"github.com/elastic/apm-data/codec/internal/testutils"
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-data/model/modelpbtest"
 )
 
 func BenchmarkCodec(b *testing.B) {
@@ -30,7 +30,7 @@ func BenchmarkCodec(b *testing.B) {
 		var output int64
 		b.RunParallel(func(p *testing.PB) {
 			for p.Next() {
-				by, _ := codec.Encode(*modelpbtest.FullEvent(b))
+				by, _ := codec.Encode(testutils.FullEvent(b))
 				output += int64(len(by))
 			}
 		})
@@ -40,7 +40,7 @@ func BenchmarkCodec(b *testing.B) {
 	})
 
 	b.Run("Decode", func(b *testing.B) {
-		encoded, _ := codec.Encode(modelpbtest.FullEvent(b))
+		encoded, _ := codec.Encode(testutils.FullEvent(b))
 		var ev *modelpb.APMEvent
 		b.RunParallel(func(p *testing.PB) {
 			for p.Next() {

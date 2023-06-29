@@ -1,21 +1,4 @@
-// Licensed to Elasticsearch B.V. under one or more contributor
-// license agreements. See the NOTICE file distributed with
-// this work for additional information regarding copyright
-// ownership. Elasticsearch B.V. licenses this file to you under
-// the Apache License, Version 2.0 (the "License"); you may
-// not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
-
-package modelpbtest
+package testutils
 
 import (
 	"testing"
@@ -26,7 +9,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func FullEvent(t testing.TB) *modelpb.APMEvent {
+func FullEvent(t *testing.B) *modelpb.APMEvent {
 	return &modelpb.APMEvent{
 		Timestamp: timestamppb.New(time.Unix(1, 1)),
 		Span: &modelpb.Span{
@@ -38,7 +21,7 @@ func FullEvent(t testing.TB) *modelpb.APMEvent {
 						Value: []string{"bar"},
 					},
 				},
-				AgeMillis:  Int64Ptr(2),
+				AgeMillis:  int64Ptr(2),
 				QueueName:  "queuename",
 				RoutingKey: "routingkey",
 			},
@@ -57,14 +40,14 @@ func FullEvent(t testing.TB) *modelpb.APMEvent {
 				},
 			},
 			Db: &modelpb.DB{
-				RowsAffected: UintPtr(5),
+				RowsAffected: uintPtr(5),
 				Instance:     "db_instace",
 				Statement:    "db_statement",
 				Type:         "db_type",
 				UserName:     "db_username",
 				Link:         "db_link",
 			},
-			Sync:    BoolPtr(true),
+			Sync:    boolPtr(true),
 			Kind:    "kind",
 			Action:  "action",
 			Subtype: "subtype",
@@ -73,9 +56,9 @@ func FullEvent(t testing.TB) *modelpb.APMEvent {
 			Name:    "name",
 			Stacktrace: []*modelpb.StacktraceFrame{
 				{
-					Vars:           RandomStructPb(t),
-					Lineno:         UintPtr(1),
-					Colno:          UintPtr(2),
+					Vars:           randomStructPb(t),
+					Lineno:         uintPtr(1),
+					Colno:          uintPtr(2),
 					Filename:       "frame_filename",
 					Classname:      "frame_classname",
 					ContextLine:    "frame_contextline",
@@ -87,8 +70,8 @@ func FullEvent(t testing.TB) *modelpb.APMEvent {
 						AbsPath:      "orig_abspath",
 						Filename:     "orig_filename",
 						Classname:    "orig_classname",
-						Lineno:       UintPtr(3),
-						Colno:        UintPtr(4),
+						Lineno:       uintPtr(3),
+						Colno:        uintPtr(4),
 						Function:     "orig_function",
 						LibraryFrame: true,
 					},
@@ -137,8 +120,8 @@ func FullEvent(t testing.TB) *modelpb.APMEvent {
 		Message: "message",
 		Transaction: &modelpb.Transaction{
 			SpanCount: &modelpb.SpanCount{
-				Started: UintPtr(1),
-				Dropped: UintPtr(2),
+				Started: uintPtr(1),
+				Dropped: uintPtr(2),
 			},
 			UserExperience: &modelpb.UserExperience{
 				CumulativeLayoutShift: 1,
@@ -167,7 +150,7 @@ func FullEvent(t testing.TB) *modelpb.APMEvent {
 						Value: []string{"bar"},
 					},
 				},
-				AgeMillis:  Int64Ptr(2),
+				AgeMillis:  int64Ptr(2),
 				QueueName:  "queuename",
 				RoutingKey: "routingkey",
 			},
@@ -225,9 +208,9 @@ func FullEvent(t testing.TB) *modelpb.APMEvent {
 				Message:    "ex_message",
 				Module:     "ex_module",
 				Code:       "ex_code",
-				Attributes: RandomStructPb(t),
+				Attributes: randomStructPb(t),
 				Type:       "ex_type",
-				Handled:    BoolPtr(true),
+				Handled:    boolPtr(true),
 				Cause: []*modelpb.Exception{
 					{
 						Message: "ex1_message",
@@ -300,7 +283,7 @@ func FullEvent(t testing.TB) *modelpb.APMEvent {
 		},
 		Faas: &modelpb.Faas{
 			Id:               "id",
-			ColdStart:        BoolPtr(true),
+			ColdStart:        boolPtr(true),
 			Execution:        "execution",
 			TriggerType:      "triggertype",
 			TriggerRequestId: "triggerrequestid",
@@ -369,20 +352,20 @@ func FullEvent(t testing.TB) *modelpb.APMEvent {
 		},
 		Http: &modelpb.HTTP{
 			Request: &modelpb.HTTPRequest{
-				Headers:  RandomHTTPHeaders(t),
-				Env:      RandomStructPb(t),
-				Cookies:  RandomStructPb(t),
+				Headers:  randomHTTPHeaders(t),
+				Env:      randomStructPb(t),
+				Cookies:  randomStructPb(t),
 				Id:       "id",
 				Method:   "method",
 				Referrer: "referrer",
 			},
 			Response: &modelpb.HTTPResponse{
-				Headers:         RandomHTTPHeaders(t),
-				Finished:        BoolPtr(true),
-				HeadersSent:     BoolPtr(true),
-				TransferSize:    Int64Ptr(1),
-				EncodedBodySize: Int64Ptr(2),
-				DecodedBodySize: Int64Ptr(3),
+				Headers:         randomHTTPHeaders(t),
+				Finished:        boolPtr(true),
+				HeadersSent:     boolPtr(true),
+				TransferSize:    int64Ptr(1),
+				EncodedBodySize: int64Ptr(2),
+				DecodedBodySize: int64Ptr(3),
 				StatusCode:      200,
 			},
 			Version: "version",
