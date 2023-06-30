@@ -19,8 +19,11 @@ package codec
 
 import (
 	"context"
+	"sync/atomic"
 	"testing"
 
+	"github.com/elastic/apm-data/codec/internal/testutils"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -77,6 +80,58 @@ func TestMetrics(t *testing.T) {
 			},
 		},
 	}, metric, metricdatatest.IgnoreTimestamp())
+}
+
+func BenchmarkEncode(b *testing.B) {
+	testCases := map[string]struct {
+		codec Codec
+	}{
+		"json": {
+			codec: JSON{},
+		},
+		"vtproto": {
+			codec: VTProto{},
+		},
+	}
+	for name, tc := range testCases {
+		b.Run("format="+name, func(b *testing.B) {
+			var output atomic.Int64
+			b.RunParallel(func(p *testing.PB) {
+				var localOutput int64
+				for p.Next() {
+					by, _ := tc.codec.Encode(testutils.FullEvent(b))
+					localOutput += int64(len(by))
+				}
+				output.Add(localOutput)
+			})
+			bytePerSec := float64(output.Load()) / float64(b.Elapsed())
+			b.ReportMetric(bytePerSec, "bytes/sec")
+		})
+	}
+}
+
+func BenchmarkDecode(b *testing.B) {
+	testCases := map[string]struct {
+		codec Codec
+	}{
+		"json": {
+			codec: JSON{},
+		},
+		"vtproto": {
+			codec: VTProto{},
+		},
+	}
+	for name, tc := range testCases {
+		b.Run("format="+name, func(b *testing.B) {
+			encoded, _ := tc.codec.Encode(testutils.FullEvent(b))
+			b.RunParallel(func(p *testing.PB) {
+				for p.Next() {
+					ev := &modelpb.APMEvent{}
+					tc.codec.Decode(encoded, ev)
+				}
+			})
+		})
+	}
 }
 
 type testCodec struct {
