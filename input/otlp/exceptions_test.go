@@ -125,6 +125,7 @@ Caused by: LowLevelException
 			Type:    transactionEvent.Transaction.Type,
 			Sampled: true,
 		},
+		Event: &modelpb.Event{Received: transactionEvent.Event.Received},
 		Error: &modelpb.Error{
 			Exception: &modelpb.Exception{
 				Type:    "java.net.ConnectException.OSError",
@@ -177,6 +178,7 @@ Caused by: LowLevelException
 			Type:    transactionEvent.Transaction.Type,
 			Sampled: true,
 		},
+		Event: &modelpb.Event{Received: transactionEvent.Event.Received},
 		Error: &modelpb.Error{
 			Exception: &modelpb.Exception{
 				Type:    "HighLevelException",
@@ -338,6 +340,7 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 			Type:    transactionEvent.Transaction.Type,
 			Sampled: true,
 		},
+		Event: &modelpb.Event{Received: transactionEvent.Event.Received},
 		Error: &modelpb.Error{
 			Exception: &modelpb.Exception{
 				Type:    "the_type",

@@ -99,7 +99,11 @@ func (c *Consumer) convertResourceSpans(
 	receiveTimestamp time.Time,
 	out *modelpb.Batch,
 ) {
-	var baseEvent modelpb.APMEvent
+	baseEvent := modelpb.APMEvent{
+		Event: &modelpb.Event{
+			Received: timestamppb.New(receiveTimestamp),
+		},
+	}
 	var timeDelta time.Duration
 	resource := resourceSpans.Resource()
 	translateResourceMetadata(resource, &baseEvent)
@@ -194,10 +198,10 @@ func (c *Consumer) convertSpan(
 
 	events := otelSpan.Events()
 	event = event.CloneVT()
-	event.Labels = baseEvent.Labels               // only copy common labels to span events
-	event.NumericLabels = baseEvent.NumericLabels // only copy common labels to span events
-	event.Event = nil                             // don't copy event.* to span events
-	event.Destination = nil                       // don't set destination for span events
+	event.Labels = baseEvent.Labels                                  // only copy common labels to span events
+	event.NumericLabels = baseEvent.NumericLabels                    // only copy common labels to span events
+	event.Event = &modelpb.Event{Received: baseEvent.Event.Received} // only copy event.received to span events
+	event.Destination = nil                                          // don't set destination for span events
 	for i := 0; i < events.Len(); i++ {
 		*out = append(*out, c.convertSpanEvent(events.At(i), event, timeDelta))
 	}
