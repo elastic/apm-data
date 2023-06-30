@@ -67,7 +67,12 @@ func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
 func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTimestamp time.Time, out *modelpb.Batch) {
 	var timeDelta time.Duration
 	resource := resourceLogs.Resource()
-	baseEvent := modelpb.APMEvent{Processor: modelpb.LogProcessor()}
+	baseEvent := modelpb.APMEvent{
+		Event: &modelpb.Event{
+			Received: timestamppb.New(receiveTimestamp),
+		},
+		Processor: modelpb.LogProcessor(),
+	}
 	translateResourceMetadata(resource, &baseEvent)
 
 	if exportTimestamp, ok := exportTimestamp(resource); ok {
