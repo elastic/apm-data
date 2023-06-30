@@ -21,7 +21,9 @@ package modelpb
 // suitable for storing as "custom" in transaction and error documents.
 func updateFields(in map[string]any) {
 	for k, v := range in {
-		delete(in, k)
-		in[sanitizeLabelKey(k)] = v
+		if lk := sanitizeLabelKey(k); lk != k {
+			delete(in, k)
+			in[lk] = v
+		}
 	}
 }
