@@ -1598,11 +1598,13 @@ func approveEventDocs(t testing.TB, name string, docs [][]byte) {
 		}
 
 		// Ignore the specific value for "event.received", as it is dynamic.
-		// Skip this for test data that does not have event information.
-		if e, ok := m["event"]; ok {
-			event := e.(map[string]any)
-			require.Contains(t, event, "received")
-			delete(event, "received")
+		// All received events should have this.
+		require.Contains(t, m, "event")
+		event := m["event"].(map[string]any)
+		require.Contains(t, event, "received")
+		delete(event, "received")
+		if len(event) == 0 {
+			delete(m, "event")
 		}
 
 		events[i] = m
