@@ -116,9 +116,16 @@ func (e *Exception) marshalOne(w *fastjson.Writer, offset, parentOffset int) (in
 	if len(e.Stacktrace) != 0 {
 		maybeComma()
 		w.RawString(`"stacktrace":`)
-		if err := fastjson.Marshal(w, e.Stacktrace); err != nil {
-			return -1, err
+		w.RawByte('[')
+		for i, v := range e.Stacktrace {
+			if i != 0 {
+				w.RawByte(',')
+			}
+			if err := v.MarshalFastJSON(w); err != nil {
+				return -1, err
+			}
 		}
+		w.RawByte(']')
 	}
 	w.RawByte('}')
 
