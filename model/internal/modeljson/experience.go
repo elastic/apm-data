@@ -61,7 +61,7 @@ func (u *UserExperience) MarshalFastJSON(w *fastjson.Writer) error {
 			w.RawByte(',')
 		}
 		w.RawString(`"longtask":`)
-		if err := u.Longtask.MarshalFastJSON(w); err != nil {
+		if err := fastjson.Marshal(w, &u.Longtask); err != nil {
 			return err
 		}
 	}
