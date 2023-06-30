@@ -16,19 +16,19 @@
 // under the License.
 
 // Package json provides a JSON codec with an encoder/decoder.
-package json
+package codec
 
 import (
 	"encoding/json"
 )
 
-// Codec wraps the standard json library.
-type Codec struct{}
+// JSON wraps the standard json library.
+type JSON struct{}
 
 // Encode encodes a type into the JSON byte slice representation.
-func (c Codec) Encode(in any) ([]byte, error) { return json.Marshal(in) }
+func (j JSON) Encode(in any) ([]byte, error) { return json.Marshal(in) }
 
 // Decode decodes a JSON-encoded byte slice into its type.
-func (c Codec) Decode(in []byte, out any) error {
+func (j JSON) Decode(in []byte, out any) error {
 	return json.Unmarshal(in, out)
 }

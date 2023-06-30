@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package vtproto
+package codec
 
 import "fmt"
 
@@ -26,11 +26,11 @@ type vtprotoMessage interface {
 	UnmarshalVT([]byte) error
 }
 
-// Codec is a composite of Encoder and Decoder.
-type Codec struct{}
+// VTProto is a composite of Encoder and Decoder
+type VTProto struct{}
 
 // Encode encodes vtprotoMessage type into byte slice
-func (Codec) Encode(in any) ([]byte, error) {
+func (v VTProto) Encode(in any) ([]byte, error) {
 	vt, ok := in.(vtprotoMessage)
 	if !ok {
 		return nil, fmt.Errorf("failed to encode, message is %T (missing vtprotobuf helpers)", in)
@@ -39,7 +39,7 @@ func (Codec) Encode(in any) ([]byte, error) {
 }
 
 // Decode decodes a byte slice into vtprotoMessage type.
-func (Codec) Decode(in []byte, out any) error {
+func (v VTProto) Decode(in []byte, out any) error {
 	vt, ok := out.(vtprotoMessage)
 	if !ok {
 		return fmt.Errorf("failed to decode, message is %T (missing vtprotobuf helpers)", out)
