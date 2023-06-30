@@ -763,6 +763,16 @@ func eventsMatch(t *testing.T, expected []*modelpb.APMEvent, actual []*modelpb.A
 	sort.Slice(actual, func(i, j int) bool {
 		return strings.Compare(actual[i].String(), actual[j].String()) == -1
 	})
+
+	now := time.Now().Unix()
+	for i, e := range actual {
+		assert.InDelta(t, now, e.Event.Received.AsTime().Unix(), 2)
+		e.Event.Received = nil
+		if expected[i].Event == nil {
+			e.Event = nil
+		}
+	}
+
 	diff := cmp.Diff(
 		expected, actual,
 		protocmp.Transform(),
