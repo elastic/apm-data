@@ -73,7 +73,12 @@ func (c *Consumer) convertMetrics(metrics pmetric.Metrics, receiveTimestamp time
 }
 
 func (c *Consumer) convertResourceMetrics(resourceMetrics pmetric.ResourceMetrics, receiveTimestamp time.Time, out *modelpb.Batch) {
-	var baseEvent modelpb.APMEvent
+	baseEvent := modelpb.APMEvent{
+		Event: &modelpb.Event{
+			Received: timestamppb.New(receiveTimestamp),
+		},
+	}
+
 	var timeDelta time.Duration
 	resource := resourceMetrics.Resource()
 	translateResourceMetadata(resource, &baseEvent)
