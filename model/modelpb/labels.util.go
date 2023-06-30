@@ -23,7 +23,10 @@ import "strings"
 // with '_'. Null-valued labels are omitted.
 
 func sanitizeLabelKey(k string) string {
-	return strings.Map(replaceReservedLabelKeyRune, k)
+	if strings.ContainsAny(k, ".*\"") {
+		return strings.Map(replaceReservedLabelKeyRune, k)
+	}
+	return k
 }
 
 func replaceReservedLabelKeyRune(r rune) rune {
