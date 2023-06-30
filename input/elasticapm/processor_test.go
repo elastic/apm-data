@@ -332,9 +332,9 @@ func TestLabelLeak(t *testing.T) {
 		Host: &modelpb.Host{Ip: []string{"192.0.0.1"}},
 	}
 
-	var processed *modelpb.Batch
+	processed := make(modelpb.Batch, 2)
 	batchProcessor := modelpb.ProcessBatchFunc(func(_ context.Context, b *modelpb.Batch) error {
-		processed = b
+		copy(processed, *b)
 		return nil
 	})
 
@@ -346,7 +346,7 @@ func TestLabelLeak(t *testing.T) {
 	err := p.HandleStream(context.Background(), false, baseEvent, strings.NewReader(payload), 10, batchProcessor, &actualResult)
 	require.NoError(t, err)
 
-	txs := *processed
+	txs := processed
 	assert.Len(t, txs, 2)
 	// Assert first tx
 	assert.Equal(t, modelpb.NumericLabels{

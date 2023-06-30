@@ -37,6 +37,75 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+func (m *APMEvent) CloneVT() *APMEvent {
+	if m == nil {
+		return (*APMEvent)(nil)
+	}
+	r := &APMEvent{
+		Span:        m.Span.CloneVT(),
+		Transaction: m.Transaction.CloneVT(),
+		Metricset:   m.Metricset.CloneVT(),
+		Error:       m.Error.CloneVT(),
+		Cloud:       m.Cloud.CloneVT(),
+		Service:     m.Service.CloneVT(),
+		Faas:        m.Faas.CloneVT(),
+		Network:     m.Network.CloneVT(),
+		Container:   m.Container.CloneVT(),
+		User:        m.User.CloneVT(),
+		Device:      m.Device.CloneVT(),
+		Kubernetes:  m.Kubernetes.CloneVT(),
+		Observer:    m.Observer.CloneVT(),
+		DataStream:  m.DataStream.CloneVT(),
+		Agent:       m.Agent.CloneVT(),
+		Processor:   m.Processor.CloneVT(),
+		Http:        m.Http.CloneVT(),
+		UserAgent:   m.UserAgent.CloneVT(),
+		Parent:      m.Parent.CloneVT(),
+		Message:     m.Message,
+		Trace:       m.Trace.CloneVT(),
+		Host:        m.Host.CloneVT(),
+		Url:         m.Url.CloneVT(),
+		Log:         m.Log.CloneVT(),
+		Source:      m.Source.CloneVT(),
+		Client:      m.Client.CloneVT(),
+		Child:       m.Child.CloneVT(),
+		Destination: m.Destination.CloneVT(),
+		Session:     m.Session.CloneVT(),
+		Process:     m.Process.CloneVT(),
+		Event:       m.Event.CloneVT(),
+	}
+	if rhs := m.Timestamp; rhs != nil {
+		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *timestamppb.Timestamp }); ok {
+			r.Timestamp = vtpb.CloneVT()
+		} else {
+			r.Timestamp = proto.Clone(rhs).(*timestamppb.Timestamp)
+		}
+	}
+	if rhs := m.NumericLabels; rhs != nil {
+		tmpContainer := make(map[string]*NumericLabelValue, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
+		}
+		r.NumericLabels = tmpContainer
+	}
+	if rhs := m.Labels; rhs != nil {
+		tmpContainer := make(map[string]*LabelValue, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
+		}
+		r.Labels = tmpContainer
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *APMEvent) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
 func (m *APMEvent) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil

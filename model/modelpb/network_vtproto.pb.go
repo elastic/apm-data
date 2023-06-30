@@ -25,6 +25,7 @@ import (
 	fmt "fmt"
 	io "io"
 
+	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
@@ -34,6 +35,65 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+func (m *Network) CloneVT() *Network {
+	if m == nil {
+		return (*Network)(nil)
+	}
+	r := &Network{
+		Connection: m.Connection.CloneVT(),
+		Carrier:    m.Carrier.CloneVT(),
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Network) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *NetworkConnection) CloneVT() *NetworkConnection {
+	if m == nil {
+		return (*NetworkConnection)(nil)
+	}
+	r := &NetworkConnection{
+		Type:    m.Type,
+		Subtype: m.Subtype,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *NetworkConnection) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *NetworkCarrier) CloneVT() *NetworkCarrier {
+	if m == nil {
+		return (*NetworkCarrier)(nil)
+	}
+	r := &NetworkCarrier{
+		Name: m.Name,
+		Mcc:  m.Mcc,
+		Mnc:  m.Mnc,
+		Icc:  m.Icc,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *NetworkCarrier) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
 
 func (m *Network) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {

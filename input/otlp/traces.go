@@ -99,7 +99,11 @@ func (c *Consumer) convertResourceSpans(
 	receiveTimestamp time.Time,
 	out *modelpb.Batch,
 ) {
-	var baseEvent modelpb.APMEvent
+	baseEvent := modelpb.APMEvent{
+		Event: &modelpb.Event{
+			Received: timestamppb.New(receiveTimestamp),
+		},
+	}
 	var timeDelta time.Duration
 	resource := resourceSpans.Resource()
 	translateResourceMetadata(resource, &baseEvent)
@@ -149,7 +153,7 @@ func (c *Consumer) convertSpan(
 	name := otelSpan.Name()
 	spanID := hexSpanID(otelSpan.SpanID())
 	representativeCount := getRepresentativeCountFromTracestateHeader(otelSpan.TraceState().AsRaw())
-	event := proto.Clone(baseEvent).(*modelpb.APMEvent)
+	event := baseEvent.CloneVT()
 	initEventLabels(event)
 	event.Timestamp = timestamppb.New(startTime.Add(timeDelta))
 	if id := hexTraceID(otelSpan.TraceID()); id != "" {
@@ -193,11 +197,11 @@ func (c *Consumer) convertSpan(
 	*out = append(*out, event)
 
 	events := otelSpan.Events()
-	event = proto.Clone(event).(*modelpb.APMEvent)
-	event.Labels = baseEvent.Labels               // only copy common labels to span events
-	event.NumericLabels = baseEvent.NumericLabels // only copy common labels to span events
-	event.Event = nil                             // don't copy event.* to span events
-	event.Destination = nil                       // don't set destination for span events
+	event = event.CloneVT()
+	event.Labels = baseEvent.Labels                                  // only copy common labels to span events
+	event.NumericLabels = baseEvent.NumericLabels                    // only copy common labels to span events
+	event.Event = &modelpb.Event{Received: baseEvent.Event.Received} // only copy event.received to span events
+	event.Destination = nil                                          // don't set destination for span events
 	for i := 0; i < events.Len(); i++ {
 		*out = append(*out, c.convertSpanEvent(events.At(i), event, timeDelta))
 	}
@@ -872,7 +876,7 @@ func (c *Consumer) convertSpanEvent(
 	parent *modelpb.APMEvent, // either span or transaction
 	timeDelta time.Duration,
 ) *modelpb.APMEvent {
-	event := proto.Clone(parent).(*modelpb.APMEvent)
+	event := parent.CloneVT()
 	initEventLabels(event)
 	event.Transaction = nil // populate fields as required from parent
 	event.Span = nil        // populate fields as required from parent

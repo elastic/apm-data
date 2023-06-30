@@ -31,7 +31,6 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecoderutil"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/model/modelpb"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -107,7 +106,7 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *mode
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-	event := proto.Clone(input.Base).(*modelpb.APMEvent)
+	event := input.Base.CloneVT()
 	mapToErrorModel(&root.Error, event)
 	*batch = append(*batch, event)
 	return nil
@@ -126,12 +125,12 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-	transaction := proto.Clone(input.Base).(*modelpb.APMEvent)
+	transaction := input.Base.CloneVT()
 	mapToTransactionModel(&root.Transaction, transaction)
 	*batch = append(*batch, transaction)
 
 	for _, m := range root.Transaction.Metricsets {
-		event := proto.Clone(input.Base).(*modelpb.APMEvent)
+		event := input.Base.CloneVT()
 		event.Transaction = &modelpb.Transaction{
 			Name: transaction.Transaction.Name,
 			Type: transaction.Transaction.Type,
@@ -143,7 +142,7 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 
 	offset := len(*batch)
 	for _, s := range root.Transaction.Spans {
-		event := proto.Clone(input.Base).(*modelpb.APMEvent)
+		event := input.Base.CloneVT()
 		mapToSpanModel(&s, event)
 		event.Transaction = &modelpb.Transaction{Id: transaction.Transaction.Id}
 		event.Parent = &modelpb.Parent{

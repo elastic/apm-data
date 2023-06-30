@@ -25,6 +25,7 @@ import (
 	fmt "fmt"
 	io "io"
 
+	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
@@ -34,6 +35,28 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+func (m *Container) CloneVT() *Container {
+	if m == nil {
+		return (*Container)(nil)
+	}
+	r := &Container{
+		Id:        m.Id,
+		Name:      m.Name,
+		Runtime:   m.Runtime,
+		ImageName: m.ImageName,
+		ImageTag:  m.ImageTag,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Container) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
 
 func (m *Container) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {

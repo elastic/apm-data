@@ -37,7 +37,6 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -179,7 +178,7 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *mode
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-	event := proto.Clone(input.Base).(*modelpb.APMEvent)
+	event := input.Base.CloneVT()
 	mapToErrorModel(&root.Error, event)
 	*batch = append(*batch, event)
 	return err
@@ -198,7 +197,7 @@ func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, batch *
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-	event := proto.Clone(input.Base).(*modelpb.APMEvent)
+	event := input.Base.CloneVT()
 	if mapToMetricsetModel(&root.Metricset, event) {
 		*batch = append(*batch, event)
 	}
@@ -218,7 +217,7 @@ func DecodeNestedSpan(d decoder.Decoder, input *modeldecoder.Input, batch *model
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-	event := proto.Clone(input.Base).(*modelpb.APMEvent)
+	event := input.Base.CloneVT()
 	mapToSpanModel(&root.Span, event)
 	*batch = append(*batch, event)
 	return err
@@ -237,7 +236,7 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-	event := proto.Clone(input.Base).(*modelpb.APMEvent)
+	event := input.Base.CloneVT()
 	mapToTransactionModel(&root.Transaction, event)
 	*batch = append(*batch, event)
 	return err
@@ -260,7 +259,7 @@ func DecodeNestedLog(d decoder.Decoder, input *modeldecoder.Input, batch *modelp
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
-	event := proto.Clone(input.Base).(*modelpb.APMEvent)
+	event := input.Base.CloneVT()
 	mapToLogModel(&root.Log, event)
 	*batch = append(*batch, event)
 	return err

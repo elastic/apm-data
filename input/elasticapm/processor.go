@@ -27,7 +27,6 @@ import (
 
 	"go.elastic.co/apm/v2"
 	"go.uber.org/zap"
-	"google.golang.org/protobuf/proto"
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
@@ -43,6 +42,8 @@ var (
 	// ErrQueueFull may be returned by HandleStream when the internal
 	// queue is full.
 	ErrQueueFull = errors.New("queue is full")
+
+	batchPool sync.Pool
 )
 
 const (
@@ -65,7 +66,6 @@ const (
 // the concurrency limit is shared between all the intake endpoints.
 type Processor struct {
 	streamReaderPool sync.Pool
-	batchPool        sync.Pool
 	sem              input.Semaphore
 	logger           *zap.Logger
 	MaxEventSize     int
@@ -196,7 +196,7 @@ func (p *Processor) readBatch(
 		}
 		// We copy the event for each iteration of the batch, as to avoid
 		// shallow copies of Labels and NumericLabels.
-		input := modeldecoder.Input{Base: copyEvent(baseEvent)}
+		input := modeldecoder.Input{Base: baseEvent}
 		switch eventType := p.identifyEventType(body); string(eventType) {
 		case errorEventType:
 			err = v2.DecodeNestedError(reader, &input, batch)
@@ -335,13 +335,13 @@ func (p *Processor) handleStream(
 		}()
 	}
 	var batch modelpb.Batch
-	if b, ok := p.batchPool.Get().(*modelpb.Batch); ok {
+	if b, ok := batchPool.Get().(*modelpb.Batch); ok {
 		batch = (*b)[:0]
 	}
 	n, readErr = p.readBatch(ctx, baseEvent, batchSize, &batch, sr, result)
 	if n == 0 {
 		// No events to process, return the batch to the pool.
-		p.batchPool.Put(&batch)
+		batchPool.Put(&batch)
 		return readErr
 	}
 	// Async requests are processed in the background and once the batch has
@@ -364,7 +364,12 @@ func (p *Processor) handleStream(
 
 // processBatch processes the batch and returns it to the pool after it's been processed.
 func (p *Processor) processBatch(ctx context.Context, processor modelpb.BatchProcessor, batch *modelpb.Batch) error {
-	defer p.batchPool.Put(batch)
+	defer func() {
+		for i := range *batch {
+			(*batch)[i] = nil
+		}
+		batchPool.Put(batch)
+	}()
 	return processor.ProcessBatch(ctx, batch)
 }
 
@@ -423,17 +428,4 @@ func (sr *streamReader) wrapError(err error) error {
 		}
 	}
 	return err
-}
-
-// copyEvent returns a shallow copy of the APMEvent with a deep copy of the
-// labels and numeric labels.
-func copyEvent(e *modelpb.APMEvent) *modelpb.APMEvent {
-	out := proto.Clone(e).(*modelpb.APMEvent)
-	if out.Labels != nil {
-		out.Labels = modelpb.Labels(out.Labels).Clone()
-	}
-	if out.NumericLabels != nil {
-		out.NumericLabels = modelpb.NumericLabels(out.NumericLabels).Clone()
-	}
-	return out
 }

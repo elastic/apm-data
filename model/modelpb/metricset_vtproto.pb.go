@@ -39,6 +39,126 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+func (m *Metricset) CloneVT() *Metricset {
+	if m == nil {
+		return (*Metricset)(nil)
+	}
+	r := &Metricset{
+		Name:     m.Name,
+		Interval: m.Interval,
+		DocCount: m.DocCount,
+	}
+	if rhs := m.Samples; rhs != nil {
+		tmpContainer := make([]*MetricsetSample, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
+		}
+		r.Samples = tmpContainer
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Metricset) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *MetricsetSample) CloneVT() *MetricsetSample {
+	if m == nil {
+		return (*MetricsetSample)(nil)
+	}
+	r := &MetricsetSample{
+		Type:      m.Type,
+		Name:      m.Name,
+		Unit:      m.Unit,
+		Histogram: m.Histogram.CloneVT(),
+		Summary:   m.Summary.CloneVT(),
+		Value:     m.Value,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *MetricsetSample) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *Histogram) CloneVT() *Histogram {
+	if m == nil {
+		return (*Histogram)(nil)
+	}
+	r := &Histogram{}
+	if rhs := m.Values; rhs != nil {
+		tmpContainer := make([]float64, len(rhs))
+		copy(tmpContainer, rhs)
+		r.Values = tmpContainer
+	}
+	if rhs := m.Counts; rhs != nil {
+		tmpContainer := make([]int64, len(rhs))
+		copy(tmpContainer, rhs)
+		r.Counts = tmpContainer
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *Histogram) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *SummaryMetric) CloneVT() *SummaryMetric {
+	if m == nil {
+		return (*SummaryMetric)(nil)
+	}
+	r := &SummaryMetric{
+		Count: m.Count,
+		Sum:   m.Sum,
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *SummaryMetric) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *AggregatedDuration) CloneVT() *AggregatedDuration {
+	if m == nil {
+		return (*AggregatedDuration)(nil)
+	}
+	r := &AggregatedDuration{
+		Count: m.Count,
+	}
+	if rhs := m.Sum; rhs != nil {
+		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *durationpb.Duration }); ok {
+			r.Sum = vtpb.CloneVT()
+		} else {
+			r.Sum = proto.Clone(rhs).(*durationpb.Duration)
+		}
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *AggregatedDuration) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
 func (m *Metricset) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
