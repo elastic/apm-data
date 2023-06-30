@@ -83,23 +83,17 @@ func TestMetrics(t *testing.T) {
 
 func BenchmarkEncode(b *testing.B) {
 	ev := fullEvent(b)
-	testCases := map[string]struct {
-		codec Codec
-	}{
-		"json": {
-			codec: JSON{},
-		},
-		"vtproto": {
-			codec: VTProto{},
-		},
+	codecs := map[string]Codec{
+		"json":    JSON{},
+		"vtproto": VTProto{},
 	}
-	for name, tc := range testCases {
+	for name, c := range codecs {
 		b.Run("format="+name, func(b *testing.B) {
 			var output atomic.Int64
 			b.RunParallel(func(p *testing.PB) {
 				var localOutput int64
 				for p.Next() {
-					by, _ := tc.codec.Encode(ev)
+					by, _ := c.Encode(ev)
 					localOutput += int64(len(by))
 				}
 				output.Add(localOutput)
@@ -112,28 +106,22 @@ func BenchmarkEncode(b *testing.B) {
 
 func BenchmarkDecode(b *testing.B) {
 	ev := fullEvent(b)
-	testCases := map[string]struct {
-		codec Codec
-	}{
-		"json": {
-			codec: JSON{},
-		},
-		"vtproto": {
-			codec: VTProto{},
-		},
+	codecs := map[string]Codec{
+		"json":    JSON{},
+		"vtproto": VTProto{},
 	}
-	for name, tc := range testCases {
-		encoded, _ := tc.codec.Encode(ev)
+	for name, c := range codecs {
+		encoded, _ := c.Encode(ev)
 		b.Run("format="+name, func(b *testing.B) {
 			b.RunParallel(func(p *testing.PB) {
 				for p.Next() {
 					e := &modelpb.APMEvent{}
-					tc.codec.Decode(encoded, e)
+					c.Decode(encoded, e)
 				}
 			})
 		})
 
-		bytePerOp := float64(len(encoded)) / float64(b.N)
+		bytePerOp := float64(len(encoded))
 		b.ReportMetric(bytePerOp, "bytes/op")
 	}
 }
