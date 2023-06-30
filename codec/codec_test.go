@@ -19,8 +19,10 @@ package codec
 
 import (
 	"context"
+	"sync/atomic"
 	"testing"
 
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -77,6 +79,51 @@ func TestMetrics(t *testing.T) {
 			},
 		},
 	}, metric, metricdatatest.IgnoreTimestamp())
+}
+
+func BenchmarkEncode(b *testing.B) {
+	ev := fullEvent(b)
+	codecs := map[string]Codec{
+		"json":    JSON{},
+		"vtproto": VTProto{},
+	}
+	for name, c := range codecs {
+		b.Run("format="+name, func(b *testing.B) {
+			var output atomic.Int64
+			b.RunParallel(func(p *testing.PB) {
+				var localOutput int64
+				for p.Next() {
+					by, _ := c.Encode(ev)
+					localOutput += int64(len(by))
+				}
+				output.Add(localOutput)
+			})
+			bytePerOp := float64(output.Load()) / float64(b.N)
+			b.ReportMetric(bytePerOp, "bytes/op")
+		})
+	}
+}
+
+func BenchmarkDecode(b *testing.B) {
+	ev := fullEvent(b)
+	codecs := map[string]Codec{
+		"json":    JSON{},
+		"vtproto": VTProto{},
+	}
+	for name, c := range codecs {
+		encoded, _ := c.Encode(ev)
+		b.Run("format="+name, func(b *testing.B) {
+			b.RunParallel(func(p *testing.PB) {
+				for p.Next() {
+					e := &modelpb.APMEvent{}
+					c.Decode(encoded, e)
+				}
+			})
+		})
+
+		bytePerOp := float64(len(encoded))
+		b.ReportMetric(bytePerOp, "bytes/op")
+	}
 }
 
 type testCodec struct {
