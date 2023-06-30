@@ -112,6 +112,12 @@ func TestConsumerConsumeLogs(t *testing.T) {
 			})
 			assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
+			now := time.Now().Unix()
+			for _, e := range processed {
+				assert.InDelta(t, now, e.Event.Received.AsTime().Unix(), 2)
+				e.Event.Received = nil
+			}
+
 			expected := proto.Clone(&commonEvent).(*modelpb.APMEvent)
 			expected.Message = expectedMessage
 			assert.Empty(t, cmp.Diff(modelpb.Batch{expected}, processed, protocmp.Transform()))
@@ -205,6 +211,12 @@ Caused by: LowLevelException
 		Semaphore: semaphore.NewWeighted(100),
 	})
 	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
+
+	now := time.Now().Unix()
+	for _, e := range processed {
+		assert.InDelta(t, now, e.Event.Received.AsTime().Unix(), 2)
+		e.Event.Received = nil
+	}
 
 	assert.Len(t, processed, 2)
 	assert.Equal(t, modelpb.Labels{"key0": {Global: true, Value: "zero"}, "key1": {Value: "one"}}, modelpb.Labels(processed[0].Labels))
