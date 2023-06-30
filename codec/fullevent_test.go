@@ -1,4 +1,4 @@
-package testutils
+package codec
 
 import (
 	"testing"
@@ -9,7 +9,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func FullEvent(t *testing.B) *modelpb.APMEvent {
+func fullEvent(t *testing.B) *modelpb.APMEvent {
 	return &modelpb.APMEvent{
 		Timestamp: timestamppb.New(time.Unix(1, 1)),
 		Span: &modelpb.Span{

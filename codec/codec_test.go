@@ -22,7 +22,6 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/elastic/apm-data/codec/internal/testutils"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -83,6 +82,7 @@ func TestMetrics(t *testing.T) {
 }
 
 func BenchmarkEncode(b *testing.B) {
+	ev := fullEvent(b)
 	testCases := map[string]struct {
 		codec Codec
 	}{
@@ -99,18 +99,19 @@ func BenchmarkEncode(b *testing.B) {
 			b.RunParallel(func(p *testing.PB) {
 				var localOutput int64
 				for p.Next() {
-					by, _ := tc.codec.Encode(testutils.FullEvent(b))
+					by, _ := tc.codec.Encode(ev)
 					localOutput += int64(len(by))
 				}
 				output.Add(localOutput)
 			})
-			bytePerSec := float64(output.Load()) / float64(b.Elapsed())
-			b.ReportMetric(bytePerSec, "bytes/sec")
+			bytePerOp := float64(output.Load()) / float64(b.N)
+			b.ReportMetric(bytePerOp, "bytes/op")
 		})
 	}
 }
 
 func BenchmarkDecode(b *testing.B) {
+	ev := fullEvent(b)
 	testCases := map[string]struct {
 		codec Codec
 	}{
@@ -122,15 +123,18 @@ func BenchmarkDecode(b *testing.B) {
 		},
 	}
 	for name, tc := range testCases {
+		encoded, _ := tc.codec.Encode(ev)
 		b.Run("format="+name, func(b *testing.B) {
-			encoded, _ := tc.codec.Encode(testutils.FullEvent(b))
 			b.RunParallel(func(p *testing.PB) {
 				for p.Next() {
-					ev := &modelpb.APMEvent{}
-					tc.codec.Decode(encoded, ev)
+					e := &modelpb.APMEvent{}
+					tc.codec.Decode(encoded, e)
 				}
 			})
 		})
+
+		bytePerOp := float64(len(encoded)) / float64(b.N)
+		b.ReportMetric(bytePerOp, "bytes/op")
 	}
 }
 
