@@ -1042,8 +1042,8 @@ func translateSpanLinks(out *modelpb.APMEvent, in ptrace.SpanLinkSlice) {
 	for i := 0; i < n; i++ {
 		link := in.At(i)
 		out.Span.Links[i] = &modelpb.SpanLink{
-			Span:  &modelpb.Span{Id: hexSpanID(link.SpanID())},
-			Trace: &modelpb.Trace{Id: hexTraceID(link.TraceID())},
+			SpanId:  hexSpanID(link.SpanID()),
+			TraceId: hexTraceID(link.TraceID()),
 		}
 	}
 }

@@ -854,8 +854,8 @@ func TestSpanLinks(t *testing.T) {
 	})
 	for _, event := range []*modelpb.APMEvent{txEvent, spanEvent} {
 		assert.Equal(t, []*modelpb.SpanLink{{
-			Span:  &modelpb.Span{Id: "0706050403020100"},
-			Trace: &modelpb.Trace{Id: "000102030405060708090a0b0c0d0e0f"},
+			SpanId:  "0706050403020100",
+			TraceId: "000102030405060708090a0b0c0d0e0f",
 		}}, event.Span.Links)
 	}
 }
