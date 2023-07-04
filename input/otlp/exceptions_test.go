@@ -119,7 +119,7 @@ Caused by: LowLevelException
 		NumericLabels: modelpb.NumericLabels{},
 		Processor:     modelpb.ErrorProcessor(),
 		Trace:         transactionEvent.Trace,
-		Parent:        &modelpb.Parent{Id: transactionEvent.Transaction.Id},
+		Parent:        transactionEvent.Transaction.Id,
 		Transaction: &modelpb.Transaction{
 			Id:      transactionEvent.Transaction.Id,
 			Type:    transactionEvent.Transaction.Type,
@@ -172,7 +172,7 @@ Caused by: LowLevelException
 		NumericLabels: modelpb.NumericLabels{},
 		Processor:     modelpb.ErrorProcessor(),
 		Trace:         transactionEvent.Trace,
-		Parent:        &modelpb.Parent{Id: transactionEvent.Transaction.Id},
+		Parent:        transactionEvent.Transaction.Id,
 		Transaction: &modelpb.Transaction{
 			Id:      transactionEvent.Transaction.Id,
 			Type:    transactionEvent.Transaction.Type,
@@ -334,7 +334,7 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 		NumericLabels: modelpb.NumericLabels{},
 		Processor:     modelpb.ErrorProcessor(),
 		Trace:         transactionEvent.Trace,
-		Parent:        &modelpb.Parent{Id: transactionEvent.Transaction.Id},
+		Parent:        transactionEvent.Transaction.Id,
 		Transaction: &modelpb.Transaction{
 			Id:      transactionEvent.Transaction.Id,
 			Type:    transactionEvent.Transaction.Type,

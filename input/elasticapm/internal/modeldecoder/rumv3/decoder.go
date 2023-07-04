@@ -145,9 +145,7 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 		event := input.Base.CloneVT()
 		mapToSpanModel(&s, event)
 		event.Transaction = &modelpb.Transaction{Id: transaction.Transaction.Id}
-		event.Parent = &modelpb.Parent{
-			Id: transaction.GetTransaction().GetId(), // may be overridden later
-		}
+		event.Parent = transaction.GetTransaction().GetId() // may be overridden later
 		event.Trace = transaction.Trace
 		*batch = append(*batch, event)
 	}
@@ -155,8 +153,7 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 	for i, s := range root.Transaction.Spans {
 		if s.ParentIndex.IsSet() && s.ParentIndex.Val >= 0 && s.ParentIndex.Val < len(spans) {
 			if e := spans[s.ParentIndex.Val]; e != nil {
-				spans[i].Parent = populateNil(spans[i].Parent)
-				spans[i].Parent.Id = e.Span.Id
+				spans[i].Parent = e.Span.Id
 			}
 		}
 	}
@@ -249,9 +246,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 		out.Log = &log
 	}
 	if from.ParentID.IsSet() {
-		event.Parent = &modelpb.Parent{
-			Id: from.ParentID.Val,
-		}
+		event.Parent = from.ParentID.Val
 	}
 	if !from.Timestamp.Val.IsZero() {
 		event.Timestamp = timestamppb.New(from.Timestamp.Val)
@@ -772,9 +767,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 		}
 	}
 	if from.ParentID.IsSet() {
-		event.Parent = &modelpb.Parent{
-			Id: from.ParentID.Val,
-		}
+		event.Parent = from.ParentID.Val
 	}
 	if from.Result.IsSet() {
 		out.Result = from.Result.Val

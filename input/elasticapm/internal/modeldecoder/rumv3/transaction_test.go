@@ -86,7 +86,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		assert.Equal(t, now.Add(start), batch[2].Timestamp.AsTime()) // add start to timestamp
 		assert.Equal(t, "100", batch[2].Transaction.Id)
 		assert.Equal(t, "1", batch[2].Trace.Id)
-		assert.Equal(t, "100", batch[2].Parent.Id)
+		assert.Equal(t, "100", batch[2].Parent)
 
 		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &batch)
 		require.Error(t, err)
