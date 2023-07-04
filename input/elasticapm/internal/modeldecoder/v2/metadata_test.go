@@ -49,8 +49,7 @@ func isIgnoredPrefix(key string) bool {
 func isUnmappedMetadataField(key string) bool {
 	switch key {
 	case
-		"child",
-		"child.id",
+		"children",
 		"client.domain",
 		"client",
 		"client.ip",
@@ -98,8 +97,7 @@ func isUnmappedMetadataField(key string) bool {
 		"observer.type",
 		"observer.version",
 		"observer.version_major",
-		"parent",
-		"parent.id",
+		"parent_id",
 		"process.command_line",
 		"process.executable",
 		"process.thread",

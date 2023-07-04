@@ -61,7 +61,7 @@ func TestDecodeNestedSpan(t *testing.T) {
 		require.NotNil(t, batch[0].Span)
 		assert.Equal(t, time.Time{}.Add(143*time.Millisecond), batch[0].Timestamp.AsTime())
 		assert.Equal(t, 100*time.Millisecond, batch[0].Event.Duration.AsDuration())
-		assert.Equal(t, &modelpb.Parent{Id: "parent-123"}, batch[0].Parent, protocmp.Transform())
+		assert.Equal(t, "parent-123", batch[0].ParentId, protocmp.Transform())
 		assert.Equal(t, &modelpb.Trace{Id: "trace-ab"}, batch[0].Trace, protocmp.Transform())
 		assert.Empty(t, cmp.Diff(&modelpb.Span{
 			Name:                "s",

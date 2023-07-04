@@ -165,9 +165,7 @@ func (c *Consumer) convertSpan(
 	event.Event.Duration = durationpb.New(duration)
 	event.Event.Outcome = spanStatusOutcome(otelSpan.Status())
 	if parentID != "" {
-		event.Parent = &modelpb.Parent{
-			Id: parentID,
-		}
+		event.ParentId = parentID
 	}
 	if root || otelSpan.Kind() == ptrace.SpanKindServer || otelSpan.Kind() == ptrace.SpanKindConsumer {
 		event.Processor = modelpb.TransactionProcessor()
@@ -1010,12 +1008,10 @@ func setErrorContext(out *modelpb.APMEvent, parent *modelpb.APMEvent) {
 			Type:    parent.Transaction.Type,
 		}
 		out.Error.Custom = parent.Transaction.Custom
-		out.Parent = &modelpb.Parent{
-			Id: parent.Transaction.Id,
-		}
+		out.ParentId = parent.Transaction.Id
 	}
 	if parent.Span != nil {
-		out.Parent.Id = parent.Span.Id
+		out.ParentId = parent.Span.Id
 	}
 }
 

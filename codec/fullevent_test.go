@@ -382,9 +382,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			Original: "original",
 			Name:     "name",
 		},
-		Parent: &modelpb.Parent{
-			Id: "id",
-		},
+		ParentId: "id",
 		Trace: &modelpb.Trace{
 			Id: "id",
 		},
@@ -437,9 +435,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			Domain: "example.com",
 			Port:   443,
 		},
-		Child: &modelpb.Child{
-			Id: []string{"id"},
-		},
+		Children: []string{"id"},
 		Destination: &modelpb.Destination{
 			Address: "127.0.0.1",
 			Port:    443,

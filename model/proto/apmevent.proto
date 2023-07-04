@@ -20,7 +20,6 @@ syntax = "proto3";
 package elastic.apm.v1;
 
 import "agent.proto";
-import "child.proto";
 import "client.proto";
 import "cloud.proto";
 import "container.proto";
@@ -39,7 +38,6 @@ import "log.proto";
 import "metricset.proto";
 import "network.proto";
 import "observer.proto";
-import "parent.proto";
 import "process.proto";
 import "processor.proto";
 import "service.proto";
@@ -76,7 +74,7 @@ message APMEvent {
   Processor processor = 19;
   HTTP http = 20;
   UserAgent user_agent = 21;
-  Parent parent = 22;
+  string parent_id = 22;
   string message = 23;
   Trace trace = 24;
   Host host = 25;
@@ -84,7 +82,7 @@ message APMEvent {
   Log log = 27;
   Source source = 28;
   Client client = 29;
-  Child child = 30;
+  repeated string children = 30;
   Destination destination = 31;
   Session session = 32;
   Process process = 33;
