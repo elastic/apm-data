@@ -1731,8 +1731,8 @@ func mapSpanLinks(from []spanLink, out *[]*modelpb.SpanLink) {
 	*out = make([]*modelpb.SpanLink, len(from))
 	for i, link := range from {
 		(*out)[i] = &modelpb.SpanLink{
-			Span:  &modelpb.Span{Id: link.SpanID.Val},
-			Trace: &modelpb.Trace{Id: link.TraceID.Val},
+			SpanId:  link.SpanID.Val,
+			TraceId: link.TraceID.Val,
 		}
 	}
 }

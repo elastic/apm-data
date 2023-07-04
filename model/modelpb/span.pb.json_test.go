@@ -91,17 +91,8 @@ func TestSpanToModelJSON(t *testing.T) {
 				Name:    "name",
 				Links: []*SpanLink{
 					{
-						Trace: &Trace{
-							Id: "trace_id",
-						},
-						Span: &Span{
-							Kind:    "kind1",
-							Action:  "action1",
-							Subtype: "subtype1",
-							Id:      "id1",
-							Type:    "type1",
-							Name:    "name1",
-						},
+						TraceId: "trace_id",
+						SpanId:  "id1",
 					},
 				},
 				SelfTime: &AggregatedDuration{

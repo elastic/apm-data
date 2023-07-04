@@ -73,6 +73,6 @@ message Composite {
 }
 
 message SpanLink {
-  Trace trace = 1;
-  Span span = 2;
+  string trace_id = 1;
+  string span_id = 2;
 }
