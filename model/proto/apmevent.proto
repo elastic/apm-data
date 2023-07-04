@@ -82,7 +82,7 @@ message APMEvent {
   Log log = 27;
   Source source = 28;
   Client client = 29;
-  repeated string childs = 30;
+  repeated string children = 30;
   Destination destination = 31;
   Session session = 32;
   Process process = 33;

@@ -1003,8 +1003,8 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		out.Composite = &composite
 	}
 	if len(from.ChildIDs) > 0 {
-		event.Childs = make([]string, len(from.ChildIDs))
-		copy(event.Childs, from.ChildIDs)
+		event.Children = make([]string, len(from.ChildIDs))
+		copy(event.Children, from.ChildIDs)
 	}
 	if from.Context.Database.IsSet() {
 		db := modelpb.DB{}
