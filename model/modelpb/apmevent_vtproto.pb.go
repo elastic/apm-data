@@ -60,7 +60,7 @@ func (m *APMEvent) CloneVT() *APMEvent {
 		Processor:   m.Processor.CloneVT(),
 		Http:        m.Http.CloneVT(),
 		UserAgent:   m.UserAgent.CloneVT(),
-		Parent:      m.Parent,
+		ParentId:    m.ParentId,
 		Message:     m.Message,
 		Trace:       m.Trace.CloneVT(),
 		Host:        m.Host.CloneVT(),
@@ -94,10 +94,10 @@ func (m *APMEvent) CloneVT() *APMEvent {
 		}
 		r.Labels = tmpContainer
 	}
-	if rhs := m.Child; rhs != nil {
+	if rhs := m.Childs; rhs != nil {
 		tmpContainer := make([]string, len(rhs))
 		copy(tmpContainer, rhs)
-		r.Child = tmpContainer
+		r.Childs = tmpContainer
 	}
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -188,11 +188,11 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0xfa
 	}
-	if len(m.Child) > 0 {
-		for iNdEx := len(m.Child) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.Child[iNdEx])
-			copy(dAtA[i:], m.Child[iNdEx])
-			i = encodeVarint(dAtA, i, uint64(len(m.Child[iNdEx])))
+	if len(m.Childs) > 0 {
+		for iNdEx := len(m.Childs) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Childs[iNdEx])
+			copy(dAtA[i:], m.Childs[iNdEx])
+			i = encodeVarint(dAtA, i, uint64(len(m.Childs[iNdEx])))
 			i--
 			dAtA[i] = 0x1
 			i--
@@ -280,10 +280,10 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0xba
 	}
-	if len(m.Parent) > 0 {
-		i -= len(m.Parent)
-		copy(dAtA[i:], m.Parent)
-		i = encodeVarint(dAtA, i, uint64(len(m.Parent)))
+	if len(m.ParentId) > 0 {
+		i -= len(m.ParentId)
+		copy(dAtA[i:], m.ParentId)
+		i = encodeVarint(dAtA, i, uint64(len(m.ParentId)))
 		i--
 		dAtA[i] = 0x1
 		i--
@@ -664,7 +664,7 @@ func (m *APMEvent) SizeVT() (n int) {
 		l = m.UserAgent.SizeVT()
 		n += 2 + l + sov(uint64(l))
 	}
-	l = len(m.Parent)
+	l = len(m.ParentId)
 	if l > 0 {
 		n += 2 + l + sov(uint64(l))
 	}
@@ -696,8 +696,8 @@ func (m *APMEvent) SizeVT() (n int) {
 		l = m.Client.SizeVT()
 		n += 2 + l + sov(uint64(l))
 	}
-	if len(m.Child) > 0 {
-		for _, s := range m.Child {
+	if len(m.Childs) > 0 {
+		for _, s := range m.Childs {
 			l = len(s)
 			n += 2 + l + sov(uint64(l))
 		}
@@ -1703,7 +1703,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 			iNdEx = postIndex
 		case 22:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Parent", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ParentId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1731,7 +1731,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Parent = string(dAtA[iNdEx:postIndex])
+			m.ParentId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 23:
 			if wireType != 2 {
@@ -1983,7 +1983,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 			iNdEx = postIndex
 		case 30:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Child", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Childs", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2011,7 +2011,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Child = append(m.Child, string(dAtA[iNdEx:postIndex]))
+			m.Childs = append(m.Childs, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		case 31:
 			if wireType != 2 {

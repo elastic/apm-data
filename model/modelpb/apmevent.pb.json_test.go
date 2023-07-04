@@ -400,7 +400,7 @@ func fullEvent(t testing.TB) *APMEvent {
 			Original: "original",
 			Name:     "name",
 		},
-		Parent: "id",
+		ParentId: "id",
 		Trace: &Trace{
 			Id: "id",
 		},
@@ -453,7 +453,7 @@ func fullEvent(t testing.TB) *APMEvent {
 			Domain: "example.com",
 			Port:   443,
 		},
-		Child: []string{"id"},
+		Childs: []string{"id"},
 		Destination: &Destination{
 			Address: "127.0.0.1",
 			Port:    443,
