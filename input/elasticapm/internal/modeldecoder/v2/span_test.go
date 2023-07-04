@@ -548,11 +548,11 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		mapToSpanModel(&input, &out)
 
 		assert.Equal(t, []*modelpb.SpanLink{{
-			Span:  &modelpb.Span{Id: "span1"},
-			Trace: &modelpb.Trace{Id: "trace1"},
+			SpanId:  "span1",
+			TraceId: "trace1",
 		}, {
-			Span:  &modelpb.Span{Id: "span2"},
-			Trace: &modelpb.Trace{Id: "trace2"},
+			SpanId:  "span2",
+			TraceId: "trace2",
 		}}, out.Span.Links)
 	})
 

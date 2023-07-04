@@ -101,17 +101,8 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			},
 			Links: []*modelpb.SpanLink{
 				{
-					Trace: &modelpb.Trace{
-						Id: "trace_id",
-					},
-					Span: &modelpb.Span{
-						Kind:    "kind1",
-						Action:  "action1",
-						Subtype: "subtype1",
-						Id:      "id1",
-						Type:    "type1",
-						Name:    "name1",
-					},
+					TraceId: "trace_id",
+					SpanId:  "id1",
 				},
 			},
 			SelfTime: &modelpb.AggregatedDuration{

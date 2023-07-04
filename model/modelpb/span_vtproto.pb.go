@@ -157,8 +157,8 @@ func (m *SpanLink) CloneVT() *SpanLink {
 		return (*SpanLink)(nil)
 	}
 	r := &SpanLink{
-		Trace: m.Trace.CloneVT(),
-		Span:  m.Span.CloneVT(),
+		TraceId: m.TraceId,
+		SpanId:  m.SpanId,
 	}
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -552,23 +552,17 @@ func (m *SpanLink) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
-	if m.Span != nil {
-		size, err := m.Span.MarshalToSizedBufferVT(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarint(dAtA, i, uint64(size))
+	if len(m.SpanId) > 0 {
+		i -= len(m.SpanId)
+		copy(dAtA[i:], m.SpanId)
+		i = encodeVarint(dAtA, i, uint64(len(m.SpanId)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if m.Trace != nil {
-		size, err := m.Trace.MarshalToSizedBufferVT(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarint(dAtA, i, uint64(size))
+	if len(m.TraceId) > 0 {
+		i -= len(m.TraceId)
+		copy(dAtA[i:], m.TraceId)
+		i = encodeVarint(dAtA, i, uint64(len(m.TraceId)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -731,12 +725,12 @@ func (m *SpanLink) SizeVT() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Trace != nil {
-		l = m.Trace.SizeVT()
+	l = len(m.TraceId)
+	if l > 0 {
 		n += 1 + l + sov(uint64(l))
 	}
-	if m.Span != nil {
-		l = m.Span.SizeVT()
+	l = len(m.SpanId)
+	if l > 0 {
 		n += 1 + l + sov(uint64(l))
 	}
 	n += len(m.unknownFields)
@@ -1811,9 +1805,9 @@ func (m *SpanLink) UnmarshalVT(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Trace", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field TraceId", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflow
@@ -1823,33 +1817,29 @@ func (m *SpanLink) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLength
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLength
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Trace == nil {
-				m.Trace = &Trace{}
-			}
-			if err := m.Trace.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.TraceId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Span", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field SpanId", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflow
@@ -1859,27 +1849,23 @@ func (m *SpanLink) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLength
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLength
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Span == nil {
-				m.Span = &Span{}
-			}
-			if err := m.Span.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.SpanId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
