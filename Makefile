@@ -1,11 +1,14 @@
 .DEFAULT_GOAL := all
-all: generate-modelpb generate gomodtidy update-licenses fieldalignment fmt
+all: generate-modelpb generate gomodtidy update-licenses fieldalignment fmt protolint
 
 test:
 	go test -v ./...
 
 fmt:
 	go run golang.org/x/tools/cmd/goimports@v0.3.0 -w .
+
+protolint:
+	docker run --volume "$(PWD):/workspace" --workdir /workspace bufbuild/buf lint model/proto
 
 gomodtidy:
 	go mod tidy -v
