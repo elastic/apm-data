@@ -65,7 +65,7 @@ func TestNewDropUnsampled(t *testing.T) {
 			Transaction: t5,
 		}}
 
-		err := batchProcessor.ProcessBatch(context.Background(), &batch)
+		_, err := batchProcessor.ProcessBatch(context.Background(), &batch)
 		assert.NoError(t, err)
 
 		var expectedTransactionsDropped int64 = 3

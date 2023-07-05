@@ -62,9 +62,9 @@ import (
 )
 
 func TestConsumer_ConsumeTraces_Empty(t *testing.T) {
-	var processor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
+	var processor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) (context.Context, error) {
 		assert.Empty(t, batch)
-		return nil
+		return ctx, nil
 	}
 
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
@@ -865,10 +865,10 @@ func TestConsumeTracesSemaphore(t *testing.T) {
 	var batches []*modelpb.Batch
 
 	doneCh := make(chan struct{})
-	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) (context.Context, error) {
 		<-doneCh
 		batches = append(batches, batch)
-		return nil
+		return ctx, nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
 		Processor: recorder,
@@ -1581,9 +1581,9 @@ func testDuration() time.Duration {
 }
 
 func batchRecorderBatchProcessor(out *[]*modelpb.Batch) modelpb.BatchProcessor {
-	return modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+	return modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) (context.Context, error) {
 		*out = append(*out, batch)
-		return nil
+		return ctx, nil
 	})
 }
 
@@ -1715,12 +1715,12 @@ func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ..
 
 func transformTraces(t *testing.T, traces ptrace.Traces) *modelpb.Batch {
 	var processed modelpb.Batch
-	processor := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+	processor := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) (context.Context, error) {
 		if processed != nil {
 			panic("already processes batch")
 		}
 		processed = *batch
-		return nil
+		return ctx, nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
 		Processor: processor,

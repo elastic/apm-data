@@ -28,11 +28,13 @@ import (
 type Chained []modelpb.BatchProcessor
 
 // ProcessBatch calls each of the processors in c in series.
-func (c Chained) ProcessBatch(ctx context.Context, batch *modelpb.Batch) error {
+func (c Chained) ProcessBatch(ctx context.Context, batch *modelpb.Batch) (context.Context, error) {
+	var err error
+
 	for _, p := range c {
-		if err := p.ProcessBatch(ctx, batch); err != nil {
-			return err
+		if ctx, err = p.ProcessBatch(ctx, batch); err != nil {
+			return ctx, err
 		}
 	}
-	return nil
+	return ctx, nil
 }

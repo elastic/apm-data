@@ -31,7 +31,7 @@ import (
 //
 // This modelpb.BatchProcessor does not guarantee order preservation of the remaining events.
 func NewDropUnsampled(dropRUM bool, droppedCallback func(int64)) modelpb.BatchProcessor {
-	return modelpb.ProcessBatchFunc(func(_ context.Context, batch *modelpb.Batch) error {
+	return modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) (context.Context, error) {
 		events := *batch
 		for i := 0; i < len(events); {
 			event := events[i]
@@ -47,7 +47,7 @@ func NewDropUnsampled(dropRUM bool, droppedCallback func(int64)) modelpb.BatchPr
 			droppedCallback(int64(dropped))
 		}
 		*batch = events
-		return nil
+		return ctx, nil
 	})
 }
 

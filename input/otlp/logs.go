@@ -61,7 +61,8 @@ func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
 	for i := 0; i < resourceLogs.Len(); i++ {
 		c.convertResourceLogs(resourceLogs.At(i), receiveTimestamp, &batch)
 	}
-	return c.config.Processor.ProcessBatch(ctx, &batch)
+	_, err := c.config.Processor.ProcessBatch(ctx, &batch)
+	return err
 }
 
 func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTimestamp time.Time, out *modelpb.Batch) {

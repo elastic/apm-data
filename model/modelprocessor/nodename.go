@@ -31,11 +31,11 @@ import (
 type SetServiceNodeName struct{}
 
 // ProcessBatch sets a default service.node.name for events without one already set.
-func (SetServiceNodeName) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
+func (SetServiceNodeName) ProcessBatch(ctx context.Context, b *modelpb.Batch) (context.Context, error) {
 	for i := range *b {
 		setServiceNodeName((*b)[i])
 	}
-	return nil
+	return ctx, nil
 }
 
 func setServiceNodeName(event *modelpb.APMEvent) {

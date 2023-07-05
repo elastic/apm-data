@@ -31,14 +31,14 @@ type BatchProcessor interface {
 	// method has returned.
 	// If the batch needs to be processed asynchronously or kept around,
 	// the processor must create a copy of the slice.
-	ProcessBatch(context.Context, *Batch) error
+	ProcessBatch(context.Context, *Batch) (context.Context, error)
 }
 
 // ProcessBatchFunc is a function type that implements BatchProcessor.
-type ProcessBatchFunc func(context.Context, *Batch) error
+type ProcessBatchFunc func(context.Context, *Batch) (context.Context, error)
 
 // ProcessBatch calls f(ctx, b)
-func (f ProcessBatchFunc) ProcessBatch(ctx context.Context, b *Batch) error {
+func (f ProcessBatchFunc) ProcessBatch(ctx context.Context, b *Batch) (context.Context, error) {
 	return f(ctx, b)
 }
 

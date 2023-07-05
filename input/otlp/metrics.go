@@ -60,7 +60,8 @@ func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) 
 	receiveTimestamp := time.Now()
 	c.config.Logger.Debug("consuming metrics", zap.Stringer("metrics", metricsStringer(metrics)))
 	batch := c.convertMetrics(metrics, receiveTimestamp)
-	return c.config.Processor.ProcessBatch(ctx, batch)
+	_, err := c.config.Processor.ProcessBatch(ctx, batch)
+	return err
 }
 
 func (c *Consumer) convertMetrics(metrics pmetric.Metrics, receiveTimestamp time.Time) *modelpb.Batch {

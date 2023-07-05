@@ -43,7 +43,7 @@ func testProcessBatch(t *testing.T, processor modelpb.BatchProcessor, in, out *m
 	t.Helper()
 
 	batch := &modelpb.Batch{in}
-	err := processor.ProcessBatch(context.Background(), batch)
+	_, err := processor.ProcessBatch(context.Background(), batch)
 	require.NoError(t, err)
 
 	expected := &modelpb.Batch{out}

@@ -91,7 +91,8 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) erro
 	for i := 0; i < resourceSpans.Len(); i++ {
 		c.convertResourceSpans(resourceSpans.At(i), receiveTimestamp, &batch)
 	}
-	return c.config.Processor.ProcessBatch(ctx, &batch)
+	_, err := c.config.Processor.ProcessBatch(ctx, &batch)
+	return err
 }
 
 func (c *Consumer) convertResourceSpans(

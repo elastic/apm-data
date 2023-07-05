@@ -349,12 +349,14 @@ func (p *Processor) handleStream(
 	if async {
 		go func() {
 			defer p.sem.Release(1)
-			if err := p.processBatch(ctx, processor, &batch); err != nil {
+			var err error
+			if ctx, err = p.processBatch(ctx, processor, &batch); err != nil {
 				p.logger.Error("failed handling async request", zap.Error(err))
 			}
 		}()
 	} else {
-		if err := p.processBatch(ctx, processor, &batch); err != nil {
+		var err error
+		if ctx, err = p.processBatch(ctx, processor, &batch); err != nil {
 			return err
 		}
 		result.Accepted += n
@@ -363,7 +365,7 @@ func (p *Processor) handleStream(
 }
 
 // processBatch processes the batch and returns it to the pool after it's been processed.
-func (p *Processor) processBatch(ctx context.Context, processor modelpb.BatchProcessor, batch *modelpb.Batch) error {
+func (p *Processor) processBatch(ctx context.Context, processor modelpb.BatchProcessor, batch *modelpb.Batch) (context.Context, error) {
 	defer func() {
 		for i := range *batch {
 			(*batch)[i] = nil

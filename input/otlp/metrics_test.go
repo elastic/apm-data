@@ -225,10 +225,10 @@ func TestConsumeMetricsSemaphore(t *testing.T) {
 	var batches []*modelpb.Batch
 
 	doneCh := make(chan struct{})
-	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) (context.Context, error) {
 		<-doneCh
 		batches = append(batches, batch)
-		return nil
+		return ctx, nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
 		Processor: recorder,

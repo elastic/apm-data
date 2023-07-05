@@ -55,9 +55,9 @@ import (
 
 func TestConsumerConsumeLogs(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
-		var processor modelpb.ProcessBatchFunc = func(_ context.Context, batch *modelpb.Batch) error {
+		var processor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) (context.Context, error) {
 			assert.Empty(t, batch)
-			return nil
+			return ctx, nil
 		}
 
 		consumer := otlp.NewConsumer(otlp.ConsumerConfig{
@@ -97,14 +97,14 @@ func TestConsumerConsumeLogs(t *testing.T) {
 			newLogRecord(body).CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
 			var processed modelpb.Batch
-			var processor modelpb.ProcessBatchFunc = func(_ context.Context, batch *modelpb.Batch) error {
+			var processor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) (context.Context, error) {
 				if processed != nil {
 					panic("already processes batch")
 				}
 				processed = *batch
 				assert.NotNil(t, processed[0].Timestamp)
 				processed[0].Timestamp = nil
-				return nil
+				return ctx, nil
 			}
 			consumer := otlp.NewConsumer(otlp.ConsumerConfig{
 				Processor: processor,
@@ -135,10 +135,10 @@ func TestConsumeLogsSemaphore(t *testing.T) {
 	var batches []*modelpb.Batch
 
 	doneCh := make(chan struct{})
-	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) (context.Context, error) {
 		<-doneCh
 		batches = append(batches, batch)
-		return nil
+		return ctx, nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
 		Processor: recorder,
@@ -197,14 +197,14 @@ Caused by: LowLevelException
 	record2.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
 	var processed modelpb.Batch
-	var processor modelpb.ProcessBatchFunc = func(_ context.Context, batch *modelpb.Batch) error {
+	var processor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) (context.Context, error) {
 		if processed != nil {
 			panic("already processes batch")
 		}
 		processed = *batch
 		assert.NotNil(t, processed[0].Timestamp)
 		processed[0].Timestamp = nil
-		return nil
+		return ctx, nil
 	}
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
 		Processor: processor,
@@ -348,14 +348,14 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 	record1.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
 	var processed modelpb.Batch
-	var processor modelpb.ProcessBatchFunc = func(_ context.Context, batch *modelpb.Batch) error {
+	var processor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) (context.Context, error) {
 		if processed != nil {
 			panic("already processes batch")
 		}
 		processed = *batch
 		assert.NotNil(t, processed[0].Timestamp)
 		processed[0].Timestamp = timestamppb.New(time.Time{})
-		return nil
+		return ctx, nil
 	}
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
 		Processor: processor,
@@ -391,14 +391,14 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 	record3.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
 	var processed modelpb.Batch
-	var processor modelpb.ProcessBatchFunc = func(_ context.Context, batch *modelpb.Batch) error {
+	var processor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) (context.Context, error) {
 		if processed != nil {
 			panic("already processes batch")
 		}
 		processed = *batch
 		assert.NotNil(t, processed[0].Timestamp)
 		processed[0].Timestamp = timestamppb.New(time.Time{})
-		return nil
+		return ctx, nil
 	}
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
 		Processor: processor,

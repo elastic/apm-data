@@ -87,8 +87,8 @@ func TestHandleStreamBatchProcessorError(t *testing.T) {
 			MaxEventSize: 100 * 1024,
 			Semaphore:    semaphore.NewWeighted(1),
 		})
-		processor := modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
-			return test.err
+		processor := modelpb.ProcessBatchFunc(func(ctx context.Context, _ *modelpb.Batch) (context.Context, error) {
+			return ctx, test.err
 		})
 
 		var actualResult Result
@@ -204,9 +204,9 @@ func TestHandleStreamErrors(t *testing.T) {
 
 func TestHandleStream(t *testing.T) {
 	var events []*modelpb.APMEvent
-	batchProcessor := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+	batchProcessor := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) (context.Context, error) {
 		events = append(events, (*batch)...)
-		return nil
+		return ctx, nil
 	})
 
 	payload := strings.Join([]string{
@@ -245,9 +245,9 @@ func TestHandleStream(t *testing.T) {
 
 func TestHandleStreamRUMv3(t *testing.T) {
 	var events []*modelpb.APMEvent
-	batchProcessor := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+	batchProcessor := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) (context.Context, error) {
 		events = append(events, (*batch)...)
-		return nil
+		return ctx, nil
 	})
 
 	payload := strings.Join([]string{
@@ -299,9 +299,9 @@ func TestHandleStreamBaseEvent(t *testing.T) {
 	}
 
 	var events []*modelpb.APMEvent
-	batchProcessor := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+	batchProcessor := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) (context.Context, error) {
 		events = append(events, (*batch)...)
-		return nil
+		return ctx, nil
 	})
 
 	payload := validMetadata + "\n" + validRUMv2Span + "\n"
@@ -333,9 +333,9 @@ func TestLabelLeak(t *testing.T) {
 	}
 
 	processed := make(modelpb.Batch, 2)
-	batchProcessor := modelpb.ProcessBatchFunc(func(_ context.Context, b *modelpb.Batch) error {
+	batchProcessor := modelpb.ProcessBatchFunc(func(ctx context.Context, b *modelpb.Batch) (context.Context, error) {
 		copy(processed, *b)
-		return nil
+		return ctx, nil
 	})
 
 	p := NewProcessor(Config{
@@ -496,8 +496,8 @@ func TestConcurrentAsync(t *testing.T) {
 
 type nopBatchProcessor struct{}
 
-func (nopBatchProcessor) ProcessBatch(context.Context, *modelpb.Batch) error {
-	return nil
+func (nopBatchProcessor) ProcessBatch(ctx context.Context, _ *modelpb.Batch) (context.Context, error) {
+	return ctx, nil
 }
 
 type accountProcessor struct {
@@ -505,19 +505,19 @@ type accountProcessor struct {
 	processed uint64
 }
 
-func (p *accountProcessor) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
+func (p *accountProcessor) ProcessBatch(ctx context.Context, b *modelpb.Batch) (context.Context, error) {
 	select {
 	case <-ctx.Done():
-		return ctx.Err()
+		return ctx, ctx.Err()
 	default:
 	}
 	if p.batch != nil {
 		select {
 		case p.batch <- b:
 		case <-ctx.Done():
-			return ctx.Err()
+			return ctx, ctx.Err()
 		}
 	}
 	atomic.AddUint64(&p.processed, 1)
-	return nil
+	return ctx, nil
 }

@@ -29,11 +29,11 @@ import (
 type SetHostHostname struct{}
 
 // ProcessBatch sets or overrides the host.name and host.hostname fields for events.
-func (SetHostHostname) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
+func (SetHostHostname) ProcessBatch(ctx context.Context, b *modelpb.Batch) (context.Context, error) {
 	for i := range *b {
 		setHostHostname((*b)[i])
 	}
-	return nil
+	return ctx, nil
 }
 
 func setHostHostname(event *modelpb.APMEvent) {
