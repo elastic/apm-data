@@ -101,17 +101,8 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			},
 			Links: []*modelpb.SpanLink{
 				{
-					Trace: &modelpb.Trace{
-						Id: "trace_id",
-					},
-					Span: &modelpb.Span{
-						Kind:    "kind1",
-						Action:  "action1",
-						Subtype: "subtype1",
-						Id:      "id1",
-						Type:    "type1",
-						Name:    "name1",
-					},
+					TraceId: "trace_id",
+					SpanId:  "id1",
 				},
 			},
 			SelfTime: &modelpb.AggregatedDuration{
@@ -391,9 +382,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			Original: "original",
 			Name:     "name",
 		},
-		Parent: &modelpb.Parent{
-			Id: "id",
-		},
+		ParentId: "id",
 		Trace: &modelpb.Trace{
 			Id: "id",
 		},
@@ -446,9 +435,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			Domain: "example.com",
 			Port:   443,
 		},
-		Child: &modelpb.Child{
-			Id: []string{"id"},
-		},
+		Children: []string{"id"},
 		Destination: &modelpb.Destination{
 			Address: "127.0.0.1",
 			Port:    443,

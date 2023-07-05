@@ -854,8 +854,8 @@ func TestSpanLinks(t *testing.T) {
 	})
 	for _, event := range []*modelpb.APMEvent{txEvent, spanEvent} {
 		assert.Equal(t, []*modelpb.SpanLink{{
-			Span:  &modelpb.Span{Id: "0706050403020100"},
-			Trace: &modelpb.Trace{Id: "000102030405060708090a0b0c0d0e0f"},
+			SpanId:  "0706050403020100",
+			TraceId: "000102030405060708090a0b0c0d0e0f",
 		}}, event.Span.Links)
 	}
 }
@@ -980,6 +980,20 @@ func TestConsumer_JaegerSampleRate(t *testing.T) {
 				jaegerKeyValue("span.kind", "server"),
 				jaegerKeyValue("sampler.type", "ratelimiting"),
 				jaegerKeyValue("sampler.param", 2.0), // 2 traces per second
+			},
+		}, {
+			StartTime: testStartTime(),
+			Duration:  testDuration(),
+			TraceID:   jaegermodel.NewTraceID(1, 1),
+			References: []jaegermodel.SpanRef{{
+				RefType: jaegermodel.SpanRefType_CHILD_OF,
+				TraceID: jaegermodel.NewTraceID(1, 1),
+				SpanID:  1,
+			}},
+			Tags: []jaegermodel.KeyValue{
+				jaegerKeyValue("span.kind", "client"),
+				jaegerKeyValue("sampler.type", "const"),
+				jaegerKeyValue("sampler.param", 1.0),
 			},
 		}},
 	}})

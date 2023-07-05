@@ -96,8 +96,8 @@ func (e *Span) toModelJSON(out *modeljson.Span) {
 		out.Links = make([]modeljson.SpanLink, n)
 		for i, link := range e.Links {
 			out.Links[i] = modeljson.SpanLink{
-				Trace: modeljson.SpanLinkTrace{ID: link.Trace.Id},
-				Span:  modeljson.SpanLinkSpan{ID: link.Span.Id},
+				Trace: modeljson.SpanLinkTrace{ID: link.TraceId},
+				Span:  modeljson.SpanLinkSpan{ID: link.SpanId},
 			}
 		}
 	}

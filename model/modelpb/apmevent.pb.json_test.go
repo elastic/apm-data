@@ -110,17 +110,8 @@ func fullEvent(t testing.TB) *APMEvent {
 			},
 			Links: []*SpanLink{
 				{
-					Trace: &Trace{
-						Id: "trace_id",
-					},
-					Span: &Span{
-						Kind:    "kind1",
-						Action:  "action1",
-						Subtype: "subtype1",
-						Id:      "id1",
-						Type:    "type1",
-						Name:    "name1",
-					},
+					TraceId: "trace_id",
+					SpanId:  "id1",
 				},
 			},
 			SelfTime: &AggregatedDuration{
@@ -400,9 +391,7 @@ func fullEvent(t testing.TB) *APMEvent {
 			Original: "original",
 			Name:     "name",
 		},
-		Parent: &Parent{
-			Id: "id",
-		},
+		ParentId: "id",
 		Trace: &Trace{
 			Id: "id",
 		},
@@ -455,9 +444,7 @@ func fullEvent(t testing.TB) *APMEvent {
 			Domain: "example.com",
 			Port:   443,
 		},
-		Child: &Child{
-			Id: []string{"id"},
-		},
+		Children: []string{"id"},
 		Destination: &Destination{
 			Address: "127.0.0.1",
 			Port:    443,

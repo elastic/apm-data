@@ -186,15 +186,15 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 		doc.Source = &source
 	}
 
-	if e.Parent != nil {
+	if len(e.ParentId) > 0 {
 		doc.Parent = &modeljson.Parent{
-			ID: e.Parent.Id,
+			ID: e.ParentId,
 		}
 	}
 
-	if e.Child != nil {
+	if len(e.Children) > 0 {
 		doc.Child = &modeljson.Child{
-			ID: e.Child.Id,
+			ID: e.Children,
 		}
 	}
 
