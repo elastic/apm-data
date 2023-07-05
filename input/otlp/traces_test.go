@@ -981,6 +981,20 @@ func TestConsumer_JaegerSampleRate(t *testing.T) {
 				jaegerKeyValue("sampler.type", "ratelimiting"),
 				jaegerKeyValue("sampler.param", 2.0), // 2 traces per second
 			},
+		}, {
+			StartTime: testStartTime(),
+			Duration:  testDuration(),
+			TraceID:   jaegermodel.NewTraceID(1, 1),
+			References: []jaegermodel.SpanRef{{
+				RefType: jaegermodel.SpanRefType_CHILD_OF,
+				TraceID: jaegermodel.NewTraceID(1, 1),
+				SpanID:  1,
+			}},
+			Tags: []jaegermodel.KeyValue{
+				jaegerKeyValue("span.kind", "client"),
+				jaegerKeyValue("sampler.type", "const"),
+				jaegerKeyValue("sampler.param", 1.0),
+			},
 		}},
 	}})
 	require.NoError(t, err)

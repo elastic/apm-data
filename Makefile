@@ -1,3 +1,6 @@
+.DEFAULT_GOAL := all
+all: generate-modelpb generate gomodtidy update-licenses fieldalignment fmt
+
 test:
 	go test -v ./...
 
