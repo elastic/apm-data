@@ -94,10 +94,10 @@ func (m *APMEvent) CloneVT() *APMEvent {
 		}
 		r.Labels = tmpContainer
 	}
-	if rhs := m.Children; rhs != nil {
+	if rhs := m.ChildIds; rhs != nil {
 		tmpContainer := make([]string, len(rhs))
 		copy(tmpContainer, rhs)
-		r.Children = tmpContainer
+		r.ChildIds = tmpContainer
 	}
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -188,11 +188,11 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0xfa
 	}
-	if len(m.Children) > 0 {
-		for iNdEx := len(m.Children) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.Children[iNdEx])
-			copy(dAtA[i:], m.Children[iNdEx])
-			i = encodeVarint(dAtA, i, uint64(len(m.Children[iNdEx])))
+	if len(m.ChildIds) > 0 {
+		for iNdEx := len(m.ChildIds) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.ChildIds[iNdEx])
+			copy(dAtA[i:], m.ChildIds[iNdEx])
+			i = encodeVarint(dAtA, i, uint64(len(m.ChildIds[iNdEx])))
 			i--
 			dAtA[i] = 0x1
 			i--
@@ -696,8 +696,8 @@ func (m *APMEvent) SizeVT() (n int) {
 		l = m.Client.SizeVT()
 		n += 2 + l + sov(uint64(l))
 	}
-	if len(m.Children) > 0 {
-		for _, s := range m.Children {
+	if len(m.ChildIds) > 0 {
+		for _, s := range m.ChildIds {
 			l = len(s)
 			n += 2 + l + sov(uint64(l))
 		}
@@ -1983,7 +1983,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 			iNdEx = postIndex
 		case 30:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Children", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ChildIds", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2011,7 +2011,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Children = append(m.Children, string(dAtA[iNdEx:postIndex]))
+			m.ChildIds = append(m.ChildIds, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		case 31:
 			if wireType != 2 {

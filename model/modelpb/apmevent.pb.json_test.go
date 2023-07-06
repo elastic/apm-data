@@ -444,7 +444,7 @@ func fullEvent(t testing.TB) *APMEvent {
 			Domain: "example.com",
 			Port:   443,
 		},
-		Children: []string{"id"},
+		ChildIds: []string{"id"},
 		Destination: &Destination{
 			Address: "127.0.0.1",
 			Port:    443,

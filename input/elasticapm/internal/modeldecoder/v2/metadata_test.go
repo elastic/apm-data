@@ -49,7 +49,7 @@ func isIgnoredPrefix(key string) bool {
 func isUnmappedMetadataField(key string) bool {
 	switch key {
 	case
-		"children",
+		"child_ids",
 		"client.domain",
 		"client",
 		"client.ip",
