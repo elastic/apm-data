@@ -618,6 +618,21 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			mapToTransactionModel(&input, &event)
 			assert.Equal(t, "CLIENT", event.Span.Kind)
 		})
+
+		t.Run("elastic-profiling-ids", func(t *testing.T) {
+			var input transaction
+			var event modelpb.APMEvent
+			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+			input.Type.Reset()
+			attrs := map[string]interface{}{
+				"elastic.profiler_stack_trace_ids": []interface{}{"id1", "id2"},
+			}
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Reset()
+
+			mapToTransactionModel(&input, &event)
+			assert.Equal(t, []string{"id1", "id2"}, event.Transaction.ProfilerStackTraceIds)
+		})
 	})
 	t.Run("labels", func(t *testing.T) {
 		var input transaction

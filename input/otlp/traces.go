@@ -270,7 +270,19 @@ func TranslateTransaction(
 		k := replaceDots(kDots)
 		switch v.Type() {
 		case pcommon.ValueTypeSlice:
-			setLabel(k, event, ifaceAttributeValue(v))
+			switch kDots {
+			case "elastic.profiler_stack_trace_ids":
+				var vSlice = v.Slice()
+				event.Transaction.ProfilerStackTraceIds = make([]string, 0, vSlice.Len())
+				for i := 0; i < vSlice.Len(); i++ {
+					var idVal = vSlice.At(i)
+					if idVal.Type() == pcommon.ValueTypeStr {
+						event.Transaction.ProfilerStackTraceIds = append(event.Transaction.ProfilerStackTraceIds, idVal.Str())
+					}
+				}
+			default:
+				setLabel(k, event, ifaceAttributeValue(v))
+			}
 		case pcommon.ValueTypeBool:
 			setLabel(k, event, ifaceAttributeValue(v))
 		case pcommon.ValueTypeDouble:
