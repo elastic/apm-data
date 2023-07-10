@@ -19,7 +19,6 @@ package otlp
 
 import (
 	"fmt"
-	"net/netip"
 	"regexp"
 	"strconv"
 	"strings"
@@ -248,8 +247,8 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			delete(out.Labels, "client-uuid")
 		}
 		if systemIP, ok := out.Labels["ip"]; ok {
-			if ip, err := netip.ParseAddr(systemIP.Value); err == nil {
-				out.Host.Ip = []string{ip.String()}
+			if ip, err := modelpb.ParseIP(systemIP.Value); err == nil {
+				out.Host.Ip = []*modelpb.IP{ip}
 			}
 			delete(out.Labels, "ip")
 		}

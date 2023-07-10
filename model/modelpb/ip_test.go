@@ -20,41 +20,47 @@ package modelpb
 import (
 	"testing"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
-	"github.com/google/go-cmp/cmp"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestClientToModelJSON(t *testing.T) {
-	testCases := map[string]struct {
-		proto    *Client
-		expected *modeljson.Client
+func TestParseIP(t *testing.T) {
+	for _, tt := range []struct {
+		name    string
+		address string
+
+		expectedIP       *IP
+		expectedErr      error
+		expectedStringIP string
 	}{
-		"empty": {
-			proto:    &Client{},
-			expected: &modeljson.Client{},
-		},
-		"full": {
-			proto: &Client{
-				Ip: &IP{
-					IpAddr: &IP_V4{2130706433},
+		{
+			name:    "with a valid IPv4 address",
+			address: "127.0.0.1",
+
+			expectedIP: &IP{
+				IpAddr: &IP_V4{
+					V4: 2130706433,
 				},
-				Domain: "example.com",
-				Port:   443,
 			},
-			expected: &modeljson.Client{
-				IP:     "127.0.0.1",
-				Domain: "example.com",
-				Port:   443,
-			},
+			expectedStringIP: "127.0.0.1",
 		},
-	}
-	for name, tc := range testCases {
-		t.Run(name, func(t *testing.T) {
-			var out modeljson.Client
-			tc.proto.toModelJSON(&out)
-			diff := cmp.Diff(*tc.expected, out)
-			require.Empty(t, diff)
+		{
+			name:    "with a valid IPv6 address",
+			address: "::1",
+
+			expectedIP: &IP{
+				IpAddr: &IP_V6{
+					V6: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+				},
+			},
+			expectedStringIP: "::1",
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			ip, err := ParseIP(tt.address)
+
+			assert.Equal(t, tt.expectedErr, err)
+			assert.Equal(t, tt.expectedIP, ip)
+			assert.Equal(t, tt.expectedStringIP, IP2String(ip))
 		})
 	}
 }

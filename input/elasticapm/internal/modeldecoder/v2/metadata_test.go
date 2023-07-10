@@ -191,7 +191,7 @@ func initializedInputMetadata(values *modeldecodertest.Values) (metadata, *model
 	modeldecodertest.SetStructValues(&out, values, func(key string, field, value reflect.Value) bool {
 		return isUnmappedMetadataField(key) || isEventField(key)
 	})
-	out.Client = &modelpb.Client{Ip: values.IP.String()}
+	out.Client = &modelpb.Client{Ip: values.IP}
 	return input, &out
 }
 
@@ -296,11 +296,11 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		input.Reset()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, &out2)
-		out2.Host.Ip = []string{defaultVal.IP.String()}
+		out2.Host.Ip = []*modelpb.IP{defaultVal.IP}
 		out2.Client = populateNil(out2.Client)
-		out2.Client.Ip = defaultVal.IP.String()
+		out2.Client.Ip = defaultVal.IP
 		out2.Source = populateNil(out2.Source)
-		out2.Source.Ip = defaultVal.IP.String()
+		out2.Source.Ip = defaultVal.IP
 		modeldecodertest.AssertStructValues(t, &out2, isMetadataException, otherVal)
 		modeldecodertest.AssertStructValues(t, &out1, isMetadataException, defaultVal)
 	})

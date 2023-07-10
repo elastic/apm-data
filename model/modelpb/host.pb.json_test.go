@@ -57,7 +57,11 @@ func TestHostToModelJSON(t *testing.T) {
 				Id:           "id",
 				Architecture: "architecture",
 				Type:         "type",
-				Ip:           []string{"127.0.0.1"},
+				Ip: []*IP{
+					{
+						IpAddr: &IP_V4{2130706433},
+					},
+				},
 			},
 			expected: &modeljson.Host{
 				Hostname:     "hostname",

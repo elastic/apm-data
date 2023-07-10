@@ -408,7 +408,11 @@ func fullEvent(t testing.TB) *APMEvent {
 			Id:           "id",
 			Architecture: "architecture",
 			Type:         "type",
-			Ip:           []string{"127.0.0.1"},
+			Ip: []*IP{
+				{
+					IpAddr: &IP_V4{2130706433},
+				},
+			},
 		},
 		Url: &URL{
 			Original: "original",
@@ -432,15 +436,21 @@ func fullEvent(t testing.TB) *APMEvent {
 			},
 		},
 		Source: &Source{
-			Ip: "127.0.0.1",
+			Ip: &IP{
+				IpAddr: &IP_V4{2130706433},
+			},
 			Nat: &NAT{
-				Ip: "127.0.0.2",
+				Ip: &IP{
+					IpAddr: &IP_V4{2130706434},
+				},
 			},
 			Domain: "domain",
 			Port:   443,
 		},
 		Client: &Client{
-			Ip:     "127.0.0.1",
+			Ip: &IP{
+				IpAddr: &IP_V4{2130706433},
+			},
 			Domain: "example.com",
 			Port:   443,
 		},

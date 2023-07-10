@@ -19,7 +19,6 @@ package rumv3
 
 import (
 	"fmt"
-	"net/netip"
 	"reflect"
 	"strings"
 	"testing"
@@ -44,11 +43,11 @@ func initializedMetadata() *modelpb.APMEvent {
 	// initialize values that are not set by input
 	out.UserAgent = &modelpb.UserAgent{Name: "init", Original: "init"}
 	out.Client = &modelpb.Client{
-		Ip:     "127.0.0.1",
+		Ip:     modelpb.MustParseIP("127.0.0.1"),
 		Domain: "init",
 		Port:   1,
 	}
-	nat := &modelpb.NAT{Ip: "127.0.0.1"}
+	nat := &modelpb.NAT{Ip: modelpb.MustParseIP("127.0.0.1")}
 	out.Source = &modelpb.Source{Ip: out.Client.Ip, Port: out.Client.Port, Domain: out.Client.Domain, Nat: nat}
 	return &out
 }
@@ -170,13 +169,13 @@ func TestDecodeNestedMetadata(t *testing.T) {
 }
 
 func TestDecodeMetadataMappingToModel(t *testing.T) {
-	expected := func(s string, ip netip.Addr, n int) *modelpb.APMEvent {
+	expected := func(s string, ip *modelpb.IP, n int) *modelpb.APMEvent {
 		labels := modelpb.Labels{}
 		for i := 0; i < n; i++ {
 			labels[fmt.Sprintf("%s%v", s, i)] = &modelpb.LabelValue{Global: true, Value: s}
 		}
 
-		lhost := "127.0.0.1"
+		lhost := modelpb.MustParseIP("127.0.0.1")
 		return &modelpb.APMEvent{
 			Agent: &modelpb.Agent{Name: s, Version: s},
 			Service: &modelpb.Service{Name: s, Version: s, Environment: s,
@@ -243,7 +242,7 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 		out1.UserAgent = &modelpb.UserAgent{Name: "init", Original: "init"}
 		out1.Client = &modelpb.Client{
 			Domain: "init",
-			Ip:     "127.0.0.1",
+			Ip:     modelpb.MustParseIP("127.0.0.1"),
 			Port:   1,
 		}
 		nat := &modelpb.NAT{Ip: out1.Client.Ip}
@@ -259,7 +258,7 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 		out2.UserAgent = &modelpb.UserAgent{Name: "init", Original: "init"}
 		out2.Client = &modelpb.Client{
 			Domain: "init",
-			Ip:     "127.0.0.1",
+			Ip:     modelpb.MustParseIP("127.0.0.1"),
 			Port:   1,
 		}
 		out2.Source = &modelpb.Source{Ip: out2.Client.Ip, Port: out2.Client.Port, Domain: out2.Client.Domain, Nat: nat}
