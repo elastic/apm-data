@@ -18,6 +18,7 @@
 package modelpb
 
 import (
+	"net/netip"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,9 +29,8 @@ func TestParseIP(t *testing.T) {
 		name    string
 		address string
 
-		expectedIP       *IP
-		expectedErr      error
-		expectedStringIP string
+		expectedIP  *IP
+		expectedErr string
 	}{
 		{
 			name:    "with a valid IPv4 address",
@@ -41,7 +41,6 @@ func TestParseIP(t *testing.T) {
 					V4: 2130706433,
 				},
 			},
-			expectedStringIP: "127.0.0.1",
 		},
 		{
 			name:    "with a valid IPv6 address",
@@ -52,15 +51,183 @@ func TestParseIP(t *testing.T) {
 					V6: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 				},
 			},
-			expectedStringIP: "::1",
+		},
+		{
+			name:    "with an invalid address",
+			address: "hello_world",
+
+			expectedIP:  nil,
+			expectedErr: "ParseAddr(\"hello_world\"): unable to parse IP",
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			ip, err := ParseIP(tt.address)
 
-			assert.Equal(t, tt.expectedErr, err)
+			if tt.expectedErr != "" {
+				assert.Equal(t, tt.expectedErr, err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
 			assert.Equal(t, tt.expectedIP, ip)
-			assert.Equal(t, tt.expectedStringIP, IP2String(ip))
+		})
+	}
+}
+
+func TestMustParseIP(t *testing.T) {
+	for _, tt := range []struct {
+		name    string
+		address string
+
+		expectedIP    *IP
+		expectedPanic bool
+	}{
+		{
+			name:    "with a valid IPv4 address",
+			address: "127.0.0.1",
+
+			expectedIP: &IP{
+				IpAddr: &IP_V4{
+					V4: 2130706433,
+				},
+			},
+		},
+		{
+			name:    "with a valid IPv6 address",
+			address: "::1",
+
+			expectedIP: &IP{
+				IpAddr: &IP_V6{
+					V6: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+				},
+			},
+		},
+		{
+			name:    "with an invalid address",
+			address: "hello_world",
+
+			expectedIP:    nil,
+			expectedPanic: true,
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+
+			fn := assert.Panics
+			if !tt.expectedPanic {
+				fn = assert.NotPanics
+			}
+
+			fn(t, func() {
+				ip := MustParseIP(tt.address)
+				assert.Equal(t, tt.expectedIP, ip)
+			})
+		})
+	}
+}
+
+func TestAddr2IP(t *testing.T) {
+	for _, tt := range []struct {
+		name    string
+		address netip.Addr
+
+		expectedIP *IP
+	}{
+		{
+			name:    "with an IPv4 address",
+			address: netip.MustParseAddr("127.0.0.1"),
+
+			expectedIP: &IP{
+				IpAddr: &IP_V4{
+					V4: 2130706433,
+				},
+			},
+		},
+		{
+			name:    "with an IPv6 address",
+			address: netip.MustParseAddr("::1"),
+
+			expectedIP: &IP{
+				IpAddr: &IP_V6{
+					V6: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+				},
+			},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			ip := Addr2IP(tt.address)
+
+			assert.Equal(t, tt.expectedIP, ip)
+		})
+	}
+}
+
+func TestIP2Addr(t *testing.T) {
+	for _, tt := range []struct {
+		name string
+		ip   *IP
+
+		expectedAddr netip.Addr
+	}{
+		{
+			name: "with an IPv4 address",
+			ip: &IP{
+				IpAddr: &IP_V4{
+					V4: 2130706433,
+				},
+			},
+
+			expectedAddr: netip.MustParseAddr("127.0.0.1"),
+		},
+		{
+			name: "with an IPv6 address",
+			ip: &IP{
+				IpAddr: &IP_V6{
+					V6: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+				},
+			},
+
+			expectedAddr: netip.MustParseAddr("::1"),
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			addr := IP2Addr(tt.ip)
+
+			assert.Equal(t, tt.expectedAddr, addr)
+		})
+	}
+}
+
+func TestIP2String(t *testing.T) {
+	for _, tt := range []struct {
+		name string
+		ip   *IP
+
+		expectedString string
+	}{
+		{
+			name: "with an IPv4 address",
+			ip: &IP{
+				IpAddr: &IP_V4{
+					V4: 2130706433,
+				},
+			},
+
+			expectedString: "127.0.0.1",
+		},
+		{
+			name: "with an IPv6 address",
+			ip: &IP{
+				IpAddr: &IP_V6{
+					V6: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+				},
+			},
+
+			expectedString: "::1",
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			str := IP2String(tt.ip)
+
+			assert.Equal(t, tt.expectedString, str)
 		})
 	}
 }
