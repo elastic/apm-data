@@ -18,6 +18,8 @@
 package modelpb
 
 import (
+	"math"
+
 	"github.com/elastic/apm-data/model/internal/modeljson"
 	"go.elastic.co/fastjson"
 )
@@ -81,12 +83,19 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 	if e.Transaction != nil {
 		e.Transaction.toModelJSON(&transaction, e.Processor != nil && e.Processor.Name == "metric" && e.Processor.Event == "metric")
 		doc.Transaction = &transaction
+
+		if e.Transaction.GetRepresentativeCount() >= 1 {
+			doc.DocCount = int64(math.Round(e.Transaction.GetRepresentativeCount()))
+		}
 	}
 
 	var span modeljson.Span
 	if e.Span != nil {
 		e.Span.toModelJSON(&span)
 		doc.Span = &span
+		if e.Span.GetRepresentativeCount() >= 1 {
+			doc.DocCount = int64(math.Round(e.Span.GetRepresentativeCount()))
+		}
 	}
 
 	var metricset modeljson.Metricset

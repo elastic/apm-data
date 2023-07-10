@@ -1,6 +1,7 @@
 {
     "events": [
         {
+            "_doc_count": 1,
             "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
@@ -33,6 +34,7 @@
             }
         },
         {
+            "_doc_count": 3,
             "@timestamp": "2019-12-16T12:46:58.000Z",
             "agent": {
                 "name": "Jaeger",
