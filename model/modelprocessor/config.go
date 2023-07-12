@@ -27,7 +27,7 @@ import (
 type ConfigOption func(config) config
 
 // config allow processors to get optional arguments.
-// The config struct is shared amongt every processor using it, but they may
+// The config struct is shared amongst every processor using it, but they may
 // not each use every option.
 type config struct {
 	TracerProvider trace.TracerProvider
