@@ -134,6 +134,8 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 				elemVal = reflect.ValueOf(values.Int)
 			case []int64:
 				elemVal = reflect.ValueOf(int64(values.Int))
+			case []uint8:
+				elemVal = reflect.ValueOf(uint8(values.Int))
 			case []float64:
 				elemVal = reflect.ValueOf(values.Float)
 			case []*modelpb.IP:
@@ -293,7 +295,12 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 		case int32:
 			newVal = int32(values.Int)
 		case uint32:
-			newVal = uint32(values.Int)
+			switch true {
+			case strings.Contains(key, "v4"):
+				newVal = uint32(values.IP.V4)
+			default:
+				newVal = uint32(values.Int)
+			}
 		case *uint32:
 			val := uint32(values.Int)
 			newVal = &val
@@ -302,14 +309,12 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 		case *float64:
 			val := values.Float
 			newVal = &val
-		case *modelpb.IP:
-			newVal = values.IP
-		case *modelpb.IP_V4, *modelpb.IP_V6:
-			newVal = values.IP.GetIpAddr()
 		case bool:
 			newVal = values.Bool
 		case *bool:
 			newVal = &values.Bool
+		case []byte:
+			newVal = values.IP.V6
 		case http.Header:
 			newVal = values.HTTPHeader
 		case time.Duration:
@@ -332,6 +337,7 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 			}
 			panic(fmt.Sprintf("unhandled type %s %s for key %s", f.Kind(), f.Type(), key))
 		}
+
 		assert.Equal(t, newVal, fVal, key)
 	})
 }

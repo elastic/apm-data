@@ -37,9 +37,7 @@ func TestParseIP(t *testing.T) {
 			address: "127.0.0.1",
 
 			expectedIP: &IP{
-				IpAddr: &IP_V4{
-					V4: 2130706433,
-				},
+				V4: 2130706433,
 			},
 		},
 		{
@@ -47,9 +45,7 @@ func TestParseIP(t *testing.T) {
 			address: "::1",
 
 			expectedIP: &IP{
-				IpAddr: &IP_V6{
-					V6: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				},
+				V6: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 			},
 		},
 		{
@@ -86,9 +82,7 @@ func TestMustParseIP(t *testing.T) {
 			address: "127.0.0.1",
 
 			expectedIP: &IP{
-				IpAddr: &IP_V4{
-					V4: 2130706433,
-				},
+				V4: 2130706433,
 			},
 		},
 		{
@@ -96,9 +90,7 @@ func TestMustParseIP(t *testing.T) {
 			address: "::1",
 
 			expectedIP: &IP{
-				IpAddr: &IP_V6{
-					V6: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				},
+				V6: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 			},
 		},
 		{
@@ -135,21 +127,13 @@ func TestAddr2IP(t *testing.T) {
 			name:    "with an IPv4 address",
 			address: netip.MustParseAddr("127.0.0.1"),
 
-			expectedIP: &IP{
-				IpAddr: &IP_V4{
-					V4: 2130706433,
-				},
-			},
+			expectedIP: MustParseIP("127.0.0.1"),
 		},
 		{
 			name:    "with an IPv6 address",
 			address: netip.MustParseAddr("::1"),
 
-			expectedIP: &IP{
-				IpAddr: &IP_V6{
-					V6: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				},
-			},
+			expectedIP: MustParseIP("::1"),
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -169,21 +153,13 @@ func TestIP2Addr(t *testing.T) {
 	}{
 		{
 			name: "with an IPv4 address",
-			ip: &IP{
-				IpAddr: &IP_V4{
-					V4: 2130706433,
-				},
-			},
+			ip:   MustParseIP("127.0.0.1"),
 
 			expectedAddr: netip.MustParseAddr("127.0.0.1"),
 		},
 		{
 			name: "with an IPv6 address",
-			ip: &IP{
-				IpAddr: &IP_V6{
-					V6: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				},
-			},
+			ip:   MustParseIP("::1"),
 
 			expectedAddr: netip.MustParseAddr("::1"),
 		},
@@ -205,21 +181,13 @@ func TestIP2String(t *testing.T) {
 	}{
 		{
 			name: "with an IPv4 address",
-			ip: &IP{
-				IpAddr: &IP_V4{
-					V4: 2130706433,
-				},
-			},
+			ip:   MustParseIP("127.0.0.1"),
 
 			expectedString: "127.0.0.1",
 		},
 		{
 			name: "with an IPv6 address",
-			ip: &IP{
-				IpAddr: &IP_V6{
-					V6: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-				},
-			},
+			ip:   MustParseIP("::1"),
 
 			expectedString: "::1",
 		},

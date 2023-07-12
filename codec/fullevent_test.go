@@ -400,9 +400,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			Architecture: "architecture",
 			Type:         "type",
 			Ip: []*modelpb.IP{
-				{
-					IpAddr: &modelpb.IP_V4{V4: 2130706433},
-				},
+				modelpb.MustParseIP("127.0.0.1"),
 			},
 		},
 		Url: &modelpb.URL{
@@ -427,21 +425,15 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			},
 		},
 		Source: &modelpb.Source{
-			Ip: &modelpb.IP{
-				IpAddr: &modelpb.IP_V4{V4: 2130706433},
-			},
+			Ip: modelpb.MustParseIP("127.0.0.1"),
 			Nat: &modelpb.NAT{
-				Ip: &modelpb.IP{
-					IpAddr: &modelpb.IP_V4{V4: 2130706434},
-				},
+				Ip: modelpb.MustParseIP("127.0.0.2"),
 			},
 			Domain: "domain",
 			Port:   443,
 		},
 		Client: &modelpb.Client{
-			Ip: &modelpb.IP{
-				IpAddr: &modelpb.IP_V4{V4: 2130706433},
-			},
+			Ip:     modelpb.MustParseIP("127.0.0.1"),
 			Domain: "example.com",
 			Port:   443,
 		},

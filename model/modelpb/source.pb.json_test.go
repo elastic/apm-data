@@ -37,13 +37,9 @@ func TestSourceToModelJSON(t *testing.T) {
 		},
 		"full": {
 			proto: &Source{
-				Ip: &IP{
-					IpAddr: &IP_V4{2130706433},
-				},
+				Ip: MustParseIP("127.0.0.1"),
 				Nat: &NAT{
-					Ip: &IP{
-						IpAddr: &IP_V4{2130706434},
-					},
+					Ip: MustParseIP("127.0.0.2"),
 				},
 				Domain: "domain",
 				Port:   443,

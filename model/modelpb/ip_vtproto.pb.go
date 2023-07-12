@@ -41,9 +41,13 @@ func (m *IP) CloneVT() *IP {
 	if m == nil {
 		return (*IP)(nil)
 	}
-	r := &IP{}
-	if m.IpAddr != nil {
-		r.IpAddr = m.IpAddr.(interface{ CloneVT() isIP_IpAddr }).CloneVT()
+	r := &IP{
+		V4: m.V4,
+	}
+	if rhs := m.V6; rhs != nil {
+		tmpBytes := make([]byte, len(rhs))
+		copy(tmpBytes, rhs)
+		r.V6 = tmpBytes
 	}
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -54,29 +58,6 @@ func (m *IP) CloneVT() *IP {
 
 func (m *IP) CloneMessageVT() proto.Message {
 	return m.CloneVT()
-}
-
-func (m *IP_V4) CloneVT() isIP_IpAddr {
-	if m == nil {
-		return (*IP_V4)(nil)
-	}
-	r := &IP_V4{
-		V4: m.V4,
-	}
-	return r
-}
-
-func (m *IP_V6) CloneVT() isIP_IpAddr {
-	if m == nil {
-		return (*IP_V6)(nil)
-	}
-	r := &IP_V6{}
-	if rhs := m.V6; rhs != nil {
-		tmpBytes := make([]byte, len(rhs))
-		copy(tmpBytes, rhs)
-		r.V6 = tmpBytes
-	}
-	return r
 }
 
 func (m *IP) MarshalVT() (dAtA []byte, err error) {
@@ -109,77 +90,39 @@ func (m *IP) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
-	if vtmsg, ok := m.IpAddr.(interface {
-		MarshalToSizedBufferVT([]byte) (int, error)
-	}); ok {
-		size, err := vtmsg.MarshalToSizedBufferVT(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
+	if len(m.V6) > 0 {
+		i -= len(m.V6)
+		copy(dAtA[i:], m.V6)
+		i = encodeVarint(dAtA, i, uint64(len(m.V6)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.V4 != 0 {
+		i -= 4
+		binary.LittleEndian.PutUint32(dAtA[i:], uint32(m.V4))
+		i--
+		dAtA[i] = 0xd
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *IP_V4) MarshalToVT(dAtA []byte) (int, error) {
-	size := m.SizeVT()
-	return m.MarshalToSizedBufferVT(dAtA[:size])
-}
-
-func (m *IP_V4) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	i -= 4
-	binary.LittleEndian.PutUint32(dAtA[i:], uint32(m.V4))
-	i--
-	dAtA[i] = 0xd
-	return len(dAtA) - i, nil
-}
-func (m *IP_V6) MarshalToVT(dAtA []byte) (int, error) {
-	size := m.SizeVT()
-	return m.MarshalToSizedBufferVT(dAtA[:size])
-}
-
-func (m *IP_V6) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	i -= len(m.V6)
-	copy(dAtA[i:], m.V6)
-	i = encodeVarint(dAtA, i, uint64(len(m.V6)))
-	i--
-	dAtA[i] = 0x12
-	return len(dAtA) - i, nil
-}
 func (m *IP) SizeVT() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if vtmsg, ok := m.IpAddr.(interface{ SizeVT() int }); ok {
-		n += vtmsg.SizeVT()
+	if m.V4 != 0 {
+		n += 5
+	}
+	l = len(m.V6)
+	if l > 0 {
+		n += 1 + l + sov(uint64(l))
 	}
 	n += len(m.unknownFields)
 	return n
 }
 
-func (m *IP_V4) SizeVT() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	n += 5
-	return n
-}
-func (m *IP_V6) SizeVT() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.V6)
-	n += 1 + l + sov(uint64(l))
-	return n
-}
 func (m *IP) UnmarshalVT(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -213,13 +156,12 @@ func (m *IP) UnmarshalVT(dAtA []byte) error {
 			if wireType != 5 {
 				return fmt.Errorf("proto: wrong wireType = %d for field V4", wireType)
 			}
-			var v uint32
+			m.V4 = 0
 			if (iNdEx + 4) > l {
 				return io.ErrUnexpectedEOF
 			}
-			v = uint32(binary.LittleEndian.Uint32(dAtA[iNdEx:]))
+			m.V4 = uint32(binary.LittleEndian.Uint32(dAtA[iNdEx:]))
 			iNdEx += 4
-			m.IpAddr = &IP_V4{V4: v}
 		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field V6", wireType)
@@ -249,9 +191,10 @@ func (m *IP) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := make([]byte, postIndex-iNdEx)
-			copy(v, dAtA[iNdEx:postIndex])
-			m.IpAddr = &IP_V6{V6: v}
+			m.V6 = append(m.V6[:0], dAtA[iNdEx:postIndex]...)
+			if m.V6 == nil {
+				m.V6 = []byte{}
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

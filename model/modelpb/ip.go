@@ -44,14 +44,12 @@ func MustParseIP(s string) *IP {
 func Addr2IP(addr netip.Addr) *IP {
 	if addr.Is4() {
 		return &IP{
-			IpAddr: &IP_V4{
-				binary.BigEndian.Uint32(addr.AsSlice()),
-			},
+			V4: binary.BigEndian.Uint32(addr.AsSlice()),
 		}
 	}
 
 	return &IP{
-		IpAddr: &IP_V6{addr.AsSlice()},
+		V6: addr.AsSlice(),
 	}
 }
 
@@ -59,12 +57,12 @@ func IP2Addr(i *IP) netip.Addr {
 	var ip []byte
 
 	if i.GetV6() != nil {
-		ip = i.GetV6()
+		ip = i.V6
 	}
 
 	if i.GetV4() != 0 {
 		ip = make([]byte, 4)
-		binary.BigEndian.PutUint32(ip, i.GetV4())
+		binary.BigEndian.PutUint32(ip, i.V4)
 	}
 
 	if addr, ok := netip.AddrFromSlice(ip); ok {
@@ -78,12 +76,12 @@ func IP2String(i *IP) string {
 	var ip []byte
 
 	if i.GetV6() != nil {
-		ip = i.GetV6()
+		ip = i.V6
 	}
 
 	if i.GetV4() != 0 {
 		ip = make([]byte, 4)
-		binary.BigEndian.PutUint32(ip, i.GetV4())
+		binary.BigEndian.PutUint32(ip, i.V4)
 	}
 
 	if addr, ok := netip.AddrFromSlice(ip); ok {
