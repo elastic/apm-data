@@ -44,7 +44,7 @@ func NewTracer(n string, p modelpb.BatchProcessor, opts ...ConfigOption) *Tracer
 		spanName:  n,
 		processor: p,
 
-		tracer: cfg.TracerProvider.Tracer(instrumentationName),
+		tracer: cfg.tracerProvider.Tracer(instrumentationName),
 	}
 }
 

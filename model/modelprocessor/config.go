@@ -30,7 +30,7 @@ type ConfigOption func(config) config
 // The config struct is shared amongst every processor using it, but they may
 // not each use every option.
 type config struct {
-	TracerProvider trace.TracerProvider
+	tracerProvider trace.TracerProvider
 }
 
 func newConfig(opts ...ConfigOption) config {
@@ -39,8 +39,8 @@ func newConfig(opts ...ConfigOption) config {
 		config = opt(config)
 	}
 
-	if config.TracerProvider == nil {
-		config.TracerProvider = otel.GetTracerProvider()
+	if config.tracerProvider == nil {
+		config.tracerProvider = otel.GetTracerProvider()
 	}
 
 	return config
@@ -50,7 +50,7 @@ func newConfig(opts ...ConfigOption) config {
 // Defaults to the global tracer provider
 func WithTracerProvider(tp trace.TracerProvider) ConfigOption {
 	return func(c config) config {
-		c.TracerProvider = tp
+		c.tracerProvider = tp
 		return c
 	}
 }

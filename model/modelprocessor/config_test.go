@@ -36,7 +36,7 @@ func TestConfigOptions(t *testing.T) {
 		{
 			name: "with no option",
 			expectedConfig: config{
-				TracerProvider: otel.GetTracerProvider(),
+				tracerProvider: otel.GetTracerProvider(),
 			},
 		},
 		{
@@ -45,7 +45,7 @@ func TestConfigOptions(t *testing.T) {
 				WithTracerProvider(tp),
 			},
 			expectedConfig: config{
-				TracerProvider: tp,
+				tracerProvider: tp,
 			},
 		},
 	} {
