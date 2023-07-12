@@ -31,10 +31,9 @@ const instrumentationName = "github.com/elastic/apm-data/model/modelprocessor"
 // Tracer is a model.BatchProcessor that wraps another processor within a
 // transaction.
 type Tracer struct {
-	spanName  string
+	tracer    trace.Tracer
 	processor modelpb.BatchProcessor
-
-	tracer trace.Tracer
+	spanName  string
 }
 
 // NewTracer returns a Tracer that emits transactions for batches processed.
