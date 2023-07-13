@@ -18,7 +18,7 @@
 package modelpb
 
 import (
-	binary "encoding/binary"
+	"encoding/binary"
 	"net/netip"
 )
 
