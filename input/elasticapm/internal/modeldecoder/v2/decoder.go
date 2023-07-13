@@ -1201,7 +1201,6 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 	}
 	if from.TransactionID.IsSet() {
 		event.Transaction = &modelpb.Transaction{Id: from.TransactionID.Val}
-		event.Span = &modelpb.Span{Id: from.TransactionID.Val}
 	}
 	if from.OTel.IsSet() {
 		mapOTelAttributesSpan(from.OTel, event)
