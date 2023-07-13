@@ -175,8 +175,10 @@ func (c *Consumer) convertSpan(
 			Sampled:             true,
 			RepresentativeCount: representativeCount,
 		}
-		event.Span = &modelpb.Span{
-			Id: spanID,
+		if spanID != "" {
+			event.Span = &modelpb.Span{
+				Id: spanID,
+			}
 		}
 
 		TranslateTransaction(otelSpan.Attributes(), otelSpan.Status(), otelLibrary, event)

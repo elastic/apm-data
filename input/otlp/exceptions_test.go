@@ -125,6 +125,9 @@ Caused by: LowLevelException
 			Type:    transactionEvent.Transaction.Type,
 			Sampled: true,
 		},
+		Span: &modelpb.Span{
+			Id: transactionEvent.Transaction.Id,
+		},
 		Event: &modelpb.Event{Received: transactionEvent.Event.Received},
 		Error: &modelpb.Error{
 			Exception: &modelpb.Exception{
@@ -177,6 +180,9 @@ Caused by: LowLevelException
 			Id:      transactionEvent.Transaction.Id,
 			Type:    transactionEvent.Transaction.Type,
 			Sampled: true,
+		},
+		Span: &modelpb.Span{
+			Id: transactionEvent.Transaction.Id,
 		},
 		Event: &modelpb.Event{Received: transactionEvent.Event.Received},
 		Error: &modelpb.Error{
@@ -339,6 +345,9 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 			Id:      transactionEvent.Transaction.Id,
 			Type:    transactionEvent.Transaction.Type,
 			Sampled: true,
+		},
+		Span: &modelpb.Span{
+			Id: transactionEvent.Transaction.Id,
 		},
 		Event: &modelpb.Event{Received: transactionEvent.Event.Received},
 		Error: &modelpb.Error{
