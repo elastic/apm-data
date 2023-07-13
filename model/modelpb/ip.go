@@ -54,21 +54,21 @@ func Addr2IP(addr netip.Addr) *IP {
 }
 
 func IP2Addr(i *IP) netip.Addr {
-        if addr := i.GetV6(); len(addr) == 16 {
-                return netip.AddrFrom16([16]byte(addr))
-        }
-        if i.GetV4() != 0 {
-                var addr [4]byte
-                binary.BigEndian.PutUint32(addr[:], i.V4)
-                return netip.AddrFrom4(addr)
-        }
-        return netip.Addr{}
-}       
-        
+	if addr := i.GetV6(); len(addr) == 16 {
+		return netip.AddrFrom16([16]byte(addr))
+	}
+	if i.GetV4() != 0 {
+		var addr [4]byte
+		binary.BigEndian.PutUint32(addr[:], i.V4)
+		return netip.AddrFrom4(addr)
+	}
+	return netip.Addr{}
+}
+
 func IP2String(i *IP) string {
-        addr := IP2Addr(i)
-        if addr.IsValid() {
-                return addr.String()
-        }
-        return ""
-}       
+	addr := IP2Addr(i)
+	if addr.IsValid() {
+		return addr.String()
+	}
+	return ""
+}
