@@ -34,7 +34,7 @@ func (SetSpanIdTransaction) ProcessBatch(ctx context.Context, b *modelpb.Batch) 
 }
 
 func setSpanIdTransaction(event *modelpb.APMEvent) {
-	if event.Transaction != nil && (event.Span == nil || event.Span.Id == "") {
+	if event.Transaction != nil && event.GetSpan().GetId() == "" {
 
 		if event.Span == nil {
 			event.Span = &modelpb.Span{}
