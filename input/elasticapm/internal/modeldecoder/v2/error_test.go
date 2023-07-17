@@ -19,7 +19,6 @@ package v2
 
 import (
 	"net/http"
-	"net/netip"
 	"strings"
 	"testing"
 	"time"
@@ -86,8 +85,8 @@ func TestDecodeNestedError(t *testing.T) {
 }
 
 func TestDecodeMapToErrorModel(t *testing.T) {
-	gatewayIP := netip.MustParseAddr("192.168.0.1")
-	randomIP := netip.MustParseAddr("71.0.54.1")
+	gatewayIP := modelpb.MustParseIP("192.168.0.1")
+	randomIP := modelpb.MustParseIP("71.0.54.1")
 
 	exceptions := func(key string) bool { return false }
 	t.Run("metadata-overwrite", func(t *testing.T) {
@@ -105,7 +104,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 
 		// do not overwrite client.ip if already set in metadata
 		ip := modeldecodertest.DefaultValues().IP
-		assert.Equal(t, ip.String(), out.GetClient().GetIp())
+		assert.Equal(t, ip, out.GetClient().GetIp())
 		assert.Equal(t, modelpb.Labels{
 			"init0": {Global: true, Value: "init"}, "init1": {Global: true, Value: "init"}, "init2": {Global: true, Value: "init"},
 			"overwritten0": {Value: "overwritten"}, "overwritten1": {Value: "overwritten"},
@@ -119,18 +118,18 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		var input errorEvent
 		var out modelpb.APMEvent
 		input.Context.Request.Headers.Set(http.Header{})
-		input.Context.Request.Headers.Val.Add("x-real-ip", gatewayIP.String())
-		input.Context.Request.Socket.RemoteAddress.Set(randomIP.String())
+		input.Context.Request.Headers.Val.Add("x-real-ip", modelpb.IP2String(gatewayIP))
+		input.Context.Request.Socket.RemoteAddress.Set(modelpb.IP2String(randomIP))
 		mapToErrorModel(&input, &out)
-		assert.Equal(t, gatewayIP.String(), out.GetClient().GetIp())
+		assert.Equal(t, gatewayIP, out.GetClient().GetIp())
 	})
 
 	t.Run("client-ip-socket", func(t *testing.T) {
 		var input errorEvent
 		var out modelpb.APMEvent
-		input.Context.Request.Socket.RemoteAddress.Set(randomIP.String())
+		input.Context.Request.Socket.RemoteAddress.Set(modelpb.IP2String(randomIP))
 		mapToErrorModel(&input, &out)
-		assert.Equal(t, randomIP.String(), out.GetClient().GetIp())
+		assert.Equal(t, randomIP, out.GetClient().GetIp())
 	})
 
 	t.Run("error-values", func(t *testing.T) {

@@ -19,17 +19,9 @@ syntax = "proto3";
 
 package elastic.apm.v1;
 
-import "ip.proto";
-
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
-message Source {
-  IP ip = 1;
-  NAT nat = 2;
-  string domain = 3;
-  uint32 port = 4;
-}
-
-message NAT {
-  IP ip = 1;
+message IP {
+  fixed32 v4 = 1;
+  bytes v6 = 2;
 }

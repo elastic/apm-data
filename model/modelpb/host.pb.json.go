@@ -18,8 +18,6 @@
 package modelpb
 
 import (
-	"net/netip"
-
 	"github.com/elastic/apm-data/model/internal/modeljson"
 )
 
@@ -35,9 +33,7 @@ func (h *Host) toModelJSON(out *modeljson.Host) {
 	if n := len(h.Ip); n != 0 {
 		ips := make([]string, 0, n)
 		for _, ip := range h.Ip {
-			if _, err := netip.ParseAddr(ip); err == nil {
-				ips = append(ips, ip)
-			}
+			ips = append(ips, IP2String(ip))
 		}
 		out.IP = ips
 	}

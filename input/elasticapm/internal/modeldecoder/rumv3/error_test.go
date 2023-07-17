@@ -104,7 +104,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		assert.Equal(t, userAgent, out.UserAgent.Original)
 		// do not overwrite client.ip if already set in metadata
 		ip := modeldecodertest.DefaultValues().IP
-		assert.Equal(t, ip.String(), out.Client.Ip)
+		assert.Equal(t, ip, out.Client.Ip)
 		assert.Equal(t, modelpb.Labels{
 			"init0": {Global: true, Value: "init"}, "init1": {Global: true, Value: "init"}, "init2": {Global: true, Value: "init"},
 			"overwritten0": {Value: "overwritten"}, "overwritten1": {Value: "overwritten"},

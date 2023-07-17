@@ -408,7 +408,9 @@ func fullEvent(t testing.TB) *APMEvent {
 			Id:           "id",
 			Architecture: "architecture",
 			Type:         "type",
-			Ip:           []string{"127.0.0.1"},
+			Ip: []*IP{
+				MustParseIP("127.0.0.1"),
+			},
 		},
 		Url: &URL{
 			Original: "original",
@@ -432,15 +434,15 @@ func fullEvent(t testing.TB) *APMEvent {
 			},
 		},
 		Source: &Source{
-			Ip: "127.0.0.1",
+			Ip: MustParseIP("127.0.0.1"),
 			Nat: &NAT{
-				Ip: "127.0.0.2",
+				Ip: MustParseIP("127.0.0.2"),
 			},
 			Domain: "domain",
 			Port:   443,
 		},
 		Client: &Client{
-			Ip:     "127.0.0.1",
+			Ip:     MustParseIP("127.0.0.1"),
 			Domain: "example.com",
 			Port:   443,
 		},

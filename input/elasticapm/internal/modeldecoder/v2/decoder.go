@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/netip"
 	"net/textproto"
 	"regexp"
 	"strconv"
@@ -361,26 +360,28 @@ func mapToCloudModel(from contextCloud, cloud *modelpb.Cloud) {
 
 func mapToClientModel(from contextRequest, source **modelpb.Source, client **modelpb.Client) {
 	// http.Request.Headers and http.Request.Socket are only set for backend events.
-	if _, err := netip.ParseAddr((*source).GetIp()); err != nil {
+	if (*source).GetIp() == nil {
 		ip, port := netutil.SplitAddrPort(from.Socket.RemoteAddress.Val)
 		if ip.IsValid() {
 			*source = populateNil(*source)
-			(*source).Ip, (*source).Port = ip.String(), uint32(port)
+			(*source).Ip, (*source).Port = modelpb.Addr2IP(ip), uint32(port)
 		}
 	}
-	if _, err := netip.ParseAddr((*client).GetIp()); err != nil {
-		if (*source).GetIp() != "" {
+	if (*client).GetIp() == nil {
+		if (*source).GetIp() != nil {
 			*client = populateNil(*client)
 			(*client).Ip = (*source).Ip
 		}
-		if ip, port := netutil.ClientAddrFromHeaders(from.Headers.Val); ip.IsValid() {
-			if (*source).GetIp() != "" {
+		if addr, port := netutil.ClientAddrFromHeaders(from.Headers.Val); addr.IsValid() {
+			if (*source).GetIp() != nil {
 				(*source).Nat = &modelpb.NAT{Ip: (*source).Ip}
 			}
 			*client = populateNil(*client)
-			(*client).Ip, (*client).Port = ip.String(), uint32(port)
+			ip := modelpb.Addr2IP(addr)
+
+			(*client).Ip, (*client).Port = ip, uint32(port)
 			*source = populateNil(*source)
-			(*source).Ip, (*source).Port = ip.String(), uint32(port)
+			(*source).Ip, (*source).Port = ip, uint32(port)
 		}
 	}
 }

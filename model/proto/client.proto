@@ -19,10 +19,12 @@ syntax = "proto3";
 
 package elastic.apm.v1;
 
+import "ip.proto";
+
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
 message Client {
-  string ip = 1;
+  IP ip = 1;
   string domain = 2;
   uint32 port = 3;
 }

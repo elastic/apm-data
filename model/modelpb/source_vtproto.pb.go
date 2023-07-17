@@ -41,7 +41,7 @@ func (m *Source) CloneVT() *Source {
 		return (*Source)(nil)
 	}
 	r := &Source{
-		Ip:     m.Ip,
+		Ip:     m.Ip.CloneVT(),
 		Nat:    m.Nat.CloneVT(),
 		Domain: m.Domain,
 		Port:   m.Port,
@@ -62,7 +62,7 @@ func (m *NAT) CloneVT() *NAT {
 		return (*NAT)(nil)
 	}
 	r := &NAT{
-		Ip: m.Ip,
+		Ip: m.Ip.CloneVT(),
 	}
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -127,10 +127,13 @@ func (m *Source) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Ip) > 0 {
-		i -= len(m.Ip)
-		copy(dAtA[i:], m.Ip)
-		i = encodeVarint(dAtA, i, uint64(len(m.Ip)))
+	if m.Ip != nil {
+		size, err := m.Ip.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarint(dAtA, i, uint64(size))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -167,10 +170,13 @@ func (m *NAT) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
-	if len(m.Ip) > 0 {
-		i -= len(m.Ip)
-		copy(dAtA[i:], m.Ip)
-		i = encodeVarint(dAtA, i, uint64(len(m.Ip)))
+	if m.Ip != nil {
+		size, err := m.Ip.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarint(dAtA, i, uint64(size))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -183,8 +189,8 @@ func (m *Source) SizeVT() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Ip)
-	if l > 0 {
+	if m.Ip != nil {
+		l = m.Ip.SizeVT()
 		n += 1 + l + sov(uint64(l))
 	}
 	if m.Nat != nil {
@@ -208,8 +214,8 @@ func (m *NAT) SizeVT() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Ip)
-	if l > 0 {
+	if m.Ip != nil {
+		l = m.Ip.SizeVT()
 		n += 1 + l + sov(uint64(l))
 	}
 	n += len(m.unknownFields)
@@ -249,7 +255,7 @@ func (m *Source) UnmarshalVT(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Ip", wireType)
 			}
-			var stringLen uint64
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflow
@@ -259,23 +265,27 @@ func (m *Source) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLength
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLength
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Ip = string(dAtA[iNdEx:postIndex])
+			if m.Ip == nil {
+				m.Ip = &IP{}
+			}
+			if err := m.Ip.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -419,7 +429,7 @@ func (m *NAT) UnmarshalVT(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Ip", wireType)
 			}
-			var stringLen uint64
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflow
@@ -429,23 +439,27 @@ func (m *NAT) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLength
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLength
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Ip = string(dAtA[iNdEx:postIndex])
+			if m.Ip == nil {
+				m.Ip = &IP{}
+			}
+			if err := m.Ip.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

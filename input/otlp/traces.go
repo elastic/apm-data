@@ -40,7 +40,6 @@ import (
 	"fmt"
 	"math"
 	"net"
-	"net/netip"
 	"net/url"
 	"strconv"
 	"strings"
@@ -310,9 +309,9 @@ func TranslateTransaction(
 				isHTTP = true
 				httpServerName = stringval
 			case semconv.AttributeHTTPClientIP:
-				if ip, err := netip.ParseAddr(stringval); err == nil {
+				if ip, err := modelpb.ParseIP(stringval); err == nil {
 					event.Client = populateNil(event.Client)
-					event.Client.Ip = ip.String()
+					event.Client.Ip = ip
 				}
 			case semconv.AttributeHTTPUserAgent:
 				event.UserAgent = populateNil(event.UserAgent)
@@ -321,8 +320,8 @@ func TranslateTransaction(
 			// net.*
 			case semconv.AttributeNetPeerIP:
 				event.Source = populateNil(event.Source)
-				if ip, err := netip.ParseAddr(stringval); err == nil {
-					event.Source.Ip = ip.String()
+				if ip, err := modelpb.ParseIP(stringval); err == nil {
+					event.Source.Ip = ip
 				}
 			case semconv.AttributeNetPeerName:
 				event.Source = populateNil(event.Source)
@@ -436,9 +435,11 @@ func TranslateTransaction(
 		event.Transaction.Message = &message
 	}
 
-	if event.Source != nil {
-		if _, err := netip.ParseAddr(event.GetClient().GetIp()); err != nil {
-			event.Client = &modelpb.Client{Ip: event.Source.Ip, Port: event.Source.Port, Domain: event.Source.Domain}
+	if event.Client == nil && event.Source != nil {
+		event.Client = &modelpb.Client{
+			Ip:     event.Source.Ip,
+			Port:   event.Source.Port,
+			Domain: event.Source.Domain,
 		}
 	}
 

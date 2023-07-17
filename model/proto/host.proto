@@ -20,6 +20,7 @@ syntax = "proto3";
 package elastic.apm.v1;
 
 import "os.proto";
+import "ip.proto";
 
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
@@ -30,5 +31,5 @@ message Host {
   string id = 4;
   string architecture = 5;
   string type = 6;
-  repeated string ip = 7;
+  repeated IP ip = 7;
 }
