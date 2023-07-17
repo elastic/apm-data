@@ -81,18 +81,18 @@ func (m *HTTPRequest) CloneVT() *HTTPRequest {
 		r.Headers = tmpContainer
 	}
 	if rhs := m.Env; rhs != nil {
-		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *structpb.Struct }); ok {
-			r.Env = vtpb.CloneVT()
-		} else {
-			r.Env = proto.Clone(rhs).(*structpb.Struct)
+		tmpContainer := make([]*KeyValue, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
 		}
+		r.Env = tmpContainer
 	}
 	if rhs := m.Cookies; rhs != nil {
-		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *structpb.Struct }); ok {
-			r.Cookies = vtpb.CloneVT()
-		} else {
-			r.Cookies = proto.Clone(rhs).(*structpb.Struct)
+		tmpContainer := make([]*KeyValue, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
 		}
+		r.Cookies = tmpContainer
 	}
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -261,49 +261,29 @@ func (m *HTTPRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x2a
 	}
-	if m.Cookies != nil {
-		if vtmsg, ok := interface{}(m.Cookies).(interface {
-			MarshalToSizedBufferVT([]byte) (int, error)
-		}); ok {
-			size, err := vtmsg.MarshalToSizedBufferVT(dAtA[:i])
+	if len(m.Cookies) > 0 {
+		for iNdEx := len(m.Cookies) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Cookies[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
 			i -= size
 			i = encodeVarint(dAtA, i, uint64(size))
-		} else {
-			encoded, err := proto.Marshal(m.Cookies)
-			if err != nil {
-				return 0, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = encodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x22
 		}
-		i--
-		dAtA[i] = 0x22
 	}
-	if m.Env != nil {
-		if vtmsg, ok := interface{}(m.Env).(interface {
-			MarshalToSizedBufferVT([]byte) (int, error)
-		}); ok {
-			size, err := vtmsg.MarshalToSizedBufferVT(dAtA[:i])
+	if len(m.Env) > 0 {
+		for iNdEx := len(m.Env) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Env[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
 			i -= size
 			i = encodeVarint(dAtA, i, uint64(size))
-		} else {
-			encoded, err := proto.Marshal(m.Env)
-			if err != nil {
-				return 0, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = encodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x1a
 		}
-		i--
-		dAtA[i] = 0x1a
 	}
 	if len(m.Headers) > 0 {
 		for iNdEx := len(m.Headers) - 1; iNdEx >= 0; iNdEx-- {
@@ -471,25 +451,17 @@ func (m *HTTPRequest) SizeVT() (n int) {
 			n += 1 + l + sov(uint64(l))
 		}
 	}
-	if m.Env != nil {
-		if size, ok := interface{}(m.Env).(interface {
-			SizeVT() int
-		}); ok {
-			l = size.SizeVT()
-		} else {
-			l = proto.Size(m.Env)
+	if len(m.Env) > 0 {
+		for _, e := range m.Env {
+			l = e.SizeVT()
+			n += 1 + l + sov(uint64(l))
 		}
-		n += 1 + l + sov(uint64(l))
 	}
-	if m.Cookies != nil {
-		if size, ok := interface{}(m.Cookies).(interface {
-			SizeVT() int
-		}); ok {
-			l = size.SizeVT()
-		} else {
-			l = proto.Size(m.Cookies)
+	if len(m.Cookies) > 0 {
+		for _, e := range m.Cookies {
+			l = e.SizeVT()
+			n += 1 + l + sov(uint64(l))
 		}
-		n += 1 + l + sov(uint64(l))
 	}
 	l = len(m.Id)
 	if l > 0 {
@@ -832,19 +804,9 @@ func (m *HTTPRequest) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Env == nil {
-				m.Env = &structpb.Struct{}
-			}
-			if unmarshal, ok := interface{}(m.Env).(interface {
-				UnmarshalVT([]byte) error
-			}); ok {
-				if err := unmarshal.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-					return err
-				}
-			} else {
-				if err := proto.Unmarshal(dAtA[iNdEx:postIndex], m.Env); err != nil {
-					return err
-				}
+			m.Env = append(m.Env, &KeyValue{})
+			if err := m.Env[len(m.Env)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		case 4:
@@ -876,19 +838,9 @@ func (m *HTTPRequest) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Cookies == nil {
-				m.Cookies = &structpb.Struct{}
-			}
-			if unmarshal, ok := interface{}(m.Cookies).(interface {
-				UnmarshalVT([]byte) error
-			}); ok {
-				if err := unmarshal.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-					return err
-				}
-			} else {
-				if err := proto.Unmarshal(dAtA[iNdEx:postIndex], m.Cookies); err != nil {
-					return err
-				}
+			m.Cookies = append(m.Cookies, &KeyValue{})
+			if err := m.Cookies[len(m.Cookies)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		case 5:

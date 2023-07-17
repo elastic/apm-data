@@ -28,7 +28,7 @@ import (
 func TestErrorToModelJSON(t *testing.T) {
 	handled := true
 
-	attrs, attrsMap := randomStruct(t)
+	attrs, attrsMap := randomKv(t)
 
 	testCases := map[string]struct {
 		proto    *Error

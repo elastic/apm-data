@@ -27,7 +27,6 @@ import (
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
 const (
@@ -55,11 +54,11 @@ func (m *StacktraceFrame) CloneVT() *StacktraceFrame {
 		ExcludeFromGrouping: m.ExcludeFromGrouping,
 	}
 	if rhs := m.Vars; rhs != nil {
-		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *structpb.Struct }); ok {
-			r.Vars = vtpb.CloneVT()
-		} else {
-			r.Vars = proto.Clone(rhs).(*structpb.Struct)
+		tmpContainer := make([]*KeyValue, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
 		}
+		r.Vars = tmpContainer
 	}
 	if rhs := m.Lineno; rhs != nil {
 		tmpVal := *rhs
@@ -269,27 +268,17 @@ func (m *StacktraceFrame) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x10
 	}
-	if m.Vars != nil {
-		if vtmsg, ok := interface{}(m.Vars).(interface {
-			MarshalToSizedBufferVT([]byte) (int, error)
-		}); ok {
-			size, err := vtmsg.MarshalToSizedBufferVT(dAtA[:i])
+	if len(m.Vars) > 0 {
+		for iNdEx := len(m.Vars) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Vars[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
 			i -= size
 			i = encodeVarint(dAtA, i, uint64(size))
-		} else {
-			encoded, err := proto.Marshal(m.Vars)
-			if err != nil {
-				return 0, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = encodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0xa
 		}
-		i--
-		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -381,15 +370,11 @@ func (m *StacktraceFrame) SizeVT() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Vars != nil {
-		if size, ok := interface{}(m.Vars).(interface {
-			SizeVT() int
-		}); ok {
-			l = size.SizeVT()
-		} else {
-			l = proto.Size(m.Vars)
+	if len(m.Vars) > 0 {
+		for _, e := range m.Vars {
+			l = e.SizeVT()
+			n += 1 + l + sov(uint64(l))
 		}
-		n += 1 + l + sov(uint64(l))
 	}
 	if m.Lineno != nil {
 		n += 1 + sov(uint64(*m.Lineno))
@@ -547,19 +532,9 @@ func (m *StacktraceFrame) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Vars == nil {
-				m.Vars = &structpb.Struct{}
-			}
-			if unmarshal, ok := interface{}(m.Vars).(interface {
-				UnmarshalVT([]byte) error
-			}); ok {
-				if err := unmarshal.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-					return err
-				}
-			} else {
-				if err := proto.Unmarshal(dAtA[iNdEx:postIndex], m.Vars); err != nil {
-					return err
-				}
+			m.Vars = append(m.Vars, &KeyValue{})
+			if err := m.Vars[len(m.Vars)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		case 2:

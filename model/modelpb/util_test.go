@@ -21,25 +21,27 @@ import (
 	"math/rand"
 	"strings"
 	"testing"
-
-	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
-func randomStruct(t testing.TB) (*structpb.Struct, map[string]any) {
+func randomKv(t testing.TB) ([]*KeyValue, map[string]any) {
 	m := map[string]any{
 		t.Name() + ".key." + randString(): t.Name() + ".value." + randString(),
 	}
 
-	s, err := structpb.NewStruct(m)
-	require.NoError(t, err)
+	kv := []*KeyValue{}
+	for k, v := range m {
+		kv = append(kv, &KeyValue{
+			Key:   k,
+			Value: v.(string),
+		})
+	}
 
-	return s, m
+	return kv, m
 }
 
-func randomStructPb(t testing.TB) *structpb.Struct {
-	s, _ := randomStruct(t)
-	return s
+func randomKvPb(t testing.TB) []*KeyValue {
+	k, _ := randomKv(t)
+	return k
 }
 
 func randomHTTPHeaders(t testing.TB) []*HTTPHeader {

@@ -31,7 +31,7 @@ func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
 	}
 
 	if e.Custom != nil {
-		m := e.Custom.AsMap()
+		m := kvToMap(e.Custom)
 		updateFields(m)
 		out.Custom = m
 	}

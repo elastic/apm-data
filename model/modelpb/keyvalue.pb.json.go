@@ -15,38 +15,15 @@
 // specific language governing permissions and limitations
 // under the License.
 
-syntax = "proto3";
+package modelpb
 
-package elastic.apm.v1;
-
-import "google/protobuf/struct.proto";
-import "headers.proto";
-import "keyvalue.proto";
-
-option go_package = "github.com/elastic/apm-data/model/modelpb";
-
-message HTTP {
-  HTTPRequest request = 1;
-  HTTPResponse response = 2;
-  string version = 3;
-}
-
-message HTTPRequest {
-  google.protobuf.Value body = 1;
-  repeated HTTPHeader headers = 2;
-  repeated KeyValue env = 3;
-  repeated KeyValue cookies = 4;
-  string id = 5;
-  string method = 6;
-  string referrer = 7;
-}
-
-message HTTPResponse {
-  repeated HTTPHeader headers = 1;
-  optional bool finished = 2;
-  optional bool headers_sent = 3;
-  optional int64 transfer_size = 4;
-  optional int64 encoded_body_size = 5;
-  optional int64 decoded_body_size = 6;
-  int32 status_code = 7;
+func kvToMap(h []*KeyValue) map[string]any {
+	if len(h) == 0 {
+		return nil
+	}
+	m := make(map[string]any, len(h))
+	for _, v := range h {
+		m[v.Key] = v.Value
+	}
+	return m
 }

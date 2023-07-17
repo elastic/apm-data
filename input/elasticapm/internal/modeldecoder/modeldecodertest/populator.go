@@ -260,6 +260,7 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 		}
 		fVal := f.Interface()
 		var newVal interface{}
+
 		switch fVal.(type) {
 		case map[string]interface{}:
 			m := map[string]interface{}{}
@@ -271,6 +272,15 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 			m := modelpb.Labels{}
 			for i := 0; i < values.N; i++ {
 				m[fmt.Sprintf("%s%v", values.Str, i)] = &modelpb.LabelValue{Value: values.Str}
+			}
+			newVal = m
+		case []*modelpb.KeyValue:
+			m := []*modelpb.KeyValue{}
+			for i := 0; i < values.N; i++ {
+				m = append(m, &modelpb.KeyValue{
+					Key:   fmt.Sprintf("%s%v", values.Str, i),
+					Value: values.Str,
+				})
 			}
 			newVal = m
 		case []string:
@@ -338,6 +348,10 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 			panic(fmt.Sprintf("unhandled type %s %s for key %s", f.Kind(), f.Type(), key))
 		}
 
+		if f.Kind() == reflect.Map || f.Kind() == reflect.Slice {
+			assert.ElementsMatch(t, newVal, fVal, key)
+			return
+		}
 		assert.Equal(t, newVal, fVal, key)
 	})
 }
@@ -410,6 +424,12 @@ func iterateStruct(v reflect.Value, key string, fn func(f reflect.Value, fKey st
 			if v.Type() == f.Type().Elem() {
 				continue
 			}
+
+			switch f.Interface().(type) {
+			case []*modelpb.KeyValue:
+				continue
+			}
+
 			for j := 0; j < f.Len(); j++ {
 				sliceField := f.Index(j)
 				switch sliceField.Kind() {
