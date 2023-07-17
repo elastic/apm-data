@@ -1,6 +1,6 @@
 module github.com/elastic/apm-data
 
-go 1.19
+go 1.20
 
 require (
 	github.com/gofrs/uuid v4.3.1+incompatible
