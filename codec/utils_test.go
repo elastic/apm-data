@@ -23,24 +23,29 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-func randomStruct(t testing.TB) (*structpb.Struct, map[string]any) {
+func randomKv(t testing.TB) ([]*modelpb.KeyValue, map[string]any) {
 	m := map[string]any{
 		t.Name() + ".key." + randString(): t.Name() + ".value." + randString(),
 	}
 
-	s, err := structpb.NewStruct(m)
-	require.NoError(t, err)
+	kv := []*modelpb.KeyValue{}
+	for k, v := range m {
+		value, _ := structpb.NewValue(v)
+		kv = append(kv, &modelpb.KeyValue{
+			Key:   k,
+			Value: value,
+		})
+	}
 
-	return s, m
+	return kv, m
 }
 
-func randomStructPb(t testing.TB) *structpb.Struct {
-	s, _ := randomStruct(t)
-	return s
+func randomKvPb(t testing.TB) []*modelpb.KeyValue {
+	k, _ := randomKv(t)
+	return k
 }
 
 func randomHTTPHeaders(t testing.TB) []*modelpb.HTTPHeader {

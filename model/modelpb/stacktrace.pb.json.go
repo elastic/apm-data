@@ -31,7 +31,7 @@ func (s *StacktraceFrame) toModelJSON(out *modeljson.StacktraceFrame) {
 	}
 
 	if s.Vars != nil {
-		out.Vars = s.Vars.AsMap()
+		out.Vars = kvToMap(s.Vars)
 	}
 
 	if len(s.PreContext) != 0 || len(s.PostContext) != 0 {

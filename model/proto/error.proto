@@ -19,13 +19,13 @@ syntax = "proto3";
 
 package elastic.apm.v1;
 
-import "google/protobuf/struct.proto";
 import "stacktrace.proto";
+import "keyvalue.proto";
 
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
 message Error {
-  google.protobuf.Struct custom = 1;
+  repeated KeyValue custom = 1;
   Exception exception = 2;
   ErrorLog log = 3;
   string id = 4;
@@ -40,7 +40,7 @@ message Exception {
   string message = 1;
   string module = 2;
   string code = 3;
-  google.protobuf.Struct attributes = 4;
+  repeated KeyValue attributes = 4;
   repeated StacktraceFrame stacktrace = 5;
   string type = 6;
   optional bool handled = 7;

@@ -27,7 +27,6 @@ import (
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
 const (
@@ -52,11 +51,11 @@ func (m *Error) CloneVT() *Error {
 		Type:        m.Type,
 	}
 	if rhs := m.Custom; rhs != nil {
-		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *structpb.Struct }); ok {
-			r.Custom = vtpb.CloneVT()
-		} else {
-			r.Custom = proto.Clone(rhs).(*structpb.Struct)
+		tmpContainer := make([]*KeyValue, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
 		}
+		r.Custom = tmpContainer
 	}
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -80,11 +79,11 @@ func (m *Exception) CloneVT() *Exception {
 		Type:    m.Type,
 	}
 	if rhs := m.Attributes; rhs != nil {
-		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *structpb.Struct }); ok {
-			r.Attributes = vtpb.CloneVT()
-		} else {
-			r.Attributes = proto.Clone(rhs).(*structpb.Struct)
+		tmpContainer := make([]*KeyValue, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
 		}
+		r.Attributes = tmpContainer
 	}
 	if rhs := m.Stacktrace; rhs != nil {
 		tmpContainer := make([]*StacktraceFrame, len(rhs))
@@ -235,27 +234,17 @@ func (m *Error) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if m.Custom != nil {
-		if vtmsg, ok := interface{}(m.Custom).(interface {
-			MarshalToSizedBufferVT([]byte) (int, error)
-		}); ok {
-			size, err := vtmsg.MarshalToSizedBufferVT(dAtA[:i])
+	if len(m.Custom) > 0 {
+		for iNdEx := len(m.Custom) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Custom[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
 			i -= size
 			i = encodeVarint(dAtA, i, uint64(size))
-		} else {
-			encoded, err := proto.Marshal(m.Custom)
-			if err != nil {
-				return 0, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = encodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0xa
 		}
-		i--
-		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -331,27 +320,17 @@ func (m *Exception) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			dAtA[i] = 0x2a
 		}
 	}
-	if m.Attributes != nil {
-		if vtmsg, ok := interface{}(m.Attributes).(interface {
-			MarshalToSizedBufferVT([]byte) (int, error)
-		}); ok {
-			size, err := vtmsg.MarshalToSizedBufferVT(dAtA[:i])
+	if len(m.Attributes) > 0 {
+		for iNdEx := len(m.Attributes) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Attributes[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
 			i -= size
 			i = encodeVarint(dAtA, i, uint64(size))
-		} else {
-			encoded, err := proto.Marshal(m.Attributes)
-			if err != nil {
-				return 0, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = encodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x22
 		}
-		i--
-		dAtA[i] = 0x22
 	}
 	if len(m.Code) > 0 {
 		i -= len(m.Code)
@@ -456,15 +435,11 @@ func (m *Error) SizeVT() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Custom != nil {
-		if size, ok := interface{}(m.Custom).(interface {
-			SizeVT() int
-		}); ok {
-			l = size.SizeVT()
-		} else {
-			l = proto.Size(m.Custom)
+	if len(m.Custom) > 0 {
+		for _, e := range m.Custom {
+			l = e.SizeVT()
+			n += 1 + l + sov(uint64(l))
 		}
-		n += 1 + l + sov(uint64(l))
 	}
 	if m.Exception != nil {
 		l = m.Exception.SizeVT()
@@ -520,15 +495,11 @@ func (m *Exception) SizeVT() (n int) {
 	if l > 0 {
 		n += 1 + l + sov(uint64(l))
 	}
-	if m.Attributes != nil {
-		if size, ok := interface{}(m.Attributes).(interface {
-			SizeVT() int
-		}); ok {
-			l = size.SizeVT()
-		} else {
-			l = proto.Size(m.Attributes)
+	if len(m.Attributes) > 0 {
+		for _, e := range m.Attributes {
+			l = e.SizeVT()
+			n += 1 + l + sov(uint64(l))
 		}
-		n += 1 + l + sov(uint64(l))
 	}
 	if len(m.Stacktrace) > 0 {
 		for _, e := range m.Stacktrace {
@@ -643,19 +614,9 @@ func (m *Error) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Custom == nil {
-				m.Custom = &structpb.Struct{}
-			}
-			if unmarshal, ok := interface{}(m.Custom).(interface {
-				UnmarshalVT([]byte) error
-			}); ok {
-				if err := unmarshal.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-					return err
-				}
-			} else {
-				if err := proto.Unmarshal(dAtA[iNdEx:postIndex], m.Custom); err != nil {
-					return err
-				}
+			m.Custom = append(m.Custom, &KeyValue{})
+			if err := m.Custom[len(m.Custom)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		case 2:
@@ -1098,19 +1059,9 @@ func (m *Exception) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Attributes == nil {
-				m.Attributes = &structpb.Struct{}
-			}
-			if unmarshal, ok := interface{}(m.Attributes).(interface {
-				UnmarshalVT([]byte) error
-			}); ok {
-				if err := unmarshal.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-					return err
-				}
-			} else {
-				if err := proto.Unmarshal(dAtA[iNdEx:postIndex], m.Attributes); err != nil {
-					return err
-				}
+			m.Attributes = append(m.Attributes, &KeyValue{})
+			if err := m.Attributes[len(m.Attributes)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		case 5:

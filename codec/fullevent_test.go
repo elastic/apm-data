@@ -73,7 +73,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			Name:    "name",
 			Stacktrace: []*modelpb.StacktraceFrame{
 				{
-					Vars:           randomStructPb(t),
+					Vars:           randomKvPb(t),
 					Lineno:         uintPtr(1),
 					Colno:          uintPtr(2),
 					Filename:       "frame_filename",
@@ -216,7 +216,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 				Message:    "ex_message",
 				Module:     "ex_module",
 				Code:       "ex_code",
-				Attributes: randomStructPb(t),
+				Attributes: randomKvPb(t),
 				Type:       "ex_type",
 				Handled:    boolPtr(true),
 				Cause: []*modelpb.Exception{
@@ -357,8 +357,8 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 		Http: &modelpb.HTTP{
 			Request: &modelpb.HTTPRequest{
 				Headers:  randomHTTPHeaders(t),
-				Env:      randomStructPb(t),
-				Cookies:  randomStructPb(t),
+				Env:      randomKvPb(t),
+				Cookies:  randomKvPb(t),
 				Id:       "id",
 				Method:   "method",
 				Referrer: "referrer",

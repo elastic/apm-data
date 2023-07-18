@@ -30,8 +30,8 @@ func TestHTTPToModelJSON(t *testing.T) {
 	headersMap := ToHTTPHeaders(headers)
 	headers2 := randomHTTPHeaders(t)
 	headersMap2 := ToHTTPHeaders(headers2)
-	cookies, cookiesMap := randomStruct(t)
-	envs, envsMap := randomStruct(t)
+	cookies, cookiesMap := randomKv(t)
+	envs, envsMap := randomKv(t)
 	tru := true
 
 	testCases := map[string]struct {

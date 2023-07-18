@@ -20,16 +20,16 @@ syntax = "proto3";
 package elastic.apm.v1;
 
 import "experience.proto";
-import "google/protobuf/struct.proto";
 import "message.proto";
 import "metricset.proto";
+import "keyvalue.proto";
 
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
 message Transaction {
   SpanCount span_count = 1;
   UserExperience user_experience = 2;
-  google.protobuf.Struct custom = 3;
+  repeated KeyValue custom = 3;
   map<string, TransactionMark> marks = 4;
   Message message = 5;
   string type = 6;

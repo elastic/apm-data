@@ -15,38 +15,30 @@
 // specific language governing permissions and limitations
 // under the License.
 
-syntax = "proto3";
+package modelpb
 
-package elastic.apm.v1;
+import structpb "google.golang.org/protobuf/types/known/structpb"
 
-import "google/protobuf/struct.proto";
-import "headers.proto";
-import "keyvalue.proto";
-
-option go_package = "github.com/elastic/apm-data/model/modelpb";
-
-message HTTP {
-  HTTPRequest request = 1;
-  HTTPResponse response = 2;
-  string version = 3;
-}
-
-message HTTPRequest {
-  google.protobuf.Value body = 1;
-  repeated HTTPHeader headers = 2;
-  repeated KeyValue env = 3;
-  repeated KeyValue cookies = 4;
-  string id = 5;
-  string method = 6;
-  string referrer = 7;
-}
-
-message HTTPResponse {
-  repeated HTTPHeader headers = 1;
-  optional bool finished = 2;
-  optional bool headers_sent = 3;
-  optional int64 transfer_size = 4;
-  optional int64 encoded_body_size = 5;
-  optional int64 decoded_body_size = 6;
-  int32 status_code = 7;
+func kvToMap(h []*KeyValue) map[string]any {
+	if len(h) == 0 {
+		return nil
+	}
+	m := make(map[string]any, len(h))
+	for _, v := range h {
+		switch v.Value.GetKind().(type) {
+		case *structpb.Value_NullValue:
+			m[v.Key] = nil
+		case *structpb.Value_NumberValue:
+			m[v.Key] = v.Value.GetNumberValue()
+		case *structpb.Value_StringValue:
+			m[v.Key] = v.Value.GetStringValue()
+		case *structpb.Value_BoolValue:
+			m[v.Key] = v.Value.GetBoolValue()
+		case *structpb.Value_StructValue:
+			m[v.Key] = v.Value.GetStructValue()
+		case *structpb.Value_ListValue:
+			m[v.Key] = v.Value.GetListValue()
+		}
+	}
+	return m
 }
