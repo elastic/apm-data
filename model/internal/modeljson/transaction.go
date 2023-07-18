@@ -20,7 +20,7 @@ package modeljson
 type Transaction struct {
 	SpanCount           SpanCount                     `json:"span_count,omitempty"`
 	UserExperience      *UserExperience               `json:"experience,omitempty"`
-	Custom              map[string]any                `json:"custom,omitempty"`
+	Custom              KeyValueSlice                 `json:"custom,omitempty"`
 	Marks               map[string]map[string]float64 `json:"marks,omitempty"`
 	Message             *Message                      `json:"message,omitempty"`
 	Type                string                        `json:"type,omitempty"`

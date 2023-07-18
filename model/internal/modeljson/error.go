@@ -20,15 +20,15 @@ package modeljson
 import "go.elastic.co/fastjson"
 
 type Error struct {
-	Exception   *Exception     `json:"exception,omitempty"`
-	Log         *ErrorLog      `json:"log,omitempty"`
-	Custom      map[string]any `json:"custom,omitempty"`
-	ID          string         `json:"id,omitempty"`
-	GroupingKey string         `json:"grouping_key,omitempty"`
-	Culprit     string         `json:"culprit,omitempty"`
-	Message     string         `json:"message,omitempty"`
-	Type        string         `json:"type,omitempty"`
-	StackTrace  string         `json:"stack_trace,omitempty"`
+	Exception   *Exception    `json:"exception,omitempty"`
+	Log         *ErrorLog     `json:"log,omitempty"`
+	Custom      KeyValueSlice `json:"custom,omitempty"`
+	ID          string        `json:"id,omitempty"`
+	GroupingKey string        `json:"grouping_key,omitempty"`
+	Culprit     string        `json:"culprit,omitempty"`
+	Message     string        `json:"message,omitempty"`
+	Type        string        `json:"type,omitempty"`
+	StackTrace  string        `json:"stack_trace,omitempty"`
 }
 
 type ErrorLog struct {
@@ -43,7 +43,7 @@ type Exception struct {
 	Message    string
 	Module     string
 	Code       string
-	Attributes any
+	Attributes KeyValueSlice
 	Stacktrace []StacktraceFrame
 	Type       string
 	Handled    *bool

@@ -15,14 +15,30 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package modelpb
+package modeljson
 
-import "github.com/elastic/apm-data/model/common"
+import (
+	"github.com/elastic/apm-data/model/common"
+	"go.elastic.co/fastjson"
+)
 
-// updateFields transforms in, returning a copy with sanitized keys,
-// suitable for storing as "custom" in transaction and error documents.
-func updateFields(in []*common.KeyValue) {
-	for _, kv := range in {
-		kv.Key = sanitizeLabelKey(kv.Key)
+type KeyValueSlice []*common.KeyValue
+
+func (s *KeyValueSlice) MarshalFastJSON(w *fastjson.Writer) error {
+	var firstErr error
+	w.RawByte('{')
+	{
+		for i, kv := range *s {
+			if i != 0 {
+				w.RawByte(',')
+			}
+			w.String(kv.Key)
+			w.RawByte(':')
+			if err := fastjson.Marshal(w, kv.Value.AsInterface()); err != nil && firstErr == nil {
+				firstErr = err
+			}
+		}
 	}
+	w.RawByte('}')
+	return firstErr
 }

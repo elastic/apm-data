@@ -864,23 +864,9 @@ func (v *Error) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.RawByte('{')
-		{
-			first := true
-			for k, v := range v.Custom {
-				if first {
-					first = false
-				} else {
-					w.RawByte(',')
-				}
-				w.String(k)
-				w.RawByte(':')
-				if err := fastjson.Marshal(w, v); err != nil && firstErr == nil {
-					firstErr = err
-				}
-			}
+		if err := v.Custom.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
 		}
-		w.RawByte('}')
 	}
 	if v.Exception != nil {
 		const prefix = ",\"exception\":"
@@ -1401,23 +1387,9 @@ func (v *HTTPRequest) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.RawByte('{')
-		{
-			first := true
-			for k, v := range v.Cookies {
-				if first {
-					first = false
-				} else {
-					w.RawByte(',')
-				}
-				w.String(k)
-				w.RawByte(':')
-				if err := fastjson.Marshal(w, v); err != nil && firstErr == nil {
-					firstErr = err
-				}
-			}
+		if err := v.Cookies.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
 		}
-		w.RawByte('}')
 	}
 	if v.Env != nil {
 		const prefix = ",\"env\":"
@@ -1427,23 +1399,9 @@ func (v *HTTPRequest) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.RawByte('{')
-		{
-			first := true
-			for k, v := range v.Env {
-				if first {
-					first = false
-				} else {
-					w.RawByte(',')
-				}
-				w.String(k)
-				w.RawByte(':')
-				if err := fastjson.Marshal(w, v); err != nil && firstErr == nil {
-					firstErr = err
-				}
-			}
+		if err := v.Env.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
 		}
-		w.RawByte('}')
 	}
 	if v.Headers != nil {
 		const prefix = ",\"headers\":"
@@ -3098,23 +3056,9 @@ func (v *StacktraceFrame) MarshalFastJSON(w *fastjson.Writer) error {
 	}
 	if v.Vars != nil {
 		w.RawString(",\"vars\":")
-		w.RawByte('{')
-		{
-			first := true
-			for k, v := range v.Vars {
-				if first {
-					first = false
-				} else {
-					w.RawByte(',')
-				}
-				w.String(k)
-				w.RawByte(':')
-				if err := fastjson.Marshal(w, v); err != nil && firstErr == nil {
-					firstErr = err
-				}
-			}
+		if err := v.Vars.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
 		}
-		w.RawByte('}')
 	}
 	w.RawByte('}')
 	return firstErr
@@ -3332,23 +3276,9 @@ func (v *Transaction) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.RawByte('{')
-		{
-			first := true
-			for k, v := range v.Custom {
-				if first {
-					first = false
-				} else {
-					w.RawByte(',')
-				}
-				w.String(k)
-				w.RawByte(':')
-				if err := fastjson.Marshal(w, v); err != nil && firstErr == nil {
-					firstErr = err
-				}
-			}
+		if err := v.Custom.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
 		}
-		w.RawByte('}')
 	}
 	if v.DroppedSpansStats != nil {
 		const prefix = ",\"dropped_spans_stats\":"

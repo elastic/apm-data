@@ -23,12 +23,13 @@ import (
 	"github.com/elastic/apm-data/model/internal/modeljson"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/testing/protocmp"
 )
 
 func TestErrorToModelJSON(t *testing.T) {
 	handled := true
 
-	attrs, attrsMap := randomKv(t)
+	attrs, _ := randomKv(t)
 
 	testCases := map[string]struct {
 		proto    *Error
@@ -74,7 +75,7 @@ func TestErrorToModelJSON(t *testing.T) {
 					Message:    "ex_message",
 					Module:     "ex_module",
 					Code:       "ex_code",
-					Attributes: attrsMap,
+					Attributes: attrs,
 					Type:       "ex_type",
 					Handled:    &handled,
 					Cause: []modeljson.Exception{
@@ -109,7 +110,7 @@ func TestErrorToModelJSON(t *testing.T) {
 				Log:       &modeljson.ErrorLog{},
 			}
 			tc.proto.toModelJSON(&out)
-			diff := cmp.Diff(*tc.expected, out)
+			diff := cmp.Diff(*tc.expected, out, protocmp.Transform())
 			require.Empty(t, diff)
 		})
 	}

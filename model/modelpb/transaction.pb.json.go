@@ -17,7 +17,9 @@
 
 package modelpb
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/internal/modeljson"
+)
 
 func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
 	*out = modeljson.Transaction{
@@ -31,9 +33,8 @@ func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
 	}
 
 	if e.Custom != nil {
-		m := kvToMap(e.Custom)
-		updateFields(m)
-		out.Custom = m
+		updateFields(e.Custom)
+		out.Custom = e.Custom
 	}
 
 	if n := len(e.Marks); n > 0 {

@@ -15,14 +15,30 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package modelpb
+package common
 
-import "github.com/elastic/apm-data/model/common"
+import structpb "google.golang.org/protobuf/types/known/structpb"
 
-// updateFields transforms in, returning a copy with sanitized keys,
-// suitable for storing as "custom" in transaction and error documents.
-func updateFields(in []*common.KeyValue) {
-	for _, kv := range in {
-		kv.Key = sanitizeLabelKey(kv.Key)
+func KvToMap(h []*KeyValue) map[string]any {
+	if len(h) == 0 {
+		return nil
 	}
+	m := make(map[string]any, len(h))
+	for _, v := range h {
+		switch v.Value.GetKind().(type) {
+		case *structpb.Value_NullValue:
+			m[v.Key] = nil
+		case *structpb.Value_NumberValue:
+			m[v.Key] = v.Value.GetNumberValue()
+		case *structpb.Value_StringValue:
+			m[v.Key] = v.Value.GetStringValue()
+		case *structpb.Value_BoolValue:
+			m[v.Key] = v.Value.GetBoolValue()
+		case *structpb.Value_StructValue:
+			m[v.Key] = v.Value.GetStructValue()
+		case *structpb.Value_ListValue:
+			m[v.Key] = v.Value.GetListValue()
+		}
+	}
+	return m
 }

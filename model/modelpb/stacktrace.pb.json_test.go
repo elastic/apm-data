@@ -23,10 +23,11 @@ import (
 	"github.com/elastic/apm-data/model/internal/modeljson"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/testing/protocmp"
 )
 
 func TestStacktraceToModelJSON(t *testing.T) {
-	vars, varsMap := randomKv(t)
+	vars, _ := randomKv(t)
 
 	testCases := map[string]struct {
 		proto    *StacktraceFrame
@@ -112,7 +113,7 @@ func TestStacktraceToModelJSON(t *testing.T) {
 					Error:   "frame_sourcemaperror",
 					Updated: true,
 				},
-				Vars: varsMap,
+				Vars: vars,
 				Line: &modeljson.StacktraceFrameLine{
 					Number:  uintPtr(1),
 					Column:  uintPtr(2),
@@ -146,7 +147,7 @@ func TestStacktraceToModelJSON(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			var out modeljson.StacktraceFrame
 			tc.proto.toModelJSON(&out)
-			diff := cmp.Diff(*tc.expected, out)
+			diff := cmp.Diff(*tc.expected, out, protocmp.Transform())
 			require.Empty(t, diff)
 		})
 	}

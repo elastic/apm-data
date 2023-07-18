@@ -23,6 +23,7 @@ import (
 	"github.com/elastic/apm-data/model/internal/modeljson"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/testing/protocmp"
 )
 
 func TestHTTPToModelJSON(t *testing.T) {
@@ -30,8 +31,8 @@ func TestHTTPToModelJSON(t *testing.T) {
 	headersMap := ToHTTPHeaders(headers)
 	headers2 := randomHTTPHeaders(t)
 	headersMap2 := ToHTTPHeaders(headers2)
-	cookies, cookiesMap := randomKv(t)
-	envs, envsMap := randomKv(t)
+	cookies, _ := randomKv(t)
+	envs, _ := randomKv(t)
 	tru := true
 
 	testCases := map[string]struct {
@@ -56,8 +57,8 @@ func TestHTTPToModelJSON(t *testing.T) {
 			expected: &modeljson.HTTP{
 				Request: &modeljson.HTTPRequest{
 					Headers:  headersMap,
-					Env:      envsMap,
-					Cookies:  cookiesMap,
+					Env:      envs,
+					Cookies:  cookies,
 					ID:       "id",
 					Method:   "method",
 					Referrer: "referrer",
@@ -136,8 +137,8 @@ func TestHTTPToModelJSON(t *testing.T) {
 			expected: &modeljson.HTTP{
 				Request: &modeljson.HTTPRequest{
 					Headers:  headersMap,
-					Env:      envsMap,
-					Cookies:  cookiesMap,
+					Env:      envs,
+					Cookies:  cookies,
 					ID:       "id",
 					Method:   "method",
 					Referrer: "referrer",
@@ -162,7 +163,7 @@ func TestHTTPToModelJSON(t *testing.T) {
 				Response: &modeljson.HTTPResponse{},
 			}
 			tc.proto.toModelJSON(&out)
-			diff := cmp.Diff(*tc.expected, out)
+			diff := cmp.Diff(*tc.expected, out, protocmp.Transform())
 			require.Empty(t, diff)
 		})
 	}

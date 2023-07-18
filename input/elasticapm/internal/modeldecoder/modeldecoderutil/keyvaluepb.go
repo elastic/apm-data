@@ -18,20 +18,20 @@
 package modeldecoderutil
 
 import (
-	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/apm-data/model/common"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-func ToKv(m map[string]any) []*modelpb.KeyValue {
+func ToKv(m map[string]any) []*common.KeyValue {
 	nm := normalizeMap(m)
 	if len(nm) == 0 {
 		return nil
 	}
 
-	kv := []*modelpb.KeyValue{}
+	kv := []*common.KeyValue{}
 	for k, v := range m {
 		value, _ := structpb.NewValue(v)
-		kv = append(kv, &modelpb.KeyValue{
+		kv = append(kv, &common.KeyValue{
 			Key:   k,
 			Value: value,
 		})

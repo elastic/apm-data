@@ -22,7 +22,7 @@ type StacktraceFrame struct {
 	Original            *StacktraceFrameOriginal  `json:"original,omitempty"`
 	Context             *StacktraceFrameContext   `json:"context,omitempty"`
 	Line                *StacktraceFrameLine      `json:"line,omitempty"`
-	Vars                map[string]any            `json:"vars,omitempty"`
+	Vars                KeyValueSlice             `json:"vars,omitempty"`
 	Filename            string                    `json:"filename,omitempty"`
 	Classname           string                    `json:"classname,omitempty"`
 	Module              string                    `json:"module,omitempty"`

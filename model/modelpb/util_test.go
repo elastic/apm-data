@@ -22,18 +22,19 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/elastic/apm-data/model/common"
 	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
-func randomKv(t testing.TB) ([]*KeyValue, map[string]any) {
+func randomKv(t testing.TB) ([]*common.KeyValue, map[string]any) {
 	m := map[string]any{
 		t.Name() + ".key." + randString(): t.Name() + ".value." + randString(),
 	}
 
-	kv := []*KeyValue{}
+	kv := []*common.KeyValue{}
 	for k, v := range m {
 		value, _ := structpb.NewValue(v)
-		kv = append(kv, &KeyValue{
+		kv = append(kv, &common.KeyValue{
 			Key:   k,
 			Value: value,
 		})
@@ -42,7 +43,7 @@ func randomKv(t testing.TB) ([]*KeyValue, map[string]any) {
 	return kv, m
 }
 
-func randomKvPb(t testing.TB) []*KeyValue {
+func randomKvPb(t testing.TB) []*common.KeyValue {
 	k, _ := randomKv(t)
 	return k
 }

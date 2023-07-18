@@ -17,7 +17,9 @@
 
 package modelpb
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/internal/modeljson"
+)
 
 func (e *Error) toModelJSON(out *modeljson.Error) {
 	*out = modeljson.Error{
@@ -29,9 +31,8 @@ func (e *Error) toModelJSON(out *modeljson.Error) {
 		StackTrace:  e.StackTrace,
 	}
 	if e.Custom != nil {
-		m := kvToMap(e.Custom)
-		updateFields(m)
-		out.Custom = m
+		updateFields(e.Custom)
+		out.Custom = e.Custom
 	}
 	if e.Exception != nil {
 		out.Exception = &modeljson.Exception{}
@@ -64,7 +65,7 @@ func (e *Exception) toModelJSON(out *modeljson.Exception) {
 		Handled: e.Handled,
 	}
 	if e.Attributes != nil {
-		out.Attributes = kvToMap(e.Attributes)
+		out.Attributes = e.Attributes
 	}
 	if n := len(e.Cause); n > 0 {
 		out.Cause = make([]modeljson.Exception, n)

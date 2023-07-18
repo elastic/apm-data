@@ -17,7 +17,9 @@
 
 package modelpb
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/internal/modeljson"
+)
 
 func (s *StacktraceFrame) toModelJSON(out *modeljson.StacktraceFrame) {
 	*out = modeljson.StacktraceFrame{
@@ -31,7 +33,7 @@ func (s *StacktraceFrame) toModelJSON(out *modeljson.StacktraceFrame) {
 	}
 
 	if s.Vars != nil {
-		out.Vars = kvToMap(s.Vars)
+		out.Vars = s.Vars
 	}
 
 	if len(s.PreContext) != 0 || len(s.PostContext) != 0 {
