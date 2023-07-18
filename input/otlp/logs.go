@@ -109,6 +109,7 @@ func (c *Consumer) convertLogRecord(
 	event.Event.Severity = int64(record.SeverityNumber())
 	event.Log = populateNil(event.Log)
 	event.Log.Level = record.SeverityText()
+	event.Session = populateNil(event.Session)
 	if body := record.Body(); body.Type() != pcommon.ValueTypeEmpty {
 		event.Message = body.AsString()
 		if body.Type() == pcommon.ValueTypeMap {
