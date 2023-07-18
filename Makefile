@@ -17,7 +17,7 @@ generate:
 	go generate ./...
 
 fieldalignment:
-	go run golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.4.0 -test=false $(shell go list ./... | grep -v modeldecoder/generator | grep -v test | grep -v model/modelpb)
+	go run golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.4.0 -test=false $(shell go list ./... | grep -v modeldecoder/generator | grep -v test | grep -v model/modelpb | grep -v model/common)
 
 update-licenses:
 	go run github.com/elastic/go-licenser@v0.4.1 -ext .go .
