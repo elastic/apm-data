@@ -22,12 +22,12 @@ type StacktraceFrame struct {
 	Original            *StacktraceFrameOriginal  `json:"original,omitempty"`
 	Context             *StacktraceFrameContext   `json:"context,omitempty"`
 	Line                *StacktraceFrameLine      `json:"line,omitempty"`
-	Vars                KeyValueSlice             `json:"vars,omitempty"`
 	Filename            string                    `json:"filename,omitempty"`
 	Classname           string                    `json:"classname,omitempty"`
 	Module              string                    `json:"module,omitempty"`
 	Function            string                    `json:"function,omitempty"`
 	AbsPath             string                    `json:"abs_path,omitempty"`
+	Vars                KeyValueSlice             `json:"vars,omitempty"`
 	LibraryFrame        bool                      `json:"library_frame,omitempty"`
 	ExcludeFromGrouping bool                      `json:"exclude_from_grouping"`
 }

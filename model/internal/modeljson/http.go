@@ -26,11 +26,11 @@ type HTTP struct {
 type HTTPRequest struct {
 	Body     *HTTPRequestBody `json:"body,omitempty"`
 	Headers  HTTPHeaders      `json:"headers,omitempty"` // Non-ECS field.
-	Env      KeyValueSlice    `json:"env,omitempty"`     // Non-ECS field.
-	Cookies  KeyValueSlice    `json:"cookies,omitempty"` // Non-ECS field.
 	ID       string           `json:"id,omitempty"`
 	Method   string           `json:"method,omitempty"`
 	Referrer string           `json:"referrer,omitempty"`
+	Env      KeyValueSlice    `json:"env,omitempty"`     // Non-ECS field.
+	Cookies  KeyValueSlice    `json:"cookies,omitempty"` // Non-ECS field.
 }
 
 type HTTPRequestBody struct {

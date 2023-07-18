@@ -19,10 +19,10 @@ package modeljson
 
 type Message struct {
 	Body       string       `json:"body,omitempty"`
-	Headers    HTTPHeaders  `json:"headers,omitempty"`
 	Age        MessageAge   `json:"age,omitempty"`
 	Queue      MessageQueue `json:"queue,omitempty"`
 	RoutingKey string       `json:"routing_key,omitempty"`
+	Headers    HTTPHeaders  `json:"headers,omitempty"`
 }
 
 type MessageAge struct {
