@@ -60,4 +60,3 @@ func (h *HTTP) toModelJSON(out *modeljson.HTTP) {
 		}
 	}
 }
-
