@@ -57,7 +57,6 @@ func (m *APMEvent) CloneVT() *APMEvent {
 		Observer:    m.Observer.CloneVT(),
 		DataStream:  m.DataStream.CloneVT(),
 		Agent:       m.Agent.CloneVT(),
-		Processor:   m.Processor.CloneVT(),
 		Http:        m.Http.CloneVT(),
 		UserAgent:   m.UserAgent.CloneVT(),
 		ParentId:    m.ParentId,
@@ -150,7 +149,7 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x2
 		i--
-		dAtA[i] = 0x92
+		dAtA[i] = 0x8a
 	}
 	if m.Process != nil {
 		size, err := m.Process.MarshalToSizedBufferVT(dAtA[:i])
@@ -162,7 +161,7 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x2
 		i--
-		dAtA[i] = 0x8a
+		dAtA[i] = 0x82
 	}
 	if m.Session != nil {
 		size, err := m.Session.MarshalToSizedBufferVT(dAtA[:i])
@@ -172,9 +171,9 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= size
 		i = encodeVarint(dAtA, i, uint64(size))
 		i--
-		dAtA[i] = 0x2
+		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0x82
+		dAtA[i] = 0xfa
 	}
 	if m.Destination != nil {
 		size, err := m.Destination.MarshalToSizedBufferVT(dAtA[:i])
@@ -186,7 +185,7 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xfa
+		dAtA[i] = 0xf2
 	}
 	if len(m.ChildIds) > 0 {
 		for iNdEx := len(m.ChildIds) - 1; iNdEx >= 0; iNdEx-- {
@@ -196,7 +195,7 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			i--
 			dAtA[i] = 0x1
 			i--
-			dAtA[i] = 0xf2
+			dAtA[i] = 0xea
 		}
 	}
 	if m.Client != nil {
@@ -209,7 +208,7 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xea
+		dAtA[i] = 0xe2
 	}
 	if m.Source != nil {
 		size, err := m.Source.MarshalToSizedBufferVT(dAtA[:i])
@@ -221,7 +220,7 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xe2
+		dAtA[i] = 0xda
 	}
 	if m.Log != nil {
 		size, err := m.Log.MarshalToSizedBufferVT(dAtA[:i])
@@ -233,7 +232,7 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xda
+		dAtA[i] = 0xd2
 	}
 	if m.Url != nil {
 		size, err := m.Url.MarshalToSizedBufferVT(dAtA[:i])
@@ -245,7 +244,7 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xd2
+		dAtA[i] = 0xca
 	}
 	if m.Host != nil {
 		size, err := m.Host.MarshalToSizedBufferVT(dAtA[:i])
@@ -257,7 +256,7 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xca
+		dAtA[i] = 0xc2
 	}
 	if m.Trace != nil {
 		size, err := m.Trace.MarshalToSizedBufferVT(dAtA[:i])
@@ -269,7 +268,7 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xc2
+		dAtA[i] = 0xba
 	}
 	if len(m.Message) > 0 {
 		i -= len(m.Message)
@@ -278,7 +277,7 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xba
+		dAtA[i] = 0xb2
 	}
 	if len(m.ParentId) > 0 {
 		i -= len(m.ParentId)
@@ -287,7 +286,7 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xb2
+		dAtA[i] = 0xaa
 	}
 	if m.UserAgent != nil {
 		size, err := m.UserAgent.MarshalToSizedBufferVT(dAtA[:i])
@@ -299,22 +298,10 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xaa
+		dAtA[i] = 0xa2
 	}
 	if m.Http != nil {
 		size, err := m.Http.MarshalToSizedBufferVT(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarint(dAtA, i, uint64(size))
-		i--
-		dAtA[i] = 0x1
-		i--
-		dAtA[i] = 0xa2
-	}
-	if m.Processor != nil {
-		size, err := m.Processor.MarshalToSizedBufferVT(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -650,10 +637,6 @@ func (m *APMEvent) SizeVT() (n int) {
 	}
 	if m.Agent != nil {
 		l = m.Agent.SizeVT()
-		n += 2 + l + sov(uint64(l))
-	}
-	if m.Processor != nil {
-		l = m.Processor.SizeVT()
 		n += 2 + l + sov(uint64(l))
 	}
 	if m.Http != nil {
@@ -1595,42 +1578,6 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 			iNdEx = postIndex
 		case 19:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Processor", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLength
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLength
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Processor == nil {
-				m.Processor = &Processor{}
-			}
-			if err := m.Processor.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 20:
-			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Http", wireType)
 			}
 			var msglen int
@@ -1665,7 +1612,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 21:
+		case 20:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UserAgent", wireType)
 			}
@@ -1701,7 +1648,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 22:
+		case 21:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ParentId", wireType)
 			}
@@ -1733,7 +1680,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 			}
 			m.ParentId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 23:
+		case 22:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Message", wireType)
 			}
@@ -1765,7 +1712,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 			}
 			m.Message = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 24:
+		case 23:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Trace", wireType)
 			}
@@ -1801,7 +1748,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 25:
+		case 24:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Host", wireType)
 			}
@@ -1837,7 +1784,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 26:
+		case 25:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Url", wireType)
 			}
@@ -1873,7 +1820,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 27:
+		case 26:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Log", wireType)
 			}
@@ -1909,7 +1856,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 28:
+		case 27:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Source", wireType)
 			}
@@ -1945,7 +1892,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 29:
+		case 28:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Client", wireType)
 			}
@@ -1981,7 +1928,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 30:
+		case 29:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ChildIds", wireType)
 			}
@@ -2013,7 +1960,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 			}
 			m.ChildIds = append(m.ChildIds, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
-		case 31:
+		case 30:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Destination", wireType)
 			}
@@ -2049,7 +1996,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 32:
+		case 31:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Session", wireType)
 			}
@@ -2085,7 +2032,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 33:
+		case 32:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Process", wireType)
 			}
@@ -2121,7 +2068,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 34:
+		case 33:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Event", wireType)
 			}

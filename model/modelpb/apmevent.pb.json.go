@@ -70,16 +70,9 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 		doc.DataStreamNamespace = e.DataStream.Namespace
 	}
 
-	if e.Processor != nil {
-		doc.Processor = modeljson.Processor{
-			Name:  e.Processor.Name,
-			Event: e.Processor.Event,
-		}
-	}
-
 	var transaction modeljson.Transaction
 	if e.Transaction != nil {
-		e.Transaction.toModelJSON(&transaction, e.Processor != nil && e.Processor.Name == "metric" && e.Processor.Event == "metric")
+		e.Transaction.toModelJSON(&transaction, e.Metricset != nil)
 		doc.Transaction = &transaction
 	}
 
@@ -108,13 +101,13 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 		doc.Event = &event
 	}
 
-	// Set high resolution timestamp.
+	// Set high resolution timestamp for transactions, spans, and errors.
 	//
 	// TODO(axw) change @timestamp to use date_nanos, and remove this field.
 	var timestampStruct modeljson.Timestamp
 	if e.Timestamp != nil && !e.Timestamp.AsTime().IsZero() {
-		switch {
-		case e.Processor.IsTransaction(), e.Processor.IsSpan(), e.Processor.IsError():
+		switch e.Type() {
+		case TransactionEventType, SpanEventType, ErrorEventType:
 			timestampStruct.US = int(e.Timestamp.AsTime().UnixNano() / 1000)
 			doc.TimestampStruct = &timestampStruct
 		}

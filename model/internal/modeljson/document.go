@@ -68,13 +68,12 @@ type Document struct {
 	Process     *Process     `json:"process,omitempty"`
 	Event       *Event       `json:"event,omitempty"`
 
-	Timestamp           Time      `json:"@timestamp"`
-	Processor           Processor `json:"processor,omitempty"`
-	DataStreamType      string    `json:"data_stream.type,omitempty"`
-	DataStreamDataset   string    `json:"data_stream.dataset,omitempty"`
-	DataStreamNamespace string    `json:"data_stream.namespace,omitempty"`
-	Message             string    `json:"message,omitempty"`
-	DocCount            int64     `json:"_doc_count,omitempty"`
+	Timestamp           Time   `json:"@timestamp"`
+	DataStreamType      string `json:"data_stream.type,omitempty"`
+	DataStreamDataset   string `json:"data_stream.dataset,omitempty"`
+	DataStreamNamespace string `json:"data_stream.namespace,omitempty"`
+	Message             string `json:"message,omitempty"`
+	DocCount            int64  `json:"_doc_count,omitempty"`
 }
 
 type Time time.Time

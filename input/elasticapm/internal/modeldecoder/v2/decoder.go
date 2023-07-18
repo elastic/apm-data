@@ -389,7 +389,6 @@ func mapToClientModel(from contextRequest, source **modelpb.Source, client **mod
 func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 	out := &modelpb.Error{}
 	event.Error = out
-	event.Processor = modelpb.ErrorProcessor()
 
 	// overwrite metadata with event specific information
 	mapToServiceModel(from.Context.Service, &event.Service)
@@ -727,7 +726,6 @@ func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 
 func mapToMetricsetModel(from *metricset, event *modelpb.APMEvent) bool {
 	event.Metricset = &modelpb.Metricset{Name: "app"}
-	event.Processor = modelpb.MetricsetProcessor()
 
 	if !from.Timestamp.Val.IsZero() {
 		event.Timestamp = timestamppb.New(from.Timestamp.Val)
@@ -969,7 +967,6 @@ func mapToAgentModel(from contextServiceAgent, out **modelpb.Agent) {
 func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 	out := &modelpb.Span{}
 	event.Span = out
-	event.Processor = modelpb.SpanProcessor()
 
 	// map span specific data
 	if !from.Action.IsSet() && !from.Subtype.IsSet() {
@@ -1261,7 +1258,6 @@ func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFram
 
 func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	out := &modelpb.Transaction{}
-	event.Processor = modelpb.TransactionProcessor()
 	event.Transaction = out
 
 	// overwrite metadata with event specific information
@@ -1460,8 +1456,6 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 }
 
 func mapToLogModel(from *log, event *modelpb.APMEvent) {
-	event.Processor = modelpb.LogProcessor()
-
 	if from.FAAS.IsSet() {
 		event.Faas = populateNil(event.Faas)
 		mapToFAASModel(from.FAAS, event.Faas)
@@ -1549,6 +1543,10 @@ func mapToLogModel(from *log, event *modelpb.APMEvent) {
 	}
 	if len(from.Labels) > 0 {
 		modeldecoderutil.MergeLabels(from.Labels, event)
+	}
+	if event.Error == nil {
+		event.Event = populateNil(event.Event)
+		event.Event.Kind = "event"
 	}
 }
 
