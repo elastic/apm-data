@@ -48,9 +48,9 @@ func randomKvPb(t testing.TB) []*common.KeyValue {
 	return k
 }
 
-func randomHTTPHeaders(t testing.TB) []*HTTPHeader {
-	return []*HTTPHeader{
-		&HTTPHeader{
+func randomHTTPHeaders(t testing.TB) []*common.HTTPHeader {
+	return []*common.HTTPHeader{
+		&common.HTTPHeader{
 			Key:   t.Name() + ".key." + randString(),
 			Value: []string{t.Name() + ".value." + randString()},
 		},

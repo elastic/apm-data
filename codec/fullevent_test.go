@@ -21,6 +21,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/apm-data/model/common"
 	"github.com/elastic/apm-data/model/modelpb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -32,7 +33,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 		Span: &modelpb.Span{
 			Message: &modelpb.Message{
 				Body: "body",
-				Headers: []*modelpb.HTTPHeader{
+				Headers: []*common.HTTPHeader{
 					{
 						Key:   "foo",
 						Value: []string{"bar"},
@@ -152,7 +153,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			},
 			Message: &modelpb.Message{
 				Body: "body",
-				Headers: []*modelpb.HTTPHeader{
+				Headers: []*common.HTTPHeader{
 					{
 						Key:   "foo",
 						Value: []string{"bar"},

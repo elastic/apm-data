@@ -17,10 +17,6 @@
 
 package modeljson
 
-import (
-	"net/http"
-)
-
 type HTTP struct {
 	Request  *HTTPRequest  `json:"request,omitempty"`
 	Response *HTTPResponse `json:"response,omitempty"`
@@ -29,7 +25,7 @@ type HTTP struct {
 
 type HTTPRequest struct {
 	Body     *HTTPRequestBody `json:"body,omitempty"`
-	Headers  http.Header      `json:"headers,omitempty"` // Non-ECS field.
+	Headers  HTTPHeaders      `json:"headers,omitempty"` // Non-ECS field.
 	Env      KeyValueSlice    `json:"env,omitempty"`     // Non-ECS field.
 	Cookies  KeyValueSlice    `json:"cookies,omitempty"` // Non-ECS field.
 	ID       string           `json:"id,omitempty"`
@@ -47,6 +43,6 @@ type HTTPResponse struct {
 	TransferSize    *int64      `json:"transfer_size,omitempty"`     // Non-ECS field.
 	EncodedBodySize *int64      `json:"encoded_body_size,omitempty"` // Non-ECS field.
 	DecodedBodySize *int64      `json:"decoded_body_size,omitempty"` // Non-ECS field.
-	Headers         http.Header `json:"headers,omitempty"`           // Non-ECS field.
+	Headers         HTTPHeaders `json:"headers,omitempty"`           // Non-ECS field.
 	StatusCode      int         `json:"status_code,omitempty"`
 }

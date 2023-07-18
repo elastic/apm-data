@@ -101,7 +101,7 @@ func (e *Exception) marshalOne(w *fastjson.Writer, offset, parentOffset int) (in
 	if e.Attributes != nil {
 		maybeComma()
 		w.RawString(`"attributes":`)
-		if err := fastjson.Marshal(w, e.Attributes); err != nil {
+		if err := e.Attributes.MarshalFastJSON(w); err != nil {
 			return -1, err
 		}
 	}

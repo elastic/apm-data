@@ -20,9 +20,11 @@ package modelpb
 import (
 	"testing"
 
+	"github.com/elastic/apm-data/model/common"
 	"github.com/elastic/apm-data/model/internal/modeljson"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/testing/protocmp"
 )
 
 func TestMessageToModelJSON(t *testing.T) {
@@ -39,7 +41,7 @@ func TestMessageToModelJSON(t *testing.T) {
 		"full": {
 			proto: &Message{
 				Body: "body",
-				Headers: []*HTTPHeader{
+				Headers: []*common.HTTPHeader{
 					{
 						Key:   "foo",
 						Value: []string{"bar"},
@@ -51,8 +53,11 @@ func TestMessageToModelJSON(t *testing.T) {
 			},
 			expected: &modeljson.Message{
 				Body: "body",
-				Headers: map[string][]string{
-					"foo": {"bar"},
+				Headers: []*common.HTTPHeader{
+					{
+						Key:   "foo",
+						Value: []string{"bar"},
+					},
 				},
 				Age: modeljson.MessageAge{
 					Millis: &millis,
@@ -68,7 +73,7 @@ func TestMessageToModelJSON(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			var out modeljson.Message
 			tc.proto.toModelJSON(&out)
-			diff := cmp.Diff(*tc.expected, out)
+			diff := cmp.Diff(*tc.expected, out, protocmp.Transform())
 			require.Empty(t, diff)
 		})
 	}

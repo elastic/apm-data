@@ -27,12 +27,6 @@ func (m *Message) toModelJSON(out *modeljson.Message) {
 		RoutingKey: m.RoutingKey,
 	}
 	if n := len(m.Headers); n > 0 {
-		headers := make(map[string][]string, n)
-		for _, hv := range m.Headers {
-			if hv != nil {
-				headers[hv.Key] = hv.Value
-			}
-		}
-		out.Headers = headers
+		out.Headers = m.Headers
 	}
 }

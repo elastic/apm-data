@@ -15,13 +15,34 @@
 // specific language governing permissions and limitations
 // under the License.
 
-syntax = "proto3";
+package modeljson
 
-package elastic.apm.v1;
+import (
+	"github.com/elastic/apm-data/model/common"
+	"go.elastic.co/fastjson"
+)
 
-option go_package = "github.com/elastic/apm-data/model/common";
+type HTTPHeaders []*common.HTTPHeader
 
-message HTTPHeader {
-  string key = 1;
-  repeated string value = 2;
+func (s *HTTPHeaders) MarshalFastJSON(w *fastjson.Writer) error {
+	w.RawByte('{')
+	{
+		for i, kv := range *s {
+			if i != 0 {
+				w.RawByte(',')
+			}
+			w.String(kv.Key)
+			w.RawByte(':')
+			w.RawByte('[')
+			for i, v := range kv.Value {
+				if i != 0 {
+					w.RawByte(',')
+				}
+				w.String(v)
+			}
+			w.RawByte(']')
+		}
+	}
+	w.RawByte('}')
+	return nil
 }

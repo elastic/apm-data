@@ -33,6 +33,7 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
+	"github.com/elastic/apm-data/model/common"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -202,7 +203,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
 		var out modelpb.APMEvent
 		mapToErrorModel(&input, &out)
-		assert.Empty(t, cmp.Diff([]*modelpb.HTTPHeader{
+		assert.Empty(t, cmp.Diff([]*common.HTTPHeader{
 			{
 				Key:   "a",
 				Value: []string{"b"},
@@ -212,13 +213,13 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 				Value: []string{"d", "e"},
 			},
 		}, out.Http.Request.Headers,
-			cmpopts.SortSlices(func(x, y *modelpb.HTTPHeader) bool {
+			cmpopts.SortSlices(func(x, y *common.HTTPHeader) bool {
 				return x.Key < y.Key
 			}),
 			protocmp.Transform(),
 		))
 
-		assert.Equal(t, []*modelpb.HTTPHeader{
+		assert.Equal(t, []*common.HTTPHeader{
 			{
 				Key:   "f",
 				Value: []string{"g"},

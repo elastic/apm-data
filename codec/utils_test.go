@@ -23,7 +23,6 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-data/model/common"
-	"github.com/elastic/apm-data/model/modelpb"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -49,9 +48,9 @@ func randomKvPb(t testing.TB) []*common.KeyValue {
 	return k
 }
 
-func randomHTTPHeaders(t testing.TB) []*modelpb.HTTPHeader {
-	return []*modelpb.HTTPHeader{
-		&modelpb.HTTPHeader{
+func randomHTTPHeaders(t testing.TB) []*common.HTTPHeader {
+	return []*common.HTTPHeader{
+		&common.HTTPHeader{
 			Key:   t.Name() + ".key." + randString(),
 			Value: []string{t.Name() + ".value." + randString()},
 		},

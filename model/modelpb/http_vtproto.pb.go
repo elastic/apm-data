@@ -75,7 +75,7 @@ func (m *HTTPRequest) CloneVT() *HTTPRequest {
 		}
 	}
 	if rhs := m.Headers; rhs != nil {
-		tmpContainer := make([]*HTTPHeader, len(rhs))
+		tmpContainer := make([]*common.HTTPHeader, len(rhs))
 		for k, v := range rhs {
 			tmpContainer[k] = v.CloneVT()
 		}
@@ -114,7 +114,7 @@ func (m *HTTPResponse) CloneVT() *HTTPResponse {
 		StatusCode: m.StatusCode,
 	}
 	if rhs := m.Headers; rhs != nil {
-		tmpContainer := make([]*HTTPHeader, len(rhs))
+		tmpContainer := make([]*common.HTTPHeader, len(rhs))
 		for k, v := range rhs {
 			tmpContainer[k] = v.CloneVT()
 		}
@@ -771,7 +771,7 @@ func (m *HTTPRequest) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Headers = append(m.Headers, &HTTPHeader{})
+			m.Headers = append(m.Headers, &common.HTTPHeader{})
 			if err := m.Headers[len(m.Headers)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1020,7 +1020,7 @@ func (m *HTTPResponse) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Headers = append(m.Headers, &HTTPHeader{})
+			m.Headers = append(m.Headers, &common.HTTPHeader{})
 			if err := m.Headers[len(m.Headers)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

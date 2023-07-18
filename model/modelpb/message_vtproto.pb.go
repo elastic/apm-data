@@ -25,6 +25,7 @@ import (
 	fmt "fmt"
 	io "io"
 
+	common "github.com/elastic/apm-data/model/common"
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
@@ -46,7 +47,7 @@ func (m *Message) CloneVT() *Message {
 		RoutingKey: m.RoutingKey,
 	}
 	if rhs := m.Headers; rhs != nil {
-		tmpContainer := make([]*HTTPHeader, len(rhs))
+		tmpContainer := make([]*common.HTTPHeader, len(rhs))
 		for k, v := range rhs {
 			tmpContainer[k] = v.CloneVT()
 		}
@@ -259,7 +260,7 @@ func (m *Message) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Headers = append(m.Headers, &HTTPHeader{})
+			m.Headers = append(m.Headers, &common.HTTPHeader{})
 			if err := m.Headers[len(m.Headers)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

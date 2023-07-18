@@ -28,9 +28,7 @@ import (
 
 func TestHTTPToModelJSON(t *testing.T) {
 	headers := randomHTTPHeaders(t)
-	headersMap := ToHTTPHeaders(headers)
 	headers2 := randomHTTPHeaders(t)
-	headersMap2 := ToHTTPHeaders(headers2)
 	cookies, _ := randomKv(t)
 	envs, _ := randomKv(t)
 	tru := true
@@ -56,7 +54,7 @@ func TestHTTPToModelJSON(t *testing.T) {
 			},
 			expected: &modeljson.HTTP{
 				Request: &modeljson.HTTPRequest{
-					Headers:  headersMap,
+					Headers:  headers,
 					Env:      envs,
 					Cookies:  cookies,
 					ID:       "id",
@@ -84,7 +82,7 @@ func TestHTTPToModelJSON(t *testing.T) {
 					TransferSize:    int64Ptr(1),
 					EncodedBodySize: int64Ptr(2),
 					DecodedBodySize: int64Ptr(3),
-					Headers:         headersMap2,
+					Headers:         headers2,
 					StatusCode:      200,
 				},
 			},
@@ -136,7 +134,7 @@ func TestHTTPToModelJSON(t *testing.T) {
 			},
 			expected: &modeljson.HTTP{
 				Request: &modeljson.HTTPRequest{
-					Headers:  headersMap,
+					Headers:  headers,
 					Env:      envs,
 					Cookies:  cookies,
 					ID:       "id",
@@ -149,7 +147,7 @@ func TestHTTPToModelJSON(t *testing.T) {
 					TransferSize:    int64Ptr(1),
 					EncodedBodySize: int64Ptr(2),
 					DecodedBodySize: int64Ptr(3),
-					Headers:         headersMap2,
+					Headers:         headers2,
 					StatusCode:      200,
 				},
 				Version: "version",

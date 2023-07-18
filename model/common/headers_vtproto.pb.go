@@ -19,7 +19,7 @@
 // protoc-gen-go-vtproto version: v0.4.0
 // source: headers.proto
 
-package modelpb
+package common
 
 import (
 	fmt "fmt"

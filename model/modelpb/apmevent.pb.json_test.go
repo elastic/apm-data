@@ -23,6 +23,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/elastic/apm-data/model/common"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -50,7 +51,7 @@ func fullEvent(t testing.TB) *APMEvent {
 		Span: &Span{
 			Message: &Message{
 				Body: "body",
-				Headers: []*HTTPHeader{
+				Headers: []*common.HTTPHeader{
 					{
 						Key:   "foo",
 						Value: []string{"bar"},
@@ -170,7 +171,7 @@ func fullEvent(t testing.TB) *APMEvent {
 			},
 			Message: &Message{
 				Body: "body",
-				Headers: []*HTTPHeader{
+				Headers: []*common.HTTPHeader{
 					{
 						Key:   "foo",
 						Value: []string{"bar"},

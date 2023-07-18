@@ -108,13 +108,13 @@ type HTTPRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Body     *structpb.Value    `protobuf:"bytes,1,opt,name=body,proto3" json:"body,omitempty"`
-	Headers  []*HTTPHeader      `protobuf:"bytes,2,rep,name=headers,proto3" json:"headers,omitempty"`
-	Env      []*common.KeyValue `protobuf:"bytes,3,rep,name=env,proto3" json:"env,omitempty"`
-	Cookies  []*common.KeyValue `protobuf:"bytes,4,rep,name=cookies,proto3" json:"cookies,omitempty"`
-	Id       string             `protobuf:"bytes,5,opt,name=id,proto3" json:"id,omitempty"`
-	Method   string             `protobuf:"bytes,6,opt,name=method,proto3" json:"method,omitempty"`
-	Referrer string             `protobuf:"bytes,7,opt,name=referrer,proto3" json:"referrer,omitempty"`
+	Body     *structpb.Value      `protobuf:"bytes,1,opt,name=body,proto3" json:"body,omitempty"`
+	Headers  []*common.HTTPHeader `protobuf:"bytes,2,rep,name=headers,proto3" json:"headers,omitempty"`
+	Env      []*common.KeyValue   `protobuf:"bytes,3,rep,name=env,proto3" json:"env,omitempty"`
+	Cookies  []*common.KeyValue   `protobuf:"bytes,4,rep,name=cookies,proto3" json:"cookies,omitempty"`
+	Id       string               `protobuf:"bytes,5,opt,name=id,proto3" json:"id,omitempty"`
+	Method   string               `protobuf:"bytes,6,opt,name=method,proto3" json:"method,omitempty"`
+	Referrer string               `protobuf:"bytes,7,opt,name=referrer,proto3" json:"referrer,omitempty"`
 }
 
 func (x *HTTPRequest) Reset() {
@@ -156,7 +156,7 @@ func (x *HTTPRequest) GetBody() *structpb.Value {
 	return nil
 }
 
-func (x *HTTPRequest) GetHeaders() []*HTTPHeader {
+func (x *HTTPRequest) GetHeaders() []*common.HTTPHeader {
 	if x != nil {
 		return x.Headers
 	}
@@ -203,13 +203,13 @@ type HTTPResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Headers         []*HTTPHeader `protobuf:"bytes,1,rep,name=headers,proto3" json:"headers,omitempty"`
-	Finished        *bool         `protobuf:"varint,2,opt,name=finished,proto3,oneof" json:"finished,omitempty"`
-	HeadersSent     *bool         `protobuf:"varint,3,opt,name=headers_sent,json=headersSent,proto3,oneof" json:"headers_sent,omitempty"`
-	TransferSize    *int64        `protobuf:"varint,4,opt,name=transfer_size,json=transferSize,proto3,oneof" json:"transfer_size,omitempty"`
-	EncodedBodySize *int64        `protobuf:"varint,5,opt,name=encoded_body_size,json=encodedBodySize,proto3,oneof" json:"encoded_body_size,omitempty"`
-	DecodedBodySize *int64        `protobuf:"varint,6,opt,name=decoded_body_size,json=decodedBodySize,proto3,oneof" json:"decoded_body_size,omitempty"`
-	StatusCode      int32         `protobuf:"varint,7,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
+	Headers         []*common.HTTPHeader `protobuf:"bytes,1,rep,name=headers,proto3" json:"headers,omitempty"`
+	Finished        *bool                `protobuf:"varint,2,opt,name=finished,proto3,oneof" json:"finished,omitempty"`
+	HeadersSent     *bool                `protobuf:"varint,3,opt,name=headers_sent,json=headersSent,proto3,oneof" json:"headers_sent,omitempty"`
+	TransferSize    *int64               `protobuf:"varint,4,opt,name=transfer_size,json=transferSize,proto3,oneof" json:"transfer_size,omitempty"`
+	EncodedBodySize *int64               `protobuf:"varint,5,opt,name=encoded_body_size,json=encodedBodySize,proto3,oneof" json:"encoded_body_size,omitempty"`
+	DecodedBodySize *int64               `protobuf:"varint,6,opt,name=decoded_body_size,json=decodedBodySize,proto3,oneof" json:"decoded_body_size,omitempty"`
+	StatusCode      int32                `protobuf:"varint,7,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
 }
 
 func (x *HTTPResponse) Reset() {
@@ -244,7 +244,7 @@ func (*HTTPResponse) Descriptor() ([]byte, []int) {
 	return file_http_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *HTTPResponse) GetHeaders() []*HTTPHeader {
+func (x *HTTPResponse) GetHeaders() []*common.HTTPHeader {
 	if x != nil {
 		return x.Headers
 	}
@@ -374,12 +374,12 @@ func file_http_proto_rawDescGZIP() []byte {
 
 var file_http_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_http_proto_goTypes = []interface{}{
-	(*HTTP)(nil),            // 0: elastic.apm.v1.HTTP
-	(*HTTPRequest)(nil),     // 1: elastic.apm.v1.HTTPRequest
-	(*HTTPResponse)(nil),    // 2: elastic.apm.v1.HTTPResponse
-	(*structpb.Value)(nil),  // 3: google.protobuf.Value
-	(*HTTPHeader)(nil),      // 4: elastic.apm.v1.HTTPHeader
-	(*common.KeyValue)(nil), // 5: elastic.apm.v1.KeyValue
+	(*HTTP)(nil),              // 0: elastic.apm.v1.HTTP
+	(*HTTPRequest)(nil),       // 1: elastic.apm.v1.HTTPRequest
+	(*HTTPResponse)(nil),      // 2: elastic.apm.v1.HTTPResponse
+	(*structpb.Value)(nil),    // 3: google.protobuf.Value
+	(*common.HTTPHeader)(nil), // 4: elastic.apm.v1.HTTPHeader
+	(*common.KeyValue)(nil),   // 5: elastic.apm.v1.KeyValue
 }
 var file_http_proto_depIdxs = []int32{
 	1, // 0: elastic.apm.v1.HTTP.request:type_name -> elastic.apm.v1.HTTPRequest
@@ -401,7 +401,6 @@ func file_http_proto_init() {
 	if File_http_proto != nil {
 		return
 	}
-	file_headers_proto_init()
 	if !protoimpl.UnsafeEnabled {
 		file_http_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*HTTP); i {

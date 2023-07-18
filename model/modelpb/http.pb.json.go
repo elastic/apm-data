@@ -18,8 +18,6 @@
 package modelpb
 
 import (
-	"net/http"
-
 	"github.com/elastic/apm-data/model/internal/modeljson"
 )
 
@@ -34,7 +32,7 @@ func (h *HTTP) toModelJSON(out *modeljson.HTTP) {
 			Referrer: h.Request.Referrer,
 		}
 		if h.Request.Headers != nil {
-			out.Request.Headers = ToHTTPHeaders(h.Request.Headers)
+			out.Request.Headers = h.Request.Headers
 		}
 		if h.Request.Env != nil {
 			out.Request.Env = h.Request.Env
@@ -58,18 +56,8 @@ func (h *HTTP) toModelJSON(out *modeljson.HTTP) {
 			DecodedBodySize: h.Response.DecodedBodySize,
 		}
 		if h.Response.Headers != nil {
-			out.Response.Headers = ToHTTPHeaders(h.Response.Headers)
+			out.Response.Headers = h.Response.Headers
 		}
 	}
 }
 
-func ToHTTPHeaders(h []*HTTPHeader) http.Header {
-	if len(h) == 0 {
-		return nil
-	}
-	headers := make(http.Header, len(h))
-	for _, v := range h {
-		headers[v.Key] = v.Value
-	}
-	return headers
-}

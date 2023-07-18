@@ -1411,28 +1411,9 @@ func (v *HTTPRequest) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.RawByte('{')
-		{
-			first := true
-			for k, v := range v.Headers {
-				if first {
-					first = false
-				} else {
-					w.RawByte(',')
-				}
-				w.String(k)
-				w.RawByte(':')
-				w.RawByte('[')
-				for i, v := range v {
-					if i != 0 {
-						w.RawByte(',')
-					}
-					w.String(v)
-				}
-				w.RawByte(']')
-			}
+		if err := v.Headers.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
 		}
-		w.RawByte('}')
 	}
 	if v.ID != "" {
 		const prefix = ",\"id\":"
@@ -1482,6 +1463,7 @@ func (v *HTTPRequestBody) MarshalFastJSON(w *fastjson.Writer) error {
 }
 
 func (v *HTTPResponse) MarshalFastJSON(w *fastjson.Writer) error {
+	var firstErr error
 	w.RawByte('{')
 	first := true
 	if v.DecodedBodySize != nil {
@@ -1522,28 +1504,9 @@ func (v *HTTPResponse) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.RawByte('{')
-		{
-			first := true
-			for k, v := range v.Headers {
-				if first {
-					first = false
-				} else {
-					w.RawByte(',')
-				}
-				w.String(k)
-				w.RawByte(':')
-				w.RawByte('[')
-				for i, v := range v {
-					if i != 0 {
-						w.RawByte(',')
-					}
-					w.String(v)
-				}
-				w.RawByte(']')
-			}
+		if err := v.Headers.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
 		}
-		w.RawByte('}')
 	}
 	if v.HeadersSent != nil {
 		const prefix = ",\"headers_sent\":"
@@ -1576,7 +1539,7 @@ func (v *HTTPResponse) MarshalFastJSON(w *fastjson.Writer) error {
 		w.Int64(*v.TransferSize)
 	}
 	w.RawByte('}')
-	return nil
+	return firstErr
 }
 
 func (v *Kubernetes) MarshalFastJSON(w *fastjson.Writer) error {
@@ -1772,28 +1735,9 @@ func (v *Message) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.RawByte('{')
-		{
-			first := true
-			for k, v := range v.Headers {
-				if first {
-					first = false
-				} else {
-					w.RawByte(',')
-				}
-				w.String(k)
-				w.RawByte(':')
-				w.RawByte('[')
-				for i, v := range v {
-					if i != 0 {
-						w.RawByte(',')
-					}
-					w.String(v)
-				}
-				w.RawByte(']')
-			}
+		if err := v.Headers.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
 		}
-		w.RawByte('}')
 	}
 	if !v.Queue.isZero() {
 		const prefix = ",\"queue\":"
