@@ -21,6 +21,8 @@ import (
 	"math/rand"
 	"strings"
 	"testing"
+
+	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
 func randomKv(t testing.TB) ([]*KeyValue, map[string]any) {
@@ -30,9 +32,10 @@ func randomKv(t testing.TB) ([]*KeyValue, map[string]any) {
 
 	kv := []*KeyValue{}
 	for k, v := range m {
+		value, _ := structpb.NewValue(v)
 		kv = append(kv, &KeyValue{
 			Key:   k,
-			Value: v.(string),
+			Value: value,
 		})
 	}
 

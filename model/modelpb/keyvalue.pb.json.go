@@ -17,13 +17,28 @@
 
 package modelpb
 
+import structpb "google.golang.org/protobuf/types/known/structpb"
+
 func kvToMap(h []*KeyValue) map[string]any {
 	if len(h) == 0 {
 		return nil
 	}
 	m := make(map[string]any, len(h))
 	for _, v := range h {
-		m[v.Key] = v.Value
+		switch v.Value.GetKind().(type) {
+		case *structpb.Value_NullValue:
+			m[v.Key] = nil
+		case *structpb.Value_NumberValue:
+			m[v.Key] = v.Value.GetNumberValue()
+		case *structpb.Value_StringValue:
+			m[v.Key] = v.Value.GetStringValue()
+		case *structpb.Value_BoolValue:
+			m[v.Key] = v.Value.GetBoolValue()
+		case *structpb.Value_StructValue:
+			m[v.Key] = v.Value.GetStructValue()
+		case *structpb.Value_ListValue:
+			m[v.Key] = v.Value.GetListValue()
+		}
 	}
 	return m
 }

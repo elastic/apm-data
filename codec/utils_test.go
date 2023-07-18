@@ -23,6 +23,7 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-data/model/modelpb"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func randomKv(t testing.TB) ([]*modelpb.KeyValue, map[string]any) {
@@ -32,9 +33,10 @@ func randomKv(t testing.TB) ([]*modelpb.KeyValue, map[string]any) {
 
 	kv := []*modelpb.KeyValue{}
 	for k, v := range m {
+		value, _ := structpb.NewValue(v)
 		kv = append(kv, &modelpb.KeyValue{
 			Key:   k,
-			Value: v.(string),
+			Value: value,
 		})
 	}
 

@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -277,9 +278,10 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 		case []*modelpb.KeyValue:
 			m := []*modelpb.KeyValue{}
 			for i := 0; i < values.N; i++ {
+				value, _ := structpb.NewValue(values.Str)
 				m = append(m, &modelpb.KeyValue{
 					Key:   fmt.Sprintf("%s%v", values.Str, i),
-					Value: values.Str,
+					Value: value,
 				})
 			}
 			newVal = m

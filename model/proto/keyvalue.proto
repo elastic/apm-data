@@ -19,9 +19,11 @@ syntax = "proto3";
 
 package elastic.apm.v1;
 
+import "google/protobuf/struct.proto";
+
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
 message KeyValue {
   string key = 1;
-  string value = 2;
+  google.protobuf.Value value = 2;
 }
