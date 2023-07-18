@@ -27,6 +27,7 @@ import (
 	reflect "reflect"
 	sync "sync"
 
+	common "github.com/elastic/apm-data/model/common"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
@@ -43,22 +44,22 @@ type StacktraceFrame struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Vars                []*KeyValue `protobuf:"bytes,1,rep,name=vars,proto3" json:"vars,omitempty"`
-	Lineno              *uint32     `protobuf:"varint,2,opt,name=lineno,proto3,oneof" json:"lineno,omitempty"`
-	Colno               *uint32     `protobuf:"varint,3,opt,name=colno,proto3,oneof" json:"colno,omitempty"`
-	Filename            string      `protobuf:"bytes,4,opt,name=filename,proto3" json:"filename,omitempty"`
-	Classname           string      `protobuf:"bytes,5,opt,name=classname,proto3" json:"classname,omitempty"`
-	ContextLine         string      `protobuf:"bytes,6,opt,name=context_line,json=contextLine,proto3" json:"context_line,omitempty"`
-	Module              string      `protobuf:"bytes,7,opt,name=module,proto3" json:"module,omitempty"`
-	Function            string      `protobuf:"bytes,8,opt,name=function,proto3" json:"function,omitempty"`
-	AbsPath             string      `protobuf:"bytes,9,opt,name=abs_path,json=absPath,proto3" json:"abs_path,omitempty"`
-	SourcemapError      string      `protobuf:"bytes,10,opt,name=sourcemap_error,json=sourcemapError,proto3" json:"sourcemap_error,omitempty"`
-	Original            *Original   `protobuf:"bytes,11,opt,name=original,proto3" json:"original,omitempty"`
-	PreContext          []string    `protobuf:"bytes,12,rep,name=pre_context,json=preContext,proto3" json:"pre_context,omitempty"`
-	PostContext         []string    `protobuf:"bytes,13,rep,name=post_context,json=postContext,proto3" json:"post_context,omitempty"`
-	LibraryFrame        bool        `protobuf:"varint,14,opt,name=library_frame,json=libraryFrame,proto3" json:"library_frame,omitempty"`
-	SourcemapUpdated    bool        `protobuf:"varint,15,opt,name=sourcemap_updated,json=sourcemapUpdated,proto3" json:"sourcemap_updated,omitempty"`
-	ExcludeFromGrouping bool        `protobuf:"varint,16,opt,name=exclude_from_grouping,json=excludeFromGrouping,proto3" json:"exclude_from_grouping,omitempty"`
+	Vars                []*common.KeyValue `protobuf:"bytes,1,rep,name=vars,proto3" json:"vars,omitempty"`
+	Lineno              *uint32            `protobuf:"varint,2,opt,name=lineno,proto3,oneof" json:"lineno,omitempty"`
+	Colno               *uint32            `protobuf:"varint,3,opt,name=colno,proto3,oneof" json:"colno,omitempty"`
+	Filename            string             `protobuf:"bytes,4,opt,name=filename,proto3" json:"filename,omitempty"`
+	Classname           string             `protobuf:"bytes,5,opt,name=classname,proto3" json:"classname,omitempty"`
+	ContextLine         string             `protobuf:"bytes,6,opt,name=context_line,json=contextLine,proto3" json:"context_line,omitempty"`
+	Module              string             `protobuf:"bytes,7,opt,name=module,proto3" json:"module,omitempty"`
+	Function            string             `protobuf:"bytes,8,opt,name=function,proto3" json:"function,omitempty"`
+	AbsPath             string             `protobuf:"bytes,9,opt,name=abs_path,json=absPath,proto3" json:"abs_path,omitempty"`
+	SourcemapError      string             `protobuf:"bytes,10,opt,name=sourcemap_error,json=sourcemapError,proto3" json:"sourcemap_error,omitempty"`
+	Original            *Original          `protobuf:"bytes,11,opt,name=original,proto3" json:"original,omitempty"`
+	PreContext          []string           `protobuf:"bytes,12,rep,name=pre_context,json=preContext,proto3" json:"pre_context,omitempty"`
+	PostContext         []string           `protobuf:"bytes,13,rep,name=post_context,json=postContext,proto3" json:"post_context,omitempty"`
+	LibraryFrame        bool               `protobuf:"varint,14,opt,name=library_frame,json=libraryFrame,proto3" json:"library_frame,omitempty"`
+	SourcemapUpdated    bool               `protobuf:"varint,15,opt,name=sourcemap_updated,json=sourcemapUpdated,proto3" json:"sourcemap_updated,omitempty"`
+	ExcludeFromGrouping bool               `protobuf:"varint,16,opt,name=exclude_from_grouping,json=excludeFromGrouping,proto3" json:"exclude_from_grouping,omitempty"`
 }
 
 func (x *StacktraceFrame) Reset() {
@@ -93,7 +94,7 @@ func (*StacktraceFrame) Descriptor() ([]byte, []int) {
 	return file_stacktrace_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *StacktraceFrame) GetVars() []*KeyValue {
+func (x *StacktraceFrame) GetVars() []*common.KeyValue {
 	if x != nil {
 		return x.Vars
 	}
@@ -381,7 +382,7 @@ var file_stacktrace_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_stacktrace_proto_goTypes = []interface{}{
 	(*StacktraceFrame)(nil), // 0: elastic.apm.v1.StacktraceFrame
 	(*Original)(nil),        // 1: elastic.apm.v1.Original
-	(*KeyValue)(nil),        // 2: elastic.apm.v1.KeyValue
+	(*common.KeyValue)(nil), // 2: elastic.apm.v1.KeyValue
 }
 var file_stacktrace_proto_depIdxs = []int32{
 	2, // 0: elastic.apm.v1.StacktraceFrame.vars:type_name -> elastic.apm.v1.KeyValue
@@ -398,7 +399,6 @@ func file_stacktrace_proto_init() {
 	if File_stacktrace_proto != nil {
 		return
 	}
-	file_keyvalue_proto_init()
 	if !protoimpl.UnsafeEnabled {
 		file_stacktrace_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*StacktraceFrame); i {

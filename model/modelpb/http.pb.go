@@ -27,6 +27,7 @@ import (
 	reflect "reflect"
 	sync "sync"
 
+	common "github.com/elastic/apm-data/model/common"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	structpb "google.golang.org/protobuf/types/known/structpb"
@@ -107,13 +108,13 @@ type HTTPRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Body     *structpb.Value `protobuf:"bytes,1,opt,name=body,proto3" json:"body,omitempty"`
-	Headers  []*HTTPHeader   `protobuf:"bytes,2,rep,name=headers,proto3" json:"headers,omitempty"`
-	Env      []*KeyValue     `protobuf:"bytes,3,rep,name=env,proto3" json:"env,omitempty"`
-	Cookies  []*KeyValue     `protobuf:"bytes,4,rep,name=cookies,proto3" json:"cookies,omitempty"`
-	Id       string          `protobuf:"bytes,5,opt,name=id,proto3" json:"id,omitempty"`
-	Method   string          `protobuf:"bytes,6,opt,name=method,proto3" json:"method,omitempty"`
-	Referrer string          `protobuf:"bytes,7,opt,name=referrer,proto3" json:"referrer,omitempty"`
+	Body     *structpb.Value    `protobuf:"bytes,1,opt,name=body,proto3" json:"body,omitempty"`
+	Headers  []*HTTPHeader      `protobuf:"bytes,2,rep,name=headers,proto3" json:"headers,omitempty"`
+	Env      []*common.KeyValue `protobuf:"bytes,3,rep,name=env,proto3" json:"env,omitempty"`
+	Cookies  []*common.KeyValue `protobuf:"bytes,4,rep,name=cookies,proto3" json:"cookies,omitempty"`
+	Id       string             `protobuf:"bytes,5,opt,name=id,proto3" json:"id,omitempty"`
+	Method   string             `protobuf:"bytes,6,opt,name=method,proto3" json:"method,omitempty"`
+	Referrer string             `protobuf:"bytes,7,opt,name=referrer,proto3" json:"referrer,omitempty"`
 }
 
 func (x *HTTPRequest) Reset() {
@@ -162,14 +163,14 @@ func (x *HTTPRequest) GetHeaders() []*HTTPHeader {
 	return nil
 }
 
-func (x *HTTPRequest) GetEnv() []*KeyValue {
+func (x *HTTPRequest) GetEnv() []*common.KeyValue {
 	if x != nil {
 		return x.Env
 	}
 	return nil
 }
 
-func (x *HTTPRequest) GetCookies() []*KeyValue {
+func (x *HTTPRequest) GetCookies() []*common.KeyValue {
 	if x != nil {
 		return x.Cookies
 	}
@@ -373,12 +374,12 @@ func file_http_proto_rawDescGZIP() []byte {
 
 var file_http_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_http_proto_goTypes = []interface{}{
-	(*HTTP)(nil),           // 0: elastic.apm.v1.HTTP
-	(*HTTPRequest)(nil),    // 1: elastic.apm.v1.HTTPRequest
-	(*HTTPResponse)(nil),   // 2: elastic.apm.v1.HTTPResponse
-	(*structpb.Value)(nil), // 3: google.protobuf.Value
-	(*HTTPHeader)(nil),     // 4: elastic.apm.v1.HTTPHeader
-	(*KeyValue)(nil),       // 5: elastic.apm.v1.KeyValue
+	(*HTTP)(nil),            // 0: elastic.apm.v1.HTTP
+	(*HTTPRequest)(nil),     // 1: elastic.apm.v1.HTTPRequest
+	(*HTTPResponse)(nil),    // 2: elastic.apm.v1.HTTPResponse
+	(*structpb.Value)(nil),  // 3: google.protobuf.Value
+	(*HTTPHeader)(nil),      // 4: elastic.apm.v1.HTTPHeader
+	(*common.KeyValue)(nil), // 5: elastic.apm.v1.KeyValue
 }
 var file_http_proto_depIdxs = []int32{
 	1, // 0: elastic.apm.v1.HTTP.request:type_name -> elastic.apm.v1.HTTPRequest
@@ -401,7 +402,6 @@ func file_http_proto_init() {
 		return
 	}
 	file_headers_proto_init()
-	file_keyvalue_proto_init()
 	if !protoimpl.UnsafeEnabled {
 		file_http_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*HTTP); i {

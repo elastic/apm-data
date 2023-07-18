@@ -27,6 +27,7 @@ import (
 	reflect "reflect"
 	sync "sync"
 
+	common "github.com/elastic/apm-data/model/common"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
@@ -45,7 +46,7 @@ type Transaction struct {
 
 	SpanCount           *SpanCount                  `protobuf:"bytes,1,opt,name=span_count,json=spanCount,proto3" json:"span_count,omitempty"`
 	UserExperience      *UserExperience             `protobuf:"bytes,2,opt,name=user_experience,json=userExperience,proto3" json:"user_experience,omitempty"`
-	Custom              []*KeyValue                 `protobuf:"bytes,3,rep,name=custom,proto3" json:"custom,omitempty"`
+	Custom              []*common.KeyValue          `protobuf:"bytes,3,rep,name=custom,proto3" json:"custom,omitempty"`
 	Marks               map[string]*TransactionMark `protobuf:"bytes,4,rep,name=marks,proto3" json:"marks,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	Message             *Message                    `protobuf:"bytes,5,opt,name=message,proto3" json:"message,omitempty"`
 	Type                string                      `protobuf:"bytes,6,opt,name=type,proto3" json:"type,omitempty"`
@@ -106,7 +107,7 @@ func (x *Transaction) GetUserExperience() *UserExperience {
 	return nil
 }
 
-func (x *Transaction) GetCustom() []*KeyValue {
+func (x *Transaction) GetCustom() []*common.KeyValue {
 	if x != nil {
 		return x.Custom
 	}
@@ -499,7 +500,7 @@ var file_transaction_proto_goTypes = []interface{}{
 	nil,                        // 4: elastic.apm.v1.Transaction.MarksEntry
 	nil,                        // 5: elastic.apm.v1.TransactionMark.MeasurementsEntry
 	(*UserExperience)(nil),     // 6: elastic.apm.v1.UserExperience
-	(*KeyValue)(nil),           // 7: elastic.apm.v1.KeyValue
+	(*common.KeyValue)(nil),    // 7: elastic.apm.v1.KeyValue
 	(*Message)(nil),            // 8: elastic.apm.v1.Message
 	(*Histogram)(nil),          // 9: elastic.apm.v1.Histogram
 	(*SummaryMetric)(nil),      // 10: elastic.apm.v1.SummaryMetric
@@ -532,7 +533,6 @@ func file_transaction_proto_init() {
 	file_experience_proto_init()
 	file_message_proto_init()
 	file_metricset_proto_init()
-	file_keyvalue_proto_init()
 	if !protoimpl.UnsafeEnabled {
 		file_transaction_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Transaction); i {

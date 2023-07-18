@@ -25,6 +25,7 @@ import (
 	fmt "fmt"
 	io "io"
 
+	common "github.com/elastic/apm-data/model/common"
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	structpb "google.golang.org/protobuf/types/known/structpb"
@@ -81,14 +82,14 @@ func (m *HTTPRequest) CloneVT() *HTTPRequest {
 		r.Headers = tmpContainer
 	}
 	if rhs := m.Env; rhs != nil {
-		tmpContainer := make([]*KeyValue, len(rhs))
+		tmpContainer := make([]*common.KeyValue, len(rhs))
 		for k, v := range rhs {
 			tmpContainer[k] = v.CloneVT()
 		}
 		r.Env = tmpContainer
 	}
 	if rhs := m.Cookies; rhs != nil {
-		tmpContainer := make([]*KeyValue, len(rhs))
+		tmpContainer := make([]*common.KeyValue, len(rhs))
 		for k, v := range rhs {
 			tmpContainer[k] = v.CloneVT()
 		}
@@ -804,7 +805,7 @@ func (m *HTTPRequest) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Env = append(m.Env, &KeyValue{})
+			m.Env = append(m.Env, &common.KeyValue{})
 			if err := m.Env[len(m.Env)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -838,7 +839,7 @@ func (m *HTTPRequest) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Cookies = append(m.Cookies, &KeyValue{})
+			m.Cookies = append(m.Cookies, &common.KeyValue{})
 			if err := m.Cookies[len(m.Cookies)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
