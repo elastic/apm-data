@@ -69,7 +69,6 @@ func TestConsumerConsumeLogs(t *testing.T) {
 	})
 
 	commonEvent := modelpb.APMEvent{
-		Session: &modelpb.Session{},
 		Agent: &modelpb.Agent{
 			Name:    "otlp/go",
 			Version: "unknown",
@@ -307,7 +306,6 @@ Caused by: LowLevelException
 	assert.Empty(t, processed[0].NumericLabels)
 	processed[1].Timestamp = nil
 	out := cmp.Diff(&modelpb.APMEvent{
-		Session: &modelpb.Session{},
 		Service: &modelpb.Service{
 			Name: "unknown",
 			Language: &modelpb.Language{

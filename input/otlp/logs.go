@@ -108,7 +108,6 @@ func (c *Consumer) convertLogRecord(
 	event.Event.Severity = int64(record.SeverityNumber())
 	event.Log = populateNil(event.Log)
 	event.Log.Level = record.SeverityText()
-	event.Session = populateNil(event.Session)
 	if body := record.Body(); body.Type() != pcommon.ValueTypeEmpty {
 		event.Message = body.AsString()
 		if body.Type() == pcommon.ValueTypeMap {
@@ -147,6 +146,7 @@ func (c *Consumer) convertLogRecord(
 		case "event.domain":
 			eventDomain = v.Str()
 		case "session.id":
+			event.Session = populateNil(event.Session)
 			event.Session.Id = v.Str()
 		default:
 			setLabel(replaceDots(k), event, ifaceAttributeValue(v))
