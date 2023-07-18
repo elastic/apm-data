@@ -15,21 +15,43 @@
 // specific language governing permissions and limitations
 // under the License.
 
-syntax = "proto3";
+package modelprocessor
 
-package elastic.apm.v1;
+import (
+	"testing"
 
-import "ip.proto";
+	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/sdk/trace"
+)
 
-option go_package = "github.com/elastic/apm-data/model/modelpb";
+func TestConfigOptions(t *testing.T) {
+	tp := trace.NewTracerProvider()
 
-message Source {
-  IP ip = 1;
-  NAT nat = 2;
-  string domain = 3;
-  uint32 port = 4;
-}
-
-message NAT {
-  IP ip = 1;
+	for _, tt := range []struct {
+		name           string
+		opts           []ConfigOption
+		expectedConfig config
+	}{
+		{
+			name: "with no option",
+			expectedConfig: config{
+				tracerProvider: otel.GetTracerProvider(),
+			},
+		},
+		{
+			name: "a custom tracer provider",
+			opts: []ConfigOption{
+				WithTracerProvider(tp),
+			},
+			expectedConfig: config{
+				tracerProvider: tp,
+			},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := newConfig(tt.opts...)
+			assert.Equal(t, tt.expectedConfig, cfg)
+		})
+	}
 }

@@ -38,7 +38,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net"
 	"os"
 	"path/filepath"
 	"strings"
@@ -377,11 +376,11 @@ func TestHTTPTransactionSource(t *testing.T) {
 		event := transformTransactionWithAttributes(t, attrs)
 		require.NotNil(t, event.Http)
 		require.NotNil(t, event.Http.Request)
-		parsedIP := net.ParseIP(expectedIP)
-		require.NotNil(t, parsedIP)
+		parsedIP, err := modelpb.ParseIP(expectedIP)
+		require.NoError(t, err)
 		assert.Equal(t, &modelpb.Source{
 			Domain: expectedDomain,
-			Ip:     expectedIP,
+			Ip:     parsedIP,
 			Port:   uint32(expectedPort),
 		}, event.Source)
 		want := modelpb.Client{Ip: event.Source.Ip, Port: event.Source.Port, Domain: event.Source.Domain}
@@ -427,8 +426,10 @@ func TestHTTPTransactionClientIP(t *testing.T) {
 		"net.peer.port":  5678,
 		"http.client_ip": "9.10.11.12",
 	})
-	assert.Equal(t, &modelpb.Source{Ip: "1.2.3.4", Port: 5678}, event.Source)
-	assert.Equal(t, &modelpb.Client{Ip: "9.10.11.12"}, event.Client)
+	ip, _ := modelpb.ParseIP("1.2.3.4")
+	ip2, _ := modelpb.ParseIP("9.10.11.12")
+	assert.Equal(t, &modelpb.Source{Ip: ip, Port: 5678}, event.Source)
+	assert.Equal(t, &modelpb.Client{Ip: ip2}, event.Client)
 }
 
 func TestHTTPTransactionStatusCode(t *testing.T) {
@@ -509,9 +510,11 @@ func TestRPCTransaction(t *testing.T) {
 	assert.Equal(t, "request", event.Transaction.Type)
 	assert.Equal(t, "Unavailable", event.Transaction.Result)
 	assert.Empty(t, event.Labels)
+
+	ip, _ := modelpb.ParseIP("10.20.30.40")
 	assert.Equal(t, &modelpb.Client{
 		Domain: "peer_name",
-		Ip:     "10.20.30.40",
+		Ip:     ip,
 		Port:   123,
 	}, event.Client)
 }

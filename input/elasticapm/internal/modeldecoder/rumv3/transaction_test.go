@@ -19,7 +19,6 @@ package rumv3
 
 import (
 	"net/http"
-	"net/netip"
 	"strings"
 	"testing"
 	"time"
@@ -152,7 +151,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 }
 
 func TestDecodeMapToTransactionModel(t *testing.T) {
-	localhostIP := netip.MustParseAddr("127.0.0.1")
+	localhostIP := modelpb.MustParseIP("127.0.0.1")
 
 	t.Run("metadata-overwrite", func(t *testing.T) {
 		// overwrite defined metadata with transaction metadata values
@@ -165,7 +164,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		// user-agent should be set to context request header values
 		assert.Equal(t, "d, e", out.UserAgent.Original)
 		// do not overwrite client.ip if already set in metadata
-		assert.Equal(t, localhostIP.String(), out.Client.Ip)
+		assert.Equal(t, localhostIP, out.Client.Ip)
 		assert.Equal(t, modelpb.Labels{
 			"init0": {Global: true, Value: "init"}, "init1": {Global: true, Value: "init"}, "init2": {Global: true, Value: "init"},
 			"overwritten0": {Value: "overwritten"}, "overwritten1": {Value: "overwritten"},
