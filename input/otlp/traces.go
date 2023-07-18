@@ -167,7 +167,6 @@ func (c *Consumer) convertSpan(
 		event.ParentId = parentID
 	}
 	if root || otelSpan.Kind() == ptrace.SpanKindServer || otelSpan.Kind() == ptrace.SpanKindConsumer {
-		event.Processor = modelpb.TransactionProcessor()
 		event.Transaction = &modelpb.Transaction{
 			Id:                  spanID,
 			Name:                name,
@@ -176,7 +175,6 @@ func (c *Consumer) convertSpan(
 		}
 		TranslateTransaction(otelSpan.Attributes(), otelSpan.Status(), otelLibrary, event)
 	} else {
-		event.Processor = modelpb.SpanProcessor()
 		event.Span = &modelpb.Span{
 			Id:                  spanID,
 			Name:                name,
@@ -925,10 +923,11 @@ func (c *Consumer) convertSpanEvent(
 	}
 
 	if event.Error != nil {
-		event.Processor = modelpb.ErrorProcessor()
 		setErrorContext(event, parent)
 	} else {
-		event.Processor = modelpb.LogProcessor()
+		// Set "event.kind" to indicate this is a log event.
+		event.Event = populateNil(event.Event)
+		event.Event.Kind = "event"
 		event.Message = spanEvent.Name()
 		setLogContext(event, parent)
 		spanEvent.Attributes().Range(func(k string, v pcommon.Value) bool {

@@ -15,10 +15,6 @@
             "parent": {
                 "id": "0000000061626364"
             },
-            "processor": {
-                "event": "transaction",
-                "name": "transaction"
-            },
             "service": {
                 "language": {
                     "name": "unknown"

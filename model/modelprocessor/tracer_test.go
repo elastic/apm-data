@@ -55,20 +55,13 @@ func TestTracer(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			batch := modelpb.Batch{
-				{},
-				{Processor: modelpb.TransactionProcessor()},
-				{Processor: modelpb.SpanProcessor()},
-				{Processor: modelpb.TransactionProcessor()},
-			}
-
 			exp := tracetest.NewInMemoryExporter()
 			tp := trace.NewTracerProvider(
 				trace.WithSyncer(exp),
 			)
 
 			processor := NewTracer("testSpan", tt.processor, WithTracerProvider(tp))
-			err := processor.ProcessBatch(context.Background(), &batch)
+			err := processor.ProcessBatch(context.Background(), &modelpb.Batch{})
 			assert.Equal(t, tt.expectedErr, err)
 
 			var span tracetest.SpanStub

@@ -23,10 +23,6 @@
             "parent": {
                 "id": "0000000058585858"
             },
-            "processor": {
-                "event": "span",
-                "name": "transaction"
-            },
             "service": {
                 "language": {
                     "name": "unknown"

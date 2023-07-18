@@ -13,10 +13,6 @@
             "host": {
                 "hostname": "host-abc"
             },
-            "processor": {
-                "event": "transaction",
-                "name": "transaction"
-            },
             "service": {
                 "language": {
                     "name": "unknown"

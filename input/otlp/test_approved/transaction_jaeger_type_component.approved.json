@@ -15,10 +15,6 @@
             "labels": {
                 "component": "amqp"
             },
-            "processor": {
-                "event": "transaction",
-                "name": "transaction"
-            },
             "service": {
                 "language": {
                     "name": "unknown"

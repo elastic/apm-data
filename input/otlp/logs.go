@@ -71,7 +71,6 @@ func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTi
 		Event: &modelpb.Event{
 			Received: timestamppb.New(receiveTimestamp),
 		},
-		Processor: modelpb.LogProcessor(),
 	}
 	translateResourceMetadata(resource, &baseEvent)
 
@@ -177,7 +176,6 @@ func (c *Consumer) convertLogRecord(
 	}
 
 	if event.Error != nil {
-		event.Processor = modelpb.ErrorProcessor()
 		event.Event.Kind = "event"
 		event.Event.Type = "error"
 	}

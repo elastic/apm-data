@@ -69,7 +69,6 @@ func TestConsumerConsumeLogs(t *testing.T) {
 	})
 
 	commonEvent := modelpb.APMEvent{
-		Processor: modelpb.LogProcessor(),
 		Agent: &modelpb.Agent{
 			Name:    "otlp/go",
 			Version: "unknown",
@@ -241,7 +240,6 @@ Caused by: LowLevelException
 		},
 		Labels:        modelpb.Labels{"key0": {Global: true, Value: "zero"}},
 		NumericLabels: modelpb.NumericLabels{},
-		Processor:     modelpb.ErrorProcessor(),
 		Message:       "bar",
 		Trace:         &modelpb.Trace{Id: "01000000000000000000000000000000"},
 		Span:          &modelpb.Span{Id: "0200000000000000"},

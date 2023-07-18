@@ -163,7 +163,6 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 	out := &modelpb.Error{}
 	event.Error = out
-	event.Processor = modelpb.ErrorProcessor()
 
 	// overwrite metadata with event specific information
 	if from.Context.Service.IsSet() {
@@ -391,7 +390,6 @@ func mapToMetadataModel(m *metadata, out *modelpb.APMEvent) {
 
 func mapToTransactionMetricsetModel(from *transactionMetricset, event *modelpb.APMEvent) bool {
 	event.Metricset = &modelpb.Metricset{}
-	event.Processor = modelpb.MetricsetProcessor()
 
 	if from.Span.IsSet() {
 		event.Span = &modelpb.Span{}
@@ -503,7 +501,6 @@ func mapToAgentModel(from contextServiceAgent, out *modelpb.Agent) {
 func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 	out := &modelpb.Span{Type: "unknown"}
 	event.Span = out
-	event.Processor = modelpb.SpanProcessor()
 
 	// map span specific data
 	if !from.Action.IsSet() && !from.Subtype.IsSet() {
@@ -681,7 +678,6 @@ func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFram
 func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	out := &modelpb.Transaction{Type: "unknown"}
 	event.Transaction = out
-	event.Processor = modelpb.TransactionProcessor()
 
 	// overwrite metadata with event specific information
 	if from.Context.Service.IsSet() {
