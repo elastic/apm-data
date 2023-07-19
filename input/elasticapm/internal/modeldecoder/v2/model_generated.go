@@ -1951,11 +1951,6 @@ func (val *metricsetSampleValue) validate() error {
 			return fmt.Errorf("'values' required when 'counts' is set")
 		}
 	}
-	for _, elem := range val.Counts {
-		if elem < 0 {
-			return fmt.Errorf("'counts': validation rule 'minVals(0)' violated")
-		}
-	}
 	if !(len(val.Counts) > 0) {
 		if len(val.Values) > 0 {
 			return fmt.Errorf("'counts' required when 'values' is set")
@@ -2889,9 +2884,6 @@ func (val *transactionDroppedSpansDurationSum) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
-	if val.Us.IsSet() && val.Us.Val < 0 {
-		return fmt.Errorf("'us': validation rule 'min(0)' violated")
-	}
 	return nil
 }
 
@@ -2978,9 +2970,6 @@ func (val *longtaskMetrics) Reset() {
 func (val *longtaskMetrics) validate() error {
 	if !val.IsSet() {
 		return nil
-	}
-	if val.Count.IsSet() && val.Count.Val < 0 {
-		return fmt.Errorf("'count': validation rule 'min(0)' violated")
 	}
 	if !val.Count.IsSet() {
 		return fmt.Errorf("'count' required")

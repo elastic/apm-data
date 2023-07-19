@@ -1674,9 +1674,6 @@ func (val *longtaskMetrics) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
-	if val.Count.IsSet() && val.Count.Val < 0 {
-		return fmt.Errorf("'count': validation rule 'min(0)' violated")
-	}
 	if !val.Count.IsSet() {
 		return fmt.Errorf("'count' required")
 	}

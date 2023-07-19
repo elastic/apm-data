@@ -87,8 +87,7 @@
                 "array"
               ],
               "items": {
-                "type": "integer",
-                "minimum": 0
+                "type": "integer"
               },
               "minItems": 0
             },

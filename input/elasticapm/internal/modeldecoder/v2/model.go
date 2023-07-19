@@ -680,7 +680,7 @@ type metricsetSampleValue struct {
 	// If Counts is specified, then Values is expected to be
 	// specified with the same number of elements, and with the
 	// same order.
-	Counts []uint64 `json:"counts" validate:"requiredIfAny=values,minVals=0"`
+	Counts []uint64 `json:"counts" validate:"requiredIfAny=values"`
 	// Value holds the value of a single metric sample.
 	Value nullable.Float64 `json:"value"`
 }
@@ -1117,7 +1117,7 @@ type transactionUserExperience struct {
 
 type longtaskMetrics struct {
 	// Count is the total number of of longtasks.
-	Count nullable.Int `json:"count" validate:"required,min=0"`
+	Count nullable.Int `json:"count" validate:"required"`
 	// Max longtask duration
 	Max nullable.Float64 `json:"max" validate:"required,min=0"`
 	// Sum of longtask durations
@@ -1161,7 +1161,7 @@ type transactionDroppedSpansDuration struct {
 
 type transactionDroppedSpansDurationSum struct {
 	// Us represents the summation of the span duration.
-	Us nullable.Int `json:"us" validate:"min=0"`
+	Us nullable.Int `json:"us"`
 }
 
 type spanLink struct {
