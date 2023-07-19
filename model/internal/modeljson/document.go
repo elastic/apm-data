@@ -73,7 +73,7 @@ type Document struct {
 	DataStreamDataset   string `json:"data_stream.dataset,omitempty"`
 	DataStreamNamespace string `json:"data_stream.namespace,omitempty"`
 	Message             string `json:"message,omitempty"`
-	DocCount            int64  `json:"_doc_count,omitempty"`
+	DocCount            uint64 `json:"_doc_count,omitempty"`
 }
 
 type Time time.Time

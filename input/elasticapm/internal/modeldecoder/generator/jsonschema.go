@@ -216,6 +216,8 @@ var (
 		nullableTypeInt:            TypeNameInteger,
 		"int":                      TypeNameInteger,
 		"int64":                    TypeNameInteger,
+		"uint":                     TypeNameInteger,
+		"uint64":                   TypeNameInteger,
 		nullableTypeTimeMicrosUnix: TypeNameInteger,
 		nullableTypeString:         TypeNameString,
 		"string":                   TypeNameString,

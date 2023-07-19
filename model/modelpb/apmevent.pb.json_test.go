@@ -177,7 +177,7 @@ func fullEvent(t testing.TB) *APMEvent {
 			Id:     "id",
 			DurationHistogram: &Histogram{
 				Values: []float64{4},
-				Counts: []int64{5},
+				Counts: []uint64{5},
 			},
 			DroppedSpansStats: []*DroppedSpanStats{
 				{
@@ -209,7 +209,7 @@ func fullEvent(t testing.TB) *APMEvent {
 					Unit: "unit",
 					Histogram: &Histogram{
 						Values: []float64{1},
-						Counts: []int64{2},
+						Counts: []uint64{2},
 					},
 					Summary: &SummaryMetric{
 						Count: 3,

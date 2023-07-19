@@ -27,5 +27,5 @@ type Event struct {
 	Type         string        `json:"type,omitempty"`
 	SuccessCount SummaryMetric `json:"success_count,omitempty"`
 	Duration     int64         `json:"duration,omitempty"`
-	Severity     int64         `json:"severity,omitempty"`
+	Severity     uint64        `json:"severity,omitempty"`
 }

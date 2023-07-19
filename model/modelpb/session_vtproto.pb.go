@@ -192,7 +192,7 @@ func (m *Session) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Sequence |= int64(b&0x7F) << shift
+				m.Sequence |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

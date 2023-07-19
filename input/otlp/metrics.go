@@ -210,7 +210,7 @@ func summarySample(dp pmetric.SummaryDataPoint) *modelpb.MetricsetSample {
 	return &modelpb.MetricsetSample{
 		Type: modelpb.MetricType_METRIC_TYPE_SUMMARY,
 		Summary: &modelpb.SummaryMetric{
-			Count: int64(dp.Count()),
+			Count: uint64(dp.Count()),
 			Sum:   dp.Sum(),
 		},
 	}
@@ -243,7 +243,7 @@ func histogramSample(bucketCounts pcommon.UInt64Slice, explicitBounds pcommon.Fl
 	// case, the usual linear interpolation is applied within that bucket. Otherwise, the upper
 	// bound of the lowest bucket is returned for quantiles located in the lowest bucket."
 	values := make([]float64, 0, bucketCounts.Len())
-	counts := make([]int64, 0, bucketCounts.Len())
+	counts := make([]uint64, 0, bucketCounts.Len())
 	for i := 0; i < bucketCounts.Len(); i++ {
 		count := bucketCounts.At(i)
 		if count == 0 {
@@ -269,7 +269,7 @@ func histogramSample(bucketCounts pcommon.UInt64Slice, explicitBounds pcommon.Fl
 			value = explicitBounds.At(i-1) + (explicitBounds.At(i)-explicitBounds.At(i-1))/2.0
 		}
 
-		counts = append(counts, int64(count))
+		counts = append(counts, uint64(count))
 		values = append(values, value)
 	}
 	return &modelpb.MetricsetSample{

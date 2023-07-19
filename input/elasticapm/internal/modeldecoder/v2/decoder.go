@@ -323,7 +323,7 @@ func mapToDroppedSpansModel(from []transactionDroppedSpanStats, tx *modelpb.Tran
 			}
 			if f.Duration.IsSet() {
 				to.Duration = &modelpb.AggregatedDuration{}
-				to.Duration.Count = int64(f.Duration.Count.Val)
+				to.Duration.Count = uint64(f.Duration.Count.Val)
 				sum := f.Duration.Sum
 				if sum.IsSet() {
 					to.Duration.Sum = durationpb.New(time.Duration(sum.Us.Val) * time.Microsecond)
@@ -734,7 +734,7 @@ func mapToMetricsetModel(from *metricset, event *modelpb.APMEvent) bool {
 	if len(from.Samples) > 0 {
 		samples := make([]*modelpb.MetricsetSample, 0, len(from.Samples))
 		for name, sample := range from.Samples {
-			var counts []int64
+			var counts []uint64
 			var values []float64
 			var histogram *modelpb.Histogram
 			if n := len(sample.Values); n > 0 {
@@ -742,7 +742,7 @@ func mapToMetricsetModel(from *metricset, event *modelpb.APMEvent) bool {
 				copy(values, sample.Values)
 			}
 			if n := len(sample.Counts); n > 0 {
-				counts = make([]int64, n)
+				counts = make([]uint64, n)
 				copy(counts, sample.Counts)
 			}
 			if len(counts) != 0 || len(values) != 0 {
@@ -868,18 +868,18 @@ func mapToResponseModel(from contextResponse, out *modelpb.HTTPResponse) {
 		out.HeadersSent = &val
 	}
 	if from.StatusCode.IsSet() {
-		out.StatusCode = int32(from.StatusCode.Val)
+		out.StatusCode = uint32(from.StatusCode.Val)
 	}
 	if from.TransferSize.IsSet() {
-		val := int64(from.TransferSize.Val)
+		val := uint64(from.TransferSize.Val)
 		out.TransferSize = &val
 	}
 	if from.EncodedBodySize.IsSet() {
-		val := int64(from.EncodedBodySize.Val)
+		val := uint64(from.EncodedBodySize.Val)
 		out.EncodedBodySize = &val
 	}
 	if from.DecodedBodySize.IsSet() {
-		val := int64(from.DecodedBodySize.Val)
+		val := uint64(from.DecodedBodySize.Val)
 		out.DecodedBodySize = &val
 	}
 }
@@ -1065,21 +1065,21 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 			event.Http = populateNil(event.Http)
 			response := modelpb.HTTPResponse{}
 			if from.Context.HTTP.Response.DecodedBodySize.IsSet() {
-				val := int64(from.Context.HTTP.Response.DecodedBodySize.Val)
+				val := uint64(from.Context.HTTP.Response.DecodedBodySize.Val)
 				response.DecodedBodySize = &val
 			}
 			if from.Context.HTTP.Response.EncodedBodySize.IsSet() {
-				val := int64(from.Context.HTTP.Response.EncodedBodySize.Val)
+				val := uint64(from.Context.HTTP.Response.EncodedBodySize.Val)
 				response.EncodedBodySize = &val
 			}
 			if from.Context.HTTP.Response.Headers.IsSet() {
 				response.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Context.HTTP.Response.Headers.Val)
 			}
 			if from.Context.HTTP.Response.StatusCode.IsSet() {
-				response.StatusCode = int32(from.Context.HTTP.Response.StatusCode.Val)
+				response.StatusCode = uint32(from.Context.HTTP.Response.StatusCode.Val)
 			}
 			if from.Context.HTTP.Response.TransferSize.IsSet() {
-				val := int64(from.Context.HTTP.Response.TransferSize.Val)
+				val := uint64(from.Context.HTTP.Response.TransferSize.Val)
 				response.TransferSize = &val
 			}
 			event.Http.Response = &response
@@ -1087,7 +1087,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		if from.Context.HTTP.StatusCode.IsSet() {
 			event.Http = populateNil(event.Http)
 			event.Http.Response = populateNil(event.Http.Response)
-			event.Http.Response.StatusCode = int32(from.Context.HTTP.StatusCode.Val)
+			event.Http.Response.StatusCode = uint32(from.Context.HTTP.StatusCode.Val)
 		}
 		if from.Context.HTTP.URL.IsSet() {
 			event.Url = populateNil(event.Url)
@@ -1103,7 +1103,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 			message.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Context.Message.Headers.Val)
 		}
 		if from.Context.Message.Age.Milliseconds.IsSet() {
-			val := int64(from.Context.Message.Age.Milliseconds.Val)
+			val := uint64(from.Context.Message.Age.Milliseconds.Val)
 			message.AgeMillis = &val
 		}
 		if from.Context.Message.Queue.Name.IsSet() {
@@ -1288,7 +1288,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 		if from.Context.Message.IsSet() {
 			out.Message = &modelpb.Message{}
 			if from.Context.Message.Age.IsSet() {
-				val := int64(from.Context.Message.Age.Milliseconds.Val)
+				val := uint64(from.Context.Message.Age.Milliseconds.Val)
 				out.Message.AgeMillis = &val
 			}
 			if from.Context.Message.Body.IsSet() {
@@ -1391,7 +1391,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	if from.Session.ID.IsSet() {
 		event.Session = &modelpb.Session{
 			Id:       from.Session.ID.Val,
-			Sequence: int64(from.Session.Sequence.Val),
+			Sequence: uint64(from.Session.Sequence.Val),
 		}
 	}
 	if from.SpanCount.Dropped.IsSet() {
@@ -1420,7 +1420,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 			CumulativeLayoutShift: -1,
 			FirstInputDelay:       -1,
 			TotalBlockingTime:     -1,
-			LongTask:              &modelpb.LongtaskMetrics{Count: -1},
+			LongTask:              nil,
 		}
 		if from.UserExperience.CumulativeLayoutShift.IsSet() {
 			out.UserExperience.CumulativeLayoutShift = from.UserExperience.CumulativeLayoutShift.Val
@@ -1434,7 +1434,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 		}
 		if from.UserExperience.Longtask.IsSet() {
 			out.UserExperience.LongTask = &modelpb.LongtaskMetrics{
-				Count: int64(from.UserExperience.Longtask.Count.Val),
+				Count: uint64(from.UserExperience.Longtask.Count.Val),
 				Sum:   from.UserExperience.Longtask.Sum.Val,
 				Max:   from.UserExperience.Longtask.Max.Val,
 			}
@@ -1498,7 +1498,7 @@ func mapToLogModel(from *log, event *modelpb.APMEvent) {
 		event.Log = populateNil(event.Log)
 		event.Log.Origin = populateNil(event.Log.Origin)
 		event.Log.Origin.File = populateNil(event.Log.Origin.File)
-		event.Log.Origin.File.Line = int32(from.OriginFileLine.Val)
+		event.Log.Origin.File.Line = uint32(from.OriginFileLine.Val)
 	}
 	if from.OriginFileName.IsSet() {
 		event.Log = populateNil(event.Log)

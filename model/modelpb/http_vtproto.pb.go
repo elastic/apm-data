@@ -1070,7 +1070,7 @@ func (m *HTTPResponse) UnmarshalVT(dAtA []byte) error {
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TransferSize", wireType)
 			}
-			var v int64
+			var v uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflow
@@ -1080,7 +1080,7 @@ func (m *HTTPResponse) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				v |= int64(b&0x7F) << shift
+				v |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1090,7 +1090,7 @@ func (m *HTTPResponse) UnmarshalVT(dAtA []byte) error {
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field EncodedBodySize", wireType)
 			}
-			var v int64
+			var v uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflow
@@ -1100,7 +1100,7 @@ func (m *HTTPResponse) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				v |= int64(b&0x7F) << shift
+				v |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1110,7 +1110,7 @@ func (m *HTTPResponse) UnmarshalVT(dAtA []byte) error {
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DecodedBodySize", wireType)
 			}
-			var v int64
+			var v uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflow
@@ -1120,7 +1120,7 @@ func (m *HTTPResponse) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				v |= int64(b&0x7F) << shift
+				v |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1140,7 +1140,7 @@ func (m *HTTPResponse) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.StatusCode |= int32(b&0x7F) << shift
+				m.StatusCode |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

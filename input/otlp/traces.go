@@ -255,7 +255,7 @@ func TranslateTransaction(
 			switch kDots {
 			case semconv.AttributeHTTPStatusCode:
 				isHTTP = true
-				httpResponse.StatusCode = int32(v.Int())
+				httpResponse.StatusCode = uint32(v.Int())
 				http.Response = &httpResponse
 			case semconv.AttributeNetPeerPort:
 				event.Source = populateNil(event.Source)
@@ -289,7 +289,7 @@ func TranslateTransaction(
 			case semconv.AttributeHTTPStatusCode:
 				if intv, err := strconv.Atoi(stringval); err == nil {
 					isHTTP = true
-					httpResponse.StatusCode = int32(intv)
+					httpResponse.StatusCode = uint32(intv)
 					http.Response = &httpResponse
 				}
 			case "http.protocol":
@@ -530,7 +530,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 		case pcommon.ValueTypeInt:
 			switch kDots {
 			case "http.status_code":
-				httpResponse.StatusCode = int32(v.Int())
+				httpResponse.StatusCode = uint32(v.Int())
 				http.Response = &httpResponse
 				isHTTP = true
 			case semconv.AttributeNetPeerPort, "peer.port":

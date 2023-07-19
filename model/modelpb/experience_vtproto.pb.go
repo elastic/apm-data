@@ -395,7 +395,7 @@ func (m *LongtaskMetrics) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Count |= int64(b&0x7F) << shift
+				m.Count |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

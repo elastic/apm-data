@@ -26,7 +26,7 @@ import (
 )
 
 func TestMessageToModelJSON(t *testing.T) {
-	millis := int64(1)
+	millis := uint64(1)
 
 	testCases := map[string]struct {
 		proto    *Message

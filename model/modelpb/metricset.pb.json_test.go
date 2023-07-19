@@ -45,7 +45,7 @@ func TestMetricsetToModelJSON(t *testing.T) {
 						Unit: "unit",
 						Histogram: &Histogram{
 							Values: []float64{1},
-							Counts: []int64{2},
+							Counts: []uint64{2},
 						},
 						Summary: &SummaryMetric{
 							Count: 3,
@@ -66,7 +66,7 @@ func TestMetricsetToModelJSON(t *testing.T) {
 						Unit: "unit",
 						Histogram: modeljson.Histogram{
 							Values: []float64{1},
-							Counts: []int64{2},
+							Counts: []uint64{2},
 						},
 						Summary: modeljson.SummaryMetric{
 							Count: 3,

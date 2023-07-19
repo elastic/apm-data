@@ -36,7 +36,7 @@ message Event {
 
   SummaryMetric success_count = 7;
   google.protobuf.Duration duration = 8;
-  int64 severity = 9;
+  uint64 severity = 9;
 
   google.protobuf.Timestamp received = 10;
 }
