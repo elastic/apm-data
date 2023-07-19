@@ -54,6 +54,15 @@ func init() {
 			(*((*Int)(ptr))).isSet = true
 		}
 	})
+	jsoniter.RegisterTypeDecoderFunc("nullable.Int64", func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
+		switch iter.WhatIsNext() {
+		case jsoniter.NilValue:
+			iter.ReadNil()
+		default:
+			(*((*Int64)(ptr))).Val = iter.ReadInt64()
+			(*((*Int64)(ptr))).isSet = true
+		}
+	})
 	jsoniter.RegisterTypeDecoderFunc("nullable.Float64", func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 		switch iter.WhatIsNext() {
 		case jsoniter.NilValue:
@@ -189,6 +198,31 @@ func (v *Int) IsSet() bool {
 // Reset sets the Int to it's initial state
 // where it is not set and has no value
 func (v *Int) Reset() {
+	v.Val = 0
+	v.isSet = false
+}
+
+// Int64 stores an int64 value and the
+// information if the value has been set
+type Int64 struct {
+	Val   int64
+	isSet bool
+}
+
+// Set sets the value
+func (v *Int64) Set(val int64) {
+	v.Val = val
+	v.isSet = true
+}
+
+// IsSet is true when decode was called
+func (v *Int64) IsSet() bool {
+	return v.isSet
+}
+
+// Reset sets the Int64 to it's initial state
+// where it is not set and has no value
+func (v *Int64) Reset() {
 	v.Val = 0
 	v.isSet = false
 }
