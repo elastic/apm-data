@@ -20,13 +20,13 @@ package modeldecodertest
 import (
 	"fmt"
 	"net/http"
-	"net/netip"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -39,7 +39,7 @@ type Values struct {
 	Float           float64
 	Bool            bool
 	Duration        time.Duration
-	IP              netip.Addr
+	IP              *modelpb.IP
 	HTTPHeader      http.Header
 	LabelVal        *modelpb.LabelValue
 	NumericLabelVal *modelpb.NumericLabelValue
@@ -55,7 +55,7 @@ func DefaultValues() *Values {
 		Float:           0.5,
 		Bool:            true,
 		Duration:        time.Second,
-		IP:              netip.MustParseAddr("127.0.0.1"),
+		IP:              modelpb.MustParseIP("127.0.0.1"),
 		HTTPHeader:      http.Header{http.CanonicalHeaderKey("user-agent"): []string{"a", "b", "c"}},
 		LabelVal:        &modelpb.LabelValue{Value: "init"},
 		NumericLabelVal: &modelpb.NumericLabelValue{Value: 0.5},
@@ -71,7 +71,7 @@ func NonDefaultValues() *Values {
 		Float:           3.5,
 		Bool:            false,
 		Duration:        time.Minute,
-		IP:              netip.MustParseAddr("192.168.0.1"),
+		IP:              modelpb.MustParseIP("192.168.0.1"),
 		HTTPHeader:      http.Header{http.CanonicalHeaderKey("user-agent"): []string{"d", "e"}},
 		LabelVal:        &modelpb.LabelValue{Value: "overwritten"},
 		NumericLabelVal: &modelpb.NumericLabelValue{Value: 3.5},
@@ -91,7 +91,7 @@ func (v *Values) Update(args ...interface{}) {
 			v.Float = a
 		case bool:
 			v.Bool = a
-		case netip.Addr:
+		case *modelpb.IP:
 			v.IP = a
 		case http.Header:
 			v.HTTPHeader = a
@@ -135,9 +135,11 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 				elemVal = reflect.ValueOf(values.Int)
 			case []int64:
 				elemVal = reflect.ValueOf(int64(values.Int))
+			case []uint8:
+				elemVal = reflect.ValueOf(uint8(values.Int))
 			case []float64:
 				elemVal = reflect.ValueOf(values.Float)
-			case []netip.Addr:
+			case []*modelpb.IP:
 				elemVal = reflect.ValueOf(values.IP)
 			default:
 				if f.Type().Elem().Kind() != reflect.Struct {
@@ -196,7 +198,7 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 			case nullable.HTTPHeader:
 				v.Set(values.HTTPHeader.Clone())
 				fieldVal = reflect.ValueOf(v)
-			case netip.Addr:
+			case *modelpb.IP:
 				fieldVal = reflect.ValueOf(values.IP)
 			default:
 				if f.IsZero() {
@@ -259,6 +261,7 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 		}
 		fVal := f.Interface()
 		var newVal interface{}
+
 		switch fVal.(type) {
 		case map[string]interface{}:
 			m := map[string]interface{}{}
@@ -270,6 +273,16 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 			m := modelpb.Labels{}
 			for i := 0; i < values.N; i++ {
 				m[fmt.Sprintf("%s%v", values.Str, i)] = &modelpb.LabelValue{Value: values.Str}
+			}
+			newVal = m
+		case []*modelpb.KeyValue:
+			m := []*modelpb.KeyValue{}
+			for i := 0; i < values.N; i++ {
+				value, _ := structpb.NewValue(values.Str)
+				m = append(m, &modelpb.KeyValue{
+					Key:   fmt.Sprintf("%s%v", values.Str, i),
+					Value: value,
+				})
 			}
 			newVal = m
 		case []string:
@@ -294,7 +307,12 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 		case int32:
 			newVal = int32(values.Int)
 		case uint32:
-			newVal = uint32(values.Int)
+			switch true {
+			case strings.Contains(key, "v4"):
+				newVal = uint32(values.IP.V4)
+			default:
+				newVal = uint32(values.Int)
+			}
 		case *uint32:
 			val := uint32(values.Int)
 			newVal = &val
@@ -303,12 +321,12 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 		case *float64:
 			val := values.Float
 			newVal = &val
-		case netip.Addr:
-			newVal = values.IP
 		case bool:
 			newVal = values.Bool
 		case *bool:
 			newVal = &values.Bool
+		case []byte:
+			newVal = values.IP.V6
 		case http.Header:
 			newVal = values.HTTPHeader
 		case time.Duration:
@@ -330,6 +348,11 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 				return
 			}
 			panic(fmt.Sprintf("unhandled type %s %s for key %s", f.Kind(), f.Type(), key))
+		}
+
+		if f.Kind() == reflect.Map || f.Kind() == reflect.Slice {
+			assert.ElementsMatch(t, newVal, fVal, key)
+			return
 		}
 		assert.Equal(t, newVal, fVal, key)
 	})
@@ -403,6 +426,12 @@ func iterateStruct(v reflect.Value, key string, fn func(f reflect.Value, fKey st
 			if v.Type() == f.Type().Elem() {
 				continue
 			}
+
+			switch f.Interface().(type) {
+			case []*modelpb.KeyValue:
+				continue
+			}
+
 			for j := 0; j < f.Len(); j++ {
 				sliceField := f.Index(j)
 				switch sliceField.Kind() {

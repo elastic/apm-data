@@ -36,7 +36,7 @@ func TestClientToModelJSON(t *testing.T) {
 		},
 		"full": {
 			proto: &Client{
-				Ip:     "127.0.0.1",
+				Ip:     MustParseIP("127.0.0.1"),
 				Domain: "example.com",
 				Port:   443,
 			},

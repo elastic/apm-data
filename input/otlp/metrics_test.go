@@ -142,7 +142,6 @@ func TestConsumeMetrics(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Timestamp: timestamppb.New(timestamp0),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -170,7 +169,6 @@ func TestConsumeMetrics(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Timestamp: timestamppb.New(timestamp1),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -182,7 +180,6 @@ func TestConsumeMetrics(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"k": {Value: "v"}},
 		Timestamp: timestamppb.New(timestamp1),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -195,7 +192,6 @@ func TestConsumeMetrics(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"k": {Value: "v2"}},
 		Timestamp: timestamppb.New(timestamp1),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -208,7 +204,6 @@ func TestConsumeMetrics(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"k2": {Value: "v"}},
 		Timestamp: timestamppb.New(timestamp1),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -348,7 +343,6 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "idle"}, "cpu": {Value: "0"}},
 		Timestamp: timestamppb.New(timestamp),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -364,7 +358,6 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "system"}, "cpu": {Value: "0"}},
 		Timestamp: timestamppb.New(timestamp),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -380,7 +373,6 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "user"}, "cpu": {Value: "0"}},
 		Timestamp: timestamppb.New(timestamp),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -396,7 +388,6 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "idle"}, "cpu": {Value: "1"}},
 		Timestamp: timestamppb.New(timestamp),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -412,7 +403,6 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "system"}, "cpu": {Value: "1"}},
 		Timestamp: timestamppb.New(timestamp),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -428,7 +418,6 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "user"}, "cpu": {Value: "1"}},
 		Timestamp: timestamppb.New(timestamp),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -444,7 +433,6 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "idle"}, "cpu": {Value: "2"}},
 		Timestamp: timestamppb.New(timestamp),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -460,7 +448,6 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "system"}, "cpu": {Value: "2"}},
 		Timestamp: timestamppb.New(timestamp),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -476,7 +463,6 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "user"}, "cpu": {Value: "2"}},
 		Timestamp: timestamppb.New(timestamp),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -492,7 +478,6 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "idle"}, "cpu": {Value: "3"}},
 		Timestamp: timestamppb.New(timestamp),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -508,7 +493,6 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "system"}, "cpu": {Value: "3"}},
 		Timestamp: timestamppb.New(timestamp),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -524,7 +508,6 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "user"}, "cpu": {Value: "3"}},
 		Timestamp: timestamppb.New(timestamp),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -570,7 +553,6 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "free"}},
 		Timestamp: timestamppb.New(timestamp),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -586,7 +568,6 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "used"}},
 		Timestamp: timestamppb.New(timestamp),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -651,7 +632,6 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"type": {Value: "heap"}, "pool": {Value: "G1 Eden Space"}},
 		Timestamp: timestamppb.New(timestamp),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -667,7 +647,6 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Service:   &service,
 		Labels:    modelpb.Labels{"action": {Value: "end of minor GC"}, "gc": {Value: "G1 Young Generation"}},
 		Timestamp: timestamppb.New(timestamp),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{

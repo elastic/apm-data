@@ -19,7 +19,6 @@ package v2
 
 import (
 	"encoding/json"
-	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -88,8 +87,8 @@ func TestDecodeNestedTransaction(t *testing.T) {
 }
 
 func TestDecodeMapToTransactionModel(t *testing.T) {
-	gatewayIP := net.ParseIP("192.168.0.1")
-	randomIP := net.ParseIP("71.0.54.1")
+	gatewayIP := modelpb.MustParseIP("192.168.0.1")
+	randomIP := modelpb.MustParseIP("71.0.54.1")
 
 	t.Run("metadata-overwrite", func(t *testing.T) {
 		// overwrite defined metadata with event metadata values
@@ -106,7 +105,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		assert.Equal(t, userAgent, out.UserAgent.Original)
 		// do not overwrite client.ip if already set in metadata
 		ip := modeldecodertest.DefaultValues().IP
-		assert.Equal(t, ip.String(), out.GetClient().GetIp())
+		assert.Equal(t, ip, out.GetClient().GetIp())
 		assert.Equal(t, modelpb.Labels{
 			"init0": {Global: true, Value: "init"}, "init1": {Global: true, Value: "init"}, "init2": {Global: true, Value: "init"},
 			"overwritten0": {Value: "overwritten"}, "overwritten1": {Value: "overwritten"},
@@ -226,17 +225,17 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var input transaction
 		var out modelpb.APMEvent
 		input.Context.Request.Headers.Set(http.Header{})
-		input.Context.Request.Socket.RemoteAddress.Set(randomIP.String())
+		input.Context.Request.Socket.RemoteAddress.Set(modelpb.IP2String(randomIP))
 		// from headers (case insensitive)
-		input.Context.Request.Headers.Val.Add("x-Real-ip", gatewayIP.String())
+		input.Context.Request.Headers.Val.Add("x-Real-ip", modelpb.IP2String(gatewayIP))
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, gatewayIP.String(), out.GetClient().GetIp())
+		assert.Equal(t, gatewayIP, out.GetClient().GetIp())
 		// ignore if set in event already
 		out = modelpb.APMEvent{
-			Client: &modelpb.Client{Ip: "192.17.1.1"},
+			Client: &modelpb.Client{Ip: modelpb.MustParseIP("192.17.1.1")},
 		}
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, "192.17.1.1", out.Client.Ip)
+		assert.Equal(t, modelpb.MustParseIP("192.17.1.1"), out.Client.Ip)
 	})
 
 	t.Run("client-ip-socket", func(t *testing.T) {
@@ -245,10 +244,10 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		// set invalid headers
 		input.Context.Request.Headers.Set(http.Header{})
 		input.Context.Request.Headers.Val.Add("x-Real-ip", "192.13.14:8097")
-		input.Context.Request.Socket.RemoteAddress.Set(randomIP.String())
+		input.Context.Request.Socket.RemoteAddress.Set(modelpb.IP2String(randomIP))
 		mapToTransactionModel(&input, &out)
 		// ensure client ip is populated from socket
-		assert.Equal(t, randomIP.String(), out.GetClient().GetIp())
+		assert.Equal(t, randomIP, out.GetClient().GetIp())
 	})
 
 	t.Run("overwrite-user", func(t *testing.T) {
@@ -482,7 +481,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 
 		t.Run("net", func(t *testing.T) {
 			expectedDomain := "source.domain"
-			expectedIP := "192.168.0.1"
+			expectedIP := modelpb.MustParseIP("192.168.0.1")
 			expectedPort := 1234
 			attrs := map[string]interface{}{
 				"net.peer.name": "source.domain",
@@ -499,8 +498,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 
 			require.NotNil(t, event.Http)
 			require.NotNil(t, event.Http.Request)
-			parsedIP := net.ParseIP(expectedIP)
-			require.NotNil(t, parsedIP)
 			assert.Equal(t, &modelpb.Source{
 				Domain: expectedDomain,
 				Ip:     expectedIP,
@@ -534,7 +531,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			assert.Equal(t, "Unavailable", event.Transaction.Result)
 			assert.Equal(t, &modelpb.Client{
 				Domain: "peer_name",
-				Ip:     "10.20.30.40",
+				Ip:     modelpb.MustParseIP("10.20.30.40"),
 				Port:   123,
 			}, event.Client)
 			assert.Equal(t, "SERVER", event.Span.Kind)

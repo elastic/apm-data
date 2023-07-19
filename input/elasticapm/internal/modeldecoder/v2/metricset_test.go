@@ -258,7 +258,6 @@ func TestDecodeMetricsetInternal(t *testing.T) {
 
 	assert.Empty(t, cmp.Diff(modelpb.Batch{{
 		Timestamp: timestamppb.New(time.Unix(0, 0).UTC()),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "span_breakdown",
 		},
@@ -313,7 +312,6 @@ func TestDecodeMetricsetServiceName(t *testing.T) {
 
 	assert.Empty(t, cmp.Diff(modelpb.Batch{{
 		Timestamp: timestamppb.New(time.Unix(0, 0).UTC()),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "span_breakdown",
 		},
@@ -373,7 +371,6 @@ func TestDecodeMetricsetServiceNameAndVersion(t *testing.T) {
 
 	assert.Empty(t, cmp.Diff(modelpb.Batch{{
 		Timestamp: timestamppb.New(time.Unix(0, 0).UTC()),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "span_breakdown",
 		},
@@ -433,7 +430,6 @@ func TestDecodeMetricsetServiceVersion(t *testing.T) {
 
 	assert.Empty(t, cmp.Diff(modelpb.Batch{{
 		Timestamp: timestamppb.New(time.Unix(0, 0).UTC()),
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name: "span_breakdown",
 		},

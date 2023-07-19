@@ -21,7 +21,7 @@ package elastic.apm.v1;
 
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
-message Processor {
-  string name = 1;
-  string event = 2;
+message IP {
+  fixed32 v4 = 1;
+  bytes v6 = 2;
 }

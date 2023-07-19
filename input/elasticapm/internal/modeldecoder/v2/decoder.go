@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/netip"
 	"net/textproto"
 	"regexp"
 	"strconv"
@@ -361,26 +360,28 @@ func mapToCloudModel(from contextCloud, cloud *modelpb.Cloud) {
 
 func mapToClientModel(from contextRequest, source **modelpb.Source, client **modelpb.Client) {
 	// http.Request.Headers and http.Request.Socket are only set for backend events.
-	if _, err := netip.ParseAddr((*source).GetIp()); err != nil {
+	if (*source).GetIp() == nil {
 		ip, port := netutil.SplitAddrPort(from.Socket.RemoteAddress.Val)
 		if ip.IsValid() {
 			*source = populateNil(*source)
-			(*source).Ip, (*source).Port = ip.String(), uint32(port)
+			(*source).Ip, (*source).Port = modelpb.Addr2IP(ip), uint32(port)
 		}
 	}
-	if _, err := netip.ParseAddr((*client).GetIp()); err != nil {
-		if (*source).GetIp() != "" {
+	if (*client).GetIp() == nil {
+		if (*source).GetIp() != nil {
 			*client = populateNil(*client)
 			(*client).Ip = (*source).Ip
 		}
-		if ip, port := netutil.ClientAddrFromHeaders(from.Headers.Val); ip.IsValid() {
-			if (*source).GetIp() != "" {
+		if addr, port := netutil.ClientAddrFromHeaders(from.Headers.Val); addr.IsValid() {
+			if (*source).GetIp() != nil {
 				(*source).Nat = &modelpb.NAT{Ip: (*source).Ip}
 			}
 			*client = populateNil(*client)
-			(*client).Ip, (*client).Port = ip.String(), uint32(port)
+			ip := modelpb.Addr2IP(addr)
+
+			(*client).Ip, (*client).Port = ip, uint32(port)
 			*source = populateNil(*source)
-			(*source).Ip, (*source).Port = ip.String(), uint32(port)
+			(*source).Ip, (*source).Port = ip, uint32(port)
 		}
 	}
 }
@@ -388,7 +389,6 @@ func mapToClientModel(from contextRequest, source **modelpb.Source, client **mod
 func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 	out := &modelpb.Error{}
 	event.Error = out
-	event.Processor = modelpb.ErrorProcessor()
 
 	// overwrite metadata with event specific information
 	mapToServiceModel(from.Context.Service, &event.Service)
@@ -433,7 +433,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			}
 		}
 		if len(from.Context.Custom) > 0 {
-			out.Custom = modeldecoderutil.ToStruct(from.Context.Custom)
+			out.Custom = modeldecoderutil.ToKv(from.Context.Custom)
 		}
 	}
 	if from.Culprit.IsSet() {
@@ -501,7 +501,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 
 func mapToExceptionModel(from errorException, out *modelpb.Exception) {
 	if len(from.Attributes) > 0 {
-		out.Attributes = modeldecoderutil.ToStruct(from.Attributes)
+		out.Attributes = modeldecoderutil.ToKv(from.Attributes)
 	}
 	if from.Code.IsSet() {
 		out.Code = modeldecoderutil.ExceptionCodeString(from.Code.Val)
@@ -729,7 +729,6 @@ func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 
 func mapToMetricsetModel(from *metricset, event *modelpb.APMEvent) bool {
 	event.Metricset = &modelpb.Metricset{Name: "app"}
-	event.Processor = modelpb.MetricsetProcessor()
 
 	if !from.Timestamp.Val.IsZero() {
 		event.Timestamp = timestamppb.New(from.Timestamp.Val)
@@ -815,13 +814,13 @@ func mapToRequestModel(from contextRequest, out *modelpb.HTTPRequest) {
 		out.Method = from.Method.Val
 	}
 	if len(from.Env) > 0 {
-		out.Env = modeldecoderutil.ToStruct(from.Env)
+		out.Env = modeldecoderutil.ToKv(from.Env)
 	}
 	if from.Body.IsSet() {
 		out.Body = modeldecoderutil.ToValue(modeldecoderutil.NormalizeHTTPRequestBody(from.Body.Val))
 	}
 	if len(from.Cookies) > 0 {
-		out.Cookies = modeldecoderutil.ToStruct(from.Cookies)
+		out.Cookies = modeldecoderutil.ToKv(from.Cookies)
 	}
 	if from.Headers.IsSet() {
 		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
@@ -971,7 +970,6 @@ func mapToAgentModel(from contextServiceAgent, out **modelpb.Agent) {
 func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 	out := &modelpb.Span{}
 	event.Span = out
-	event.Processor = modelpb.SpanProcessor()
 
 	// map span specific data
 	if !from.Action.IsSet() && !from.Subtype.IsSet() {
@@ -1255,7 +1253,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFram
 			copy(fr.PreContext, eventFrame.PreContext)
 		}
 		if len(eventFrame.Vars) > 0 {
-			fr.Vars = modeldecoderutil.ToStruct(eventFrame.Vars)
+			fr.Vars = modeldecoderutil.ToKv(eventFrame.Vars)
 		}
 		out[idx] = &fr
 	}
@@ -1263,7 +1261,6 @@ func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFram
 
 func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	out := &modelpb.Transaction{}
-	event.Processor = modelpb.TransactionProcessor()
 	event.Transaction = out
 
 	// overwrite metadata with event specific information
@@ -1286,7 +1283,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 
 	if from.Context.IsSet() {
 		if len(from.Context.Custom) > 0 {
-			out.Custom = modeldecoderutil.ToStruct(from.Context.Custom)
+			out.Custom = modeldecoderutil.ToKv(from.Context.Custom)
 		}
 		if len(from.Context.Tags) > 0 {
 			modeldecoderutil.MergeLabels(from.Context.Tags, event)
@@ -1465,8 +1462,6 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 }
 
 func mapToLogModel(from *log, event *modelpb.APMEvent) {
-	event.Processor = modelpb.LogProcessor()
-
 	if from.FAAS.IsSet() {
 		event.Faas = populateNil(event.Faas)
 		mapToFAASModel(from.FAAS, event.Faas)
@@ -1557,6 +1552,10 @@ func mapToLogModel(from *log, event *modelpb.APMEvent) {
 	}
 	if len(from.Labels) > 0 {
 		modeldecoderutil.MergeLabels(from.Labels, event)
+	}
+	if event.Error == nil {
+		event.Event = populateNil(event.Event)
+		event.Event.Kind = "event"
 	}
 }
 

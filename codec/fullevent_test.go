@@ -73,7 +73,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			Name:    "name",
 			Stacktrace: []*modelpb.StacktraceFrame{
 				{
-					Vars:           randomStructPb(t),
+					Vars:           randomKvPb(t),
 					Lineno:         uintPtr(1),
 					Colno:          uintPtr(2),
 					Filename:       "frame_filename",
@@ -216,7 +216,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 				Message:    "ex_message",
 				Module:     "ex_module",
 				Code:       "ex_code",
-				Attributes: randomStructPb(t),
+				Attributes: randomKvPb(t),
 				Type:       "ex_type",
 				Handled:    boolPtr(true),
 				Cause: []*modelpb.Exception{
@@ -354,15 +354,11 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			EphemeralId:      "ephemeralid",
 			ActivationMethod: "activationmethod",
 		},
-		Processor: &modelpb.Processor{
-			Name:  "name",
-			Event: "event",
-		},
 		Http: &modelpb.HTTP{
 			Request: &modelpb.HTTPRequest{
 				Headers:  randomHTTPHeaders(t),
-				Env:      randomStructPb(t),
-				Cookies:  randomStructPb(t),
+				Env:      randomKvPb(t),
+				Cookies:  randomKvPb(t),
 				Id:       "id",
 				Method:   "method",
 				Referrer: "referrer",
@@ -399,7 +395,9 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			Id:           "id",
 			Architecture: "architecture",
 			Type:         "type",
-			Ip:           []string{"127.0.0.1"},
+			Ip: []*modelpb.IP{
+				modelpb.MustParseIP("127.0.0.1"),
+			},
 		},
 		Url: &modelpb.URL{
 			Original: "original",
@@ -423,15 +421,15 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			},
 		},
 		Source: &modelpb.Source{
-			Ip: "127.0.0.1",
+			Ip: modelpb.MustParseIP("127.0.0.1"),
 			Nat: &modelpb.NAT{
-				Ip: "127.0.0.2",
+				Ip: modelpb.MustParseIP("127.0.0.2"),
 			},
 			Domain: "domain",
 			Port:   443,
 		},
 		Client: &modelpb.Client{
-			Ip:     "127.0.0.1",
+			Ip:     modelpb.MustParseIP("127.0.0.1"),
 			Domain: "example.com",
 			Port:   443,
 		},

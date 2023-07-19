@@ -61,8 +61,8 @@ func (s *SetDataStream) ProcessBatch(ctx context.Context, b *modelpb.Batch) erro
 }
 
 func (s *SetDataStream) setDataStream(event *modelpb.APMEvent) {
-	switch {
-	case event.GetProcessor().IsSpan(), event.GetProcessor().IsTransaction():
+	switch event.Type() {
+	case modelpb.SpanEventType, modelpb.TransactionEventType:
 		event.DataStream.Type = tracesType
 		event.DataStream.Dataset = tracesDataset
 		// In order to maintain different ILM policies, RUM traces are sent to
@@ -70,13 +70,13 @@ func (s *SetDataStream) setDataStream(event *modelpb.APMEvent) {
 		if isRUMAgentName(event.GetAgent().GetName()) {
 			event.DataStream.Dataset = rumTracesDataset
 		}
-	case event.GetProcessor().IsError():
+	case modelpb.ErrorEventType:
 		event.DataStream.Type = logsType
 		event.DataStream.Dataset = errorsDataset
-	case event.GetProcessor().IsLog():
+	case modelpb.LogEventType:
 		event.DataStream.Type = logsType
 		event.DataStream.Dataset = getAppLogsDataset(event)
-	case event.GetProcessor().IsMetricset():
+	case modelpb.MetricEventType:
 		event.DataStream.Type = metricsType
 		event.DataStream.Dataset = metricsetDataset(event)
 	}

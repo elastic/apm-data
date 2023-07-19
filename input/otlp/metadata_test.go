@@ -290,9 +290,6 @@ func TestResourceLabels(t *testing.T) {
 
 func transformResourceMetadata(t *testing.T, resourceAttrs map[string]interface{}) *modelpb.APMEvent {
 	traces, spans := newTracesSpans()
-	//attrMap := pcommon.NewMap()
-	//attrMap.FromRaw(resourceAttrs)
-	//attrMap.CopyTo(traces.ResourceSpans().At(0).Resource().Attributes())
 	traces.ResourceSpans().At(0).Resource().Attributes().FromRaw(resourceAttrs)
 	otelSpan := spans.Spans().AppendEmpty()
 	otelSpan.SetTraceID(pcommon.TraceID{1})
@@ -303,6 +300,5 @@ func transformResourceMetadata(t *testing.T, resourceAttrs map[string]interface{
 	(*events)[0].Trace = nil
 	(*events)[0].Event = nil
 	(*events)[0].Timestamp = nil
-	(*events)[0].Processor = nil
 	return (*events)[0]
 }

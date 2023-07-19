@@ -35,63 +35,60 @@ func TestSetDataStream(t *testing.T) {
 		input:  &modelpb.APMEvent{},
 		output: &modelpb.DataStream{Namespace: "custom"},
 	}, {
-		input:  &modelpb.APMEvent{Processor: modelpb.TransactionProcessor()},
+		input:  &modelpb.APMEvent{Transaction: &modelpb.Transaction{Type: "type"}},
 		output: &modelpb.DataStream{Type: "traces", Dataset: "apm", Namespace: "custom"},
 	}, {
-		input:  &modelpb.APMEvent{Processor: modelpb.SpanProcessor()},
+		input:  &modelpb.APMEvent{Span: &modelpb.Span{Type: "type"}},
 		output: &modelpb.DataStream{Type: "traces", Dataset: "apm", Namespace: "custom"},
 	}, {
-		input:  &modelpb.APMEvent{Processor: modelpb.TransactionProcessor(), Agent: &modelpb.Agent{Name: "js-base"}},
+		input:  &modelpb.APMEvent{Transaction: &modelpb.Transaction{Type: "type"}, Agent: &modelpb.Agent{Name: "js-base"}},
 		output: &modelpb.DataStream{Type: "traces", Dataset: "apm.rum", Namespace: "custom"},
 	}, {
-		input:  &modelpb.APMEvent{Processor: modelpb.SpanProcessor(), Agent: &modelpb.Agent{Name: "js-base"}},
+		input:  &modelpb.APMEvent{Span: &modelpb.Span{Type: "type"}, Agent: &modelpb.Agent{Name: "js-base"}},
 		output: &modelpb.DataStream{Type: "traces", Dataset: "apm.rum", Namespace: "custom"},
 	}, {
-		input:  &modelpb.APMEvent{Processor: modelpb.TransactionProcessor(), Agent: &modelpb.Agent{Name: "rum-js"}},
+		input:  &modelpb.APMEvent{Transaction: &modelpb.Transaction{Type: "type"}, Agent: &modelpb.Agent{Name: "rum-js"}},
 		output: &modelpb.DataStream{Type: "traces", Dataset: "apm.rum", Namespace: "custom"},
 	}, {
-		input:  &modelpb.APMEvent{Processor: modelpb.SpanProcessor(), Agent: &modelpb.Agent{Name: "rum-js"}},
+		input:  &modelpb.APMEvent{Span: &modelpb.Span{Type: "type"}, Agent: &modelpb.Agent{Name: "rum-js"}},
 		output: &modelpb.DataStream{Type: "traces", Dataset: "apm.rum", Namespace: "custom"},
 	}, {
-		input:  &modelpb.APMEvent{Processor: modelpb.TransactionProcessor(), Agent: &modelpb.Agent{Name: "iOS/swift"}},
+		input:  &modelpb.APMEvent{Transaction: &modelpb.Transaction{Type: "type"}, Agent: &modelpb.Agent{Name: "iOS/swift"}},
 		output: &modelpb.DataStream{Type: "traces", Dataset: "apm.rum", Namespace: "custom"},
 	}, {
-		input:  &modelpb.APMEvent{Processor: modelpb.SpanProcessor(), Agent: &modelpb.Agent{Name: "iOS/swift"}},
+		input:  &modelpb.APMEvent{Span: &modelpb.Span{Type: "type"}, Agent: &modelpb.Agent{Name: "iOS/swift"}},
 		output: &modelpb.DataStream{Type: "traces", Dataset: "apm.rum", Namespace: "custom"},
 	}, {
-		input:  &modelpb.APMEvent{Processor: modelpb.TransactionProcessor(), Agent: &modelpb.Agent{Name: "go"}},
+		input:  &modelpb.APMEvent{Transaction: &modelpb.Transaction{Type: "type"}, Agent: &modelpb.Agent{Name: "go"}},
 		output: &modelpb.DataStream{Type: "traces", Dataset: "apm", Namespace: "custom"},
 	}, {
-		input:  &modelpb.APMEvent{Processor: modelpb.SpanProcessor(), Agent: &modelpb.Agent{Name: "go"}},
+		input:  &modelpb.APMEvent{Span: &modelpb.Span{Type: "type"}, Agent: &modelpb.Agent{Name: "go"}},
 		output: &modelpb.DataStream{Type: "traces", Dataset: "apm", Namespace: "custom"},
 	}, {
-		input:  &modelpb.APMEvent{Processor: modelpb.ErrorProcessor()},
+		input:  &modelpb.APMEvent{Error: &modelpb.Error{}},
 		output: &modelpb.DataStream{Type: "logs", Dataset: "apm.error", Namespace: "custom"},
 	}, {
-		input: &modelpb.APMEvent{
-			Processor: modelpb.LogProcessor(),
-		},
+		input:  &modelpb.APMEvent{Log: &modelpb.Log{}},
 		output: &modelpb.DataStream{Type: "logs", Dataset: "apm.app.unknown", Namespace: "custom"},
 	}, {
 		input: &modelpb.APMEvent{
-			Processor: modelpb.LogProcessor(),
-			Service:   &modelpb.Service{Name: "service-name"},
+			Event:   &modelpb.Event{Kind: "event"},
+			Service: &modelpb.Service{Name: "service-name"},
 		},
 		output: &modelpb.DataStream{Type: "logs", Dataset: "apm.app.service_name", Namespace: "custom"},
 	}, {
-		input:  &modelpb.APMEvent{Processor: modelpb.ErrorProcessor(), Agent: &modelpb.Agent{Name: "iOS/swift"}},
+		input:  &modelpb.APMEvent{Error: &modelpb.Error{}, Agent: &modelpb.Agent{Name: "iOS/swift"}},
 		output: &modelpb.DataStream{Type: "logs", Dataset: "apm.error", Namespace: "custom"},
 	}, {
 		input: &modelpb.APMEvent{
-			Processor: modelpb.LogProcessor(),
-			Agent:     &modelpb.Agent{Name: "iOS/swift"},
-			Service:   &modelpb.Service{Name: "service-name"},
+			Log:     &modelpb.Log{},
+			Agent:   &modelpb.Agent{Name: "iOS/swift"},
+			Service: &modelpb.Service{Name: "service-name"},
 		},
 		output: &modelpb.DataStream{Type: "logs", Dataset: "apm.app.service_name", Namespace: "custom"},
 	}, {
 		input: &modelpb.APMEvent{
 			Agent:       &modelpb.Agent{Name: "rum-js"},
-			Processor:   modelpb.MetricsetProcessor(),
 			Service:     &modelpb.Service{Name: "service-name"},
 			Metricset:   &modelpb.Metricset{},
 			Transaction: &modelpb.Transaction{Name: "foo"},
@@ -99,9 +96,8 @@ func TestSetDataStream(t *testing.T) {
 		output: &modelpb.DataStream{Type: "metrics", Dataset: "apm.internal", Namespace: "custom"},
 	}, {
 		input: &modelpb.APMEvent{
-			Agent:     &modelpb.Agent{Name: "rum-js"},
-			Processor: modelpb.MetricsetProcessor(),
-			Service:   &modelpb.Service{Name: "service-name"},
+			Agent:   &modelpb.Agent{Name: "rum-js"},
+			Service: &modelpb.Service{Name: "service-name"},
 			Metricset: &modelpb.Metricset{
 				Samples: []*modelpb.MetricsetSample{
 					{Name: "system.memory.total"}, // known agent metric
@@ -111,9 +107,8 @@ func TestSetDataStream(t *testing.T) {
 		output: &modelpb.DataStream{Type: "metrics", Dataset: "apm.internal", Namespace: "custom"},
 	}, {
 		input: &modelpb.APMEvent{
-			Agent:     &modelpb.Agent{Name: "rum-js"},
-			Processor: modelpb.MetricsetProcessor(),
-			Service:   &modelpb.Service{Name: "service-name"},
+			Agent:   &modelpb.Agent{Name: "rum-js"},
+			Service: &modelpb.Service{Name: "service-name"},
 			Metricset: &modelpb.Metricset{
 				Samples: []*modelpb.MetricsetSample{
 					{Name: "system.memory.total"}, // known agent metric
@@ -124,7 +119,6 @@ func TestSetDataStream(t *testing.T) {
 		output: &modelpb.DataStream{Type: "metrics", Dataset: "apm.app.service_name", Namespace: "custom"},
 	}, {
 		input: &modelpb.APMEvent{
-			Processor:   modelpb.MetricsetProcessor(),
 			Service:     &modelpb.Service{Name: "service-name"},
 			Metricset:   &modelpb.Metricset{},
 			Transaction: &modelpb.Transaction{Name: "foo"},
@@ -132,7 +126,6 @@ func TestSetDataStream(t *testing.T) {
 		output: &modelpb.DataStream{Type: "metrics", Dataset: "apm.internal", Namespace: "custom"},
 	}, {
 		input: &modelpb.APMEvent{
-			Processor:   modelpb.MetricsetProcessor(),
 			Service:     &modelpb.Service{Name: "service-name"},
 			Metricset:   &modelpb.Metricset{Name: "transaction", Interval: "1m"},
 			Transaction: &modelpb.Transaction{Name: "foo"},
@@ -140,7 +133,6 @@ func TestSetDataStream(t *testing.T) {
 		output: &modelpb.DataStream{Type: "metrics", Dataset: "apm.transaction.1m", Namespace: "custom"},
 	}, {
 		input: &modelpb.APMEvent{
-			Processor:   modelpb.MetricsetProcessor(),
 			Service:     &modelpb.Service{Name: "service-name"},
 			Metricset:   &modelpb.Metricset{Name: "transaction", Interval: "60m"},
 			Transaction: &modelpb.Transaction{Name: "foo"},
@@ -148,7 +140,6 @@ func TestSetDataStream(t *testing.T) {
 		output: &modelpb.DataStream{Type: "metrics", Dataset: "apm.transaction.60m", Namespace: "custom"},
 	}, {
 		input: &modelpb.APMEvent{
-			Processor: modelpb.MetricsetProcessor(),
 			Metricset: &modelpb.Metricset{
 				Name: "agent_config",
 				Samples: []*modelpb.MetricsetSample{
@@ -171,9 +162,8 @@ func TestSetDataStream(t *testing.T) {
 
 func TestSetDataStreamInternalMetricsetTypeUnit(t *testing.T) {
 	batch := modelpb.Batch{{
-		Agent:     &modelpb.Agent{Name: "rum-js"},
-		Processor: modelpb.MetricsetProcessor(),
-		Service:   &modelpb.Service{Name: "service-name"},
+		Agent:   &modelpb.Agent{Name: "rum-js"},
+		Service: &modelpb.Service{Name: "service-name"},
 		Metricset: &modelpb.Metricset{
 			Samples: []*modelpb.MetricsetSample{
 				{Name: "system.memory.total", Type: modelpb.MetricType_METRIC_TYPE_GAUGE, Unit: "byte"},
@@ -194,11 +184,21 @@ func TestSetDataStreamInternalMetricsetTypeUnit(t *testing.T) {
 func TestSetDataStreamServiceName(t *testing.T) {
 	processor := modelprocessor.SetDataStream{Namespace: "custom"}
 	batch := modelpb.Batch{{
-		Processor: modelpb.MetricsetProcessor(),
-		Service:   &modelpb.Service{Name: "UPPER-CASE"},
+		Service: &modelpb.Service{Name: "UPPER-CASE"},
+		Metricset: &modelpb.Metricset{
+			Samples: []*modelpb.MetricsetSample{{
+				Name: "foo",
+				Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+			}},
+		},
 	}, {
-		Processor: modelpb.MetricsetProcessor(),
-		Service:   &modelpb.Service{Name: "\\/*?\"<>| ,#:"},
+		Service: &modelpb.Service{Name: "\\/*?\"<>| ,#:"},
+		Metricset: &modelpb.Metricset{
+			Samples: []*modelpb.MetricsetSample{{
+				Name: "foo",
+				Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+			}},
+		},
 	}}
 
 	err := processor.ProcessBatch(context.Background(), &batch)

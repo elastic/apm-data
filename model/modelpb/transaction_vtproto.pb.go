@@ -29,7 +29,6 @@ import (
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
 const (
@@ -58,11 +57,11 @@ func (m *Transaction) CloneVT() *Transaction {
 		Root:                m.Root,
 	}
 	if rhs := m.Custom; rhs != nil {
-		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *structpb.Struct }); ok {
-			r.Custom = vtpb.CloneVT()
-		} else {
-			r.Custom = proto.Clone(rhs).(*structpb.Struct)
+		tmpContainer := make([]*KeyValue, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
 		}
+		r.Custom = tmpContainer
 	}
 	if rhs := m.Marks; rhs != nil {
 		tmpContainer := make(map[string]*TransactionMark, len(rhs))
@@ -306,27 +305,17 @@ func (m *Transaction) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			dAtA[i] = 0x22
 		}
 	}
-	if m.Custom != nil {
-		if vtmsg, ok := interface{}(m.Custom).(interface {
-			MarshalToSizedBufferVT([]byte) (int, error)
-		}); ok {
-			size, err := vtmsg.MarshalToSizedBufferVT(dAtA[:i])
+	if len(m.Custom) > 0 {
+		for iNdEx := len(m.Custom) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Custom[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
 			i -= size
 			i = encodeVarint(dAtA, i, uint64(size))
-		} else {
-			encoded, err := proto.Marshal(m.Custom)
-			if err != nil {
-				return 0, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = encodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x1a
 		}
-		i--
-		dAtA[i] = 0x1a
 	}
 	if m.UserExperience != nil {
 		size, err := m.UserExperience.MarshalToSizedBufferVT(dAtA[:i])
@@ -530,15 +519,11 @@ func (m *Transaction) SizeVT() (n int) {
 		l = m.UserExperience.SizeVT()
 		n += 1 + l + sov(uint64(l))
 	}
-	if m.Custom != nil {
-		if size, ok := interface{}(m.Custom).(interface {
-			SizeVT() int
-		}); ok {
-			l = size.SizeVT()
-		} else {
-			l = proto.Size(m.Custom)
+	if len(m.Custom) > 0 {
+		for _, e := range m.Custom {
+			l = e.SizeVT()
+			n += 1 + l + sov(uint64(l))
 		}
-		n += 1 + l + sov(uint64(l))
 	}
 	if len(m.Marks) > 0 {
 		for k, v := range m.Marks {
@@ -794,19 +779,9 @@ func (m *Transaction) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Custom == nil {
-				m.Custom = &structpb.Struct{}
-			}
-			if unmarshal, ok := interface{}(m.Custom).(interface {
-				UnmarshalVT([]byte) error
-			}); ok {
-				if err := unmarshal.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-					return err
-				}
-			} else {
-				if err := proto.Unmarshal(dAtA[iNdEx:postIndex], m.Custom); err != nil {
-					return err
-				}
+			m.Custom = append(m.Custom, &KeyValue{})
+			if err := m.Custom[len(m.Custom)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		case 4:

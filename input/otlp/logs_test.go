@@ -69,7 +69,6 @@ func TestConsumerConsumeLogs(t *testing.T) {
 	})
 
 	commonEvent := modelpb.APMEvent{
-		Processor: modelpb.LogProcessor(),
 		Agent: &modelpb.Agent{
 			Name:    "otlp/go",
 			Version: "unknown",
@@ -88,13 +87,97 @@ func TestConsumerConsumeLogs(t *testing.T) {
 		Labels:        modelpb.Labels{},
 		NumericLabels: modelpb.NumericLabels{},
 	}
-	test := func(name string, body interface{}, expectedMessage string) {
-		t.Run(name, func(t *testing.T) {
+
+	for _, tt := range []struct {
+		name  string
+		body  any
+		attrs map[string]string
+
+		expectedEvent *modelpb.APMEvent
+	}{
+		{
+			name: "with a string body",
+			body: "a random log message",
+
+			expectedEvent: &modelpb.APMEvent{
+				Message: "a random log message",
+			},
+		},
+		{
+			name: "with an int body",
+			body: 1234,
+
+			expectedEvent: &modelpb.APMEvent{
+				Message: "1234",
+			},
+		},
+		{
+			name: "with a float body",
+			body: 1234.1234,
+
+			expectedEvent: &modelpb.APMEvent{
+				Message: "1234.1234",
+			},
+		},
+		{
+			name: "with a bool body",
+			body: true,
+
+			expectedEvent: &modelpb.APMEvent{
+				Message: "true",
+			},
+		},
+		{
+			name: "with an event name",
+			body: "a log message",
+
+			attrs: map[string]string{
+				"event.name": "hello_world",
+			},
+
+			expectedEvent: &modelpb.APMEvent{
+				Message: "a log message",
+			},
+		},
+		{
+			name: "with an event domain",
+			body: "a log message",
+
+			attrs: map[string]string{
+				"event.domain": "device",
+			},
+
+			expectedEvent: &modelpb.APMEvent{
+				Message: "a log message",
+			},
+		},
+		{
+			name: "with a session id",
+			body: "a log message",
+
+			attrs: map[string]string{
+				"session.id": "abcd",
+			},
+
+			expectedEvent: &modelpb.APMEvent{
+				Session: &modelpb.Session{
+					Id: "abcd",
+				},
+				Message: "a log message",
+			},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
 			logs := plog.NewLogs()
 			resourceLogs := logs.ResourceLogs().AppendEmpty()
 			logs.ResourceLogs().At(0).Resource().Attributes().PutStr(semconv.AttributeTelemetrySDKLanguage, "go")
 			scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
-			newLogRecord(body).CopyTo(scopeLogs.LogRecords().AppendEmpty())
+			record := newLogRecord(tt.body)
+
+			for k, v := range tt.attrs {
+				record.Attributes().PutStr(k, v)
+			}
+			record.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
 			var processed modelpb.Batch
 			var processor modelpb.ProcessBatchFunc = func(_ context.Context, batch *modelpb.Batch) error {
@@ -119,14 +202,14 @@ func TestConsumerConsumeLogs(t *testing.T) {
 			}
 
 			expected := proto.Clone(&commonEvent).(*modelpb.APMEvent)
-			expected.Message = expectedMessage
+			expected.Message = tt.expectedEvent.Message
+			if tt.expectedEvent.Session != nil {
+				expected.Session = tt.expectedEvent.Session
+			}
+
 			assert.Empty(t, cmp.Diff(modelpb.Batch{expected}, processed, protocmp.Transform()))
 		})
 	}
-	test("string_body", "a random log message", "a random log message")
-	test("int_body", 1234, "1234")
-	test("float_body", 1234.1234, "1234.1234")
-	test("bool_body", true, "true")
 	// TODO(marclop): How to test map body
 }
 
@@ -241,7 +324,6 @@ Caused by: LowLevelException
 		},
 		Labels:        modelpb.Labels{"key0": {Global: true, Value: "zero"}},
 		NumericLabels: modelpb.NumericLabels{},
-		Processor:     modelpb.ErrorProcessor(),
 		Message:       "bar",
 		Trace:         &modelpb.Trace{Id: "01000000000000000000000000000000"},
 		Span:          &modelpb.Span{Id: "0200000000000000"},

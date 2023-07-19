@@ -20,10 +20,6 @@
                 "foo": "bar",
                 "peer_port": "80"
             },
-            "processor": {
-                "event": "transaction",
-                "name": "transaction"
-            },
             "service": {
                 "language": {
                     "name": "C++"

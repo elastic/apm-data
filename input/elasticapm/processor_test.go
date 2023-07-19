@@ -230,16 +230,16 @@ func TestHandleStream(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	processors := make([]*modelpb.Processor, len(events))
+	processors := make([]modelpb.APMEventType, len(events))
 	for i, event := range events {
-		processors[i] = event.Processor
+		processors[i] = event.Type()
 	}
-	assert.Equal(t, []*modelpb.Processor{
-		modelpb.ErrorProcessor(),
-		modelpb.MetricsetProcessor(),
-		modelpb.SpanProcessor(),
-		modelpb.TransactionProcessor(),
-		modelpb.LogProcessor(),
+	assert.Equal(t, []modelpb.APMEventType{
+		modelpb.ErrorEventType,
+		modelpb.MetricEventType,
+		modelpb.SpanEventType,
+		modelpb.TransactionEventType,
+		modelpb.LogEventType,
 	}, processors)
 }
 
@@ -268,23 +268,23 @@ func TestHandleStreamRUMv3(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	processors := make([]*modelpb.Processor, len(events))
+	processors := make([]modelpb.APMEventType, len(events))
 	for i, event := range events {
-		processors[i] = event.Processor
+		processors[i] = event.Type()
 	}
-	assert.Equal(t, []*modelpb.Processor{
-		modelpb.ErrorProcessor(),
-		modelpb.TransactionProcessor(),
-		modelpb.MetricsetProcessor(),
-		modelpb.MetricsetProcessor(),
-		modelpb.SpanProcessor(),
-		modelpb.SpanProcessor(),
-		modelpb.SpanProcessor(),
-		modelpb.SpanProcessor(),
-		modelpb.SpanProcessor(),
-		modelpb.SpanProcessor(),
-		modelpb.SpanProcessor(),
-		modelpb.SpanProcessor(),
+	assert.Equal(t, []modelpb.APMEventType{
+		modelpb.ErrorEventType,
+		modelpb.TransactionEventType,
+		modelpb.MetricEventType,
+		modelpb.MetricEventType,
+		modelpb.SpanEventType,
+		modelpb.SpanEventType,
+		modelpb.SpanEventType,
+		modelpb.SpanEventType,
+		modelpb.SpanEventType,
+		modelpb.SpanEventType,
+		modelpb.SpanEventType,
+		modelpb.SpanEventType,
 	}, processors)
 }
 
@@ -294,8 +294,8 @@ func TestHandleStreamBaseEvent(t *testing.T) {
 	baseEvent := modelpb.APMEvent{
 		Timestamp: timestamppb.New(requestTimestamp),
 		UserAgent: &modelpb.UserAgent{Original: "rum-2.0"},
-		Source:    &modelpb.Source{Ip: "192.0.0.1"},
-		Client:    &modelpb.Client{Ip: "192.0.0.2"}, // X-Forwarded-For
+		Source:    &modelpb.Source{Ip: modelpb.MustParseIP("192.0.0.1")},
+		Client:    &modelpb.Client{Ip: modelpb.MustParseIP("192.0.0.2")}, // X-Forwarded-For
 	}
 
 	var events []*modelpb.APMEvent
@@ -329,7 +329,11 @@ func TestLabelLeak(t *testing.T) {
 {"transaction": {"id": "ba5c6d6c1ab44bd1", "trace_id": "88c0a00431531a80c5ca9a41fe115f41", "name": "GET /nolabels", "type": "request", "duration": 0.652, "result": "HTTP 2xx", "timestamp": 1652185278813952, "outcome": "success", "sampled": true, "span_count": {"started": 0, "dropped": 0}, "sample_rate": 1.0, "context": {"request": {"env": {"REMOTE_ADDR": "127.0.0.1", "SERVER_NAME": "127.0.0.1", "SERVER_PORT": "5000"}, "method": "GET", "socket": {"remote_address": "127.0.0.1"}, "cookies": {}, "headers": {"host": "localhost:5000", "user-agent": "curl/7.81.0", "accept": "*/*"}, "url": {"full": "http://localhost:5000/nolabels?third_no_label", "protocol": "http:", "hostname": "localhost", "pathname": "/nolabels", "port": "5000", "search": "?third_no_label"}}, "response": {"status_code": 200, "headers": {"Content-Type": "text/html; charset=utf-8", "Content-Length": "14"}}, "tags": {}}}}`
 
 	baseEvent := &modelpb.APMEvent{
-		Host: &modelpb.Host{Ip: []string{"192.0.0.1"}},
+		Host: &modelpb.Host{
+			Ip: []*modelpb.IP{
+				modelpb.MustParseIP("192.0.0.1"),
+			},
+		},
 	}
 
 	processed := make(modelpb.Batch, 2)
@@ -392,7 +396,13 @@ func TestConcurrentAsync(t *testing.T) {
 			go func() {
 				defer wg.Done()
 				var result Result
-				base := &modelpb.APMEvent{Host: &modelpb.Host{Ip: []string{"192.0.0.1"}}}
+				base := &modelpb.APMEvent{
+					Host: &modelpb.Host{
+						Ip: []*modelpb.IP{
+							modelpb.MustParseIP("192.0.0.1"),
+						},
+					},
+				}
 				err := p.HandleStream(ctx, true, base, strings.NewReader(tc.payload), 10, bp, &result)
 				if err != nil {
 					result.addError(err)

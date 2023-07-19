@@ -19,12 +19,12 @@ syntax = "proto3";
 
 package elastic.apm.v1;
 
-import "google/protobuf/struct.proto";
+import "keyvalue.proto";
 
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
 message StacktraceFrame {
-  google.protobuf.Struct vars = 1;
+  repeated KeyValue vars = 1;
   optional uint32 lineno = 2;
   optional uint32 colno = 3;
   string filename = 4;

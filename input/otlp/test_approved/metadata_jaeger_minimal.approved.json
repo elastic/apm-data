@@ -11,10 +11,6 @@
             "event": {
                 "outcome": "success"
             },
-            "processor": {
-                "event": "transaction",
-                "name": "transaction"
-            },
             "service": {
                 "language": {
                     "name": "unknown"

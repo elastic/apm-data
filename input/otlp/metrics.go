@@ -107,7 +107,6 @@ func (c *Consumer) convertScopeMetrics(
 	}
 	for key, ms := range ms {
 		event := baseEvent.CloneVT()
-		event.Processor = modelpb.MetricsetProcessor()
 		event.Timestamp = timestamppb.New(key.timestamp.Add(timeDelta))
 		metrs := make([]*modelpb.MetricsetSample, 0, len(ms.samples))
 		for _, s := range ms.samples {

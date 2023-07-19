@@ -71,7 +71,6 @@ func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTi
 		Event: &modelpb.Event{
 			Received: timestamppb.New(receiveTimestamp),
 		},
-		Processor: modelpb.LogProcessor(),
 	}
 	translateResourceMetadata(resource, &baseEvent)
 
@@ -147,6 +146,7 @@ func (c *Consumer) convertLogRecord(
 		case "event.domain":
 			eventDomain = v.Str()
 		case "session.id":
+			event.Session = populateNil(event.Session)
 			event.Session.Id = v.Str()
 		default:
 			setLabel(replaceDots(k), event, ifaceAttributeValue(v))
@@ -177,7 +177,6 @@ func (c *Consumer) convertLogRecord(
 	}
 
 	if event.Error != nil {
-		event.Processor = modelpb.ErrorProcessor()
 		event.Event.Kind = "event"
 		event.Event.Type = "error"
 	}

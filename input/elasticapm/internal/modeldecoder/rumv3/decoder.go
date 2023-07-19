@@ -163,7 +163,6 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 	out := &modelpb.Error{}
 	event.Error = out
-	event.Processor = modelpb.ErrorProcessor()
 
 	// overwrite metadata with event specific information
 	if from.Context.Service.IsSet() {
@@ -209,7 +208,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			}
 		}
 		if len(from.Context.Custom) > 0 {
-			out.Custom = modeldecoderutil.ToStruct(from.Context.Custom)
+			out.Custom = modeldecoderutil.ToKv(from.Context.Custom)
 		}
 	}
 	if from.Culprit.IsSet() {
@@ -275,7 +274,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 
 func mapToExceptionModel(from errorException, out *modelpb.Exception) {
 	if len(from.Attributes) > 0 {
-		out.Attributes = modeldecoderutil.ToStruct(from.Attributes)
+		out.Attributes = modeldecoderutil.ToKv(from.Attributes)
 	}
 	if from.Code.IsSet() {
 		out.Code = modeldecoderutil.ExceptionCodeString(from.Code.Val)
@@ -391,7 +390,6 @@ func mapToMetadataModel(m *metadata, out *modelpb.APMEvent) {
 
 func mapToTransactionMetricsetModel(from *transactionMetricset, event *modelpb.APMEvent) bool {
 	event.Metricset = &modelpb.Metricset{}
-	event.Processor = modelpb.MetricsetProcessor()
 
 	if from.Span.IsSet() {
 		event.Span = &modelpb.Span{}
@@ -447,7 +445,7 @@ func mapToRequestModel(from contextRequest, out *modelpb.HTTPRequest) {
 		out.Method = from.Method.Val
 	}
 	if len(from.Env) > 0 {
-		out.Env = modeldecoderutil.ToStruct(from.Env)
+		out.Env = modeldecoderutil.ToKv(from.Env)
 	}
 	if from.Headers.IsSet() {
 		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
@@ -503,7 +501,6 @@ func mapToAgentModel(from contextServiceAgent, out *modelpb.Agent) {
 func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 	out := &modelpb.Span{Type: "unknown"}
 	event.Span = out
-	event.Processor = modelpb.SpanProcessor()
 
 	// map span specific data
 	if !from.Action.IsSet() && !from.Subtype.IsSet() {
@@ -681,7 +678,6 @@ func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFram
 func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	out := &modelpb.Transaction{Type: "unknown"}
 	event.Transaction = out
-	event.Processor = modelpb.TransactionProcessor()
 
 	// overwrite metadata with event specific information
 	if from.Context.Service.IsSet() {
@@ -701,7 +697,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	// map transaction specific data
 	if from.Context.IsSet() {
 		if len(from.Context.Custom) > 0 {
-			out.Custom = modeldecoderutil.ToStruct(from.Context.Custom)
+			out.Custom = modeldecoderutil.ToKv(from.Context.Custom)
 		}
 		if len(from.Context.Tags) > 0 {
 			modeldecoderutil.MergeLabels(from.Context.Tags, event)

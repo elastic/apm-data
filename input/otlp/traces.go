@@ -40,7 +40,6 @@ import (
 	"fmt"
 	"math"
 	"net"
-	"net/netip"
 	"net/url"
 	"strconv"
 	"strings"
@@ -168,7 +167,6 @@ func (c *Consumer) convertSpan(
 		event.ParentId = parentID
 	}
 	if root || otelSpan.Kind() == ptrace.SpanKindServer || otelSpan.Kind() == ptrace.SpanKindConsumer {
-		event.Processor = modelpb.TransactionProcessor()
 		event.Transaction = &modelpb.Transaction{
 			Id:                  spanID,
 			Name:                name,
@@ -183,7 +181,6 @@ func (c *Consumer) convertSpan(
 
 		TranslateTransaction(otelSpan.Attributes(), otelSpan.Status(), otelLibrary, event)
 	} else {
-		event.Processor = modelpb.SpanProcessor()
 		event.Span = &modelpb.Span{
 			Id:                  spanID,
 			Name:                name,
@@ -316,9 +313,9 @@ func TranslateTransaction(
 				isHTTP = true
 				httpServerName = stringval
 			case semconv.AttributeHTTPClientIP:
-				if ip, err := netip.ParseAddr(stringval); err == nil {
+				if ip, err := modelpb.ParseIP(stringval); err == nil {
 					event.Client = populateNil(event.Client)
-					event.Client.Ip = ip.String()
+					event.Client.Ip = ip
 				}
 			case semconv.AttributeHTTPUserAgent:
 				event.UserAgent = populateNil(event.UserAgent)
@@ -327,8 +324,8 @@ func TranslateTransaction(
 			// net.*
 			case semconv.AttributeNetPeerIP:
 				event.Source = populateNil(event.Source)
-				if ip, err := netip.ParseAddr(stringval); err == nil {
-					event.Source.Ip = ip.String()
+				if ip, err := modelpb.ParseIP(stringval); err == nil {
+					event.Source.Ip = ip
 				}
 			case semconv.AttributeNetPeerName:
 				event.Source = populateNil(event.Source)
@@ -442,9 +439,11 @@ func TranslateTransaction(
 		event.Transaction.Message = &message
 	}
 
-	if event.Source != nil {
-		if _, err := netip.ParseAddr(event.GetClient().GetIp()); err != nil {
-			event.Client = &modelpb.Client{Ip: event.Source.Ip, Port: event.Source.Port, Domain: event.Source.Domain}
+	if event.Client == nil && event.Source != nil {
+		event.Client = &modelpb.Client{
+			Ip:     event.Source.Ip,
+			Port:   event.Source.Port,
+			Domain: event.Source.Domain,
 		}
 	}
 
@@ -930,10 +929,11 @@ func (c *Consumer) convertSpanEvent(
 	}
 
 	if event.Error != nil {
-		event.Processor = modelpb.ErrorProcessor()
 		setErrorContext(event, parent)
 	} else {
-		event.Processor = modelpb.LogProcessor()
+		// Set "event.kind" to indicate this is a log event.
+		event.Event = populateNil(event.Event)
+		event.Event.Kind = "event"
 		event.Message = spanEvent.Name()
 		setLogContext(event, parent)
 		spanEvent.Attributes().Range(func(k string, v pcommon.Value) bool {
