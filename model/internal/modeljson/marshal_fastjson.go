@@ -2543,7 +2543,7 @@ func (v *Session) MarshalFastJSON(w *fastjson.Writer) error {
 	w.String(v.ID)
 	if v.Sequence != 0 {
 		w.RawString(",\"sequence\":")
-		w.Int64(int64(v.Sequence))
+		w.Int64(v.Sequence)
 	}
 	w.RawByte('}')
 	return nil

@@ -70,7 +70,7 @@ func validateJSONTag(flatTag, nestedTag string) bool {
 
 func getFlatFieldType(f structField) (string, error) {
 	switch typ := f.Type().String(); typ {
-	case nullableTypeInt:
+	case nullableTypeInt, nullableTypeInt64:
 		return "json.Number", nil
 	case nullableTypeString:
 		return "string", nil
