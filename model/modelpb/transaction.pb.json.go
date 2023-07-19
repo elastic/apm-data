@@ -71,7 +71,7 @@ func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
 
 				if dss.Duration != nil {
 					dssJson.Duration = modeljson.AggregatedDuration{
-						Count: int(dss.Duration.Count),
+						Count: dss.Duration.Count,
 						Sum:   dss.Duration.Sum.AsDuration(),
 					}
 				}

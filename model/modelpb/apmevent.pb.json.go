@@ -249,7 +249,7 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 	if e.Session != nil {
 		doc.Session = &modeljson.Session{
 			ID:       e.Session.Id,
-			Sequence: int(e.Session.Sequence),
+			Sequence: e.Session.Sequence,
 		}
 	}
 
