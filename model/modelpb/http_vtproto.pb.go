@@ -25,7 +25,6 @@ import (
 	fmt "fmt"
 	io "io"
 
-	common "github.com/elastic/apm-data/model/common"
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	structpb "google.golang.org/protobuf/types/known/structpb"
@@ -75,21 +74,21 @@ func (m *HTTPRequest) CloneVT() *HTTPRequest {
 		}
 	}
 	if rhs := m.Headers; rhs != nil {
-		tmpContainer := make([]*common.HTTPHeader, len(rhs))
+		tmpContainer := make([]*HTTPHeader, len(rhs))
 		for k, v := range rhs {
 			tmpContainer[k] = v.CloneVT()
 		}
 		r.Headers = tmpContainer
 	}
 	if rhs := m.Env; rhs != nil {
-		tmpContainer := make([]*common.KeyValue, len(rhs))
+		tmpContainer := make([]*KeyValue, len(rhs))
 		for k, v := range rhs {
 			tmpContainer[k] = v.CloneVT()
 		}
 		r.Env = tmpContainer
 	}
 	if rhs := m.Cookies; rhs != nil {
-		tmpContainer := make([]*common.KeyValue, len(rhs))
+		tmpContainer := make([]*KeyValue, len(rhs))
 		for k, v := range rhs {
 			tmpContainer[k] = v.CloneVT()
 		}
@@ -114,7 +113,7 @@ func (m *HTTPResponse) CloneVT() *HTTPResponse {
 		StatusCode: m.StatusCode,
 	}
 	if rhs := m.Headers; rhs != nil {
-		tmpContainer := make([]*common.HTTPHeader, len(rhs))
+		tmpContainer := make([]*HTTPHeader, len(rhs))
 		for k, v := range rhs {
 			tmpContainer[k] = v.CloneVT()
 		}
@@ -771,7 +770,7 @@ func (m *HTTPRequest) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Headers = append(m.Headers, &common.HTTPHeader{})
+			m.Headers = append(m.Headers, &HTTPHeader{})
 			if err := m.Headers[len(m.Headers)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -805,7 +804,7 @@ func (m *HTTPRequest) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Env = append(m.Env, &common.KeyValue{})
+			m.Env = append(m.Env, &KeyValue{})
 			if err := m.Env[len(m.Env)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -839,7 +838,7 @@ func (m *HTTPRequest) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Cookies = append(m.Cookies, &common.KeyValue{})
+			m.Cookies = append(m.Cookies, &KeyValue{})
 			if err := m.Cookies[len(m.Cookies)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1020,7 +1019,7 @@ func (m *HTTPResponse) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Headers = append(m.Headers, &common.HTTPHeader{})
+			m.Headers = append(m.Headers, &HTTPHeader{})
 			if err := m.Headers[len(m.Headers)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

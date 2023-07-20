@@ -25,7 +25,6 @@ import (
 	fmt "fmt"
 	io "io"
 
-	common "github.com/elastic/apm-data/model/common"
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
@@ -55,7 +54,7 @@ func (m *StacktraceFrame) CloneVT() *StacktraceFrame {
 		ExcludeFromGrouping: m.ExcludeFromGrouping,
 	}
 	if rhs := m.Vars; rhs != nil {
-		tmpContainer := make([]*common.KeyValue, len(rhs))
+		tmpContainer := make([]*KeyValue, len(rhs))
 		for k, v := range rhs {
 			tmpContainer[k] = v.CloneVT()
 		}
@@ -533,7 +532,7 @@ func (m *StacktraceFrame) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Vars = append(m.Vars, &common.KeyValue{})
+			m.Vars = append(m.Vars, &KeyValue{})
 			if err := m.Vars[len(m.Vars)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

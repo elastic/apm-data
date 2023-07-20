@@ -27,7 +27,6 @@ import (
 	reflect "reflect"
 	sync "sync"
 
-	common "github.com/elastic/apm-data/model/common"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
@@ -44,11 +43,11 @@ type Message struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Body       string               `protobuf:"bytes,1,opt,name=body,proto3" json:"body,omitempty"`
-	Headers    []*common.HTTPHeader `protobuf:"bytes,2,rep,name=headers,proto3" json:"headers,omitempty"`
-	AgeMillis  *int64               `protobuf:"varint,3,opt,name=age_millis,json=ageMillis,proto3,oneof" json:"age_millis,omitempty"`
-	QueueName  string               `protobuf:"bytes,4,opt,name=queue_name,json=queueName,proto3" json:"queue_name,omitempty"`
-	RoutingKey string               `protobuf:"bytes,5,opt,name=routing_key,json=routingKey,proto3" json:"routing_key,omitempty"`
+	Body       string        `protobuf:"bytes,1,opt,name=body,proto3" json:"body,omitempty"`
+	Headers    []*HTTPHeader `protobuf:"bytes,2,rep,name=headers,proto3" json:"headers,omitempty"`
+	AgeMillis  *int64        `protobuf:"varint,3,opt,name=age_millis,json=ageMillis,proto3,oneof" json:"age_millis,omitempty"`
+	QueueName  string        `protobuf:"bytes,4,opt,name=queue_name,json=queueName,proto3" json:"queue_name,omitempty"`
+	RoutingKey string        `protobuf:"bytes,5,opt,name=routing_key,json=routingKey,proto3" json:"routing_key,omitempty"`
 }
 
 func (x *Message) Reset() {
@@ -90,7 +89,7 @@ func (x *Message) GetBody() string {
 	return ""
 }
 
-func (x *Message) GetHeaders() []*common.HTTPHeader {
+func (x *Message) GetHeaders() []*HTTPHeader {
 	if x != nil {
 		return x.Headers
 	}
@@ -156,8 +155,8 @@ func file_message_proto_rawDescGZIP() []byte {
 
 var file_message_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_message_proto_goTypes = []interface{}{
-	(*Message)(nil),           // 0: elastic.apm.v1.Message
-	(*common.HTTPHeader)(nil), // 1: elastic.apm.v1.HTTPHeader
+	(*Message)(nil),    // 0: elastic.apm.v1.Message
+	(*HTTPHeader)(nil), // 1: elastic.apm.v1.HTTPHeader
 }
 var file_message_proto_depIdxs = []int32{
 	1, // 0: elastic.apm.v1.Message.headers:type_name -> elastic.apm.v1.HTTPHeader
@@ -173,6 +172,7 @@ func file_message_proto_init() {
 	if File_message_proto != nil {
 		return
 	}
+	file_headers_proto_init()
 	if !protoimpl.UnsafeEnabled {
 		file_message_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Message); i {

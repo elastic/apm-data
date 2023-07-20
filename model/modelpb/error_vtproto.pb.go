@@ -25,7 +25,6 @@ import (
 	fmt "fmt"
 	io "io"
 
-	common "github.com/elastic/apm-data/model/common"
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
@@ -52,7 +51,7 @@ func (m *Error) CloneVT() *Error {
 		Type:        m.Type,
 	}
 	if rhs := m.Custom; rhs != nil {
-		tmpContainer := make([]*common.KeyValue, len(rhs))
+		tmpContainer := make([]*KeyValue, len(rhs))
 		for k, v := range rhs {
 			tmpContainer[k] = v.CloneVT()
 		}
@@ -80,7 +79,7 @@ func (m *Exception) CloneVT() *Exception {
 		Type:    m.Type,
 	}
 	if rhs := m.Attributes; rhs != nil {
-		tmpContainer := make([]*common.KeyValue, len(rhs))
+		tmpContainer := make([]*KeyValue, len(rhs))
 		for k, v := range rhs {
 			tmpContainer[k] = v.CloneVT()
 		}
@@ -615,7 +614,7 @@ func (m *Error) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Custom = append(m.Custom, &common.KeyValue{})
+			m.Custom = append(m.Custom, &KeyValue{})
 			if err := m.Custom[len(m.Custom)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1060,7 +1059,7 @@ func (m *Exception) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Attributes = append(m.Attributes, &common.KeyValue{})
+			m.Attributes = append(m.Attributes, &KeyValue{})
 			if err := m.Attributes[len(m.Attributes)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

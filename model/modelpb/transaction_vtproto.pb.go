@@ -27,7 +27,6 @@ import (
 	io "io"
 	math "math"
 
-	common "github.com/elastic/apm-data/model/common"
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
@@ -58,7 +57,7 @@ func (m *Transaction) CloneVT() *Transaction {
 		Root:                m.Root,
 	}
 	if rhs := m.Custom; rhs != nil {
-		tmpContainer := make([]*common.KeyValue, len(rhs))
+		tmpContainer := make([]*KeyValue, len(rhs))
 		for k, v := range rhs {
 			tmpContainer[k] = v.CloneVT()
 		}
@@ -780,7 +779,7 @@ func (m *Transaction) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Custom = append(m.Custom, &common.KeyValue{})
+			m.Custom = append(m.Custom, &KeyValue{})
 			if err := m.Custom[len(m.Custom)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

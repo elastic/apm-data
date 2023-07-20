@@ -27,7 +27,6 @@ import (
 	reflect "reflect"
 	sync "sync"
 
-	common "github.com/elastic/apm-data/model/common"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
@@ -44,15 +43,15 @@ type Error struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Custom      []*common.KeyValue `protobuf:"bytes,1,rep,name=custom,proto3" json:"custom,omitempty"`
-	Exception   *Exception         `protobuf:"bytes,2,opt,name=exception,proto3" json:"exception,omitempty"`
-	Log         *ErrorLog          `protobuf:"bytes,3,opt,name=log,proto3" json:"log,omitempty"`
-	Id          string             `protobuf:"bytes,4,opt,name=id,proto3" json:"id,omitempty"`
-	GroupingKey string             `protobuf:"bytes,5,opt,name=grouping_key,json=groupingKey,proto3" json:"grouping_key,omitempty"`
-	Culprit     string             `protobuf:"bytes,6,opt,name=culprit,proto3" json:"culprit,omitempty"`
-	StackTrace  string             `protobuf:"bytes,7,opt,name=stack_trace,json=stackTrace,proto3" json:"stack_trace,omitempty"`
-	Message     string             `protobuf:"bytes,8,opt,name=message,proto3" json:"message,omitempty"`
-	Type        string             `protobuf:"bytes,9,opt,name=type,proto3" json:"type,omitempty"`
+	Custom      []*KeyValue `protobuf:"bytes,1,rep,name=custom,proto3" json:"custom,omitempty"`
+	Exception   *Exception  `protobuf:"bytes,2,opt,name=exception,proto3" json:"exception,omitempty"`
+	Log         *ErrorLog   `protobuf:"bytes,3,opt,name=log,proto3" json:"log,omitempty"`
+	Id          string      `protobuf:"bytes,4,opt,name=id,proto3" json:"id,omitempty"`
+	GroupingKey string      `protobuf:"bytes,5,opt,name=grouping_key,json=groupingKey,proto3" json:"grouping_key,omitempty"`
+	Culprit     string      `protobuf:"bytes,6,opt,name=culprit,proto3" json:"culprit,omitempty"`
+	StackTrace  string      `protobuf:"bytes,7,opt,name=stack_trace,json=stackTrace,proto3" json:"stack_trace,omitempty"`
+	Message     string      `protobuf:"bytes,8,opt,name=message,proto3" json:"message,omitempty"`
+	Type        string      `protobuf:"bytes,9,opt,name=type,proto3" json:"type,omitempty"`
 }
 
 func (x *Error) Reset() {
@@ -87,7 +86,7 @@ func (*Error) Descriptor() ([]byte, []int) {
 	return file_error_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Error) GetCustom() []*common.KeyValue {
+func (x *Error) GetCustom() []*KeyValue {
 	if x != nil {
 		return x.Custom
 	}
@@ -158,7 +157,7 @@ type Exception struct {
 	Message    string             `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
 	Module     string             `protobuf:"bytes,2,opt,name=module,proto3" json:"module,omitempty"`
 	Code       string             `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
-	Attributes []*common.KeyValue `protobuf:"bytes,4,rep,name=attributes,proto3" json:"attributes,omitempty"`
+	Attributes []*KeyValue        `protobuf:"bytes,4,rep,name=attributes,proto3" json:"attributes,omitempty"`
 	Stacktrace []*StacktraceFrame `protobuf:"bytes,5,rep,name=stacktrace,proto3" json:"stacktrace,omitempty"`
 	Type       string             `protobuf:"bytes,6,opt,name=type,proto3" json:"type,omitempty"`
 	Handled    *bool              `protobuf:"varint,7,opt,name=handled,proto3,oneof" json:"handled,omitempty"`
@@ -218,7 +217,7 @@ func (x *Exception) GetCode() string {
 	return ""
 }
 
-func (x *Exception) GetAttributes() []*common.KeyValue {
+func (x *Exception) GetAttributes() []*KeyValue {
 	if x != nil {
 		return x.Attributes
 	}
@@ -414,7 +413,7 @@ var file_error_proto_goTypes = []interface{}{
 	(*Error)(nil),           // 0: elastic.apm.v1.Error
 	(*Exception)(nil),       // 1: elastic.apm.v1.Exception
 	(*ErrorLog)(nil),        // 2: elastic.apm.v1.ErrorLog
-	(*common.KeyValue)(nil), // 3: elastic.apm.v1.KeyValue
+	(*KeyValue)(nil),        // 3: elastic.apm.v1.KeyValue
 	(*StacktraceFrame)(nil), // 4: elastic.apm.v1.StacktraceFrame
 }
 var file_error_proto_depIdxs = []int32{
@@ -438,6 +437,7 @@ func file_error_proto_init() {
 		return
 	}
 	file_stacktrace_proto_init()
+	file_keyvalue_proto_init()
 	if !protoimpl.UnsafeEnabled {
 		file_error_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Error); i {
