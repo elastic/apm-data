@@ -69,7 +69,7 @@ type Document struct {
 	Event       *Event       `json:"event,omitempty"`
 
 	Timestamp  Time        `json:"@timestamp"`
-	DataStream *DataStream `json:"data_stream"`
+	DataStream *DataStream `json:"data_stream,omitempty"`
 	Message    string      `json:"message,omitempty"`
 	DocCount   int64       `json:"_doc_count,omitempty"`
 }

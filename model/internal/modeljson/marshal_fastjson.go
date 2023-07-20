@@ -573,14 +573,6 @@ func (v *Document) MarshalFastJSON(w *fastjson.Writer) error {
 	if err := v.Timestamp.MarshalFastJSON(w); err != nil && firstErr == nil {
 		firstErr = err
 	}
-	w.RawString(",\"data_stream\":")
-	if v.DataStream == nil {
-		w.RawString("null")
-	} else {
-		if err := v.DataStream.MarshalFastJSON(w); err != nil && firstErr == nil {
-			firstErr = err
-		}
-	}
 	if v.DocCount != 0 {
 		w.RawString(",\"_doc_count\":")
 		w.Int64(v.DocCount)
@@ -612,6 +604,12 @@ func (v *Document) MarshalFastJSON(w *fastjson.Writer) error {
 	if v.Container != nil {
 		w.RawString(",\"container\":")
 		if err := v.Container.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+	if v.DataStream != nil {
+		w.RawString(",\"data_stream\":")
+		if err := v.DataStream.MarshalFastJSON(w); err != nil && firstErr == nil {
 			firstErr = err
 		}
 	}
