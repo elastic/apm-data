@@ -65,9 +65,9 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 	}
 
 	if e.DataStream != nil {
-		doc.DataStreamType = e.DataStream.Type
-		doc.DataStreamDataset = e.DataStream.Dataset
-		doc.DataStreamNamespace = e.DataStream.Namespace
+		doc.DataStream.Type = e.DataStream.Type
+		doc.DataStream.Dataset = e.DataStream.Dataset
+		doc.DataStream.Namespace = e.DataStream.Namespace
 	}
 
 	var transaction modeljson.Transaction

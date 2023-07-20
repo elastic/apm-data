@@ -573,6 +573,14 @@ func (v *Document) MarshalFastJSON(w *fastjson.Writer) error {
 	if err := v.Timestamp.MarshalFastJSON(w); err != nil && firstErr == nil {
 		firstErr = err
 	}
+	w.RawString(",\"data_stream\":")
+	if v.DataStream == nil {
+		w.RawString("null")
+	} else {
+		if err := v.DataStream.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
 	if v.DocCount != 0 {
 		w.RawString(",\"_doc_count\":")
 		w.Int64(v.DocCount)
@@ -606,18 +614,6 @@ func (v *Document) MarshalFastJSON(w *fastjson.Writer) error {
 		if err := v.Container.MarshalFastJSON(w); err != nil && firstErr == nil {
 			firstErr = err
 		}
-	}
-	if v.DataStreamDataset != "" {
-		w.RawString(",\"data_stream.dataset\":")
-		w.String(v.DataStreamDataset)
-	}
-	if v.DataStreamNamespace != "" {
-		w.RawString(",\"data_stream.namespace\":")
-		w.String(v.DataStreamNamespace)
-	}
-	if v.DataStreamType != "" {
-		w.RawString(",\"data_stream.type\":")
-		w.String(v.DataStreamType)
 	}
 	if v.Destination != nil {
 		w.RawString(",\"destination\":")
@@ -809,6 +805,43 @@ func (v *Document) MarshalFastJSON(w *fastjson.Writer) error {
 	}
 	w.RawByte('}')
 	return firstErr
+}
+
+func (v *DataStream) MarshalFastJSON(w *fastjson.Writer) error {
+	w.RawByte('{')
+	first := true
+	if v.Dataset != "" {
+		const prefix = ",\"dataset\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		w.String(v.Dataset)
+	}
+	if v.Namespace != "" {
+		const prefix = ",\"namespace\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		w.String(v.Namespace)
+	}
+	if v.Type != "" {
+		const prefix = ",\"type\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		w.String(v.Type)
+	}
+	w.RawByte('}')
+	return nil
 }
 
 func (v *Error) MarshalFastJSON(w *fastjson.Writer) error {
