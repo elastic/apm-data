@@ -65,6 +65,7 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 	}
 
 	if e.DataStream != nil {
+		doc.DataStream = &modeljson.DataStream{}
 		doc.DataStream.Type = e.DataStream.Type
 		doc.DataStream.Dataset = e.DataStream.Dataset
 		doc.DataStream.Namespace = e.DataStream.Namespace
