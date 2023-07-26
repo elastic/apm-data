@@ -453,7 +453,7 @@ func TestDecodeMetricsetServiceVersion(t *testing.T) {
 	}}, batch, protocmp.Transform()))
 }
 
-func repeatInt64(v uint64, n int) []uint64 {
+func repeatUint64(v uint64, n int) []uint64 {
 	vs := make([]uint64, n)
 	for i := range vs {
 		vs[i] = v
