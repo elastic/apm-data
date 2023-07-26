@@ -20,7 +20,7 @@ package modeljson
 import (
 	"testing"
 
-	"github.com/elastic/apm-data/model/modeljson/internal"
+	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"

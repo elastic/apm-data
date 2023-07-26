@@ -20,7 +20,7 @@ package modeljson
 import (
 	"time"
 
-	"github.com/elastic/apm-data/model/modeljson/internal"
+	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
