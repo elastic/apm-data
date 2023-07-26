@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/fastjson"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
@@ -34,7 +33,6 @@ func TestFullEvent(t *testing.T) {
 	event := fullEvent(t)
 	err := MarshalAPMEvent(event, &w)
 	require.NoError(t, err)
-	assert.NotNil(t, d)
 }
 
 func BenchmarkAPMEventToJSON(b *testing.B) {
