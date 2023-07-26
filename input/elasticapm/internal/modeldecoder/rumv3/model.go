@@ -622,7 +622,7 @@ type transactionUserExperience struct {
 
 type longtaskMetrics struct {
 	// Count is the total number of of longtasks.
-	Count nullable.Int `json:"count" validate:"required"`
+	Count nullable.Int `json:"count" validate:"required,min=0"`
 	// Max longtask duration
 	Max nullable.Float64 `json:"max" validate:"required,min=0"`
 	// Sum of longtask durations

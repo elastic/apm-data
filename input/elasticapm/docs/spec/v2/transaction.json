@@ -759,7 +759,8 @@
                     "type": [
                       "null",
                       "integer"
-                    ]
+                    ],
+                    "minimum": 0
                   }
                 }
               }
@@ -835,7 +836,8 @@
           "properties": {
             "count": {
               "description": "Count is the total number of of longtasks.",
-              "type": "integer"
+              "type": "integer",
+              "minimum": 0
             },
             "max": {
               "description": "Max longtask duration",
