@@ -34,7 +34,7 @@ func HostModelJSON(h *modelpb.Host, out *modeljson.Host) {
 	if n := len(h.Ip); n != 0 {
 		ips := make([]string, 0, n)
 		for _, ip := range h.Ip {
-			ips = append(ips, IP2String(ip))
+			ips = append(ips, modelpb.IP2String(ip))
 		}
 		out.IP = ips
 	}

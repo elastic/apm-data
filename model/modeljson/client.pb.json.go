@@ -27,5 +27,5 @@ func ClientModelJSON(c *modelpb.Client, out *modeljson.Client) {
 		Domain: c.Domain,
 		Port:   int(c.Port),
 	}
-	out.IP = IP2String(c.Ip)
+	out.IP = modelpb.IP2String(c.Ip)
 }

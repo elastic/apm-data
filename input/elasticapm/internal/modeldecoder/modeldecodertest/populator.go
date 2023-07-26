@@ -29,7 +29,6 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
-	"github.com/elastic/apm-data/model/modeljson"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -56,7 +55,7 @@ func DefaultValues() *Values {
 		Float:           0.5,
 		Bool:            true,
 		Duration:        time.Second,
-		IP:              modeljson.MustParseIP("127.0.0.1"),
+		IP:              modelpb.MustParseIP("127.0.0.1"),
 		HTTPHeader:      http.Header{http.CanonicalHeaderKey("user-agent"): []string{"a", "b", "c"}},
 		LabelVal:        &modelpb.LabelValue{Value: "init"},
 		NumericLabelVal: &modelpb.NumericLabelValue{Value: 0.5},
@@ -72,7 +71,7 @@ func NonDefaultValues() *Values {
 		Float:           3.5,
 		Bool:            false,
 		Duration:        time.Minute,
-		IP:              modeljson.MustParseIP("192.168.0.1"),
+		IP:              modelpb.MustParseIP("192.168.0.1"),
 		HTTPHeader:      http.Header{http.CanonicalHeaderKey("user-agent"): []string{"d", "e"}},
 		LabelVal:        &modelpb.LabelValue{Value: "overwritten"},
 		NumericLabelVal: &modelpb.NumericLabelValue{Value: 3.5},

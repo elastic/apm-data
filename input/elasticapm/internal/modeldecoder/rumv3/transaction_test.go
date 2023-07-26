@@ -33,7 +33,6 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
-	"github.com/elastic/apm-data/model/modeljson"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -152,7 +151,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 }
 
 func TestDecodeMapToTransactionModel(t *testing.T) {
-	localhostIP := modeljson.MustParseIP("127.0.0.1")
+	localhostIP := modelpb.MustParseIP("127.0.0.1")
 
 	t.Run("metadata-overwrite", func(t *testing.T) {
 		// overwrite defined metadata with transaction metadata values

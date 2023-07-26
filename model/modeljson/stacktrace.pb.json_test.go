@@ -28,7 +28,7 @@ import (
 )
 
 func TestStacktraceToModelJSON(t *testing.T) {
-	vars, _ := randomKv(t)
+	vars := randomKv(t)
 
 	testCases := map[string]struct {
 		proto    *modelpb.StacktraceFrame

@@ -30,7 +30,7 @@ import (
 func TestErrorToModelJSON(t *testing.T) {
 	handled := true
 
-	attrs, _ := randomKv(t)
+	attrs := randomKv(t)
 
 	testCases := map[string]struct {
 		proto    *modelpb.Error

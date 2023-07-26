@@ -27,8 +27,8 @@ func SourceModelJSON(s *modelpb.Source, out *modeljson.Source) {
 		Domain: s.Domain,
 		Port:   int(s.Port),
 	}
-	out.IP = modeljson.IP(IP2Addr(s.Ip))
+	out.IP = modeljson.IP(modelpb.IP2Addr(s.Ip))
 	if s.Nat != nil {
-		out.NAT.IP = modeljson.IP(IP2Addr(s.Nat.Ip))
+		out.NAT.IP = modeljson.IP(modelpb.IP2Addr(s.Nat.Ip))
 	}
 }

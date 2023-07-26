@@ -15,13 +15,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package modeljson
+package modelpb
 
 import (
 	"net/netip"
 	"testing"
 
-	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,14 +29,14 @@ func TestParseIP(t *testing.T) {
 		name    string
 		address string
 
-		expectedIP  *modelpb.IP
+		expectedIP  *IP
 		expectedErr string
 	}{
 		{
 			name:    "with a valid IPv4 address",
 			address: "127.0.0.1",
 
-			expectedIP: &modelpb.IP{
+			expectedIP: &IP{
 				V4: 2130706433,
 			},
 		},
@@ -45,7 +44,7 @@ func TestParseIP(t *testing.T) {
 			name:    "with a valid IPv6 address",
 			address: "::1",
 
-			expectedIP: &modelpb.IP{
+			expectedIP: &IP{
 				V6: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 			},
 		},
@@ -75,14 +74,14 @@ func TestMustParseIP(t *testing.T) {
 		name    string
 		address string
 
-		expectedIP    *modelpb.IP
+		expectedIP    *IP
 		expectedPanic bool
 	}{
 		{
 			name:    "with a valid IPv4 address",
 			address: "127.0.0.1",
 
-			expectedIP: &modelpb.IP{
+			expectedIP: &IP{
 				V4: 2130706433,
 			},
 		},
@@ -90,7 +89,7 @@ func TestMustParseIP(t *testing.T) {
 			name:    "with a valid IPv6 address",
 			address: "::1",
 
-			expectedIP: &modelpb.IP{
+			expectedIP: &IP{
 				V6: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 			},
 		},
@@ -122,7 +121,7 @@ func TestAddr2IP(t *testing.T) {
 		name    string
 		address netip.Addr
 
-		expectedIP *modelpb.IP
+		expectedIP *IP
 	}{
 		{
 			name:    "with an IPv4 address",
@@ -148,7 +147,7 @@ func TestAddr2IP(t *testing.T) {
 func TestIP2Addr(t *testing.T) {
 	for _, tt := range []struct {
 		name string
-		ip   *modelpb.IP
+		ip   *IP
 
 		expectedAddr netip.Addr
 	}{
@@ -176,7 +175,7 @@ func TestIP2Addr(t *testing.T) {
 func TestIP2String(t *testing.T) {
 	for _, tt := range []struct {
 		name string
-		ip   *modelpb.IP
+		ip   *IP
 
 		expectedString string
 	}{

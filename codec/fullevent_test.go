@@ -21,7 +21,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/apm-data/model/modeljson"
 	"github.com/elastic/apm-data/model/modelpb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -397,7 +396,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			Architecture: "architecture",
 			Type:         "type",
 			Ip: []*modelpb.IP{
-				modeljson.MustParseIP("127.0.0.1"),
+				modelpb.MustParseIP("127.0.0.1"),
 			},
 		},
 		Url: &modelpb.URL{
@@ -422,15 +421,15 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			},
 		},
 		Source: &modelpb.Source{
-			Ip: modeljson.MustParseIP("127.0.0.1"),
+			Ip: modelpb.MustParseIP("127.0.0.1"),
 			Nat: &modelpb.NAT{
-				Ip: modeljson.MustParseIP("127.0.0.2"),
+				Ip: modelpb.MustParseIP("127.0.0.2"),
 			},
 			Domain: "domain",
 			Port:   443,
 		},
 		Client: &modelpb.Client{
-			Ip:     modeljson.MustParseIP("127.0.0.1"),
+			Ip:     modelpb.MustParseIP("127.0.0.1"),
 			Domain: "example.com",
 			Port:   443,
 		},
