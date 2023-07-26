@@ -21,9 +21,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/elastic/apm-data/model/modelpb"
 	"go.elastic.co/fastjson"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
