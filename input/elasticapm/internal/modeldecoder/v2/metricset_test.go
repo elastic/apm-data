@@ -140,7 +140,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 				Unit:  defaultVal.Str,
 				Value: defaultVal.Float,
 				Histogram: &modelpb.Histogram{
-					Counts: repeatInt64(uint64(defaultVal.Int), defaultVal.N),
+					Counts: repeatUint64(uint64(defaultVal.Int), defaultVal.N),
 					Values: repeatFloat64(defaultVal.Float, defaultVal.N),
 				},
 			},
@@ -150,7 +150,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 				Unit:  defaultVal.Str,
 				Value: defaultVal.Float,
 				Histogram: &modelpb.Histogram{
-					Counts: repeatInt64(uint64(defaultVal.Int), defaultVal.N),
+					Counts: repeatUint64(uint64(defaultVal.Int), defaultVal.N),
 					Values: repeatFloat64(defaultVal.Float, defaultVal.N),
 				},
 			},
@@ -160,7 +160,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 				Unit:  defaultVal.Str,
 				Value: defaultVal.Float,
 				Histogram: &modelpb.Histogram{
-					Counts: repeatInt64(uint64(defaultVal.Int), defaultVal.N),
+					Counts: repeatUint64(uint64(defaultVal.Int), defaultVal.N),
 					Values: repeatFloat64(defaultVal.Float, defaultVal.N),
 				},
 			},
@@ -185,7 +185,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 				Unit:  otherVal.Str,
 				Value: otherVal.Float,
 				Histogram: &modelpb.Histogram{
-					Counts: repeatInt64(uint64(otherVal.Int), otherVal.N),
+					Counts: repeatUint64(uint64(otherVal.Int), otherVal.N),
 					Values: repeatFloat64(otherVal.Float, otherVal.N),
 				},
 			},
@@ -195,7 +195,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 				Unit:  otherVal.Str,
 				Value: otherVal.Float,
 				Histogram: &modelpb.Histogram{
-					Counts: repeatInt64(uint64(otherVal.Int), otherVal.N),
+					Counts: repeatUint64(uint64(otherVal.Int), otherVal.N),
 					Values: repeatFloat64(otherVal.Float, otherVal.N),
 				},
 			},
