@@ -672,4 +672,13 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			RepresentativeCount: 1,
 		}, out.Span)
 	})
+
+	t.Run("transaction-span.id", func(t *testing.T) {
+		var input transaction
+		var out modelpb.APMEvent
+		input.ID.Set("1234")
+		mapToTransactionModel(&input, &out)
+		assert.Equal(t, "1234", out.Transaction.Id)
+		assert.Equal(t, "1234", out.Span.Id)
+	})
 }
