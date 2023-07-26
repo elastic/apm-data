@@ -60,7 +60,7 @@ func uintPtr(i uint32) *uint32 {
 	return &i
 }
 
-func int64Ptr(i uint64) *uint64 {
+func uint64Ptr(i uint64) *uint64 {
 	return &i
 }
 
