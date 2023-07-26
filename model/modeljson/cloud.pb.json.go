@@ -17,9 +17,12 @@
 
 package modeljson
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
+)
 
-func (c *Cloud) toModelJSON(out *modeljson.Cloud) {
+func CloudModelJSON(c *modelpb.Cloud, out *modeljson.Cloud) {
 	*out = modeljson.Cloud{
 		AvailabilityZone: c.AvailabilityZone,
 		Provider:         c.Provider,

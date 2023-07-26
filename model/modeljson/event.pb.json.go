@@ -18,10 +18,11 @@
 package modeljson
 
 import (
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
-func (e *Event) toModelJSON(out *modeljson.Event) {
+func EventModelJSON(e *modelpb.Event, out *modeljson.Event) {
 	*out = modeljson.Event{
 		Outcome:  e.Outcome,
 		Action:   e.Action,

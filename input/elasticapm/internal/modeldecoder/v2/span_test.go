@@ -36,7 +36,6 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
-	"github.com/elastic/apm-data/model/common"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -275,7 +274,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		input.Context.HTTP.Response.Headers.Set(http.Header{"a": []string{"b", "c"}})
 		var out modelpb.APMEvent
 		mapToSpanModel(&input, &out)
-		assert.Equal(t, []*common.HTTPHeader{
+		assert.Equal(t, []*modelpb.HTTPHeader{
 			{
 				Key:   "a",
 				Value: []string{"b", "c"},

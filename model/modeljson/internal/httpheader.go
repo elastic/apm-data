@@ -18,11 +18,11 @@
 package modeljson
 
 import (
-	"github.com/elastic/apm-data/model/common"
+	"github.com/elastic/apm-data/model/modelpb"
 	"go.elastic.co/fastjson"
 )
 
-type HTTPHeaders []*common.HTTPHeader
+type HTTPHeaders []*modelpb.HTTPHeader
 
 func (s *HTTPHeaders) MarshalFastJSON(w *fastjson.Writer) error {
 	w.RawByte('{')

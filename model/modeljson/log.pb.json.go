@@ -17,9 +17,12 @@
 
 package modeljson
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
+)
 
-func (l *Log) toModelJSON(out *modeljson.Log) {
+func LogModelJSON(l *modelpb.Log, out *modeljson.Log) {
 	*out = modeljson.Log{
 		Level:  l.Level,
 		Logger: l.Logger,

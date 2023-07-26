@@ -18,10 +18,11 @@
 package modeljson
 
 import (
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
-func (s *Source) toModelJSON(out *modeljson.Source) {
+func SourceModelJSON(s *modelpb.Source, out *modeljson.Source) {
 	*out = modeljson.Source{
 		Domain: s.Domain,
 		Port:   int(s.Port),

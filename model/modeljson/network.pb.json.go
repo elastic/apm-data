@@ -17,9 +17,12 @@
 
 package modeljson
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
+)
 
-func (n *Network) toModelJSON(out *modeljson.Network) {
+func NetworkModelJSON(n *modelpb.Network, out *modeljson.Network) {
 	*out = modeljson.Network{}
 	if n.Connection != nil {
 		out.Connection = modeljson.NetworkConnection{

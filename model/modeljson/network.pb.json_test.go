@@ -20,23 +20,24 @@ package modeljson
 import (
 	"testing"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNetworkToModelJSON(t *testing.T) {
 	testCases := map[string]struct {
-		proto    *Network
+		proto    *modelpb.Network
 		expected *modeljson.Network
 	}{
 		"empty": {
-			proto:    &Network{},
+			proto:    &modelpb.Network{},
 			expected: &modeljson.Network{},
 		},
 		"connection": {
-			proto: &Network{
-				Connection: &NetworkConnection{
+			proto: &modelpb.Network{
+				Connection: &modelpb.NetworkConnection{
 					Type:    "type",
 					Subtype: "subtype",
 				},
@@ -49,8 +50,8 @@ func TestNetworkToModelJSON(t *testing.T) {
 			},
 		},
 		"carrier": {
-			proto: &Network{
-				Carrier: &NetworkCarrier{
+			proto: &modelpb.Network{
+				Carrier: &modelpb.NetworkCarrier{
 					Name: "name",
 					Mcc:  "mcc",
 					Mnc:  "mnc",
@@ -67,12 +68,12 @@ func TestNetworkToModelJSON(t *testing.T) {
 			},
 		},
 		"full": {
-			proto: &Network{
-				Connection: &NetworkConnection{
+			proto: &modelpb.Network{
+				Connection: &modelpb.NetworkConnection{
 					Type:    "type",
 					Subtype: "subtype",
 				},
-				Carrier: &NetworkCarrier{
+				Carrier: &modelpb.NetworkCarrier{
 					Name: "name",
 					Mcc:  "mcc",
 					Mnc:  "mnc",
@@ -96,7 +97,7 @@ func TestNetworkToModelJSON(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			var out modeljson.Network
-			tc.proto.toModelJSON(&out)
+			NetworkModelJSON(tc.proto, &out)
 			diff := cmp.Diff(*tc.expected, out)
 			require.Empty(t, diff)
 		})

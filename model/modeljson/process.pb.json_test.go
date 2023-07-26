@@ -20,22 +20,23 @@ package modeljson
 import (
 	"testing"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 )
 
 func TestProcessToModelJSON(t *testing.T) {
 	testCases := map[string]struct {
-		proto    *Process
+		proto    *modelpb.Process
 		expected *modeljson.Process
 	}{
 		"empty": {
-			proto:    &Process{},
+			proto:    &modelpb.Process{},
 			expected: &modeljson.Process{},
 		},
 		"no pointers": {
-			proto: &Process{
+			proto: &modelpb.Process{
 				Title:       "title",
 				CommandLine: "commandline",
 				Executable:  "executable",
@@ -49,9 +50,9 @@ func TestProcessToModelJSON(t *testing.T) {
 			},
 		},
 		"full": {
-			proto: &Process{
+			proto: &modelpb.Process{
 				Ppid: 1,
-				Thread: &ProcessThread{
+				Thread: &modelpb.ProcessThread{
 					Name: "name",
 					Id:   2,
 				},
@@ -80,7 +81,7 @@ func TestProcessToModelJSON(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			var out modeljson.Process
-			tc.proto.toModelJSON(&out)
+			ProcessModelJSON(tc.proto, &out)
 			diff := cmp.Diff(*tc.expected, out)
 			require.Empty(t, diff)
 		})

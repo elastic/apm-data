@@ -17,9 +17,12 @@
 
 package modeljson
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
+)
 
-func (k *Kubernetes) toModelJSON(out *modeljson.Kubernetes) {
+func KubernetesModelJSON(k *modelpb.Kubernetes, out *modeljson.Kubernetes) {
 	*out = modeljson.Kubernetes{
 		Namespace: k.Namespace,
 		Node: modeljson.KubernetesNode{

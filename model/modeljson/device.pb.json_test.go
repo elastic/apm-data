@@ -20,22 +20,23 @@ package modeljson
 import (
 	"testing"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDeviceToModelJSON(t *testing.T) {
 	testCases := map[string]struct {
-		proto    *Device
+		proto    *modelpb.Device
 		expected *modeljson.Device
 	}{
 		"empty": {
-			proto:    &Device{},
+			proto:    &modelpb.Device{},
 			expected: &modeljson.Device{},
 		},
 		"no pointers": {
-			proto: &Device{
+			proto: &modelpb.Device{
 				Id:           "id",
 				Manufacturer: "manufacturer",
 			},
@@ -45,9 +46,9 @@ func TestDeviceToModelJSON(t *testing.T) {
 			},
 		},
 		"full": {
-			proto: &Device{
+			proto: &modelpb.Device{
 				Id: "id",
-				Model: &DeviceModel{
+				Model: &modelpb.DeviceModel{
 					Name:       "name",
 					Identifier: "identifier",
 				},
@@ -66,7 +67,7 @@ func TestDeviceToModelJSON(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			var out modeljson.Device
-			tc.proto.toModelJSON(&out)
+			DeviceModelJSON(tc.proto, &out)
 			diff := cmp.Diff(*tc.expected, out)
 			require.Empty(t, diff)
 		})

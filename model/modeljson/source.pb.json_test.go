@@ -21,24 +21,25 @@ import (
 	"net/netip"
 	"testing"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSourceToModelJSON(t *testing.T) {
 	testCases := map[string]struct {
-		proto    *Source
+		proto    *modelpb.Source
 		expected *modeljson.Source
 	}{
 		"empty": {
-			proto:    &Source{},
+			proto:    &modelpb.Source{},
 			expected: &modeljson.Source{},
 		},
 		"full": {
-			proto: &Source{
+			proto: &modelpb.Source{
 				Ip: MustParseIP("127.0.0.1"),
-				Nat: &NAT{
+				Nat: &modelpb.NAT{
 					Ip: MustParseIP("127.0.0.2"),
 				},
 				Domain: "domain",
@@ -57,7 +58,7 @@ func TestSourceToModelJSON(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			var out modeljson.Source
-			tc.proto.toModelJSON(&out)
+			SourceModelJSON(tc.proto, &out)
 			diff := cmp.Diff(*tc.expected, out,
 				cmp.Comparer(func(a modeljson.IP, b modeljson.IP) bool {
 					return netip.Addr(a).Compare(netip.Addr(b)) == 0

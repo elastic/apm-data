@@ -17,9 +17,12 @@
 
 package modeljson
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
+)
 
-func (s *Service) toModelJSON(out *modeljson.Service) {
+func ServiceModelJSON(s *modelpb.Service, out *modeljson.Service) {
 	*out = modeljson.Service{
 		Name:        s.Name,
 		Version:     s.Version,

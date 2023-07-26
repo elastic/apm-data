@@ -17,9 +17,12 @@
 
 package modeljson
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
+)
 
-func (u *URL) toModelJSON(out *modeljson.URL) {
+func URLModelJSON(u *modelpb.URL, out *modeljson.URL) {
 	*out = modeljson.URL{
 		Original: u.Original,
 		Scheme:   u.Scheme,

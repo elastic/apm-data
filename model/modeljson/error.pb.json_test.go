@@ -20,7 +20,8 @@ package modeljson
 import (
 	"testing"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -32,23 +33,23 @@ func TestErrorToModelJSON(t *testing.T) {
 	attrs, _ := randomKv(t)
 
 	testCases := map[string]struct {
-		proto    *Error
+		proto    *modelpb.Error
 		expected *modeljson.Error
 	}{
 		"empty": {
-			proto:    &Error{},
+			proto:    &modelpb.Error{},
 			expected: &modeljson.Error{},
 		},
 		"full": {
-			proto: &Error{
-				Exception: &Exception{
+			proto: &modelpb.Error{
+				Exception: &modelpb.Exception{
 					Message:    "ex_message",
 					Module:     "ex_module",
 					Code:       "ex_code",
 					Attributes: attrs,
 					Type:       "ex_type",
 					Handled:    &handled,
-					Cause: []*Exception{
+					Cause: []*modelpb.Exception{
 						{
 							Message: "ex1_message",
 							Module:  "ex1_module",
@@ -57,7 +58,7 @@ func TestErrorToModelJSON(t *testing.T) {
 						},
 					},
 				},
-				Log: &ErrorLog{
+				Log: &modelpb.ErrorLog{
 					Message:      "log_message",
 					Level:        "log_level",
 					ParamMessage: "log_parammessage",
@@ -109,7 +110,7 @@ func TestErrorToModelJSON(t *testing.T) {
 				Exception: &modeljson.Exception{},
 				Log:       &modeljson.ErrorLog{},
 			}
-			tc.proto.toModelJSON(&out)
+			ErrorModelJSON(tc.proto, &out)
 			diff := cmp.Diff(*tc.expected, out, protocmp.Transform())
 			require.Empty(t, diff)
 		})

@@ -18,19 +18,12 @@
 package modeljson
 
 import (
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 	"go.elastic.co/fastjson"
 )
 
-func (e *APMEvent) MarshalJSON() ([]byte, error) {
-	var w fastjson.Writer
-	if err := e.MarshalFastJSON(&w); err != nil {
-		return nil, err
-	}
-	return w.Bytes(), nil
-}
-
-func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
+func MarshalAPMEvent(e *modelpb.APMEvent, w *fastjson.Writer) error {
 	var labels map[string]modeljson.Label
 	if n := len(e.Labels); n > 0 {
 		labels = make(map[string]modeljson.Label)
@@ -74,32 +67,32 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 
 	var transaction modeljson.Transaction
 	if e.Transaction != nil {
-		e.Transaction.toModelJSON(&transaction, e.Metricset != nil)
+		TransactionModelJSON(e.Transaction, &transaction, e.Metricset != nil)
 		doc.Transaction = &transaction
 	}
 
 	var span modeljson.Span
 	if e.Span != nil {
-		e.Span.toModelJSON(&span)
+		SpanModelJSON(e.Span, &span)
 		doc.Span = &span
 	}
 
 	var metricset modeljson.Metricset
 	if e.Metricset != nil {
-		e.Metricset.toModelJSON(&metricset)
+		MetricsetModelJSON(e.Metricset, &metricset)
 		doc.Metricset = &metricset
 		doc.DocCount = e.Metricset.DocCount
 	}
 
 	var errorStruct modeljson.Error
 	if e.Error != nil {
-		e.Error.toModelJSON(&errorStruct)
+		ErrorModelJSON(e.Error, &errorStruct)
 		doc.Error = &errorStruct
 	}
 
 	var event modeljson.Event
 	if e.Event != nil {
-		e.Event.toModelJSON(&event)
+		EventModelJSON(e.Event, &event)
 		doc.Event = &event
 	}
 
@@ -109,7 +102,7 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 	var timestampStruct modeljson.Timestamp
 	if e.Timestamp != nil && !e.Timestamp.AsTime().IsZero() {
 		switch e.Type() {
-		case TransactionEventType, SpanEventType, ErrorEventType:
+		case modelpb.TransactionEventType, modelpb.SpanEventType, modelpb.ErrorEventType:
 			timestampStruct.US = int(e.Timestamp.AsTime().UnixNano() / 1000)
 			doc.TimestampStruct = &timestampStruct
 		}
@@ -117,49 +110,49 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 
 	var cloud modeljson.Cloud
 	if e.Cloud != nil {
-		e.Cloud.toModelJSON(&cloud)
+		CloudModelJSON(e.Cloud, &cloud)
 		doc.Cloud = &cloud
 	}
 
 	var fass modeljson.FAAS
 	if e.Faas != nil {
-		e.Faas.toModelJSON(&fass)
+		FaasModelJSON(e.Faas, &fass)
 		doc.FAAS = &fass
 	}
 
 	var device modeljson.Device
 	if e.Device != nil {
-		e.Device.toModelJSON(&device)
+		DeviceModelJSON(e.Device, &device)
 		doc.Device = &device
 	}
 
 	var network modeljson.Network
 	if e.Network != nil {
-		e.Network.toModelJSON(&network)
+		NetworkModelJSON(e.Network, &network)
 		doc.Network = &network
 	}
 
 	var observer modeljson.Observer
 	if e.Observer != nil {
-		e.Observer.toModelJSON(&observer)
+		ObserverModelJSON(e.Observer, &observer)
 		doc.Observer = &observer
 	}
 
 	var container modeljson.Container
 	if e.Container != nil {
-		e.Container.toModelJSON(&container)
+		ContainerModelJSON(e.Container, &container)
 		doc.Container = &container
 	}
 
 	var kubernetes modeljson.Kubernetes
 	if e.Kubernetes != nil {
-		e.Kubernetes.toModelJSON(&kubernetes)
+		KubernetesModelJSON(e.Kubernetes, &kubernetes)
 		doc.Kubernetes = &kubernetes
 	}
 
 	var agent modeljson.Agent
 	if e.Agent != nil {
-		e.Agent.toModelJSON(&agent)
+		AgentModelJSON(e.Agent, &agent)
 		doc.Agent = &agent
 	}
 
@@ -171,13 +164,13 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 
 	var user modeljson.User
 	if e.User != nil {
-		e.User.toModelJSON(&user)
+		UserModelJSON(e.User, &user)
 		doc.User = &user
 	}
 
 	var source modeljson.Source
 	if e.Source != nil {
-		e.Source.toModelJSON(&source)
+		SourceModelJSON(e.Source, &source)
 		doc.Source = &source
 	}
 
@@ -195,7 +188,7 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 
 	var client modeljson.Client
 	if e.Client != nil {
-		e.Client.toModelJSON(&client)
+		ClientModelJSON(e.Client, &client)
 		doc.Client = &client
 	}
 
@@ -208,43 +201,43 @@ func (e *APMEvent) MarshalFastJSON(w *fastjson.Writer) error {
 
 	var service modeljson.Service
 	if e.Service != nil {
-		e.Service.toModelJSON(&service)
+		ServiceModelJSON(e.Service, &service)
 		doc.Service = &service
 	}
 
 	var httpStruct modeljson.HTTP
 	if e.Http != nil {
-		e.Http.toModelJSON(&httpStruct)
+		HTTPModelJSON(e.Http, &httpStruct)
 		doc.HTTP = &httpStruct
 	}
 
 	var host modeljson.Host
 	if e.Host != nil {
-		e.Host.toModelJSON(&host)
+		HostModelJSON(e.Host, &host)
 		doc.Host = &host
 	}
 
 	var url modeljson.URL
 	if e.Url != nil {
-		e.Url.toModelJSON(&url)
+		URLModelJSON(e.Url, &url)
 		doc.URL = &url
 	}
 
 	var logStruct modeljson.Log
 	if e.Log != nil {
-		e.Log.toModelJSON(&logStruct)
+		LogModelJSON(e.Log, &logStruct)
 		doc.Log = &logStruct
 	}
 
 	var process modeljson.Process
 	if e.Process != nil {
-		e.Process.toModelJSON(&process)
+		ProcessModelJSON(e.Process, &process)
 		doc.Process = &process
 	}
 
 	var destination modeljson.Destination
 	if e.Destination != nil {
-		e.Destination.toModelJSON(&destination)
+		DestinationModelJSON(e.Destination, &destination)
 		doc.Destination = &destination
 	}
 

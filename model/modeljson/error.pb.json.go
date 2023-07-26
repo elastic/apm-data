@@ -18,10 +18,11 @@
 package modeljson
 
 import (
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
-func (e *Error) toModelJSON(out *modeljson.Error) {
+func ErrorModelJSON(e *modelpb.Error, out *modeljson.Error) {
 	*out = modeljson.Error{
 		ID:          e.Id,
 		GroupingKey: e.GroupingKey,
@@ -36,7 +37,7 @@ func (e *Error) toModelJSON(out *modeljson.Error) {
 	}
 	if e.Exception != nil {
 		out.Exception = &modeljson.Exception{}
-		e.Exception.toModelJSON(out.Exception)
+		ExceptionModelJSON(e.Exception, out.Exception)
 	}
 	if e.Log != nil {
 		out.Log = &modeljson.ErrorLog{
@@ -49,14 +50,14 @@ func (e *Error) toModelJSON(out *modeljson.Error) {
 			out.Log.Stacktrace = make([]modeljson.StacktraceFrame, n)
 			for i, frame := range e.Log.Stacktrace {
 				if frame != nil {
-					frame.toModelJSON(&out.Log.Stacktrace[i])
+					StacktraceFrameModelJSON(frame, &out.Log.Stacktrace[i])
 				}
 			}
 		}
 	}
 }
 
-func (e *Exception) toModelJSON(out *modeljson.Exception) {
+func ExceptionModelJSON(e *modelpb.Exception, out *modeljson.Exception) {
 	*out = modeljson.Exception{
 		Message: e.Message,
 		Module:  e.Module,
@@ -71,7 +72,7 @@ func (e *Exception) toModelJSON(out *modeljson.Exception) {
 		out.Cause = make([]modeljson.Exception, n)
 		for i, cause := range e.Cause {
 			if cause != nil {
-				cause.toModelJSON(&out.Cause[i])
+				ExceptionModelJSON(cause, &out.Cause[i])
 			}
 		}
 	}
@@ -79,7 +80,7 @@ func (e *Exception) toModelJSON(out *modeljson.Exception) {
 		out.Stacktrace = make([]modeljson.StacktraceFrame, n)
 		for i, frame := range e.Stacktrace {
 			if frame != nil {
-				frame.toModelJSON(&out.Stacktrace[i])
+				StacktraceFrameModelJSON(frame, &out.Stacktrace[i])
 			}
 		}
 	}

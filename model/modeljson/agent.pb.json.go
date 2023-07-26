@@ -17,9 +17,12 @@
 
 package modeljson
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
+)
 
-func (a *Agent) toModelJSON(out *modeljson.Agent) {
+func AgentModelJSON(a *modelpb.Agent, out *modeljson.Agent) {
 	*out = modeljson.Agent{
 		Name:             a.Name,
 		Version:          a.Version,

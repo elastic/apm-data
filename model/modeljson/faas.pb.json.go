@@ -17,9 +17,12 @@
 
 package modeljson
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
+)
 
-func (f *Faas) toModelJSON(out *modeljson.FAAS) {
+func FaasModelJSON(f *modelpb.Faas, out *modeljson.FAAS) {
 	*out = modeljson.FAAS{
 		ID:        f.Id,
 		Name:      f.Name,

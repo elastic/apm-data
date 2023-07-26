@@ -18,10 +18,11 @@
 package modeljson
 
 import (
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
-func (h *Host) toModelJSON(out *modeljson.Host) {
+func HostModelJSON(h *modelpb.Host, out *modeljson.Host) {
 	*out = modeljson.Host{
 		Hostname:     h.Hostname,
 		Name:         h.Name,
@@ -40,7 +41,7 @@ func (h *Host) toModelJSON(out *modeljson.Host) {
 
 	if h.Os != nil {
 		var os modeljson.OS
-		h.Os.toModelJSON(&os)
+		OSModelJSON(h.Os, &os)
 		out.OS = &os
 	}
 }

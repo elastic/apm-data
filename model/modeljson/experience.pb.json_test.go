@@ -20,26 +20,27 @@ package modeljson
 import (
 	"testing"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 )
 
 func TestUserExperienceToModelJSON(t *testing.T) {
 	testCases := map[string]struct {
-		proto    *UserExperience
+		proto    *modelpb.UserExperience
 		expected *modeljson.UserExperience
 	}{
 		"empty": {
-			proto:    &UserExperience{},
+			proto:    &modelpb.UserExperience{},
 			expected: &modeljson.UserExperience{},
 		},
 		"no pointers": {
-			proto: &UserExperience{
+			proto: &modelpb.UserExperience{
 				CumulativeLayoutShift: 1,
 				FirstInputDelay:       2,
 				TotalBlockingTime:     3,
-				LongTask: &LongtaskMetrics{
+				LongTask: &modelpb.LongtaskMetrics{
 					Count: 4,
 					Sum:   5,
 					Max:   6,
@@ -57,11 +58,11 @@ func TestUserExperienceToModelJSON(t *testing.T) {
 			},
 		},
 		"full": {
-			proto: &UserExperience{
+			proto: &modelpb.UserExperience{
 				CumulativeLayoutShift: 1,
 				FirstInputDelay:       2,
 				TotalBlockingTime:     3,
-				LongTask: &LongtaskMetrics{
+				LongTask: &modelpb.LongtaskMetrics{
 					Count: 4,
 					Sum:   5,
 					Max:   6,
@@ -82,7 +83,7 @@ func TestUserExperienceToModelJSON(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			var out modeljson.UserExperience
-			tc.proto.toModelJSON(&out)
+			UserExperienceModelJSON(tc.proto, &out)
 			diff := cmp.Diff(*tc.expected, out)
 			require.Empty(t, diff)
 		})

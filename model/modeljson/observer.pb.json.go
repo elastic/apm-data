@@ -17,9 +17,12 @@
 
 package modeljson
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
+)
 
-func (o *Observer) toModelJSON(out *modeljson.Observer) {
+func ObserverModelJSON(o *modelpb.Observer, out *modeljson.Observer) {
 	*out = modeljson.Observer{
 		Hostname: o.Hostname,
 		Name:     o.Name,

@@ -15,26 +15,26 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package modelpb
+package modeljson
 
 import (
 	"math/rand"
 	"strings"
 	"testing"
 
-	"github.com/elastic/apm-data/model/common"
+	"github.com/elastic/apm-data/model/modelpb"
 	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
-func randomKv(t testing.TB) ([]*common.KeyValue, map[string]any) {
+func randomKv(t testing.TB) ([]*modelpb.KeyValue, map[string]any) {
 	m := map[string]any{
 		t.Name() + ".key." + randString(): t.Name() + ".value." + randString(),
 	}
 
-	kv := []*common.KeyValue{}
+	kv := []*modelpb.KeyValue{}
 	for k, v := range m {
 		value, _ := structpb.NewValue(v)
-		kv = append(kv, &common.KeyValue{
+		kv = append(kv, &modelpb.KeyValue{
 			Key:   k,
 			Value: value,
 		})
@@ -43,14 +43,14 @@ func randomKv(t testing.TB) ([]*common.KeyValue, map[string]any) {
 	return kv, m
 }
 
-func randomKvPb(t testing.TB) []*common.KeyValue {
+func randomKvPb(t testing.TB) []*modelpb.KeyValue {
 	k, _ := randomKv(t)
 	return k
 }
 
-func randomHTTPHeaders(t testing.TB) []*common.HTTPHeader {
-	return []*common.HTTPHeader{
-		&common.HTTPHeader{
+func randomHTTPHeaders(t testing.TB) []*modelpb.HTTPHeader {
+	return []*modelpb.HTTPHeader{
+		{
 			Key:   t.Name() + ".key." + randString(),
 			Value: []string{t.Name() + ".value." + randString()},
 		},

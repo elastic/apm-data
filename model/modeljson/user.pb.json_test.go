@@ -20,22 +20,23 @@ package modeljson
 import (
 	"testing"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 )
 
 func TestUserToModelJSON(t *testing.T) {
 	testCases := map[string]struct {
-		proto    *User
+		proto    *modelpb.User
 		expected *modeljson.User
 	}{
 		"empty": {
-			proto:    &User{},
+			proto:    &modelpb.User{},
 			expected: &modeljson.User{},
 		},
 		"full": {
-			proto: &User{
+			proto: &modelpb.User{
 				Domain: "domain",
 				Id:     "id",
 				Email:  "email",
@@ -52,7 +53,7 @@ func TestUserToModelJSON(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			var out modeljson.User
-			tc.proto.toModelJSON(&out)
+			UserModelJSON(tc.proto, &out)
 			diff := cmp.Diff(*tc.expected, out)
 			require.Empty(t, diff)
 		})

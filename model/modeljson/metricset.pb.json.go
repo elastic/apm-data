@@ -17,16 +17,19 @@
 
 package modeljson
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
+)
 
-var metricTypeText = map[MetricType]string{
-	MetricType_METRIC_TYPE_GAUGE:     "gauge",
-	MetricType_METRIC_TYPE_COUNTER:   "counter",
-	MetricType_METRIC_TYPE_HISTOGRAM: "histogram",
-	MetricType_METRIC_TYPE_SUMMARY:   "summary",
+var metricTypeText = map[modelpb.MetricType]string{
+	modelpb.MetricType_METRIC_TYPE_GAUGE:     "gauge",
+	modelpb.MetricType_METRIC_TYPE_COUNTER:   "counter",
+	modelpb.MetricType_METRIC_TYPE_HISTOGRAM: "histogram",
+	modelpb.MetricType_METRIC_TYPE_SUMMARY:   "summary",
 }
 
-func (me *Metricset) toModelJSON(out *modeljson.Metricset) {
+func MetricsetModelJSON(me *modelpb.Metricset, out *modeljson.Metricset) {
 	var samples []modeljson.MetricsetSample
 	if n := len(me.Samples); n > 0 {
 		samples = make([]modeljson.MetricsetSample, n)

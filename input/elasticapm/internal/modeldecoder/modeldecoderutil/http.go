@@ -21,7 +21,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/elastic/apm-data/model/common"
+	"github.com/elastic/apm-data/model/modelpb"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -45,13 +45,13 @@ func HTTPHeadersToStructPb(h http.Header) *structpb.Struct {
 	return nil
 }
 
-func HTTPHeadersToModelpb(h http.Header) []*common.HTTPHeader {
+func HTTPHeadersToModelpb(h http.Header) []*modelpb.HTTPHeader {
 	if len(h) == 0 {
 		return nil
 	}
-	headers := make([]*common.HTTPHeader, 0, len(h))
+	headers := make([]*modelpb.HTTPHeader, 0, len(h))
 	for k, v := range h {
-		headers = append(headers, &common.HTTPHeader{
+		headers = append(headers, &modelpb.HTTPHeader{
 			Key:   k,
 			Value: v,
 		})

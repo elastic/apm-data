@@ -17,9 +17,12 @@
 
 package modeljson
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
+)
 
-func (d *Device) toModelJSON(out *modeljson.Device) {
+func DeviceModelJSON(d *modelpb.Device, out *modeljson.Device) {
 	*out = modeljson.Device{
 		ID:           d.Id,
 		Manufacturer: d.Manufacturer,

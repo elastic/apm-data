@@ -20,8 +20,8 @@ package modeljson
 import (
 	"testing"
 
-	"github.com/elastic/apm-data/model/common"
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -31,17 +31,17 @@ func TestMessageToModelJSON(t *testing.T) {
 	millis := int64(1)
 
 	testCases := map[string]struct {
-		proto    *Message
+		proto    *modelpb.Message
 		expected *modeljson.Message
 	}{
 		"empty": {
-			proto:    &Message{},
+			proto:    &modelpb.Message{},
 			expected: &modeljson.Message{},
 		},
 		"full": {
-			proto: &Message{
+			proto: &modelpb.Message{
 				Body: "body",
-				Headers: []*common.HTTPHeader{
+				Headers: []*modelpb.HTTPHeader{
 					{
 						Key:   "foo",
 						Value: []string{"bar"},
@@ -53,7 +53,7 @@ func TestMessageToModelJSON(t *testing.T) {
 			},
 			expected: &modeljson.Message{
 				Body: "body",
-				Headers: []*common.HTTPHeader{
+				Headers: []*modelpb.HTTPHeader{
 					{
 						Key:   "foo",
 						Value: []string{"bar"},
@@ -72,7 +72,7 @@ func TestMessageToModelJSON(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			var out modeljson.Message
-			tc.proto.toModelJSON(&out)
+			MessageModelJSON(tc.proto, &out)
 			diff := cmp.Diff(*tc.expected, out, protocmp.Transform())
 			require.Empty(t, diff)
 		})

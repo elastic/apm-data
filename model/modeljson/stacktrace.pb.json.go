@@ -18,10 +18,11 @@
 package modeljson
 
 import (
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
-func (s *StacktraceFrame) toModelJSON(out *modeljson.StacktraceFrame) {
+func StacktraceFrameModelJSON(s *modelpb.StacktraceFrame, out *modeljson.StacktraceFrame) {
 	*out = modeljson.StacktraceFrame{
 		Filename:            s.Filename,
 		Classname:           s.Classname,

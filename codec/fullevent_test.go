@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/apm-data/model/common"
+	"github.com/elastic/apm-data/model/modeljson"
 	"github.com/elastic/apm-data/model/modelpb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -33,7 +33,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 		Span: &modelpb.Span{
 			Message: &modelpb.Message{
 				Body: "body",
-				Headers: []*common.HTTPHeader{
+				Headers: []*modelpb.HTTPHeader{
 					{
 						Key:   "foo",
 						Value: []string{"bar"},
@@ -153,7 +153,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			},
 			Message: &modelpb.Message{
 				Body: "body",
-				Headers: []*common.HTTPHeader{
+				Headers: []*modelpb.HTTPHeader{
 					{
 						Key:   "foo",
 						Value: []string{"bar"},
@@ -397,7 +397,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			Architecture: "architecture",
 			Type:         "type",
 			Ip: []*modelpb.IP{
-				modelpb.MustParseIP("127.0.0.1"),
+				modeljson.MustParseIP("127.0.0.1"),
 			},
 		},
 		Url: &modelpb.URL{
@@ -422,15 +422,15 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			},
 		},
 		Source: &modelpb.Source{
-			Ip: modelpb.MustParseIP("127.0.0.1"),
+			Ip: modeljson.MustParseIP("127.0.0.1"),
 			Nat: &modelpb.NAT{
-				Ip: modelpb.MustParseIP("127.0.0.2"),
+				Ip: modeljson.MustParseIP("127.0.0.2"),
 			},
 			Domain: "domain",
 			Port:   443,
 		},
 		Client: &modelpb.Client{
-			Ip:     modelpb.MustParseIP("127.0.0.1"),
+			Ip:     modeljson.MustParseIP("127.0.0.1"),
 			Domain: "example.com",
 			Port:   443,
 		},

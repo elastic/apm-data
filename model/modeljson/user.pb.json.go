@@ -17,9 +17,12 @@
 
 package modeljson
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
+)
 
-func (u *User) toModelJSON(out *modeljson.User) {
+func UserModelJSON(u *modelpb.User, out *modeljson.User) {
 	*out = modeljson.User{
 		Domain: u.Domain,
 		ID:     u.Id,

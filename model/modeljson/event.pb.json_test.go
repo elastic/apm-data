@@ -21,7 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -37,22 +38,22 @@ func TestEventToModelJSON(t *testing.T) {
 	require.NoError(t, err)
 
 	testCases := map[string]struct {
-		proto    *Event
+		proto    *modelpb.Event
 		expected *modeljson.Event
 	}{
 		"empty": {
-			proto:    &Event{},
+			proto:    &modelpb.Event{},
 			expected: &modeljson.Event{},
 		},
 		"full": {
-			proto: &Event{
+			proto: &modelpb.Event{
 				Outcome:  "outcome",
 				Action:   "action",
 				Dataset:  "dataset",
 				Kind:     "kind",
 				Category: "category",
 				Type:     "type",
-				SuccessCount: &SummaryMetric{
+				SuccessCount: &modelpb.SummaryMetric{
 					Count: 1,
 					Sum:   2,
 				},
@@ -80,7 +81,7 @@ func TestEventToModelJSON(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			var out modeljson.Event
-			tc.proto.toModelJSON(&out)
+			EventModelJSON(tc.proto, &out)
 			diff := cmp.Diff(*tc.expected, out,
 				cmp.Comparer(func(a modeljson.Time, b modeljson.Time) bool {
 					return time.Time(a).Equal(time.Time(b))

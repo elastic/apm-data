@@ -21,7 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -31,15 +32,15 @@ func TestSpanToModelJSON(t *testing.T) {
 	sync := true
 
 	testCases := map[string]struct {
-		proto    *Span
+		proto    *modelpb.Span
 		expected *modeljson.Span
 	}{
 		"empty": {
-			proto:    &Span{},
+			proto:    &modelpb.Span{},
 			expected: &modeljson.Span{},
 		},
 		"no pointers": {
-			proto: &Span{
+			proto: &modelpb.Span{
 				Kind:                "kind",
 				Action:              "action",
 				Subtype:             "subtype",
@@ -59,22 +60,22 @@ func TestSpanToModelJSON(t *testing.T) {
 			},
 		},
 		"full": {
-			proto: &Span{
-				Composite: &Composite{
-					CompressionStrategy: CompressionStrategy_COMPRESSION_STRATEGY_EXACT_MATCH,
+			proto: &modelpb.Span{
+				Composite: &modelpb.Composite{
+					CompressionStrategy: modelpb.CompressionStrategy_COMPRESSION_STRATEGY_EXACT_MATCH,
 					Count:               1,
 					Sum:                 2,
 				},
-				DestinationService: &DestinationService{
+				DestinationService: &modelpb.DestinationService{
 					Type:     "destination_type",
 					Name:     "destination_name",
 					Resource: "destination_resource",
-					ResponseTime: &AggregatedDuration{
+					ResponseTime: &modelpb.AggregatedDuration{
 						Count: 3,
 						Sum:   durationpb.New(4 * time.Second),
 					},
 				},
-				Db: &DB{
+				Db: &modelpb.DB{
 					RowsAffected: uintPtr(5),
 					Instance:     "db_instace",
 					Statement:    "db_statement",
@@ -89,13 +90,13 @@ func TestSpanToModelJSON(t *testing.T) {
 				Id:      "id",
 				Type:    "type",
 				Name:    "name",
-				Links: []*SpanLink{
+				Links: []*modelpb.SpanLink{
 					{
 						TraceId: "trace_id",
 						SpanId:  "id1",
 					},
 				},
-				SelfTime: &AggregatedDuration{
+				SelfTime: &modelpb.AggregatedDuration{
 					Count: 6,
 					Sum:   durationpb.New(7 * time.Second),
 				},
@@ -164,7 +165,7 @@ func TestSpanToModelJSON(t *testing.T) {
 				Destination: &modeljson.SpanDestination{},
 				DB:          &modeljson.DB{},
 			}
-			tc.proto.toModelJSON(&out)
+			SpanModelJSON(tc.proto, &out)
 			diff := cmp.Diff(*tc.expected, out)
 			require.Empty(t, diff)
 		})

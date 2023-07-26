@@ -23,35 +23,39 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/elastic/apm-data/model/common"
+	"github.com/elastic/apm-data/model/modelpb"
+	"go.elastic.co/fastjson"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestFullEvent(t *testing.T) {
+	var w fastjson.Writer
 	event := fullEvent(t)
-	d, err := event.MarshalJSON()
+	err := MarshalAPMEvent(event, &w)
 	require.NoError(t, err)
 	assert.NotNil(t, d)
 }
 
 func BenchmarkAPMEventToJSON(b *testing.B) {
+	var w fastjson.Writer
 	event := fullEvent(b)
 
 	b.Run("to-json", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			event.MarshalJSON()
+			w.Reset()
+			MarshalAPMEvent(event, &w)
 		}
 	})
 }
 
-func fullEvent(t testing.TB) *APMEvent {
-	return &APMEvent{
+func fullEvent(t testing.TB) *modelpb.APMEvent {
+	return &modelpb.APMEvent{
 		Timestamp: timestamppb.New(time.Unix(1, 1)),
-		Span: &Span{
-			Message: &Message{
+		Span: &modelpb.Span{
+			Message: &modelpb.Message{
 				Body: "body",
-				Headers: []*common.HTTPHeader{
+				Headers: []*modelpb.HTTPHeader{
 					{
 						Key:   "foo",
 						Value: []string{"bar"},
@@ -61,21 +65,21 @@ func fullEvent(t testing.TB) *APMEvent {
 				QueueName:  "queuename",
 				RoutingKey: "routingkey",
 			},
-			Composite: &Composite{
-				CompressionStrategy: CompressionStrategy_COMPRESSION_STRATEGY_EXACT_MATCH,
+			Composite: &modelpb.Composite{
+				CompressionStrategy: modelpb.CompressionStrategy_COMPRESSION_STRATEGY_EXACT_MATCH,
 				Count:               1,
 				Sum:                 2,
 			},
-			DestinationService: &DestinationService{
+			DestinationService: &modelpb.DestinationService{
 				Type:     "destination_type",
 				Name:     "destination_name",
 				Resource: "destination_resource",
-				ResponseTime: &AggregatedDuration{
+				ResponseTime: &modelpb.AggregatedDuration{
 					Count: 3,
 					Sum:   durationpb.New(4 * time.Second),
 				},
 			},
-			Db: &DB{
+			Db: &modelpb.DB{
 				RowsAffected: uintPtr(5),
 				Instance:     "db_instace",
 				Statement:    "db_statement",
@@ -90,7 +94,7 @@ func fullEvent(t testing.TB) *APMEvent {
 			Id:      "id",
 			Type:    "type",
 			Name:    "name",
-			Stacktrace: []*StacktraceFrame{
+			Stacktrace: []*modelpb.StacktraceFrame{
 				{
 					Vars:           randomKvPb(t),
 					Lineno:         uintPtr(1),
@@ -102,7 +106,7 @@ func fullEvent(t testing.TB) *APMEvent {
 					Function:       "frame_function",
 					AbsPath:        "frame_abspath",
 					SourcemapError: "frame_sourcemaperror",
-					Original: &Original{
+					Original: &modelpb.Original{
 						AbsPath:      "orig_abspath",
 						Filename:     "orig_filename",
 						Classname:    "orig_classname",
@@ -118,26 +122,26 @@ func fullEvent(t testing.TB) *APMEvent {
 					ExcludeFromGrouping: true,
 				},
 			},
-			Links: []*SpanLink{
+			Links: []*modelpb.SpanLink{
 				{
 					TraceId: "trace_id",
 					SpanId:  "id1",
 				},
 			},
-			SelfTime: &AggregatedDuration{
+			SelfTime: &modelpb.AggregatedDuration{
 				Count: 6,
 				Sum:   durationpb.New(7 * time.Second),
 			},
 			RepresentativeCount: 8,
 		},
-		NumericLabels: map[string]*NumericLabelValue{
+		NumericLabels: map[string]*modelpb.NumericLabelValue{
 			"foo": {
 				Values: []float64{1, 2, 3},
 				Value:  1,
 				Global: true,
 			},
 		},
-		Labels: map[string]*LabelValue{
+		Labels: map[string]*modelpb.LabelValue{
 			"bar": {
 				Value:  "a",
 				Values: []string{"a", "b", "c"},
@@ -145,16 +149,16 @@ func fullEvent(t testing.TB) *APMEvent {
 			},
 		},
 		Message: "message",
-		Transaction: &Transaction{
-			SpanCount: &SpanCount{
+		Transaction: &modelpb.Transaction{
+			SpanCount: &modelpb.SpanCount{
 				Started: uintPtr(1),
 				Dropped: uintPtr(2),
 			},
-			UserExperience: &UserExperience{
+			UserExperience: &modelpb.UserExperience{
 				CumulativeLayoutShift: 1,
 				FirstInputDelay:       2,
 				TotalBlockingTime:     3,
-				LongTask: &LongtaskMetrics{
+				LongTask: &modelpb.LongtaskMetrics{
 					Count: 4,
 					Sum:   5,
 					Max:   6,
@@ -162,16 +166,16 @@ func fullEvent(t testing.TB) *APMEvent {
 			},
 			// TODO investigat valid values
 			Custom: nil,
-			Marks: map[string]*TransactionMark{
+			Marks: map[string]*modelpb.TransactionMark{
 				"foo": {
 					Measurements: map[string]float64{
 						"bar": 3,
 					},
 				},
 			},
-			Message: &Message{
+			Message: &modelpb.Message{
 				Body: "body",
-				Headers: []*common.HTTPHeader{
+				Headers: []*modelpb.HTTPHeader{
 					{
 						Key:   "foo",
 						Value: []string{"bar"},
@@ -185,23 +189,23 @@ func fullEvent(t testing.TB) *APMEvent {
 			Name:   "name",
 			Result: "result",
 			Id:     "id",
-			DurationHistogram: &Histogram{
+			DurationHistogram: &modelpb.Histogram{
 				Values: []float64{4},
 				Counts: []int64{5},
 			},
-			DroppedSpansStats: []*DroppedSpanStats{
+			DroppedSpansStats: []*modelpb.DroppedSpanStats{
 				{
 					DestinationServiceResource: "destinationserviceresource",
 					ServiceTargetType:          "servicetargetype",
 					ServiceTargetName:          "servicetargetname",
 					Outcome:                    "outcome",
-					Duration: &AggregatedDuration{
+					Duration: &modelpb.AggregatedDuration{
 						Count: 4,
 						Sum:   durationpb.New(5 * time.Second),
 					},
 				},
 			},
-			DurationSummary: &SummaryMetric{
+			DurationSummary: &modelpb.SummaryMetric{
 				Count: 6,
 				Sum:   7,
 			},
@@ -209,19 +213,19 @@ func fullEvent(t testing.TB) *APMEvent {
 			Sampled:             true,
 			Root:                true,
 		},
-		Metricset: &Metricset{
+		Metricset: &modelpb.Metricset{
 			Name:     "name",
 			Interval: "interval",
-			Samples: []*MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
-					Type: MetricType_METRIC_TYPE_COUNTER,
+					Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
 					Name: "name",
 					Unit: "unit",
-					Histogram: &Histogram{
+					Histogram: &modelpb.Histogram{
 						Values: []float64{1},
 						Counts: []int64{2},
 					},
-					Summary: &SummaryMetric{
+					Summary: &modelpb.SummaryMetric{
 						Count: 3,
 						Sum:   4,
 					},
@@ -230,15 +234,15 @@ func fullEvent(t testing.TB) *APMEvent {
 			},
 			DocCount: 1,
 		},
-		Error: &Error{
-			Exception: &Exception{
+		Error: &modelpb.Error{
+			Exception: &modelpb.Exception{
 				Message:    "ex_message",
 				Module:     "ex_module",
 				Code:       "ex_code",
 				Attributes: randomKvPb(t),
 				Type:       "ex_type",
 				Handled:    boolPtr(true),
-				Cause: []*Exception{
+				Cause: []*modelpb.Exception{
 					{
 						Message: "ex1_message",
 						Module:  "ex1_module",
@@ -247,7 +251,7 @@ func fullEvent(t testing.TB) *APMEvent {
 					},
 				},
 			},
-			Log: &ErrorLog{
+			Log: &modelpb.ErrorLog{
 				Message:      "log_message",
 				Level:        "log_level",
 				ParamMessage: "log_parammessage",
@@ -260,8 +264,8 @@ func fullEvent(t testing.TB) *APMEvent {
 			Message:     "message",
 			Type:        "type",
 		},
-		Cloud: &Cloud{
-			Origin: &CloudOrigin{
+		Cloud: &modelpb.Cloud{
+			Origin: &modelpb.CloudOrigin{
 				AccountId:   "origin_accountid",
 				Provider:    "origin_provider",
 				Region:      "origin_region",
@@ -279,36 +283,36 @@ func fullEvent(t testing.TB) *APMEvent {
 			Region:           "region",
 			ServiceName:      "servicename",
 		},
-		Service: &Service{
-			Origin: &ServiceOrigin{
+		Service: &modelpb.Service{
+			Origin: &modelpb.ServiceOrigin{
 				Id:      "origin_id",
 				Name:    "origin_name",
 				Version: "origin_version",
 			},
-			Target: &ServiceTarget{
+			Target: &modelpb.ServiceTarget{
 				Name: "target_name",
 				Type: "target_type",
 			},
-			Language: &Language{
+			Language: &modelpb.Language{
 				Name:    "language_name",
 				Version: "language_version",
 			},
-			Runtime: &Runtime{
+			Runtime: &modelpb.Runtime{
 				Name:    "runtime_name",
 				Version: "runtime_version",
 			},
-			Framework: &Framework{
+			Framework: &modelpb.Framework{
 				Name:    "framework_name",
 				Version: "framework_version",
 			},
 			Name:        "name",
 			Version:     "version",
 			Environment: "environment",
-			Node: &ServiceNode{
+			Node: &modelpb.ServiceNode{
 				Name: "node_name",
 			},
 		},
-		Faas: &Faas{
+		Faas: &modelpb.Faas{
 			Id:               "id",
 			ColdStart:        boolPtr(true),
 			Execution:        "execution",
@@ -317,64 +321,64 @@ func fullEvent(t testing.TB) *APMEvent {
 			Name:             "name",
 			Version:          "version",
 		},
-		Network: &Network{
-			Connection: &NetworkConnection{
+		Network: &modelpb.Network{
+			Connection: &modelpb.NetworkConnection{
 				Type:    "type",
 				Subtype: "subtype",
 			},
-			Carrier: &NetworkCarrier{
+			Carrier: &modelpb.NetworkCarrier{
 				Name: "name",
 				Mcc:  "mcc",
 				Mnc:  "mnc",
 				Icc:  "icc",
 			},
 		},
-		Container: &Container{
+		Container: &modelpb.Container{
 			Id:        "id",
 			Name:      "name",
 			Runtime:   "runtime",
 			ImageName: "imagename",
 			ImageTag:  "imagetag",
 		},
-		User: &User{
+		User: &modelpb.User{
 			Domain: "domain",
 			Id:     "id",
 			Email:  "email",
 			Name:   "name",
 		},
-		Device: &Device{
+		Device: &modelpb.Device{
 			Id: "id",
-			Model: &DeviceModel{
+			Model: &modelpb.DeviceModel{
 				Name:       "name",
 				Identifier: "identifier",
 			},
 			Manufacturer: "manufacturer",
 		},
-		Kubernetes: &Kubernetes{
+		Kubernetes: &modelpb.Kubernetes{
 			Namespace: "namespace",
 			NodeName:  "nodename",
 			PodName:   "podname",
 			PodUid:    "poduid",
 		},
-		Observer: &Observer{
+		Observer: &modelpb.Observer{
 			Hostname: "hostname",
 			Name:     "name",
 			Type:     "type",
 			Version:  "version",
 		},
-		DataStream: &DataStream{
+		DataStream: &modelpb.DataStream{
 			Type:      "type",
 			Dataset:   "dataset",
 			Namespace: "namespace",
 		},
-		Agent: &Agent{
+		Agent: &modelpb.Agent{
 			Name:             "name",
 			Version:          "version",
 			EphemeralId:      "ephemeralid",
 			ActivationMethod: "activationmethod",
 		},
-		Http: &HTTP{
-			Request: &HTTPRequest{
+		Http: &modelpb.HTTP{
+			Request: &modelpb.HTTPRequest{
 				Headers:  randomHTTPHeaders(t),
 				Env:      randomKvPb(t),
 				Cookies:  randomKvPb(t),
@@ -382,7 +386,7 @@ func fullEvent(t testing.TB) *APMEvent {
 				Method:   "method",
 				Referrer: "referrer",
 			},
-			Response: &HTTPResponse{
+			Response: &modelpb.HTTPResponse{
 				Headers:         randomHTTPHeaders(t),
 				Finished:        boolPtr(true),
 				HeadersSent:     boolPtr(true),
@@ -393,16 +397,16 @@ func fullEvent(t testing.TB) *APMEvent {
 			},
 			Version: "version",
 		},
-		UserAgent: &UserAgent{
+		UserAgent: &modelpb.UserAgent{
 			Original: "original",
 			Name:     "name",
 		},
 		ParentId: "id",
-		Trace: &Trace{
+		Trace: &modelpb.Trace{
 			Id: "id",
 		},
-		Host: &Host{
-			Os: &OS{
+		Host: &modelpb.Host{
+			Os: &modelpb.OS{
 				Name:     "name",
 				Version:  "version",
 				Platform: "platform",
@@ -414,11 +418,11 @@ func fullEvent(t testing.TB) *APMEvent {
 			Id:           "id",
 			Architecture: "architecture",
 			Type:         "type",
-			Ip: []*IP{
+			Ip: []*modelpb.IP{
 				MustParseIP("127.0.0.1"),
 			},
 		},
-		Url: &URL{
+		Url: &modelpb.URL{
 			Original: "original",
 			Scheme:   "scheme",
 			Full:     "full",
@@ -428,42 +432,42 @@ func fullEvent(t testing.TB) *APMEvent {
 			Fragment: "fragment",
 			Port:     443,
 		},
-		Log: &Log{
+		Log: &modelpb.Log{
 			Level:  "level",
 			Logger: "logger",
-			Origin: &LogOrigin{
+			Origin: &modelpb.LogOrigin{
 				FunctionName: "functionname",
-				File: &LogOriginFile{
+				File: &modelpb.LogOriginFile{
 					Name: "name",
 					Line: 1,
 				},
 			},
 		},
-		Source: &Source{
+		Source: &modelpb.Source{
 			Ip: MustParseIP("127.0.0.1"),
-			Nat: &NAT{
+			Nat: &modelpb.NAT{
 				Ip: MustParseIP("127.0.0.2"),
 			},
 			Domain: "domain",
 			Port:   443,
 		},
-		Client: &Client{
+		Client: &modelpb.Client{
 			Ip:     MustParseIP("127.0.0.1"),
 			Domain: "example.com",
 			Port:   443,
 		},
 		ChildIds: []string{"id"},
-		Destination: &Destination{
+		Destination: &modelpb.Destination{
 			Address: "127.0.0.1",
 			Port:    443,
 		},
-		Session: &Session{
+		Session: &modelpb.Session{
 			Id:       "id",
 			Sequence: 1,
 		},
-		Process: &Process{
+		Process: &modelpb.Process{
 			Ppid: 1,
-			Thread: &ProcessThread{
+			Thread: &modelpb.ProcessThread{
 				Name: "name",
 				Id:   2,
 			},
@@ -473,14 +477,14 @@ func fullEvent(t testing.TB) *APMEvent {
 			Argv:        []string{"argv"},
 			Pid:         3,
 		},
-		Event: &Event{
+		Event: &modelpb.Event{
 			Outcome:  "outcome",
 			Action:   "action",
 			Dataset:  "dataset",
 			Kind:     "kind",
 			Category: "category",
 			Type:     "type",
-			SuccessCount: &SummaryMetric{
+			SuccessCount: &modelpb.SummaryMetric{
 				Count: 1,
 				Sum:   2,
 			},

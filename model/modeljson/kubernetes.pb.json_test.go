@@ -20,22 +20,23 @@ package modeljson
 import (
 	"testing"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 )
 
 func TestKubernetesToModelJSON(t *testing.T) {
 	testCases := map[string]struct {
-		proto    *Kubernetes
+		proto    *modelpb.Kubernetes
 		expected *modeljson.Kubernetes
 	}{
 		"empty": {
-			proto:    &Kubernetes{},
+			proto:    &modelpb.Kubernetes{},
 			expected: &modeljson.Kubernetes{},
 		},
 		"full": {
-			proto: &Kubernetes{
+			proto: &modelpb.Kubernetes{
 				Namespace: "namespace",
 				NodeName:  "nodename",
 				PodName:   "podname",
@@ -56,7 +57,7 @@ func TestKubernetesToModelJSON(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			var out modeljson.Kubernetes
-			tc.proto.toModelJSON(&out)
+			KubernetesModelJSON(tc.proto, &out)
 			diff := cmp.Diff(*tc.expected, out)
 			require.Empty(t, diff)
 		})

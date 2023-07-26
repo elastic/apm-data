@@ -18,10 +18,11 @@
 package modeljson
 
 import (
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
-func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
+func TransactionModelJSON(e *modelpb.Transaction, out *modeljson.Transaction, metricset bool) {
 	*out = modeljson.Transaction{
 		ID:                  e.Id,
 		Type:                e.Type,
@@ -50,12 +51,12 @@ func (e *Transaction) toModelJSON(out *modeljson.Transaction, metricset bool) {
 	}
 	if e.Message != nil {
 		var message modeljson.Message
-		e.Message.toModelJSON(&message)
+		MessageModelJSON(e.Message, &message)
 		out.Message = &message
 	}
 	if e.UserExperience != nil {
 		var userExperience modeljson.UserExperience
-		e.UserExperience.toModelJSON(&userExperience)
+		UserExperienceModelJSON(e.UserExperience, &userExperience)
 		out.UserExperience = &userExperience
 	}
 	if metricset {

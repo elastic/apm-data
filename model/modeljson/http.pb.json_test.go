@@ -20,7 +20,8 @@ package modeljson
 import (
 	"testing"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -34,16 +35,16 @@ func TestHTTPToModelJSON(t *testing.T) {
 	tru := true
 
 	testCases := map[string]struct {
-		proto    *HTTP
+		proto    *modelpb.HTTP
 		expected *modeljson.HTTP
 	}{
 		"empty": {
-			proto:    &HTTP{},
+			proto:    &modelpb.HTTP{},
 			expected: &modeljson.HTTP{},
 		},
 		"request": {
-			proto: &HTTP{
-				Request: &HTTPRequest{
+			proto: &modelpb.HTTP{
+				Request: &modelpb.HTTPRequest{
 					Headers:  headers,
 					Env:      envs,
 					Cookies:  cookies,
@@ -64,8 +65,8 @@ func TestHTTPToModelJSON(t *testing.T) {
 			},
 		},
 		"response": {
-			proto: &HTTP{
-				Response: &HTTPResponse{
+			proto: &modelpb.HTTP{
+				Response: &modelpb.HTTPResponse{
 					Headers:         headers2,
 					Finished:        &tru,
 					HeadersSent:     &tru,
@@ -88,13 +89,13 @@ func TestHTTPToModelJSON(t *testing.T) {
 			},
 		},
 		"no pointers": {
-			proto: &HTTP{
-				Request: &HTTPRequest{
+			proto: &modelpb.HTTP{
+				Request: &modelpb.HTTPRequest{
 					Id:       "id",
 					Method:   "method",
 					Referrer: "referrer",
 				},
-				Response: &HTTPResponse{
+				Response: &modelpb.HTTPResponse{
 					StatusCode: 200,
 				},
 				Version: "version",
@@ -112,8 +113,8 @@ func TestHTTPToModelJSON(t *testing.T) {
 			},
 		},
 		"full": {
-			proto: &HTTP{
-				Request: &HTTPRequest{
+			proto: &modelpb.HTTP{
+				Request: &modelpb.HTTPRequest{
 					Headers:  headers,
 					Env:      envs,
 					Cookies:  cookies,
@@ -121,7 +122,7 @@ func TestHTTPToModelJSON(t *testing.T) {
 					Method:   "method",
 					Referrer: "referrer",
 				},
-				Response: &HTTPResponse{
+				Response: &modelpb.HTTPResponse{
 					Headers:         headers2,
 					Finished:        &tru,
 					HeadersSent:     &tru,
@@ -160,7 +161,7 @@ func TestHTTPToModelJSON(t *testing.T) {
 				Request:  &modeljson.HTTPRequest{},
 				Response: &modeljson.HTTPResponse{},
 			}
-			tc.proto.toModelJSON(&out)
+			HTTPModelJSON(tc.proto, &out)
 			diff := cmp.Diff(*tc.expected, out, protocmp.Transform())
 			require.Empty(t, diff)
 		})

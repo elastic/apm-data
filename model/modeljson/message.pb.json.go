@@ -17,9 +17,12 @@
 
 package modeljson
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
+)
 
-func (m *Message) toModelJSON(out *modeljson.Message) {
+func MessageModelJSON(m *modelpb.Message, out *modeljson.Message) {
 	*out = modeljson.Message{
 		Body:       m.Body,
 		Age:        modeljson.MessageAge{Millis: m.AgeMillis},

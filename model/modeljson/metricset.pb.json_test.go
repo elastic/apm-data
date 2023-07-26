@@ -20,34 +20,35 @@ package modeljson
 import (
 	"testing"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 )
 
 func TestMetricsetToModelJSON(t *testing.T) {
 	testCases := map[string]struct {
-		proto    *Metricset
+		proto    *modelpb.Metricset
 		expected *modeljson.Metricset
 	}{
 		"empty": {
-			proto:    &Metricset{},
+			proto:    &modelpb.Metricset{},
 			expected: &modeljson.Metricset{},
 		},
 		"full": {
-			proto: &Metricset{
+			proto: &modelpb.Metricset{
 				Name:     "name",
 				Interval: "interval",
-				Samples: []*MetricsetSample{
+				Samples: []*modelpb.MetricsetSample{
 					{
-						Type: MetricType_METRIC_TYPE_COUNTER,
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
 						Name: "name",
 						Unit: "unit",
-						Histogram: &Histogram{
+						Histogram: &modelpb.Histogram{
 							Values: []float64{1},
 							Counts: []int64{2},
 						},
-						Summary: &SummaryMetric{
+						Summary: &modelpb.SummaryMetric{
 							Count: 3,
 							Sum:   4,
 						},
@@ -81,7 +82,7 @@ func TestMetricsetToModelJSON(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			var out modeljson.Metricset
-			tc.proto.toModelJSON(&out)
+			MetricsetModelJSON(tc.proto, &out)
 			diff := cmp.Diff(*tc.expected, out)
 			require.Empty(t, diff)
 		})

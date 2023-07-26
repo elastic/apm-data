@@ -18,11 +18,11 @@
 package modeljson
 
 import (
-	"github.com/elastic/apm-data/model/common"
+	"github.com/elastic/apm-data/model/modelpb"
 	"go.elastic.co/fastjson"
 )
 
-type KeyValueSlice []*common.KeyValue
+type KeyValueSlice []*modelpb.KeyValue
 
 func (s *KeyValueSlice) MarshalFastJSON(w *fastjson.Writer) error {
 	var firstErr error

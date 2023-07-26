@@ -17,9 +17,12 @@
 
 package modeljson
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
+)
 
-func (u *UserExperience) toModelJSON(out *modeljson.UserExperience) {
+func UserExperienceModelJSON(u *modelpb.UserExperience, out *modeljson.UserExperience) {
 	*out = modeljson.UserExperience{
 		CumulativeLayoutShift: u.CumulativeLayoutShift,
 		FirstInputDelay:       u.FirstInputDelay,

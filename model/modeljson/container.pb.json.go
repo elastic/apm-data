@@ -17,9 +17,12 @@
 
 package modeljson
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
+)
 
-func (c *Container) toModelJSON(out *modeljson.Container) {
+func ContainerModelJSON(c *modelpb.Container, out *modeljson.Container) {
 	*out = modeljson.Container{
 		ID:      c.Id,
 		Name:    c.Name,

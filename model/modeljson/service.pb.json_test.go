@@ -20,22 +20,23 @@ package modeljson
 import (
 	"testing"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 )
 
 func TestServiceToModelJSON(t *testing.T) {
 	testCases := map[string]struct {
-		proto    *Service
+		proto    *modelpb.Service
 		expected *modeljson.Service
 	}{
 		"empty": {
-			proto:    &Service{},
+			proto:    &modelpb.Service{},
 			expected: &modeljson.Service{},
 		},
 		"no pointers": {
-			proto: &Service{
+			proto: &modelpb.Service{
 				Name:        "name",
 				Version:     "version",
 				Environment: "environment",
@@ -47,32 +48,32 @@ func TestServiceToModelJSON(t *testing.T) {
 			},
 		},
 		"full": {
-			proto: &Service{
-				Origin: &ServiceOrigin{
+			proto: &modelpb.Service{
+				Origin: &modelpb.ServiceOrigin{
 					Id:      "origin_id",
 					Name:    "origin_name",
 					Version: "origin_version",
 				},
-				Target: &ServiceTarget{
+				Target: &modelpb.ServiceTarget{
 					Name: "target_name",
 					Type: "target_type",
 				},
-				Language: &Language{
+				Language: &modelpb.Language{
 					Name:    "language_name",
 					Version: "language_version",
 				},
-				Runtime: &Runtime{
+				Runtime: &modelpb.Runtime{
 					Name:    "runtime_name",
 					Version: "runtime_version",
 				},
-				Framework: &Framework{
+				Framework: &modelpb.Framework{
 					Name:    "framework_name",
 					Version: "framework_version",
 				},
 				Name:        "name",
 				Version:     "version",
 				Environment: "environment",
-				Node: &ServiceNode{
+				Node: &modelpb.ServiceNode{
 					Name: "node_name",
 				},
 			},
@@ -117,7 +118,7 @@ func TestServiceToModelJSON(t *testing.T) {
 				Origin:    &modeljson.ServiceOrigin{},
 				Target:    &modeljson.ServiceTarget{},
 			}
-			tc.proto.toModelJSON(&out)
+			ServiceModelJSON(tc.proto, &out)
 			diff := cmp.Diff(*tc.expected, out)
 			require.Empty(t, diff)
 		})

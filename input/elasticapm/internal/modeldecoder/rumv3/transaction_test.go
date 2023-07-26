@@ -33,7 +33,7 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
-	"github.com/elastic/apm-data/model/common"
+	"github.com/elastic/apm-data/model/modeljson"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -152,7 +152,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 }
 
 func TestDecodeMapToTransactionModel(t *testing.T) {
-	localhostIP := modelpb.MustParseIP("127.0.0.1")
+	localhostIP := modeljson.MustParseIP("127.0.0.1")
 
 	t.Run("metadata-overwrite", func(t *testing.T) {
 		// overwrite defined metadata with transaction metadata values
@@ -359,7 +359,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
 		var out modelpb.APMEvent
 		mapToTransactionModel(&input, &out)
-		assert.Empty(t, cmp.Diff([]*common.HTTPHeader{
+		assert.Empty(t, cmp.Diff([]*modelpb.HTTPHeader{
 			{
 				Key:   "a",
 				Value: []string{"b"},
@@ -369,12 +369,12 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				Value: []string{"d", "e"},
 			},
 		}, out.Http.Request.Headers,
-			cmpopts.SortSlices(func(x, y *common.HTTPHeader) bool {
+			cmpopts.SortSlices(func(x, y *modelpb.HTTPHeader) bool {
 				return x.Key < y.Key
 			}),
 			protocmp.Transform(),
 		))
-		assert.Equal(t, []*common.HTTPHeader{
+		assert.Equal(t, []*modelpb.HTTPHeader{
 			{
 				Key:   "f",
 				Value: []string{"g"},

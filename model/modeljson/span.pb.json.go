@@ -20,15 +20,16 @@ package modeljson
 import (
 	"time"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
-var compressionStrategyText = map[CompressionStrategy]string{
-	CompressionStrategy_COMPRESSION_STRATEGY_EXACT_MATCH: "exact_match",
-	CompressionStrategy_COMPRESSION_STRATEGY_SAME_KIND:   "same_kind",
+var compressionStrategyText = map[modelpb.CompressionStrategy]string{
+	modelpb.CompressionStrategy_COMPRESSION_STRATEGY_EXACT_MATCH: "exact_match",
+	modelpb.CompressionStrategy_COMPRESSION_STRATEGY_SAME_KIND:   "same_kind",
 }
 
-func (db *DB) toModelJSON(out *modeljson.DB) {
+func DBModelJSON(db *modelpb.DB, out *modeljson.DB) {
 	*out = modeljson.DB{
 		Instance:     db.Instance,
 		Statement:    db.Statement,
@@ -39,7 +40,7 @@ func (db *DB) toModelJSON(out *modeljson.DB) {
 	}
 }
 
-func (c *Composite) toModelJSON(out *modeljson.SpanComposite) {
+func CompositeModelJSON(c *modelpb.Composite, out *modeljson.SpanComposite) {
 	sumDuration := time.Duration(c.Sum * float64(time.Millisecond))
 	*out = modeljson.SpanComposite{
 		CompressionStrategy: compressionStrategyText[c.CompressionStrategy],
@@ -48,7 +49,7 @@ func (c *Composite) toModelJSON(out *modeljson.SpanComposite) {
 	}
 }
 
-func (e *Span) toModelJSON(out *modeljson.Span) {
+func SpanModelJSON(e *modelpb.Span, out *modeljson.Span) {
 	*out = modeljson.Span{
 		ID:                  e.Id,
 		Name:                e.Name,
@@ -67,15 +68,15 @@ func (e *Span) toModelJSON(out *modeljson.Span) {
 	}
 	if e.Db != nil {
 		out.DB = &modeljson.DB{}
-		e.Db.toModelJSON(out.DB)
+		DBModelJSON(e.Db, out.DB)
 	}
 	if e.Message != nil {
 		out.Message = &modeljson.Message{}
-		e.Message.toModelJSON(out.Message)
+		MessageModelJSON(e.Message, out.Message)
 	}
 	if e.Composite != nil {
 		out.Composite = &modeljson.SpanComposite{}
-		e.Composite.toModelJSON(out.Composite)
+		CompositeModelJSON(e.Composite, out.Composite)
 	}
 	if e.DestinationService != nil {
 		out.Destination = &modeljson.SpanDestination{
@@ -104,7 +105,7 @@ func (e *Span) toModelJSON(out *modeljson.Span) {
 	if n := len(e.Stacktrace); n > 0 {
 		out.Stacktrace = make([]modeljson.StacktraceFrame, n)
 		for i, frame := range e.Stacktrace {
-			frame.toModelJSON(&out.Stacktrace[i])
+			StacktraceFrameModelJSON(frame, &out.Stacktrace[i])
 		}
 	}
 }

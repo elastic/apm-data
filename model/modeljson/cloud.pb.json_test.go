@@ -20,22 +20,23 @@ package modeljson
 import (
 	"testing"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCloudToModelJSON(t *testing.T) {
 	testCases := map[string]struct {
-		proto    *Cloud
+		proto    *modelpb.Cloud
 		expected *modeljson.Cloud
 	}{
 		"empty": {
-			proto:    &Cloud{},
+			proto:    &modelpb.Cloud{},
 			expected: &modeljson.Cloud{},
 		},
 		"no pointers": {
-			proto: &Cloud{
+			proto: &modelpb.Cloud{
 				AccountId:        "accountid",
 				AccountName:      "accountname",
 				AvailabilityZone: "availabilityzone",
@@ -73,8 +74,8 @@ func TestCloudToModelJSON(t *testing.T) {
 			},
 		},
 		"full": {
-			proto: &Cloud{
-				Origin: &CloudOrigin{
+			proto: &modelpb.Cloud{
+				Origin: &modelpb.CloudOrigin{
 					AccountId:   "origin_accountid",
 					Provider:    "origin_provider",
 					Region:      "origin_region",
@@ -133,7 +134,7 @@ func TestCloudToModelJSON(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			var out modeljson.Cloud
-			tc.proto.toModelJSON(&out)
+			CloudModelJSON(tc.proto, &out)
 			diff := cmp.Diff(*tc.expected, out)
 			require.Empty(t, diff)
 		})

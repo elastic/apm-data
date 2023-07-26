@@ -18,10 +18,11 @@
 package modeljson
 
 import (
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
-func (h *HTTP) toModelJSON(out *modeljson.HTTP) {
+func HTTPModelJSON(h *modelpb.HTTP, out *modeljson.HTTP) {
 	*out = modeljson.HTTP{
 		Version: h.Version,
 	}

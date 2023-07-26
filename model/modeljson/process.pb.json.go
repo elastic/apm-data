@@ -17,9 +17,12 @@
 
 package modeljson
 
-import "github.com/elastic/apm-data/model/internal/modeljson"
+import (
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
+)
 
-func (p *Process) toModelJSON(out *modeljson.Process) {
+func ProcessModelJSON(p *modelpb.Process, out *modeljson.Process) {
 	*out = modeljson.Process{
 		Pid:         int(p.Pid),
 		Title:       p.Title,

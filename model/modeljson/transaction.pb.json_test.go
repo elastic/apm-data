@@ -21,7 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -29,17 +30,17 @@ import (
 
 func TestTransactionToModelJSON(t *testing.T) {
 	testCases := map[string]struct {
-		proto               *Transaction
+		proto               *modelpb.Transaction
 		expectedNoMetricset *modeljson.Transaction
 		expectedMetricset   *modeljson.Transaction
 	}{
 		"empty": {
-			proto:               &Transaction{},
+			proto:               &modelpb.Transaction{},
 			expectedNoMetricset: &modeljson.Transaction{},
 			expectedMetricset:   &modeljson.Transaction{},
 		},
 		"no pointers": {
-			proto: &Transaction{
+			proto: &modelpb.Transaction{
 				Type:                "type",
 				Name:                "name",
 				Result:              "result",
@@ -68,14 +69,14 @@ func TestTransactionToModelJSON(t *testing.T) {
 			},
 		},
 		"full": {
-			proto: &Transaction{
-				SpanCount: &SpanCount{
+			proto: &modelpb.Transaction{
+				SpanCount: &modelpb.SpanCount{
 					Started: uintPtr(1),
 					Dropped: uintPtr(2),
 				},
 				// TODO investigat valid values
 				Custom: nil,
-				Marks: map[string]*TransactionMark{
+				Marks: map[string]*modelpb.TransactionMark{
 					"foo": {
 						Measurements: map[string]float64{
 							"bar": 3,
@@ -86,23 +87,23 @@ func TestTransactionToModelJSON(t *testing.T) {
 				Name:   "name",
 				Result: "result",
 				Id:     "id",
-				DurationHistogram: &Histogram{
+				DurationHistogram: &modelpb.Histogram{
 					Values: []float64{4},
 					Counts: []int64{5},
 				},
-				DroppedSpansStats: []*DroppedSpanStats{
+				DroppedSpansStats: []*modelpb.DroppedSpanStats{
 					{
 						DestinationServiceResource: "destinationserviceresource",
 						ServiceTargetType:          "servicetargetype",
 						ServiceTargetName:          "servicetargetname",
 						Outcome:                    "outcome",
-						Duration: &AggregatedDuration{
+						Duration: &modelpb.AggregatedDuration{
 							Count: 4,
 							Sum:   durationpb.New(5 * time.Second),
 						},
 					},
 				},
-				DurationSummary: &SummaryMetric{
+				DurationSummary: &modelpb.SummaryMetric{
 					Count: 6,
 					Sum:   7,
 				},
@@ -183,11 +184,11 @@ func TestTransactionToModelJSON(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			var out modeljson.Transaction
-			tc.proto.toModelJSON(&out, false)
+			TransactionModelJSON(tc.proto, &out, false)
 			require.Empty(t, cmp.Diff(*tc.expectedNoMetricset, out))
 
 			var out2 modeljson.Transaction
-			tc.proto.toModelJSON(&out2, true)
+			TransactionModelJSON(tc.proto, &out2, true)
 			require.Empty(t, cmp.Diff(*tc.expectedMetricset, out2))
 		})
 	}

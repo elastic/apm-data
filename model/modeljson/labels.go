@@ -15,14 +15,24 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package modelpb
+package modeljson
 
-import "github.com/elastic/apm-data/model/common"
+import "strings"
 
-// updateFields transforms in, returning a copy with sanitized keys,
-// suitable for storing as "custom" in transaction and error documents.
-func updateFields(in []*common.KeyValue) {
-	for _, kv := range in {
-		kv.Key = sanitizeLabelKey(kv.Key)
+// Label keys are sanitized, replacing the reserved characters '.', '*' and '"'
+// with '_'. Null-valued labels are omitted.
+
+func sanitizeLabelKey(k string) string {
+	if strings.ContainsAny(k, ".*\"") {
+		return strings.Map(replaceReservedLabelKeyRune, k)
 	}
+	return k
+}
+
+func replaceReservedLabelKeyRune(r rune) rune {
+	switch r {
+	case '.', '*', '"':
+		return '_'
+	}
+	return r
 }

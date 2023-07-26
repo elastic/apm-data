@@ -20,10 +20,11 @@ package modeljson
 import (
 	"net/netip"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	"github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
-func (d *Destination) toModelJSON(out *modeljson.Destination) {
+func DestinationModelJSON(d *modelpb.Destination, out *modeljson.Destination) {
 	*out = modeljson.Destination{
 		Address: d.Address,
 		Port:    int(d.Port),

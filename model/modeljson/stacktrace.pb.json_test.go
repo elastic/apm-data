@@ -20,7 +20,8 @@ package modeljson
 import (
 	"testing"
 
-	"github.com/elastic/apm-data/model/internal/modeljson"
+	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -30,15 +31,15 @@ func TestStacktraceToModelJSON(t *testing.T) {
 	vars, _ := randomKv(t)
 
 	testCases := map[string]struct {
-		proto    *StacktraceFrame
+		proto    *modelpb.StacktraceFrame
 		expected *modeljson.StacktraceFrame
 	}{
 		"empty": {
-			proto:    &StacktraceFrame{},
+			proto:    &modelpb.StacktraceFrame{},
 			expected: &modeljson.StacktraceFrame{},
 		},
 		"no pointers": {
-			proto: &StacktraceFrame{
+			proto: &modelpb.StacktraceFrame{
 				Filename:       "frame1_filename",
 				Classname:      "frame1_classname",
 				ContextLine:    "frame1_contextline",
@@ -46,7 +47,7 @@ func TestStacktraceToModelJSON(t *testing.T) {
 				Function:       "frame1_function",
 				AbsPath:        "frame1_abspath",
 				SourcemapError: "frame1_sourcemaperror",
-				Original: &Original{
+				Original: &modelpb.Original{
 					AbsPath:      "orig1_abspath",
 					Filename:     "orig1_filename",
 					Classname:    "orig1_classname",
@@ -82,7 +83,7 @@ func TestStacktraceToModelJSON(t *testing.T) {
 			},
 		},
 		"full": {
-			proto: &StacktraceFrame{
+			proto: &modelpb.StacktraceFrame{
 				Vars:           vars,
 				Lineno:         uintPtr(1),
 				Colno:          uintPtr(2),
@@ -93,7 +94,7 @@ func TestStacktraceToModelJSON(t *testing.T) {
 				Function:       "frame_function",
 				AbsPath:        "frame_abspath",
 				SourcemapError: "frame_sourcemaperror",
-				Original: &Original{
+				Original: &modelpb.Original{
 					AbsPath:      "orig_abspath",
 					Filename:     "orig_filename",
 					Classname:    "orig_classname",
@@ -146,7 +147,7 @@ func TestStacktraceToModelJSON(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			var out modeljson.StacktraceFrame
-			tc.proto.toModelJSON(&out)
+			StacktraceFrameModelJSON(tc.proto, &out)
 			diff := cmp.Diff(*tc.expected, out, protocmp.Transform())
 			require.Empty(t, diff)
 		})
