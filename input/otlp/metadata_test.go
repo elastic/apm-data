@@ -296,6 +296,7 @@ func transformResourceMetadata(t *testing.T, resourceAttrs map[string]interface{
 	otelSpan.SetSpanID(pcommon.SpanID{2})
 	events := transformTraces(t, traces)
 	(*events)[0].Transaction = nil
+	(*events)[0].Span = nil
 	(*events)[0].Trace = nil
 	(*events)[0].Event = nil
 	(*events)[0].Timestamp = nil

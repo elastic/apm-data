@@ -173,6 +173,12 @@ func (c *Consumer) convertSpan(
 			Sampled:             true,
 			RepresentativeCount: representativeCount,
 		}
+		if spanID != "" {
+			event.Span = &modelpb.Span{
+				Id: spanID,
+			}
+		}
+
 		TranslateTransaction(otelSpan.Attributes(), otelSpan.Status(), otelLibrary, event)
 	} else {
 		event.Span = &modelpb.Span{
@@ -1012,6 +1018,9 @@ func setErrorContext(out *modelpb.APMEvent, parent *modelpb.APMEvent) {
 			Sampled: parent.Transaction.Sampled,
 			Type:    parent.Transaction.Type,
 		}
+		out.Span = &modelpb.Span{
+			Id: parent.Transaction.Id,
+		}
 		out.Error.Custom = parent.Transaction.Custom
 		out.ParentId = parent.Transaction.Id
 	}
@@ -1023,6 +1032,9 @@ func setErrorContext(out *modelpb.APMEvent, parent *modelpb.APMEvent) {
 func setLogContext(out *modelpb.APMEvent, parent *modelpb.APMEvent) {
 	if parent.Transaction != nil {
 		out.Transaction = &modelpb.Transaction{
+			Id: parent.Transaction.Id,
+		}
+		out.Span = &modelpb.Span{
 			Id: parent.Transaction.Id,
 		}
 	}

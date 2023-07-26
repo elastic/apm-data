@@ -482,6 +482,9 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 	}
 	if from.TransactionID.IsSet() {
 		event.Transaction.Id = from.TransactionID.Val
+		event.Span = &modelpb.Span{
+			Id: from.TransactionID.Val,
+		}
 	}
 	if from.Transaction.IsSet() {
 		if from.Transaction.Sampled.IsSet() {
@@ -1341,6 +1344,9 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	}
 	if from.ID.IsSet() {
 		out.Id = from.ID.Val
+		event.Span = &modelpb.Span{
+			Id: from.ID.Val,
+		}
 	}
 	if from.Marks.IsSet() {
 		out.Marks = make(map[string]*modelpb.TransactionMark, len(from.Marks.Events))
@@ -1470,6 +1476,9 @@ func mapToLogModel(from *log, event *modelpb.APMEvent) {
 	}
 	if from.TransactionID.IsSet() {
 		event.Transaction = &modelpb.Transaction{
+			Id: from.TransactionID.Val,
+		}
+		event.Span = &modelpb.Span{
 			Id: from.TransactionID.Val,
 		}
 	}

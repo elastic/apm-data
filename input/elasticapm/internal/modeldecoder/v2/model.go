@@ -979,7 +979,7 @@ type log struct {
 	TraceID nullable.String `json:"trace.id" validate:"maxLength=1024"`
 	// TransactionID holds the ID of the correlated transaction.
 	TransactionID nullable.String `json:"transaction.id" validate:"maxLength=1024"`
-	// SpanID holds the ID ID of the correlated span.
+	// SpanID holds the ID of the correlated span.
 	SpanID nullable.String `json:"span.id" validate:"maxLength=1024"`
 	// Message logged as part of the log. In case a parameterized message is
 	// captured, Message should contain the same information, but with any placeholders

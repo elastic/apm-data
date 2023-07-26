@@ -231,4 +231,22 @@ func TestDecodeMapToLogModel(t *testing.T) {
 			"float64": {Value: 1.1},
 		}, modelpb.NumericLabels(out.NumericLabels))
 	})
+
+	t.Run("transaction-id", func(t *testing.T) {
+		var input log
+		var out modelpb.APMEvent
+		input.TransactionID.Set("1234")
+		mapToLogModel(&input, &out)
+		assert.Equal(t, "1234", out.Transaction.Id)
+		assert.Equal(t, "1234", out.Span.Id)
+	})
+
+	t.Run("span-id", func(t *testing.T) {
+		var input log
+		var out modelpb.APMEvent
+		input.SpanID.Set("1234")
+		mapToLogModel(&input, &out)
+		assert.Equal(t, "1234", out.Span.Id)
+	})
+
 }

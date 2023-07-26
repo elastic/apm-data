@@ -21,9 +21,18 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+func TestFullEvent(t *testing.T) {
+	event := fullEvent(t)
+	d, err := event.MarshalJSON()
+	require.NoError(t, err)
+	assert.NotNil(t, d)
+}
 
 func BenchmarkAPMEventToJSON(b *testing.B) {
 	event := fullEvent(b)
