@@ -28,6 +28,7 @@ var (
 	nullableTypeFloat64        = fmt.Sprintf("%s.Float64", typPath)
 	nullableTypeHTTPHeader     = fmt.Sprintf("%s.HTTPHeader", typPath)
 	nullableTypeInt            = fmt.Sprintf("%s.Int", typPath)
+	nullableTypeInt64          = fmt.Sprintf("%s.Int64", typPath)
 	nullableTypeInterface      = fmt.Sprintf("%s.Interface", typPath)
 	nullableTypeString         = fmt.Sprintf("%s.String", typPath)
 	nullableTypeTimeMicrosUnix = fmt.Sprintf("%s.TimeMicrosUnix", typPath)

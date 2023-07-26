@@ -100,7 +100,7 @@ func (ms *MetricsetSample) MarshalFastJSON(w *fastjson.Writer) error {
 }
 
 type AggregatedDuration struct {
-	Count int
+	Count int64
 	Sum   time.Duration
 }
 

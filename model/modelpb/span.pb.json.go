@@ -61,7 +61,7 @@ func (e *Span) toModelJSON(out *modeljson.Span) {
 	}
 	if e.SelfTime != nil {
 		out.SelfTime = modeljson.AggregatedDuration{
-			Count: int(e.SelfTime.Count),
+			Count: e.SelfTime.Count,
 			Sum:   e.SelfTime.Sum.AsDuration(),
 		}
 	}
@@ -87,7 +87,7 @@ func (e *Span) toModelJSON(out *modeljson.Span) {
 		}
 		if e.DestinationService.ResponseTime != nil {
 			out.Destination.Service.ResponseTime = modeljson.AggregatedDuration{
-				Count: int(e.DestinationService.ResponseTime.Count),
+				Count: e.DestinationService.ResponseTime.Count,
 				Sum:   e.DestinationService.ResponseTime.Sum.AsDuration(),
 			}
 		}

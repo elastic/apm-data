@@ -350,7 +350,7 @@ if !val.IsSet() {
 		switch f.Type().String() {
 		case nullableTypeString:
 			validation = generateNullableStringValidation
-		case nullableTypeInt:
+		case nullableTypeInt, nullableTypeInt64:
 			validation = generateNullableIntValidation
 		case nullableTypeFloat64:
 			// right now we can reuse the validation rules for int

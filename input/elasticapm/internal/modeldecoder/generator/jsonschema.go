@@ -112,7 +112,7 @@ func (g *JSONSchemaGenerator) generate(st structType, key string, prop *property
 			err = generateJSONPropertyJSONNumber(&info, prop, &childProp)
 		case nullableTypeHTTPHeader:
 			err = generateJSONPropertyHTTPHeader(&info, prop, &childProp)
-		case nullableTypeInt, nullableTypeTimeMicrosUnix:
+		case nullableTypeInt, nullableTypeInt64, nullableTypeTimeMicrosUnix:
 			err = generateJSONPropertyInteger(&info, prop, &childProp)
 		case nullableTypeInterface:
 			err = generateJSONPropertyInterface(&info, prop, &childProp)
