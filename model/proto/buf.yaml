@@ -4,4 +4,3 @@ lint:
     - DEFAULT
   except:
     - PACKAGE_DIRECTORY_MATCH
-    - PACKAGE_SAME_GO_PACKAGE
