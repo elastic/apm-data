@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package codec
+package modeljson
 
 import (
 	"math/rand"
@@ -24,7 +24,7 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/types/known/structpb"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
 func randomKv(t testing.TB) []*modelpb.KeyValue {
@@ -32,7 +32,7 @@ func randomKv(t testing.TB) []*modelpb.KeyValue {
 	require.NoError(t, err)
 
 	kv := []*modelpb.KeyValue{
-		{
+		&modelpb.KeyValue{
 			Key:   t.Name() + ".key." + randString(),
 			Value: value,
 		},

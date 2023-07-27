@@ -15,18 +15,39 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package codec
+package modeljson
 
 import (
 	"testing"
 	"time"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"google.golang.org/protobuf/types/known/durationpb"
+	"github.com/stretchr/testify/require"
+	"go.elastic.co/fastjson"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func fullEvent(t *testing.B) *modelpb.APMEvent {
+func TestFullEvent(t *testing.T) {
+	var w fastjson.Writer
+	event := fullEvent(t)
+	err := MarshalAPMEvent(event, &w)
+	require.NoError(t, err)
+}
+
+func BenchmarkAPMEventToJSON(b *testing.B) {
+	var w fastjson.Writer
+	event := fullEvent(b)
+
+	b.Run("to-json", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			w.Reset()
+			MarshalAPMEvent(event, &w)
+		}
+	})
+}
+
+func fullEvent(t testing.TB) *modelpb.APMEvent {
 	return &modelpb.APMEvent{
 		Timestamp: timestamppb.New(time.Unix(1, 1)),
 		Span: &modelpb.Span{
