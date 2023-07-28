@@ -26,6 +26,7 @@ import (
 	fmt "fmt"
 	io "io"
 	math "math"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -468,6 +469,109 @@ func (m *AggregatedDuration) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+var vtprotoPool_Metricset = sync.Pool{
+	New: func() interface{} {
+		return &Metricset{}
+	},
+}
+
+func (m *Metricset) ResetVT() {
+	for _, mm := range m.Samples {
+		mm.ResetVT()
+	}
+	m.Reset()
+}
+func (m *Metricset) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_Metricset.Put(m)
+	}
+}
+func MetricsetFromVTPool() *Metricset {
+	return vtprotoPool_Metricset.Get().(*Metricset)
+}
+
+var vtprotoPool_MetricsetSample = sync.Pool{
+	New: func() interface{} {
+		return &MetricsetSample{}
+	},
+}
+
+func (m *MetricsetSample) ResetVT() {
+	m.Histogram.ReturnToVTPool()
+	m.Summary.ReturnToVTPool()
+	m.Reset()
+}
+func (m *MetricsetSample) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_MetricsetSample.Put(m)
+	}
+}
+func MetricsetSampleFromVTPool() *MetricsetSample {
+	return vtprotoPool_MetricsetSample.Get().(*MetricsetSample)
+}
+
+var vtprotoPool_Histogram = sync.Pool{
+	New: func() interface{} {
+		return &Histogram{}
+	},
+}
+
+func (m *Histogram) ResetVT() {
+	f0 := m.Values[:0]
+	f1 := m.Counts[:0]
+	m.Reset()
+	m.Values = f0
+	m.Counts = f1
+}
+func (m *Histogram) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_Histogram.Put(m)
+	}
+}
+func HistogramFromVTPool() *Histogram {
+	return vtprotoPool_Histogram.Get().(*Histogram)
+}
+
+var vtprotoPool_SummaryMetric = sync.Pool{
+	New: func() interface{} {
+		return &SummaryMetric{}
+	},
+}
+
+func (m *SummaryMetric) ResetVT() {
+	m.Reset()
+}
+func (m *SummaryMetric) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_SummaryMetric.Put(m)
+	}
+}
+func SummaryMetricFromVTPool() *SummaryMetric {
+	return vtprotoPool_SummaryMetric.Get().(*SummaryMetric)
+}
+
+var vtprotoPool_AggregatedDuration = sync.Pool{
+	New: func() interface{} {
+		return &AggregatedDuration{}
+	},
+}
+
+func (m *AggregatedDuration) ResetVT() {
+	m.Reset()
+}
+func (m *AggregatedDuration) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_AggregatedDuration.Put(m)
+	}
+}
+func AggregatedDurationFromVTPool() *AggregatedDuration {
+	return vtprotoPool_AggregatedDuration.Get().(*AggregatedDuration)
+}
 func (m *Metricset) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -708,7 +812,14 @@ func (m *Metricset) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Samples = append(m.Samples, &MetricsetSample{})
+			if len(m.Samples) == cap(m.Samples) {
+				m.Samples = append(m.Samples, &MetricsetSample{})
+			} else {
+				m.Samples = m.Samples[:len(m.Samples)+1]
+				if m.Samples[len(m.Samples)-1] == nil {
+					m.Samples[len(m.Samples)-1] = &MetricsetSample{}
+				}
+			}
 			if err := m.Samples[len(m.Samples)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -896,7 +1007,7 @@ func (m *MetricsetSample) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Histogram == nil {
-				m.Histogram = &Histogram{}
+				m.Histogram = HistogramFromVTPool()
 			}
 			if err := m.Histogram.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -932,7 +1043,7 @@ func (m *MetricsetSample) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Summary == nil {
-				m.Summary = &SummaryMetric{}
+				m.Summary = SummaryMetricFromVTPool()
 			}
 			if err := m.Summary.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1038,7 +1149,7 @@ func (m *Histogram) UnmarshalVT(dAtA []byte) error {
 				}
 				var elementCount int
 				elementCount = packedLen / 8
-				if elementCount != 0 && len(m.Values) == 0 {
+				if elementCount != 0 && len(m.Values) == 0 && cap(m.Values) < elementCount {
 					m.Values = make([]float64, 0, elementCount)
 				}
 				for iNdEx < postIndex {
@@ -1106,7 +1217,7 @@ func (m *Histogram) UnmarshalVT(dAtA []byte) error {
 					}
 				}
 				elementCount = count
-				if elementCount != 0 && len(m.Counts) == 0 {
+				if elementCount != 0 && len(m.Counts) == 0 && cap(m.Counts) < elementCount {
 					m.Counts = make([]uint64, 0, elementCount)
 				}
 				for iNdEx < postIndex {

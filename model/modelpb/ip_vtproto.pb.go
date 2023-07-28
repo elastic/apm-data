@@ -25,6 +25,7 @@ import (
 	binary "encoding/binary"
 	fmt "fmt"
 	io "io"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -106,6 +107,26 @@ func (m *IP) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+var vtprotoPool_IP = sync.Pool{
+	New: func() interface{} {
+		return &IP{}
+	},
+}
+
+func (m *IP) ResetVT() {
+	f0 := m.V6[:0]
+	m.Reset()
+	m.V6 = f0
+}
+func (m *IP) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_IP.Put(m)
+	}
+}
+func IPFromVTPool() *IP {
+	return vtprotoPool_IP.Get().(*IP)
+}
 func (m *IP) SizeVT() (n int) {
 	if m == nil {
 		return 0

@@ -24,6 +24,7 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -126,6 +127,24 @@ func (m *OS) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+var vtprotoPool_OS = sync.Pool{
+	New: func() interface{} {
+		return &OS{}
+	},
+}
+
+func (m *OS) ResetVT() {
+	m.Reset()
+}
+func (m *OS) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_OS.Put(m)
+	}
+}
+func OSFromVTPool() *OS {
+	return vtprotoPool_OS.Get().(*OS)
+}
 func (m *OS) SizeVT() (n int) {
 	if m == nil {
 		return 0

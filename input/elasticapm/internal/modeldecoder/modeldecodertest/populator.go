@@ -186,6 +186,9 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 			case nullable.Int:
 				v.Set(values.Int)
 				fieldVal = reflect.ValueOf(v)
+			case nullable.Int64:
+				v.Set(int64(values.Int))
+				fieldVal = reflect.ValueOf(v)
 			case nullable.Interface:
 				if strings.Contains(key, "port") {
 					v.Set(values.Int)

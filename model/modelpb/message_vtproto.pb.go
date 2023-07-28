@@ -24,6 +24,7 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -138,6 +139,27 @@ func (m *Message) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+var vtprotoPool_Message = sync.Pool{
+	New: func() interface{} {
+		return &Message{}
+	},
+}
+
+func (m *Message) ResetVT() {
+	for _, mm := range m.Headers {
+		mm.ResetVT()
+	}
+	m.Reset()
+}
+func (m *Message) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_Message.Put(m)
+	}
+}
+func MessageFromVTPool() *Message {
+	return vtprotoPool_Message.Get().(*Message)
+}
 func (m *Message) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -259,7 +281,14 @@ func (m *Message) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Headers = append(m.Headers, &HTTPHeader{})
+			if len(m.Headers) == cap(m.Headers) {
+				m.Headers = append(m.Headers, &HTTPHeader{})
+			} else {
+				m.Headers = m.Headers[:len(m.Headers)+1]
+				if m.Headers[len(m.Headers)-1] == nil {
+					m.Headers[len(m.Headers)-1] = &HTTPHeader{}
+				}
+			}
 			if err := m.Headers[len(m.Headers)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

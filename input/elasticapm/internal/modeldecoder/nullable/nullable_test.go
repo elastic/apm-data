@@ -31,6 +31,7 @@ import (
 type testType struct {
 	S   String         `json:"s"`
 	I   Int            `json:"i"`
+	I64 Int64          `json:"i64"`
 	F   Float64        `json:"f"`
 	B   Bool           `json:"b"`
 	V   Interface      `json:"v"`
@@ -110,6 +111,43 @@ func TestInt(t *testing.T) {
 			testStruct.I.Set(55)
 			assert.True(t, testStruct.I.IsSet())
 			assert.Equal(t, 55, testStruct.I.Val)
+		})
+	}
+}
+
+func TestInt64(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		input string
+
+		val         int64
+		isSet, fail bool
+	}{
+		{name: "values", input: `{"i64":44}`, val: 44, isSet: true},
+		{name: "empty", input: `{"i64":0}`, isSet: true},
+		{name: "null", input: `{"i64":null}`, isSet: false},
+		{name: "missing", input: `{}`},
+		{name: "invalid", input: `{"i64":"1.0.1"}`, fail: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			dec := json.NewDecoder(strings.NewReader(tc.input))
+			var testStruct testType
+			err := dec.Decode(&testStruct)
+			if tc.fail {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tc.isSet, testStruct.I64.IsSet())
+				assert.Equal(t, tc.val, testStruct.I64.Val)
+			}
+
+			testStruct.I64.Reset()
+			assert.False(t, testStruct.I64.IsSet())
+			assert.Empty(t, testStruct.I64.Val)
+
+			testStruct.I64.Set(55)
+			assert.True(t, testStruct.I64.IsSet())
+			assert.Equal(t, int64(55), testStruct.I64.Val)
 		})
 	}
 }
