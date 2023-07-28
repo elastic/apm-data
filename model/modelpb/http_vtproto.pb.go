@@ -24,6 +24,7 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -407,6 +408,76 @@ func (m *HTTPResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+var vtprotoPool_HTTP = sync.Pool{
+	New: func() interface{} {
+		return &HTTP{}
+	},
+}
+
+func (m *HTTP) ResetVT() {
+	m.Request.ReturnToVTPool()
+	m.Response.ReturnToVTPool()
+	m.Reset()
+}
+func (m *HTTP) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_HTTP.Put(m)
+	}
+}
+func HTTPFromVTPool() *HTTP {
+	return vtprotoPool_HTTP.Get().(*HTTP)
+}
+
+var vtprotoPool_HTTPRequest = sync.Pool{
+	New: func() interface{} {
+		return &HTTPRequest{}
+	},
+}
+
+func (m *HTTPRequest) ResetVT() {
+	for _, mm := range m.Headers {
+		mm.ResetVT()
+	}
+	for _, mm := range m.Env {
+		mm.ResetVT()
+	}
+	for _, mm := range m.Cookies {
+		mm.ResetVT()
+	}
+	m.Reset()
+}
+func (m *HTTPRequest) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_HTTPRequest.Put(m)
+	}
+}
+func HTTPRequestFromVTPool() *HTTPRequest {
+	return vtprotoPool_HTTPRequest.Get().(*HTTPRequest)
+}
+
+var vtprotoPool_HTTPResponse = sync.Pool{
+	New: func() interface{} {
+		return &HTTPResponse{}
+	},
+}
+
+func (m *HTTPResponse) ResetVT() {
+	for _, mm := range m.Headers {
+		mm.ResetVT()
+	}
+	m.Reset()
+}
+func (m *HTTPResponse) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_HTTPResponse.Put(m)
+	}
+}
+func HTTPResponseFromVTPool() *HTTPResponse {
+	return vtprotoPool_HTTPResponse.Get().(*HTTPResponse)
+}
 func (m *HTTP) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -572,7 +643,7 @@ func (m *HTTP) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Request == nil {
-				m.Request = &HTTPRequest{}
+				m.Request = HTTPRequestFromVTPool()
 			}
 			if err := m.Request.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -608,7 +679,7 @@ func (m *HTTP) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Response == nil {
-				m.Response = &HTTPResponse{}
+				m.Response = HTTPResponseFromVTPool()
 			}
 			if err := m.Response.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -770,7 +841,14 @@ func (m *HTTPRequest) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Headers = append(m.Headers, &HTTPHeader{})
+			if len(m.Headers) == cap(m.Headers) {
+				m.Headers = append(m.Headers, &HTTPHeader{})
+			} else {
+				m.Headers = m.Headers[:len(m.Headers)+1]
+				if m.Headers[len(m.Headers)-1] == nil {
+					m.Headers[len(m.Headers)-1] = &HTTPHeader{}
+				}
+			}
 			if err := m.Headers[len(m.Headers)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -804,7 +882,14 @@ func (m *HTTPRequest) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Env = append(m.Env, &KeyValue{})
+			if len(m.Env) == cap(m.Env) {
+				m.Env = append(m.Env, &KeyValue{})
+			} else {
+				m.Env = m.Env[:len(m.Env)+1]
+				if m.Env[len(m.Env)-1] == nil {
+					m.Env[len(m.Env)-1] = &KeyValue{}
+				}
+			}
 			if err := m.Env[len(m.Env)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -838,7 +923,14 @@ func (m *HTTPRequest) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Cookies = append(m.Cookies, &KeyValue{})
+			if len(m.Cookies) == cap(m.Cookies) {
+				m.Cookies = append(m.Cookies, &KeyValue{})
+			} else {
+				m.Cookies = m.Cookies[:len(m.Cookies)+1]
+				if m.Cookies[len(m.Cookies)-1] == nil {
+					m.Cookies[len(m.Cookies)-1] = &KeyValue{}
+				}
+			}
 			if err := m.Cookies[len(m.Cookies)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1019,7 +1111,14 @@ func (m *HTTPResponse) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Headers = append(m.Headers, &HTTPHeader{})
+			if len(m.Headers) == cap(m.Headers) {
+				m.Headers = append(m.Headers, &HTTPHeader{})
+			} else {
+				m.Headers = m.Headers[:len(m.Headers)+1]
+				if m.Headers[len(m.Headers)-1] == nil {
+					m.Headers[len(m.Headers)-1] = &HTTPHeader{}
+				}
+			}
 			if err := m.Headers[len(m.Headers)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

@@ -24,6 +24,7 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -183,6 +184,46 @@ func (m *NAT) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+var vtprotoPool_Source = sync.Pool{
+	New: func() interface{} {
+		return &Source{}
+	},
+}
+
+func (m *Source) ResetVT() {
+	m.Ip.ReturnToVTPool()
+	m.Nat.ReturnToVTPool()
+	m.Reset()
+}
+func (m *Source) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_Source.Put(m)
+	}
+}
+func SourceFromVTPool() *Source {
+	return vtprotoPool_Source.Get().(*Source)
+}
+
+var vtprotoPool_NAT = sync.Pool{
+	New: func() interface{} {
+		return &NAT{}
+	},
+}
+
+func (m *NAT) ResetVT() {
+	m.Ip.ReturnToVTPool()
+	m.Reset()
+}
+func (m *NAT) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_NAT.Put(m)
+	}
+}
+func NATFromVTPool() *NAT {
+	return vtprotoPool_NAT.Get().(*NAT)
+}
 func (m *Source) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -281,7 +322,7 @@ func (m *Source) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Ip == nil {
-				m.Ip = &IP{}
+				m.Ip = IPFromVTPool()
 			}
 			if err := m.Ip.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -317,7 +358,7 @@ func (m *Source) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Nat == nil {
-				m.Nat = &NAT{}
+				m.Nat = NATFromVTPool()
 			}
 			if err := m.Nat.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -455,7 +496,7 @@ func (m *NAT) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Ip == nil {
-				m.Ip = &IP{}
+				m.Ip = IPFromVTPool()
 			}
 			if err := m.Ip.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err

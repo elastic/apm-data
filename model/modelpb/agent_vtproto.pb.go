@@ -25,6 +25,7 @@ import (
 	fmt "fmt"
 	io "io"
 	bits "math/bits"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -129,6 +130,25 @@ func encodeVarint(dAtA []byte, offset int, v uint64) int {
 	}
 	dAtA[offset] = uint8(v)
 	return base
+}
+
+var vtprotoPool_Agent = sync.Pool{
+	New: func() interface{} {
+		return &Agent{}
+	},
+}
+
+func (m *Agent) ResetVT() {
+	m.Reset()
+}
+func (m *Agent) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_Agent.Put(m)
+	}
+}
+func AgentFromVTPool() *Agent {
+	return vtprotoPool_Agent.Get().(*Agent)
 }
 func (m *Agent) SizeVT() (n int) {
 	if m == nil {
