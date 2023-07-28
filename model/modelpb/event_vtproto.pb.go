@@ -607,7 +607,7 @@ func (m *Event) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Severity |= int64(b&0x7F) << shift
+				m.Severity |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

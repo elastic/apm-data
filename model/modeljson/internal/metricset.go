@@ -40,7 +40,7 @@ type MetricsetSample struct {
 
 type Histogram struct {
 	Values []float64 `json:"values"`
-	Counts []int64   `json:"counts"`
+	Counts []uint64  `json:"counts"`
 }
 
 func (h Histogram) isZero() bool {
@@ -48,7 +48,7 @@ func (h Histogram) isZero() bool {
 }
 
 type SummaryMetric struct {
-	Count int64   `json:"value_count"`
+	Count uint64  `json:"value_count"`
 	Sum   float64 `json:"sum"`
 }
 
@@ -83,12 +83,12 @@ func (ms *MetricsetSample) MarshalFastJSON(w *fastjson.Writer) error {
 			if i > 0 {
 				w.RawByte(',')
 			}
-			w.Int64(count)
+			w.Int64(int64(count))
 		}
 		w.RawByte(']')
 	case "summary":
 		w.RawString(`,"value_count":`)
-		w.Int64(ms.Summary.Count)
+		w.Int64(int64(ms.Summary.Count))
 		w.RawString(`,"sum":`)
 		w.Float64(ms.Summary.Sum)
 	default:
@@ -100,7 +100,7 @@ func (ms *MetricsetSample) MarshalFastJSON(w *fastjson.Writer) error {
 }
 
 type AggregatedDuration struct {
-	Count int64
+	Count uint64
 	Sum   time.Duration
 }
 

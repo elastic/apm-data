@@ -297,7 +297,7 @@ func (m *Message) UnmarshalVT(dAtA []byte) error {
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field AgeMillis", wireType)
 			}
-			var v int64
+			var v uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflow
@@ -307,7 +307,7 @@ func (m *Message) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				v |= int64(b&0x7F) << shift
+				v |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

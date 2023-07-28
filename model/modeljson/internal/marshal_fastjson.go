@@ -575,7 +575,7 @@ func (v *Document) MarshalFastJSON(w *fastjson.Writer) error {
 	}
 	if v.DocCount != 0 {
 		w.RawString(",\"_doc_count\":")
-		w.Int64(v.DocCount)
+		w.Uint64(v.DocCount)
 	}
 	if v.Agent != nil {
 		w.RawString(",\"agent\":")
@@ -1097,7 +1097,7 @@ func (v *Event) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.Int64(v.Severity)
+		w.Uint64(v.Severity)
 	}
 	if !v.SuccessCount.isZero() {
 		const prefix = ",\"success_count\":"
@@ -1474,7 +1474,7 @@ func (v *HTTPResponse) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.Int64(*v.DecodedBodySize)
+		w.Uint64(*v.DecodedBodySize)
 	}
 	if v.EncodedBodySize != nil {
 		const prefix = ",\"encoded_body_size\":"
@@ -1484,7 +1484,7 @@ func (v *HTTPResponse) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.Int64(*v.EncodedBodySize)
+		w.Uint64(*v.EncodedBodySize)
 	}
 	if v.Finished != nil {
 		const prefix = ",\"finished\":"
@@ -1536,7 +1536,7 @@ func (v *HTTPResponse) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.Int64(*v.TransferSize)
+		w.Uint64(*v.TransferSize)
 	}
 	w.RawByte('}')
 	return firstErr
@@ -1769,7 +1769,7 @@ func (v *MessageAge) MarshalFastJSON(w *fastjson.Writer) error {
 	w.RawByte('{')
 	if v.Millis != nil {
 		w.RawString("\"ms\":")
-		w.Int64(*v.Millis)
+		w.Uint64(*v.Millis)
 	}
 	w.RawByte('}')
 	return nil
@@ -1843,7 +1843,7 @@ func (v *Histogram) MarshalFastJSON(w *fastjson.Writer) error {
 			if i != 0 {
 				w.RawByte(',')
 			}
-			w.Int64(v)
+			w.Uint64(v)
 		}
 		w.RawByte(']')
 	}
@@ -1869,7 +1869,7 @@ func (v *SummaryMetric) MarshalFastJSON(w *fastjson.Writer) error {
 	w.RawString("\"sum\":")
 	w.Float64(v.Sum)
 	w.RawString(",\"value_count\":")
-	w.Int64(v.Count)
+	w.Uint64(v.Count)
 	w.RawByte('}')
 	return nil
 }
@@ -2476,7 +2476,7 @@ func (v *Session) MarshalFastJSON(w *fastjson.Writer) error {
 	w.String(v.ID)
 	if v.Sequence != 0 {
 		w.RawString(",\"sequence\":")
-		w.Int64(v.Sequence)
+		w.Uint64(v.Sequence)
 	}
 	w.RawByte('}')
 	return nil

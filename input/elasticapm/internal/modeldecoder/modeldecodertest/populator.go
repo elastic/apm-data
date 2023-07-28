@@ -135,6 +135,10 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 				elemVal = reflect.ValueOf(values.Int)
 			case []int64:
 				elemVal = reflect.ValueOf(int64(values.Int))
+			case []uint:
+				elemVal = reflect.ValueOf(uint(values.Int))
+			case []uint64:
+				elemVal = reflect.ValueOf(uint64(values.Int))
 			case []uint8:
 				elemVal = reflect.ValueOf(uint8(values.Int))
 			case []float64:
@@ -302,8 +306,13 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 			newVal = values.Int
 		case int64:
 			newVal = int64(values.Int)
+		case uint64:
+			newVal = uint64(values.Int)
 		case *int64:
 			val := int64(values.Int)
+			newVal = &val
+		case *uint64:
+			val := uint64(values.Int)
 			newVal = &val
 		case *int:
 			newVal = &values.Int

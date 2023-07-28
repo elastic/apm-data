@@ -438,7 +438,7 @@ func TestHTTPTransactionStatusCode(t *testing.T) {
 	event := transformTransactionWithAttributes(t, map[string]interface{}{
 		"http.status_code": 200,
 	})
-	assert.Equal(t, int32(200), event.Http.Response.StatusCode)
+	assert.Equal(t, uint32(200), event.Http.Response.StatusCode)
 }
 
 func TestDatabaseSpan(t *testing.T) {

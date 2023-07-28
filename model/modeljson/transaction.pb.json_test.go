@@ -89,7 +89,7 @@ func TestTransactionToModelJSON(t *testing.T) {
 				Id:     "id",
 				DurationHistogram: &modelpb.Histogram{
 					Values: []float64{4},
-					Counts: []int64{5},
+					Counts: []uint64{5},
 				},
 				DroppedSpansStats: []*modelpb.DroppedSpanStats{
 					{
@@ -129,7 +129,7 @@ func TestTransactionToModelJSON(t *testing.T) {
 				ID:     "id",
 				DurationHistogram: modeljson.Histogram{
 					Values: []float64{4},
-					Counts: []int64{5},
+					Counts: []uint64{5},
 				},
 				DurationSummary: modeljson.SummaryMetric{
 					Count: 6,
@@ -157,7 +157,7 @@ func TestTransactionToModelJSON(t *testing.T) {
 				ID:     "id",
 				DurationHistogram: modeljson.Histogram{
 					Values: []float64{4},
-					Counts: []int64{5},
+					Counts: []uint64{5},
 				},
 				DroppedSpansStats: []modeljson.DroppedSpanStats{
 					{

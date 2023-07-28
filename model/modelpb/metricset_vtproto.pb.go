@@ -101,7 +101,7 @@ func (m *Histogram) CloneVT() *Histogram {
 		r.Values = tmpContainer
 	}
 	if rhs := m.Counts; rhs != nil {
-		tmpContainer := make([]int64, len(rhs))
+		tmpContainer := make([]uint64, len(rhs))
 		copy(tmpContainer, rhs)
 		r.Counts = tmpContainer
 	}
@@ -339,8 +339,7 @@ func (m *Histogram) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		}
 		i -= pksize2
 		j1 := i
-		for _, num1 := range m.Counts {
-			num := uint64(num1)
+		for _, num := range m.Counts {
 			for num >= 1<<7 {
 				dAtA[j1] = uint8(uint64(num)&0x7f | 0x80)
 				num >>= 7
@@ -839,7 +838,7 @@ func (m *Metricset) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.DocCount |= int64(b&0x7F) << shift
+				m.DocCount |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1168,7 +1167,7 @@ func (m *Histogram) UnmarshalVT(dAtA []byte) error {
 			}
 		case 2:
 			if wireType == 0 {
-				var v int64
+				var v uint64
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return ErrIntOverflow
@@ -1178,7 +1177,7 @@ func (m *Histogram) UnmarshalVT(dAtA []byte) error {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					v |= int64(b&0x7F) << shift
+					v |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
@@ -1219,10 +1218,10 @@ func (m *Histogram) UnmarshalVT(dAtA []byte) error {
 				}
 				elementCount = count
 				if elementCount != 0 && len(m.Counts) == 0 && cap(m.Counts) < elementCount {
-					m.Counts = make([]int64, 0, elementCount)
+					m.Counts = make([]uint64, 0, elementCount)
 				}
 				for iNdEx < postIndex {
-					var v int64
+					var v uint64
 					for shift := uint(0); ; shift += 7 {
 						if shift >= 64 {
 							return ErrIntOverflow
@@ -1232,7 +1231,7 @@ func (m *Histogram) UnmarshalVT(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						v |= int64(b&0x7F) << shift
+						v |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
@@ -1307,7 +1306,7 @@ func (m *SummaryMetric) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Count |= int64(b&0x7F) << shift
+				m.Count |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1388,7 +1387,7 @@ func (m *AggregatedDuration) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Count |= int64(b&0x7F) << shift
+				m.Count |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
