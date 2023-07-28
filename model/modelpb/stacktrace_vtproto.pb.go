@@ -24,6 +24,7 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -364,6 +365,51 @@ func (m *Original) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+var vtprotoPool_StacktraceFrame = sync.Pool{
+	New: func() interface{} {
+		return &StacktraceFrame{}
+	},
+}
+
+func (m *StacktraceFrame) ResetVT() {
+	for _, mm := range m.Vars {
+		mm.ResetVT()
+	}
+	m.Original.ReturnToVTPool()
+	f0 := m.PreContext[:0]
+	f1 := m.PostContext[:0]
+	m.Reset()
+	m.PreContext = f0
+	m.PostContext = f1
+}
+func (m *StacktraceFrame) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_StacktraceFrame.Put(m)
+	}
+}
+func StacktraceFrameFromVTPool() *StacktraceFrame {
+	return vtprotoPool_StacktraceFrame.Get().(*StacktraceFrame)
+}
+
+var vtprotoPool_Original = sync.Pool{
+	New: func() interface{} {
+		return &Original{}
+	},
+}
+
+func (m *Original) ResetVT() {
+	m.Reset()
+}
+func (m *Original) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_Original.Put(m)
+	}
+}
+func OriginalFromVTPool() *Original {
+	return vtprotoPool_Original.Get().(*Original)
+}
 func (m *StacktraceFrame) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -532,7 +578,14 @@ func (m *StacktraceFrame) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Vars = append(m.Vars, &KeyValue{})
+			if len(m.Vars) == cap(m.Vars) {
+				m.Vars = append(m.Vars, &KeyValue{})
+			} else {
+				m.Vars = m.Vars[:len(m.Vars)+1]
+				if m.Vars[len(m.Vars)-1] == nil {
+					m.Vars[len(m.Vars)-1] = &KeyValue{}
+				}
+			}
 			if err := m.Vars[len(m.Vars)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -831,7 +884,7 @@ func (m *StacktraceFrame) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Original == nil {
-				m.Original = &Original{}
+				m.Original = OriginalFromVTPool()
 			}
 			if err := m.Original.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err

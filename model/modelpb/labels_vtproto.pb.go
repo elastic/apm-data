@@ -26,6 +26,7 @@ import (
 	fmt "fmt"
 	io "io"
 	math "math"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -204,6 +205,47 @@ func (m *NumericLabelValue) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+var vtprotoPool_LabelValue = sync.Pool{
+	New: func() interface{} {
+		return &LabelValue{}
+	},
+}
+
+func (m *LabelValue) ResetVT() {
+	f0 := m.Values[:0]
+	m.Reset()
+	m.Values = f0
+}
+func (m *LabelValue) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_LabelValue.Put(m)
+	}
+}
+func LabelValueFromVTPool() *LabelValue {
+	return vtprotoPool_LabelValue.Get().(*LabelValue)
+}
+
+var vtprotoPool_NumericLabelValue = sync.Pool{
+	New: func() interface{} {
+		return &NumericLabelValue{}
+	},
+}
+
+func (m *NumericLabelValue) ResetVT() {
+	f0 := m.Values[:0]
+	m.Reset()
+	m.Values = f0
+}
+func (m *NumericLabelValue) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_NumericLabelValue.Put(m)
+	}
+}
+func NumericLabelValueFromVTPool() *NumericLabelValue {
+	return vtprotoPool_NumericLabelValue.Get().(*NumericLabelValue)
+}
 func (m *LabelValue) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -448,7 +490,7 @@ func (m *NumericLabelValue) UnmarshalVT(dAtA []byte) error {
 				}
 				var elementCount int
 				elementCount = packedLen / 8
-				if elementCount != 0 && len(m.Values) == 0 {
+				if elementCount != 0 && len(m.Values) == 0 && cap(m.Values) < elementCount {
 					m.Values = make([]float64, 0, elementCount)
 				}
 				for iNdEx < postIndex {

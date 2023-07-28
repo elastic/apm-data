@@ -24,6 +24,7 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -156,6 +157,28 @@ func (m *Host) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+var vtprotoPool_Host = sync.Pool{
+	New: func() interface{} {
+		return &Host{}
+	},
+}
+
+func (m *Host) ResetVT() {
+	m.Os.ReturnToVTPool()
+	for _, mm := range m.Ip {
+		mm.ResetVT()
+	}
+	m.Reset()
+}
+func (m *Host) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_Host.Put(m)
+	}
+}
+func HostFromVTPool() *Host {
+	return vtprotoPool_Host.Get().(*Host)
+}
 func (m *Host) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -255,7 +278,7 @@ func (m *Host) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Os == nil {
-				m.Os = &OS{}
+				m.Os = OSFromVTPool()
 			}
 			if err := m.Os.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -450,7 +473,14 @@ func (m *Host) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Ip = append(m.Ip, &IP{})
+			if len(m.Ip) == cap(m.Ip) {
+				m.Ip = append(m.Ip, &IP{})
+			} else {
+				m.Ip = m.Ip[:len(m.Ip)+1]
+				if m.Ip[len(m.Ip)-1] == nil {
+					m.Ip[len(m.Ip)-1] = &IP{}
+				}
+			}
 			if err := m.Ip[len(m.Ip)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

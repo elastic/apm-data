@@ -26,6 +26,7 @@ import (
 	fmt "fmt"
 	io "io"
 	math "math"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -190,6 +191,44 @@ func (m *LongtaskMetrics) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+var vtprotoPool_UserExperience = sync.Pool{
+	New: func() interface{} {
+		return &UserExperience{}
+	},
+}
+
+func (m *UserExperience) ResetVT() {
+	m.LongTask.ReturnToVTPool()
+	m.Reset()
+}
+func (m *UserExperience) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_UserExperience.Put(m)
+	}
+}
+func UserExperienceFromVTPool() *UserExperience {
+	return vtprotoPool_UserExperience.Get().(*UserExperience)
+}
+
+var vtprotoPool_LongtaskMetrics = sync.Pool{
+	New: func() interface{} {
+		return &LongtaskMetrics{}
+	},
+}
+
+func (m *LongtaskMetrics) ResetVT() {
+	m.Reset()
+}
+func (m *LongtaskMetrics) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_LongtaskMetrics.Put(m)
+	}
+}
+func LongtaskMetricsFromVTPool() *LongtaskMetrics {
+	return vtprotoPool_LongtaskMetrics.Get().(*LongtaskMetrics)
+}
 func (m *UserExperience) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -324,7 +363,7 @@ func (m *UserExperience) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.LongTask == nil {
-				m.LongTask = &LongtaskMetrics{}
+				m.LongTask = LongtaskMetricsFromVTPool()
 			}
 			if err := m.LongTask.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err

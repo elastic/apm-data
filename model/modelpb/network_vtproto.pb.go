@@ -24,6 +24,7 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -256,6 +257,64 @@ func (m *NetworkCarrier) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+var vtprotoPool_Network = sync.Pool{
+	New: func() interface{} {
+		return &Network{}
+	},
+}
+
+func (m *Network) ResetVT() {
+	m.Connection.ReturnToVTPool()
+	m.Carrier.ReturnToVTPool()
+	m.Reset()
+}
+func (m *Network) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_Network.Put(m)
+	}
+}
+func NetworkFromVTPool() *Network {
+	return vtprotoPool_Network.Get().(*Network)
+}
+
+var vtprotoPool_NetworkConnection = sync.Pool{
+	New: func() interface{} {
+		return &NetworkConnection{}
+	},
+}
+
+func (m *NetworkConnection) ResetVT() {
+	m.Reset()
+}
+func (m *NetworkConnection) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_NetworkConnection.Put(m)
+	}
+}
+func NetworkConnectionFromVTPool() *NetworkConnection {
+	return vtprotoPool_NetworkConnection.Get().(*NetworkConnection)
+}
+
+var vtprotoPool_NetworkCarrier = sync.Pool{
+	New: func() interface{} {
+		return &NetworkCarrier{}
+	},
+}
+
+func (m *NetworkCarrier) ResetVT() {
+	m.Reset()
+}
+func (m *NetworkCarrier) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_NetworkCarrier.Put(m)
+	}
+}
+func NetworkCarrierFromVTPool() *NetworkCarrier {
+	return vtprotoPool_NetworkCarrier.Get().(*NetworkCarrier)
+}
 func (m *Network) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -377,7 +436,7 @@ func (m *Network) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Connection == nil {
-				m.Connection = &NetworkConnection{}
+				m.Connection = NetworkConnectionFromVTPool()
 			}
 			if err := m.Connection.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -413,7 +472,7 @@ func (m *Network) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Carrier == nil {
-				m.Carrier = &NetworkCarrier{}
+				m.Carrier = NetworkCarrierFromVTPool()
 			}
 			if err := m.Carrier.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err

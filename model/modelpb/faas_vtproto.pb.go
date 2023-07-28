@@ -24,6 +24,7 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -148,6 +149,24 @@ func (m *Faas) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+var vtprotoPool_Faas = sync.Pool{
+	New: func() interface{} {
+		return &Faas{}
+	},
+}
+
+func (m *Faas) ResetVT() {
+	m.Reset()
+}
+func (m *Faas) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_Faas.Put(m)
+	}
+}
+func FaasFromVTPool() *Faas {
+	return vtprotoPool_Faas.Get().(*Faas)
+}
 func (m *Faas) SizeVT() (n int) {
 	if m == nil {
 		return 0

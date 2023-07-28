@@ -24,6 +24,7 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -267,6 +268,44 @@ func (m *CloudOrigin) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+var vtprotoPool_Cloud = sync.Pool{
+	New: func() interface{} {
+		return &Cloud{}
+	},
+}
+
+func (m *Cloud) ResetVT() {
+	m.Origin.ReturnToVTPool()
+	m.Reset()
+}
+func (m *Cloud) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_Cloud.Put(m)
+	}
+}
+func CloudFromVTPool() *Cloud {
+	return vtprotoPool_Cloud.Get().(*Cloud)
+}
+
+var vtprotoPool_CloudOrigin = sync.Pool{
+	New: func() interface{} {
+		return &CloudOrigin{}
+	},
+}
+
+func (m *CloudOrigin) ResetVT() {
+	m.Reset()
+}
+func (m *CloudOrigin) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_CloudOrigin.Put(m)
+	}
+}
+func CloudOriginFromVTPool() *CloudOrigin {
+	return vtprotoPool_CloudOrigin.Get().(*CloudOrigin)
+}
 func (m *Cloud) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -410,7 +449,7 @@ func (m *Cloud) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Origin == nil {
-				m.Origin = &CloudOrigin{}
+				m.Origin = CloudOriginFromVTPool()
 			}
 			if err := m.Origin.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
