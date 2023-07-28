@@ -24,6 +24,7 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -108,6 +109,26 @@ func (m *HTTPHeader) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+var vtprotoPool_HTTPHeader = sync.Pool{
+	New: func() interface{} {
+		return &HTTPHeader{}
+	},
+}
+
+func (m *HTTPHeader) ResetVT() {
+	f0 := m.Value[:0]
+	m.Reset()
+	m.Value = f0
+}
+func (m *HTTPHeader) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_HTTPHeader.Put(m)
+	}
+}
+func HTTPHeaderFromVTPool() *HTTPHeader {
+	return vtprotoPool_HTTPHeader.Get().(*HTTPHeader)
+}
 func (m *HTTPHeader) SizeVT() (n int) {
 	if m == nil {
 		return 0

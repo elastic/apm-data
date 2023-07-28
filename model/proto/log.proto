@@ -34,5 +34,5 @@ message LogOrigin {
 
 message LogOriginFile {
   string name = 1;
-  int32 line = 2;
+  uint32 line = 2;
 }

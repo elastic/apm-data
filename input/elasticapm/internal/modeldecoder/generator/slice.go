@@ -87,6 +87,7 @@ for _, elem := range val.%s{
 func sliceRuleMinVals(w io.Writer, f structField, rule validationRule) error {
 	fmt.Fprintf(w, `
 for _, elem := range val.%s{
+	//lint:ignore SA4003 don't reject the check for uint
 	if elem %s %s{
 		return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 	}

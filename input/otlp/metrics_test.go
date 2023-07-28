@@ -151,7 +151,7 @@ func TestConsumeMetrics(t *testing.T) {
 					Name: "histogram_metric",
 					Type: modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
 					Histogram: &modelpb.Histogram{
-						Counts: []int64{1, 1, 2, 3},
+						Counts: []uint64{1, 1, 2, 3},
 						Values: []float64{-1, 0.5, 2.75, 3.5},
 					},
 				},
@@ -654,7 +654,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 					Name: "process.runtime.jvm.gc.duration",
 					Type: modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
 					Histogram: &modelpb.Histogram{
-						Counts: []int64{1, 1, 2, 3},
+						Counts: []uint64{1, 1, 2, 3},
 						Values: []float64{0.25, 1, 2, 2.5},
 					},
 				},

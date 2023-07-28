@@ -38,7 +38,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 						Value: []string{"bar"},
 					},
 				},
-				AgeMillis:  int64Ptr(2),
+				AgeMillis:  uint64Ptr(2),
 				QueueName:  "queuename",
 				RoutingKey: "routingkey",
 			},
@@ -73,7 +73,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			Name:    "name",
 			Stacktrace: []*modelpb.StacktraceFrame{
 				{
-					Vars:           randomKvPb(t),
+					Vars:           randomKv(t),
 					Lineno:         uintPtr(1),
 					Colno:          uintPtr(2),
 					Filename:       "frame_filename",
@@ -158,7 +158,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 						Value: []string{"bar"},
 					},
 				},
-				AgeMillis:  int64Ptr(2),
+				AgeMillis:  uint64Ptr(2),
 				QueueName:  "queuename",
 				RoutingKey: "routingkey",
 			},
@@ -168,7 +168,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			Id:     "id",
 			DurationHistogram: &modelpb.Histogram{
 				Values: []float64{4},
-				Counts: []int64{5},
+				Counts: []uint64{5},
 			},
 			DroppedSpansStats: []*modelpb.DroppedSpanStats{
 				{
@@ -200,7 +200,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 					Unit: "unit",
 					Histogram: &modelpb.Histogram{
 						Values: []float64{1},
-						Counts: []int64{2},
+						Counts: []uint64{2},
 					},
 					Summary: &modelpb.SummaryMetric{
 						Count: 3,
@@ -216,7 +216,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 				Message:    "ex_message",
 				Module:     "ex_module",
 				Code:       "ex_code",
-				Attributes: randomKvPb(t),
+				Attributes: randomKv(t),
 				Type:       "ex_type",
 				Handled:    boolPtr(true),
 				Cause: []*modelpb.Exception{
@@ -357,8 +357,8 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 		Http: &modelpb.HTTP{
 			Request: &modelpb.HTTPRequest{
 				Headers:  randomHTTPHeaders(t),
-				Env:      randomKvPb(t),
-				Cookies:  randomKvPb(t),
+				Env:      randomKv(t),
+				Cookies:  randomKv(t),
 				Id:       "id",
 				Method:   "method",
 				Referrer: "referrer",
@@ -367,9 +367,9 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 				Headers:         randomHTTPHeaders(t),
 				Finished:        boolPtr(true),
 				HeadersSent:     boolPtr(true),
-				TransferSize:    int64Ptr(1),
-				EncodedBodySize: int64Ptr(2),
-				DecodedBodySize: int64Ptr(3),
+				TransferSize:    uint64Ptr(1),
+				EncodedBodySize: uint64Ptr(2),
+				DecodedBodySize: uint64Ptr(3),
 				StatusCode:      200,
 			},
 			Version: "version",

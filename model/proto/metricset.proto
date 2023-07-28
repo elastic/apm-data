@@ -27,7 +27,7 @@ message Metricset {
   string name = 1;
   string interval = 2;
   repeated MetricsetSample samples = 3;
-  int64 doc_count = 4;
+  uint64 doc_count = 4;
 }
 
 enum MetricType {
@@ -49,15 +49,15 @@ message MetricsetSample {
 
 message Histogram {
   repeated double values = 1;
-  repeated int64 counts = 2;
+  repeated uint64 counts = 2;
 }
 
 message SummaryMetric {
-  int64 count = 1;
+  uint64 count = 1;
   double sum = 2;
 }
 
 message AggregatedDuration {
-  int64 count = 1;
+  uint64 count = 1;
   google.protobuf.Duration sum = 2;
 }

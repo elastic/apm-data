@@ -24,6 +24,7 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -100,6 +101,24 @@ func (m *Session) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+var vtprotoPool_Session = sync.Pool{
+	New: func() interface{} {
+		return &Session{}
+	},
+}
+
+func (m *Session) ResetVT() {
+	m.Reset()
+}
+func (m *Session) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_Session.Put(m)
+	}
+}
+func SessionFromVTPool() *Session {
+	return vtprotoPool_Session.Get().(*Session)
+}
 func (m *Session) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -192,7 +211,7 @@ func (m *Session) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Sequence |= int64(b&0x7F) << shift
+				m.Sequence |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

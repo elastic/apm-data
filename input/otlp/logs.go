@@ -105,7 +105,7 @@ func (c *Consumer) convertLogRecord(
 	initEventLabels(event)
 	event.Timestamp = timestamppb.New(record.Timestamp().AsTime().Add(timeDelta))
 	event.Event = populateNil(event.Event)
-	event.Event.Severity = int64(record.SeverityNumber())
+	event.Event.Severity = uint64(record.SeverityNumber())
 	event.Log = populateNil(event.Log)
 	event.Log.Level = record.SeverityText()
 	if body := record.Body(); body.Type() != pcommon.ValueTypeEmpty {

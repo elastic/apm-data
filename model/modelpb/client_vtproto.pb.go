@@ -24,6 +24,7 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -111,6 +112,25 @@ func (m *Client) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+var vtprotoPool_Client = sync.Pool{
+	New: func() interface{} {
+		return &Client{}
+	},
+}
+
+func (m *Client) ResetVT() {
+	m.Ip.ReturnToVTPool()
+	m.Reset()
+}
+func (m *Client) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_Client.Put(m)
+	}
+}
+func ClientFromVTPool() *Client {
+	return vtprotoPool_Client.Get().(*Client)
+}
 func (m *Client) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -191,7 +211,7 @@ func (m *Client) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Ip == nil {
-				m.Ip = &IP{}
+				m.Ip = IPFromVTPool()
 			}
 			if err := m.Ip.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err

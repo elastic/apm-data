@@ -79,7 +79,7 @@ func TestConsumerConsumeLogs(t *testing.T) {
 		},
 		Message: "a random log message",
 		Event: &modelpb.Event{
-			Severity: int64(plog.SeverityNumberInfo),
+			Severity: uint64(plog.SeverityNumberInfo),
 		},
 		Log:           &modelpb.Log{Level: "Info"},
 		Span:          &modelpb.Span{Id: "0200000000000000"},
@@ -317,7 +317,7 @@ Caused by: LowLevelException
 			Version: "unknown",
 		},
 		Event: &modelpb.Event{
-			Severity: int64(plog.SeverityNumberInfo),
+			Severity: uint64(plog.SeverityNumberInfo),
 			Kind:     "event",
 			Category: "device",
 			Type:     "error",

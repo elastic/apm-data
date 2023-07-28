@@ -24,6 +24,7 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -429,6 +430,79 @@ func (m *ErrorLog) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+var vtprotoPool_Error = sync.Pool{
+	New: func() interface{} {
+		return &Error{}
+	},
+}
+
+func (m *Error) ResetVT() {
+	for _, mm := range m.Custom {
+		mm.ResetVT()
+	}
+	m.Exception.ReturnToVTPool()
+	m.Log.ReturnToVTPool()
+	m.Reset()
+}
+func (m *Error) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_Error.Put(m)
+	}
+}
+func ErrorFromVTPool() *Error {
+	return vtprotoPool_Error.Get().(*Error)
+}
+
+var vtprotoPool_Exception = sync.Pool{
+	New: func() interface{} {
+		return &Exception{}
+	},
+}
+
+func (m *Exception) ResetVT() {
+	for _, mm := range m.Attributes {
+		mm.ResetVT()
+	}
+	for _, mm := range m.Stacktrace {
+		mm.ResetVT()
+	}
+	for _, mm := range m.Cause {
+		mm.ResetVT()
+	}
+	m.Reset()
+}
+func (m *Exception) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_Exception.Put(m)
+	}
+}
+func ExceptionFromVTPool() *Exception {
+	return vtprotoPool_Exception.Get().(*Exception)
+}
+
+var vtprotoPool_ErrorLog = sync.Pool{
+	New: func() interface{} {
+		return &ErrorLog{}
+	},
+}
+
+func (m *ErrorLog) ResetVT() {
+	for _, mm := range m.Stacktrace {
+		mm.ResetVT()
+	}
+	m.Reset()
+}
+func (m *ErrorLog) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_ErrorLog.Put(m)
+	}
+}
+func ErrorLogFromVTPool() *ErrorLog {
+	return vtprotoPool_ErrorLog.Get().(*ErrorLog)
+}
 func (m *Error) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -614,7 +688,14 @@ func (m *Error) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Custom = append(m.Custom, &KeyValue{})
+			if len(m.Custom) == cap(m.Custom) {
+				m.Custom = append(m.Custom, &KeyValue{})
+			} else {
+				m.Custom = m.Custom[:len(m.Custom)+1]
+				if m.Custom[len(m.Custom)-1] == nil {
+					m.Custom[len(m.Custom)-1] = &KeyValue{}
+				}
+			}
 			if err := m.Custom[len(m.Custom)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -649,7 +730,7 @@ func (m *Error) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Exception == nil {
-				m.Exception = &Exception{}
+				m.Exception = ExceptionFromVTPool()
 			}
 			if err := m.Exception.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -685,7 +766,7 @@ func (m *Error) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Log == nil {
-				m.Log = &ErrorLog{}
+				m.Log = ErrorLogFromVTPool()
 			}
 			if err := m.Log.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1059,7 +1140,14 @@ func (m *Exception) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Attributes = append(m.Attributes, &KeyValue{})
+			if len(m.Attributes) == cap(m.Attributes) {
+				m.Attributes = append(m.Attributes, &KeyValue{})
+			} else {
+				m.Attributes = m.Attributes[:len(m.Attributes)+1]
+				if m.Attributes[len(m.Attributes)-1] == nil {
+					m.Attributes[len(m.Attributes)-1] = &KeyValue{}
+				}
+			}
 			if err := m.Attributes[len(m.Attributes)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1093,7 +1181,14 @@ func (m *Exception) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Stacktrace = append(m.Stacktrace, &StacktraceFrame{})
+			if len(m.Stacktrace) == cap(m.Stacktrace) {
+				m.Stacktrace = append(m.Stacktrace, &StacktraceFrame{})
+			} else {
+				m.Stacktrace = m.Stacktrace[:len(m.Stacktrace)+1]
+				if m.Stacktrace[len(m.Stacktrace)-1] == nil {
+					m.Stacktrace[len(m.Stacktrace)-1] = &StacktraceFrame{}
+				}
+			}
 			if err := m.Stacktrace[len(m.Stacktrace)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1180,7 +1275,14 @@ func (m *Exception) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Cause = append(m.Cause, &Exception{})
+			if len(m.Cause) == cap(m.Cause) {
+				m.Cause = append(m.Cause, &Exception{})
+			} else {
+				m.Cause = m.Cause[:len(m.Cause)+1]
+				if m.Cause[len(m.Cause)-1] == nil {
+					m.Cause[len(m.Cause)-1] = &Exception{}
+				}
+			}
 			if err := m.Cause[len(m.Cause)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1393,7 +1495,14 @@ func (m *ErrorLog) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Stacktrace = append(m.Stacktrace, &StacktraceFrame{})
+			if len(m.Stacktrace) == cap(m.Stacktrace) {
+				m.Stacktrace = append(m.Stacktrace, &StacktraceFrame{})
+			} else {
+				m.Stacktrace = m.Stacktrace[:len(m.Stacktrace)+1]
+				if m.Stacktrace[len(m.Stacktrace)-1] == nil {
+					m.Stacktrace[len(m.Stacktrace)-1] = &StacktraceFrame{}
+				}
+			}
 			if err := m.Stacktrace[len(m.Stacktrace)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

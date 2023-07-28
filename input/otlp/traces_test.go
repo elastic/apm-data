@@ -49,6 +49,7 @@ import (
 	jaegertranslator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.elastic.co/fastjson"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
@@ -57,6 +58,7 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/input/otlp"
+	"github.com/elastic/apm-data/model/modeljson"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -436,7 +438,7 @@ func TestHTTPTransactionStatusCode(t *testing.T) {
 	event := transformTransactionWithAttributes(t, map[string]interface{}{
 		"http.status_code": 200,
 	})
-	assert.Equal(t, int32(200), event.Http.Response.StatusCode)
+	assert.Equal(t, uint32(200), event.Http.Response.StatusCode)
 }
 
 func TestDatabaseSpan(t *testing.T) {
@@ -1594,8 +1596,10 @@ func encodeBatch(t testing.TB, batches ...*modelpb.Batch) [][]byte {
 	var docs [][]byte
 	for _, batch := range batches {
 		for _, event := range *batch {
-			data, err := event.MarshalJSON()
+			var w fastjson.Writer
+			err := modeljson.MarshalAPMEvent(event, &w)
 			require.NoError(t, err)
+			data := w.Bytes()
 			docs = append(docs, data)
 		}
 	}

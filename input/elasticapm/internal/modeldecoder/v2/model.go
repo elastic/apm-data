@@ -680,7 +680,7 @@ type metricsetSampleValue struct {
 	// If Counts is specified, then Values is expected to be
 	// specified with the same number of elements, and with the
 	// same order.
-	Counts []int64 `json:"counts" validate:"requiredIfAny=values,minVals=0"`
+	Counts []uint64 `json:"counts" validate:"requiredIfAny=values,minVals=0"`
 	// Value holds the value of a single metric sample.
 	Value nullable.Float64 `json:"value"`
 }

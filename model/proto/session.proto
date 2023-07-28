@@ -23,5 +23,5 @@ option go_package = "github.com/elastic/apm-data/model/modelpb";
 
 message Session {
   string id = 1;
-  int64 sequence = 2;
+  uint64 sequence = 2;
 }

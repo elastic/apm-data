@@ -24,6 +24,7 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
+	sync "sync"
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -211,6 +212,25 @@ func (m *Event) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+var vtprotoPool_Event = sync.Pool{
+	New: func() interface{} {
+		return &Event{}
+	},
+}
+
+func (m *Event) ResetVT() {
+	m.SuccessCount.ReturnToVTPool()
+	m.Reset()
+}
+func (m *Event) ReturnToVTPool() {
+	if m != nil {
+		m.ResetVT()
+		vtprotoPool_Event.Put(m)
+	}
+}
+func EventFromVTPool() *Event {
+	return vtprotoPool_Event.Get().(*Event)
+}
 func (m *Event) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -523,7 +543,7 @@ func (m *Event) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.SuccessCount == nil {
-				m.SuccessCount = &SummaryMetric{}
+				m.SuccessCount = SummaryMetricFromVTPool()
 			}
 			if err := m.SuccessCount.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -587,7 +607,7 @@ func (m *Event) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Severity |= int64(b&0x7F) << shift
+				m.Severity |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

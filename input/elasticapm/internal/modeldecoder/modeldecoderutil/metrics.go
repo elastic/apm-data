@@ -47,7 +47,7 @@ func SetInternalMetrics(event *modelpb.APMEvent) bool {
 				if event.Span.SelfTime == nil {
 					event.Span.SelfTime = &modelpb.AggregatedDuration{}
 				}
-				event.Span.SelfTime.Count = int64(v.Value)
+				event.Span.SelfTime.Count = uint64(v.Value)
 				haveMetrics = true
 			case "span.self_time.sum.us":
 				if event.Span.SelfTime == nil {

@@ -406,7 +406,7 @@ func mapToTransactionMetricsetModel(from *transactionMetricset, event *modelpb.A
 		if event.Span != nil {
 			if value := from.Samples.SpanSelfTimeCount.Value; value.IsSet() {
 				event.Span.SelfTime = populateNil(event.Span.SelfTime)
-				event.Span.SelfTime.Count = int64(value.Val)
+				event.Span.SelfTime.Count = uint64(value.Val)
 				ok = true
 			}
 			if value := from.Samples.SpanSelfTimeSum.Value; value.IsSet() {
@@ -424,18 +424,18 @@ func mapToResponseModel(from contextResponse, out *modelpb.HTTPResponse) {
 		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
 	}
 	if from.StatusCode.IsSet() {
-		out.StatusCode = int32(from.StatusCode.Val)
+		out.StatusCode = uint32(from.StatusCode.Val)
 	}
 	if from.TransferSize.IsSet() {
-		val := int64(from.TransferSize.Val)
+		val := uint64(from.TransferSize.Val)
 		out.TransferSize = &val
 	}
 	if from.EncodedBodySize.IsSet() {
-		val := int64(from.EncodedBodySize.Val)
+		val := uint64(from.EncodedBodySize.Val)
 		out.EncodedBodySize = &val
 	}
 	if from.DecodedBodySize.IsSet() {
-		val := int64(from.DecodedBodySize.Val)
+		val := uint64(from.DecodedBodySize.Val)
 		out.DecodedBodySize = &val
 	}
 }
@@ -556,7 +556,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		if from.Context.HTTP.StatusCode.IsSet() {
 			event.Http = populateNil(event.Http)
 			event.Http.Response = &response
-			event.Http.Response.StatusCode = int32(from.Context.HTTP.StatusCode.Val)
+			event.Http.Response.StatusCode = uint32(from.Context.HTTP.StatusCode.Val)
 		}
 		if from.Context.HTTP.URL.IsSet() {
 			event.Url = populateNil(event.Url)
@@ -566,15 +566,15 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 			event.Http = populateNil(event.Http)
 			event.Http.Response = &response
 			if from.Context.HTTP.Response.DecodedBodySize.IsSet() {
-				val := int64(from.Context.HTTP.Response.DecodedBodySize.Val)
+				val := uint64(from.Context.HTTP.Response.DecodedBodySize.Val)
 				event.Http.Response.DecodedBodySize = &val
 			}
 			if from.Context.HTTP.Response.EncodedBodySize.IsSet() {
-				val := int64(from.Context.HTTP.Response.EncodedBodySize.Val)
+				val := uint64(from.Context.HTTP.Response.EncodedBodySize.Val)
 				event.Http.Response.EncodedBodySize = &val
 			}
 			if from.Context.HTTP.Response.TransferSize.IsSet() {
-				val := int64(from.Context.HTTP.Response.TransferSize.Val)
+				val := uint64(from.Context.HTTP.Response.TransferSize.Val)
 				event.Http.Response.TransferSize = &val
 			}
 		}
@@ -784,7 +784,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	if from.Session.ID.IsSet() {
 		event.Session = &modelpb.Session{
 			Id:       from.Session.ID.Val,
-			Sequence: int64(from.Session.Sequence.Val),
+			Sequence: uint64(from.Session.Sequence.Val),
 		}
 	}
 	if from.SpanCount.Dropped.IsSet() {
@@ -810,7 +810,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 			CumulativeLayoutShift: -1,
 			FirstInputDelay:       -1,
 			TotalBlockingTime:     -1,
-			LongTask:              &modelpb.LongtaskMetrics{Count: -1},
+			LongTask:              nil,
 		}
 		if from.UserExperience.CumulativeLayoutShift.IsSet() {
 			out.UserExperience.CumulativeLayoutShift = from.UserExperience.CumulativeLayoutShift.Val
@@ -823,7 +823,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 		}
 		if from.UserExperience.Longtask.IsSet() {
 			out.UserExperience.LongTask = &modelpb.LongtaskMetrics{
-				Count: int64(from.UserExperience.Longtask.Count.Val),
+				Count: uint64(from.UserExperience.Longtask.Count.Val),
 				Sum:   from.UserExperience.Longtask.Sum.Val,
 				Max:   from.UserExperience.Longtask.Max.Val,
 			}
