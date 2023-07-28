@@ -23,16 +23,6 @@ package modelprocessor
 // with the fields defined here.
 func IsInternalMetricName(name string) bool {
 	switch name {
-	case "jvm.memory.non_heap.pool.used":
-		return true
-	case "jvm.memory.non_heap.pool.committed":
-		return true
-	case "jvm.memory.non_heap.pool.max":
-		return true
-	case "jvm.fd.used":
-		return true
-	case "jvm.fd.max":
-		return true
 	case "agent.background.cpu.overhead.pct":
 		return true
 	case "agent.background.cpu.total.pct":
@@ -128,6 +118,16 @@ func IsInternalMetricName(name string) bool {
 	case "jvm.memory.non_heap.used":
 		return true
 	case "jvm.thread.count":
+		return true
+	case "jvm.memory.non_heap.pool.used":
+		return true
+	case "jvm.memory.non_heap.pool.committed":
+		return true
+	case "jvm.memory.non_heap.pool.max":
+		return true
+	case "jvm.fd.used":
+		return true
+	case "jvm.fd.max":
 		return true
 	case "nodejs.eventloop.delay.avg.ms":
 		return true
