@@ -9,6 +9,6 @@ PATH="${TOOLS_DIR}/build/bin:${PATH}" protoc \
     --go_out=. \
     --go_opt=module=github.com/elastic/apm-data \
     --go-vtproto_out=. \
-    --go-vtproto_opt=features=marshal+unmarshal+size+pool+clone,pool=./modelpb.APMEvent,module=github.com/elastic/apm-data \
+    --go-vtproto_opt=features=marshal+unmarshal+size+pool+clone,module=github.com/elastic/apm-data \
     ${PROTOC_VT_STRUCTS} \
     ./model/proto/*.proto
