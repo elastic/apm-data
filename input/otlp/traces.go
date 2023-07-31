@@ -83,7 +83,6 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) erro
 	defer c.sem.Release(1)
 
 	receiveTimestamp := time.Now()
-	c.config.Logger.Debug("consuming traces", zap.Stringer("traces", tracesStringer(traces)))
 
 	resourceSpans := traces.ResourceSpans()
 	batch := make(modelpb.Batch, 0, resourceSpans.Len())

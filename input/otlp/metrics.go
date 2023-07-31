@@ -43,7 +43,6 @@ import (
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -58,7 +57,6 @@ func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) 
 	defer c.sem.Release(1)
 
 	receiveTimestamp := time.Now()
-	c.config.Logger.Debug("consuming metrics", zap.Stringer("metrics", metricsStringer(metrics)))
 	batch := c.convertMetrics(metrics, receiveTimestamp)
 	return c.config.Processor.ProcessBatch(ctx, batch)
 }
