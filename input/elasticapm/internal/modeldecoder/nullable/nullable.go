@@ -97,15 +97,13 @@ func init() {
 			iter.ReadNil()
 		case jsoniter.NumberValue:
 			us := iter.ReadInt64()
-			s := us / 1000000
-			ns := (us - (s * 1000000)) * 1000
-			(*((*TimeMicrosUnix)(ptr))).Val = time.Unix(s, ns).UTC()
+			(*((*TimeMicrosUnix)(ptr))).Val = us * 1000
 			(*((*TimeMicrosUnix)(ptr))).isSet = true
 		case jsoniter.StringValue:
 			tstr := iter.ReadString()
 			for _, f := range supportedTSFormats {
 				if t, err := time.Parse(f, tstr); err == nil {
-					(*((*TimeMicrosUnix)(ptr))).Val = t.UTC()
+					(*((*TimeMicrosUnix)(ptr))).Val = t.UnixNano()
 					(*((*TimeMicrosUnix)(ptr))).isSet = true
 					return
 				}
@@ -304,14 +302,11 @@ func (v *Interface) Reset() {
 	v.isSet = false
 }
 
-type TimeMicrosUnix struct {
-	Val   time.Time
-	isSet bool
-}
+type TimeMicrosUnix Int64
 
 // Set sets the value
-func (v *TimeMicrosUnix) Set(val time.Time) {
-	v.Val = val
+func (v *TimeMicrosUnix) Set(val uint64) {
+	v.Val = int64(val)
 	v.isSet = true
 }
 
@@ -323,7 +318,7 @@ func (v *TimeMicrosUnix) IsSet() bool {
 // Reset sets the Interface to it's initial state
 // where it is not set and has no value
 func (v *TimeMicrosUnix) Reset() {
-	v.Val = time.Time{}
+	v.Val = 0
 	v.isSet = false
 }
 

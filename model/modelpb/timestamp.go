@@ -15,29 +15,35 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package modeljson
+package modelpb
 
-import (
-	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
-	"github.com/elastic/apm-data/model/modelpb"
-)
+import "time"
 
-func EventModelJSON(e *modelpb.Event, out *modeljson.Event) {
-	*out = modeljson.Event{
-		Outcome:  e.Outcome,
-		Action:   e.Action,
-		Dataset:  e.Dataset,
-		Kind:     e.Kind,
-		Category: e.Category,
-		Type:     e.Type,
-		Duration: int64(e.Duration.AsDuration().Nanoseconds()),
-		Severity: e.Severity,
-		Received: modeljson.Time(e.Received),
-	}
-	if e.SuccessCount != nil {
-		out.SuccessCount = modeljson.SummaryMetric{
-			Count: e.SuccessCount.Count,
-			Sum:   e.SuccessCount.Sum,
-		}
-	}
+// TimeToPBTimestamp encodes a time.Time to Unix epoch nanos in uint64 for protobuf.
+func TimeToPBTimestamp(t time.Time) uint64 {
+	return uint64(t.UnixNano())
+}
+
+// PBTimestampToTime decodes a uint64 of Unix epoch nanos to a time.Time for protobuf.
+func PBTimestampToTime(timestamp uint64) time.Time {
+	return time.Unix(0, int64(timestamp)).UTC()
+}
+
+func PBTimestampNow() uint64 {
+	return TimeToPBTimestamp(time.Now())
+}
+
+func PBTimestampTruncate(t uint64, d time.Duration) uint64 {
+	ns := uint64(d.Nanoseconds())
+	return t - t%ns
+}
+
+func PBTimestampAdd(t uint64, d time.Duration) uint64 {
+	ns := uint64(d.Nanoseconds())
+	return t + ns
+}
+
+func PBTimestampSub(t uint64, tt time.Time) time.Duration {
+	b := TimeToPBTimestamp(tt)
+	return time.Duration(t - b)
 }

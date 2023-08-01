@@ -52,7 +52,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -82,7 +81,7 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) erro
 	}
 	defer c.sem.Release(1)
 
-	receiveTimestamp := time.Now()
+	receiveTimestamp := modelpb.PBTimestampNow()
 	c.config.Logger.Debug("consuming traces", zap.Stringer("traces", tracesStringer(traces)))
 
 	resourceSpans := traces.ResourceSpans()
@@ -95,19 +94,19 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) erro
 
 func (c *Consumer) convertResourceSpans(
 	resourceSpans ptrace.ResourceSpans,
-	receiveTimestamp time.Time,
+	receiveTimestamp uint64,
 	out *modelpb.Batch,
 ) {
 	baseEvent := modelpb.APMEvent{
 		Event: &modelpb.Event{
-			Received: timestamppb.New(receiveTimestamp),
+			Received: receiveTimestamp,
 		},
 	}
 	var timeDelta time.Duration
 	resource := resourceSpans.Resource()
 	translateResourceMetadata(resource, &baseEvent)
 	if exportTimestamp, ok := exportTimestamp(resource); ok {
-		timeDelta = receiveTimestamp.Sub(exportTimestamp)
+		timeDelta = modelpb.PBTimestampSub(receiveTimestamp, exportTimestamp)
 	}
 	scopeSpans := resourceSpans.ScopeSpans()
 	for i := 0; i < scopeSpans.Len(); i++ {
@@ -154,7 +153,7 @@ func (c *Consumer) convertSpan(
 	representativeCount := getRepresentativeCountFromTracestateHeader(otelSpan.TraceState().AsRaw())
 	event := baseEvent.CloneVT()
 	initEventLabels(event)
-	event.Timestamp = timestamppb.New(startTime.Add(timeDelta))
+	event.Timestamp = modelpb.TimeToPBTimestamp(startTime.Add(timeDelta))
 	if id := hexTraceID(otelSpan.TraceID()); id != "" {
 		event.Trace = &modelpb.Trace{
 			Id: id,
@@ -888,7 +887,7 @@ func (c *Consumer) convertSpanEvent(
 	initEventLabels(event)
 	event.Transaction = nil // populate fields as required from parent
 	event.Span = nil        // populate fields as required from parent
-	event.Timestamp = timestamppb.New(spanEvent.Timestamp().AsTime().Add(timeDelta))
+	event.Timestamp = modelpb.TimeToPBTimestamp(spanEvent.Timestamp().AsTime().Add(timeDelta))
 
 	isJaeger := strings.HasPrefix(parent.Agent.Name, "Jaeger")
 	if isJaeger {

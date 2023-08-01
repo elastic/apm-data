@@ -15,29 +15,19 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package modeljson
+package modelpb
 
 import (
-	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
-	"github.com/elastic/apm-data/model/modelpb"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func EventModelJSON(e *modelpb.Event, out *modeljson.Event) {
-	*out = modeljson.Event{
-		Outcome:  e.Outcome,
-		Action:   e.Action,
-		Dataset:  e.Dataset,
-		Kind:     e.Kind,
-		Category: e.Category,
-		Type:     e.Type,
-		Duration: int64(e.Duration.AsDuration().Nanoseconds()),
-		Severity: e.Severity,
-		Received: modeljson.Time(e.Received),
-	}
-	if e.SuccessCount != nil {
-		out.SuccessCount = modeljson.SummaryMetric{
-			Count: e.SuccessCount.Count,
-			Sum:   e.SuccessCount.Sum,
-		}
-	}
+func TestTimestamp(t *testing.T) {
+	now := time.Now().UTC()
+
+	assert.Equal(t, uint64(now.UnixNano()), TimeToPBTimestamp(now))
+	assert.Equal(t, now, PBTimestampToTime(TimeToPBTimestamp(now)))
+	assert.Equal(t, now.Truncate(time.Minute), PBTimestampToTime(PBTimestampTruncate(TimeToPBTimestamp(now), time.Minute)))
 }

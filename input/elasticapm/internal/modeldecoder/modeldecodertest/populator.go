@@ -122,7 +122,7 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 		switch fKind := f.Kind(); fKind {
 		case reflect.String:
 			fieldVal = reflect.ValueOf(values.Str)
-		case reflect.Int, reflect.Int32, reflect.Int64:
+		case reflect.Int, reflect.Int32, reflect.Int64, reflect.Uint64:
 			fieldVal = reflect.ValueOf(values.Int).Convert(f.Type())
 		case reflect.Float64:
 			fieldVal = reflect.ValueOf(values.Float).Convert(f.Type())

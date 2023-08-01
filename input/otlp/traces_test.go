@@ -774,7 +774,7 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	// Use a large delta so that we can allow for a significant amount of
 	// delay in the test environment affecting the timestamp adjustment.
 	const timeDelta = time.Hour
-	const allowedError = 5 // seconds
+	const allowedError = 5 * time.Second // seconds
 
 	now := time.Now()
 	exportTimestamp := now.Add(-timeDelta)
@@ -815,9 +815,9 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	require.Len(t, *batch, 3)
 
 	// Give some leeway for one event, and check other events' timestamps relative to that one.
-	assert.InDelta(t, now.Add(transactionOffset).Unix(), (*batch)[0].Timestamp.AsTime().Unix(), allowedError)
-	assert.Equal(t, spanOffset-transactionOffset, (*batch)[1].Timestamp.AsTime().Sub((*batch)[0].Timestamp.AsTime()))
-	assert.Equal(t, exceptionOffset-transactionOffset, (*batch)[2].Timestamp.AsTime().Sub((*batch)[0].Timestamp.AsTime()))
+	assert.InDelta(t, modelpb.TimeToPBTimestamp(now.Add(transactionOffset)), (*batch)[0].Timestamp, float64(allowedError.Nanoseconds()))
+	assert.Equal(t, uint64((spanOffset - transactionOffset).Nanoseconds()), (*batch)[1].Timestamp-(*batch)[0].Timestamp)
+	assert.Equal(t, uint64((exceptionOffset - transactionOffset).Nanoseconds()), (*batch)[2].Timestamp-(*batch)[0].Timestamp)
 
 	// Durations should be unaffected.
 	assert.Equal(t, transactionDuration, (*batch)[0].GetEvent().GetDuration().AsDuration())
@@ -831,7 +831,7 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 
 func TestConsumeTracesEventReceived(t *testing.T) {
 	traces, otelSpans := newTracesSpans()
-	now := time.Now()
+	now := modelpb.PBTimestampNow()
 
 	otelSpan1 := otelSpans.Spans().AppendEmpty()
 	otelSpan1.SetTraceID(pcommon.TraceID{1})
@@ -840,8 +840,8 @@ func TestConsumeTracesEventReceived(t *testing.T) {
 	batch := transformTraces(t, traces)
 	require.Len(t, *batch, 1)
 
-	const allowedDelta = 2 // seconds
-	require.InDelta(t, now.Unix(), (*batch)[0].Event.Received.AsTime().Unix(), allowedDelta)
+	const allowedDelta = 2 * time.Second // seconds
+	require.InDelta(t, now, (*batch)[0].Event.Received, float64(allowedDelta.Nanoseconds()))
 }
 
 func TestSpanLinks(t *testing.T) {

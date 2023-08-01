@@ -28,7 +28,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
@@ -47,10 +46,10 @@ func TestResetMetricsetOnRelease(t *testing.T) {
 
 func TestDecodeNestedMetricset(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
-		now := time.Now()
+		now := modelpb.PBTimestampNow()
 		defaultVal := modeldecodertest.DefaultValues()
 		_, eventBase := initializedInputMetadata(defaultVal)
-		eventBase.Timestamp = timestamppb.New(now)
+		eventBase.Timestamp = now
 		input := modeldecoder.Input{Base: eventBase}
 		str := `{"metricset":{"timestamp":1599996822281000,"samples":{"a.b":{"value":2048}}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
@@ -58,7 +57,7 @@ func TestDecodeNestedMetricset(t *testing.T) {
 		require.NoError(t, DecodeNestedMetricset(dec, &input, &batch))
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Metricset)
-		assert.Equal(t, time.Unix(1599996822, 281000000).UTC(), batch[0].Timestamp.AsTime())
+		assert.Equal(t, uint64(1599996822281000 * 1000), batch[0].Timestamp)
 		assert.Empty(t, cmp.Diff(&modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{{
@@ -74,7 +73,7 @@ func TestDecodeNestedMetricset(t *testing.T) {
 		require.NoError(t, DecodeNestedMetricset(dec, &input, &batch))
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Metricset)
-		assert.Equal(t, now.UTC(), batch[0].Timestamp.AsTime())
+		assert.Equal(t, now, batch[0].Timestamp)
 
 		// invalid type
 		err := DecodeNestedMetricset(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &batch)
@@ -257,7 +256,6 @@ func TestDecodeMetricsetInternal(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Empty(t, cmp.Diff(modelpb.Batch{{
-		Timestamp: timestamppb.New(time.Unix(0, 0).UTC()),
 		Metricset: &modelpb.Metricset{
 			Name: "span_breakdown",
 		},
@@ -311,7 +309,6 @@ func TestDecodeMetricsetServiceName(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Empty(t, cmp.Diff(modelpb.Batch{{
-		Timestamp: timestamppb.New(time.Unix(0, 0).UTC()),
 		Metricset: &modelpb.Metricset{
 			Name: "span_breakdown",
 		},
@@ -370,7 +367,6 @@ func TestDecodeMetricsetServiceNameAndVersion(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Empty(t, cmp.Diff(modelpb.Batch{{
-		Timestamp: timestamppb.New(time.Unix(0, 0).UTC()),
 		Metricset: &modelpb.Metricset{
 			Name: "span_breakdown",
 		},
@@ -429,7 +425,6 @@ func TestDecodeMetricsetServiceVersion(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Empty(t, cmp.Diff(modelpb.Batch{{
-		Timestamp: timestamppb.New(time.Unix(0, 0).UTC()),
 		Metricset: &modelpb.Metricset{
 			Name: "span_breakdown",
 		},

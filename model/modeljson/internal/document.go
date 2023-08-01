@@ -74,17 +74,13 @@ type Document struct {
 	DocCount   uint64      `json:"_doc_count,omitempty"`
 }
 
-type Time time.Time
+type Time uint64
 
 func (t Time) MarshalFastJSON(w *fastjson.Writer) error {
 	w.RawByte('"')
-	w.Time(time.Time(t), timestampFormat)
+	w.Time(time.Unix(0, int64(t)).UTC(), timestampFormat)
 	w.RawByte('"')
 	return nil
-}
-
-func (t Time) isZero() bool {
-	return time.Time(t).IsZero()
 }
 
 type DataStream struct {

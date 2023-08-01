@@ -23,6 +23,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/apm-data/model/modelpb"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -282,10 +283,10 @@ func TestTimeMicrosUnix(t *testing.T) {
 			val: "2022-10-17 14:15:30.111 +0000 UTC"},
 		{name: "valid-with-str-tmz-without-milli", input: `{"tms":"2022-10-17T14:15:30Z"}`, isSet: true,
 			val: "2022-10-17 14:15:30 +0000 UTC"},
-		{name: "null", input: `{"tms":null}`, val: time.Time{}.String()},
+		{name: "null", input: `{"tms":null}`, val: time.Unix(0, 0).UTC().String()},
 		{name: "invalid-type", input: `{"tms":""}`, fail: true, isSet: true},
 		{name: "invalid-type", input: `{"tms":123.56}`, fail: true, isSet: true},
-		{name: "missing", input: `{}`, val: time.Time{}.String()},
+		{name: "missing", input: `{}`, val: time.Unix(0, 0).UTC().String()},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			dec := json.NewDecoder(strings.NewReader(tc.input))
@@ -295,15 +296,16 @@ func TestTimeMicrosUnix(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
+				val := modelpb.PBTimestampToTime(uint64(testStruct.Tms.Val)).Format("2006-01-02 15:04:05.999 +0000 UTC")
 				assert.Equal(t, tc.isSet, testStruct.Tms.IsSet())
-				assert.Equal(t, tc.val, testStruct.Tms.Val.String())
+				assert.Equal(t, tc.val, val)
 			}
 
 			testStruct.Tms.Reset()
 			assert.False(t, testStruct.Tms.IsSet())
 			assert.Zero(t, testStruct.Tms.Val)
 
-			testStruct.Tms.Set(time.Now())
+			testStruct.Tms.Set(modelpb.PBTimestampNow())
 			assert.True(t, testStruct.Tms.IsSet())
 			assert.NotZero(t, testStruct.Tms.Val)
 		})

@@ -32,7 +32,6 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/model/modelpb"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (
@@ -247,8 +246,8 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 	if from.ParentID.IsSet() {
 		event.ParentId = from.ParentID.Val
 	}
-	if !from.Timestamp.Val.IsZero() {
-		event.Timestamp = timestamppb.New(from.Timestamp.Val)
+	if from.Timestamp.IsSet() {
+		event.Timestamp = uint64(from.Timestamp.Val)
 	}
 	if from.TraceID.IsSet() {
 		event.Trace = &modelpb.Trace{
@@ -628,9 +627,9 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 	if from.Start.IsSet() {
 		// event.Timestamp is initialized to the time the payload was
 		// received; offset that by "start" milliseconds for RUM.
-		event.Timestamp = timestamppb.New(event.Timestamp.AsTime().Add(
-			time.Duration(float64(time.Millisecond) * from.Start.Val),
-		))
+		event.Timestamp = event.Timestamp + uint64(
+			time.Duration(float64(time.Millisecond)*from.Start.Val).Nanoseconds(),
+		)
 	}
 }
 

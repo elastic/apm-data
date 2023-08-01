@@ -28,7 +28,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/testing/protocmp"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
@@ -47,9 +46,9 @@ func TestResetErrorOnRelease(t *testing.T) {
 
 func TestDecodeNestedError(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
-		now := time.Now().UTC()
+		now := modelpb.PBTimestampNow()
 		eventBase := initializedMetadata()
-		eventBase.Timestamp = timestamppb.New(now)
+		eventBase.Timestamp = now
 		input := modeldecoder.Input{Base: eventBase}
 		str := `{"e":{"id":"a-b-c","timestamp":1599996822281000,"log":{"mg":"abc"}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
@@ -57,7 +56,7 @@ func TestDecodeNestedError(t *testing.T) {
 		require.NoError(t, DecodeNestedError(dec, &input, &batch))
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Error)
-		assert.Equal(t, time.Unix(1599996822, 281000000).UTC(), batch[0].Timestamp.AsTime())
+		assert.Equal(t, uint64(1599996822281000 * 1000), batch[0].Timestamp)
 		assert.Empty(t, cmp.Diff(&modelpb.Error{
 			Id: "a-b-c",
 			Log: &modelpb.ErrorLog{
@@ -72,7 +71,7 @@ func TestDecodeNestedError(t *testing.T) {
 		dec = decoder.NewJSONDecoder(strings.NewReader(str))
 		batch = modelpb.Batch{}
 		require.NoError(t, DecodeNestedError(dec, &input, &batch))
-		assert.Equal(t, now, batch[0].Timestamp.AsTime())
+		assert.Equal(t, now, batch[0].Timestamp)
 
 		// test decode
 		err := DecodeNestedError(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &batch)
@@ -146,8 +145,8 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		}
 		var input errorEvent
 		var out1, out2 modelpb.APMEvent
-		reqTime := time.Now().Add(time.Second).UTC()
-		out1.Timestamp = timestamppb.New(reqTime)
+		reqTime := modelpb.PBTimestampAdd(modelpb.PBTimestampNow(), time.Second)
+		out1.Timestamp = reqTime
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToErrorModel(&input, &out1)
@@ -155,7 +154,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		modeldecodertest.AssertStructValues(t, out1.Error, exceptions, defaultVal)
 
 		// leave event timestamp unmodified if eventTime is zero
-		out1.Timestamp = timestamppb.New(reqTime)
+		out1.Timestamp = reqTime
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToErrorModel(&input, &out1)
 		input.Reset()
@@ -163,7 +162,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 
 		// reuse input model for different event
 		// ensure memory is not shared by reusing input model
-		out2.Timestamp = timestamppb.New(reqTime)
+		out2.Timestamp = reqTime
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToErrorModel(&input, &out2)
