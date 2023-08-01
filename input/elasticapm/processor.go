@@ -245,6 +245,8 @@ func (p *Processor) HandleStream(
 	processor modelpb.BatchProcessor,
 	result *Result,
 ) error {
+	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
+	defer sp.End()
 	// Limit the number of concurrent batch decodes.
 	//
 	// The semaphore defaults to 200 (N), only allowing N requests to read
@@ -281,9 +283,6 @@ func (p *Processor) HandleStream(
 			Document: string(sr.LatestLine()),
 		}
 	}
-
-	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
-	defer sp.End()
 
 	if async {
 		// The semaphore is released by handleStream
