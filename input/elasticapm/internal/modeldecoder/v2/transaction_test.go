@@ -62,7 +62,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Transaction)
 		assert.Equal(t, "request", batch[0].Transaction.Type)
-		assert.Equal(t, uint64(1599996822281000 * 1000), batch[0].Timestamp)
+		assert.Equal(t, uint64(1599996822281000*1000), batch[0].Timestamp)
 
 		input = modeldecoder.Input{Base: &modelpb.APMEvent{Timestamp: now}}
 		str = `{"transaction":{"duration":100,"id":"100","trace_id":"1","type":"request","span_count":{"started":2}}}`

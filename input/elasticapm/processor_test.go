@@ -319,7 +319,7 @@ func TestHandleStreamBaseEvent(t *testing.T) {
 	assert.Equal(t, "rum-2.0", events[0].UserAgent.Original)
 	assert.Equal(t, baseEvent.Source, events[0].Source)
 	assert.Equal(t, baseEvent.Client, events[0].Client)
-	assert.Equal(t, requestTimestamp + uint64((50*time.Millisecond).Nanoseconds()), events[0].Timestamp) // span's start is "50"
+	assert.Equal(t, requestTimestamp+uint64((50*time.Millisecond).Nanoseconds()), events[0].Timestamp) // span's start is "50"
 }
 
 func TestLabelLeak(t *testing.T) {

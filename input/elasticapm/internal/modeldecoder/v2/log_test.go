@@ -48,7 +48,7 @@ func TestDecodeNestedLog(t *testing.T) {
 			require.NoError(t, DecodeNestedLog(dec, &input, &batch))
 			require.Len(t, batch, 1)
 			assert.Equal(t, "something happened", batch[0].Message)
-			assert.Equal(t, uint64(1662616971000000 * 1000), batch[0].Timestamp)
+			assert.Equal(t, uint64(1662616971000000*1000), batch[0].Timestamp)
 			assert.Equal(t, "trace-id", batch[0].Trace.Id)
 			assert.Equal(t, "transaction-id", batch[0].Transaction.Id)
 			assert.Equal(t, "warn", batch[0].Log.Level)
@@ -82,7 +82,7 @@ func TestDecodeNestedLog(t *testing.T) {
 			var batch modelpb.Batch
 			require.NoError(t, DecodeNestedLog(dec, &input, &batch))
 			require.Len(t, batch, 1)
-			assert.Equal(t, uint64(1662616971000000 * 1000), batch[0].Timestamp)
+			assert.Equal(t, uint64(1662616971000000*1000), batch[0].Timestamp)
 			assert.Equal(t, "trace-id", batch[0].Trace.Id)
 			assert.Equal(t, "transaction-id", batch[0].Transaction.Id)
 			assert.Equal(t, "error", batch[0].Log.Level)
@@ -109,7 +109,7 @@ func TestDecodeNestedLog(t *testing.T) {
 			var batch modelpb.Batch
 			require.NoError(t, DecodeNestedLog(dec, &input, &batch))
 			require.Len(t, batch, 1)
-			assert.Equal(t, uint64(1662616971000000 * 1000), batch[0].Timestamp)
+			assert.Equal(t, uint64(1662616971000000*1000), batch[0].Timestamp)
 			assert.Equal(t, "trace-id", batch[0].Trace.Id)
 			assert.Equal(t, "transaction-id", batch[0].Transaction.Id)
 			assert.Equal(t, "error", batch[0].Log.Level)
@@ -136,7 +136,7 @@ func TestDecodeNestedLog(t *testing.T) {
 			var batch modelpb.Batch
 			require.NoError(t, DecodeNestedLog(dec, &input, &batch))
 			require.Len(t, batch, 1)
-			assert.Equal(t, uint64(1662616971000000 * 1000), batch[0].Timestamp)
+			assert.Equal(t, uint64(1662616971000000*1000), batch[0].Timestamp)
 			assert.Equal(t, "trace-id", batch[0].Trace.Id)
 			assert.Equal(t, "transaction-id", batch[0].Transaction.Id)
 			assert.Equal(t, "error", batch[0].Log.Level)

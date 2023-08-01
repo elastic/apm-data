@@ -57,7 +57,7 @@ func TestDecodeNestedMetricset(t *testing.T) {
 		require.NoError(t, DecodeNestedMetricset(dec, &input, &batch))
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Metricset)
-		assert.Equal(t, uint64(1599996822281000 * 1000), batch[0].Timestamp)
+		assert.Equal(t, uint64(1599996822281000*1000), batch[0].Timestamp)
 		assert.Empty(t, cmp.Diff(&modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{{

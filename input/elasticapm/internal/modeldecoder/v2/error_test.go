@@ -56,7 +56,7 @@ func TestDecodeNestedError(t *testing.T) {
 		require.NoError(t, DecodeNestedError(dec, &input, &batch))
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Error)
-		assert.Equal(t, uint64(1599996822281000 * 1000), batch[0].Timestamp)
+		assert.Equal(t, uint64(1599996822281000*1000), batch[0].Timestamp)
 		assert.Empty(t, cmp.Diff(&modelpb.Error{
 			Id:  "a-b-c",
 			Log: &modelpb.ErrorLog{Message: "abc"},
