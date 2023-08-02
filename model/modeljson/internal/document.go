@@ -68,10 +68,10 @@ type Document struct {
 	Process     *Process     `json:"process,omitempty"`
 	Event       *Event       `json:"event,omitempty"`
 
-	Timestamp  Time        `json:"@timestamp"`
 	DataStream *DataStream `json:"data_stream,omitempty"`
 	Message    string      `json:"message,omitempty"`
 	DocCount   uint64      `json:"_doc_count,omitempty"`
+	Timestamp  Time        `json:"@timestamp"`
 }
 
 type Time uint64

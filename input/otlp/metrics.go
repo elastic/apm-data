@@ -283,8 +283,8 @@ func histogramSample(bucketCounts pcommon.UInt64Slice, explicitBounds pcommon.Fl
 type metricsets map[metricsetKey]metricset
 
 type metricsetKey struct {
-	timestamp uint64
 	signature string // combination of all attributes
+	timestamp uint64
 }
 
 type metricset struct {

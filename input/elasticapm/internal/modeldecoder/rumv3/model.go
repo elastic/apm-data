@@ -159,9 +159,6 @@ type contextServiceRuntime struct {
 
 type errorEvent struct {
 	_ struct{} `validate:"requiredAnyOf=ex;log"`
-	// Timestamp holds the recorded time of the event, UTC based and formatted
-	// as microseconds since Unix epoch.
-	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
 	// Log holds additional information added when the error is logged.
 	Log errorLog `json:"log"`
 	// Culprit identifies the function call which was the primary perpetrator
@@ -184,6 +181,9 @@ type errorEvent struct {
 	Transaction errorTransactionRef `json:"x"`
 	// Context holds arbitrary contextual information for the event.
 	Context context `json:"c"`
+	// Timestamp holds the recorded time of the event, UTC based and formatted
+	// as microseconds since Unix epoch.
+	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
 }
 
 type errorException struct {
