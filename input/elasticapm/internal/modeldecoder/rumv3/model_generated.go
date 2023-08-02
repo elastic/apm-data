@@ -425,11 +425,10 @@ func (val *errorRoot) processNestedSource() error {
 }
 
 func (val *errorEvent) IsSet() bool {
-	return val.Timestamp.IsSet() || val.Log.IsSet() || val.Culprit.IsSet() || val.ID.IsSet() || val.ParentID.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.Exception.IsSet() || val.Transaction.IsSet() || val.Context.IsSet()
+	return val.Log.IsSet() || val.Culprit.IsSet() || val.ID.IsSet() || val.ParentID.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.Exception.IsSet() || val.Transaction.IsSet() || val.Context.IsSet() || val.Timestamp.IsSet()
 }
 
 func (val *errorEvent) Reset() {
-	val.Timestamp.Reset()
 	val.Log.Reset()
 	val.Culprit.Reset()
 	val.ID.Reset()
@@ -439,6 +438,7 @@ func (val *errorEvent) Reset() {
 	val.Exception.Reset()
 	val.Transaction.Reset()
 	val.Context.Reset()
+	val.Timestamp.Reset()
 }
 
 func (val *errorEvent) validate() error {

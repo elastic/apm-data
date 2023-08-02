@@ -862,11 +862,10 @@ func (val *errorRoot) processNestedSource() error {
 }
 
 func (val *errorEvent) IsSet() bool {
-	return val.Timestamp.IsSet() || val.Log.IsSet() || val.Culprit.IsSet() || val.ID.IsSet() || val.ParentID.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.Exception.IsSet() || val.Transaction.IsSet() || val.Context.IsSet()
+	return val.Log.IsSet() || val.Culprit.IsSet() || val.ID.IsSet() || val.ParentID.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.Exception.IsSet() || val.Transaction.IsSet() || val.Context.IsSet() || val.Timestamp.IsSet()
 }
 
 func (val *errorEvent) Reset() {
-	val.Timestamp.Reset()
 	val.Log.Reset()
 	val.Culprit.Reset()
 	val.ID.Reset()
@@ -876,6 +875,7 @@ func (val *errorEvent) Reset() {
 	val.Exception.Reset()
 	val.Transaction.Reset()
 	val.Context.Reset()
+	val.Timestamp.Reset()
 }
 
 func (val *errorEvent) validate() error {
@@ -1851,11 +1851,10 @@ func (val *metricsetRoot) processNestedSource() error {
 }
 
 func (val *metricset) IsSet() bool {
-	return val.Timestamp.IsSet() || (len(val.Samples) > 0) || val.Span.IsSet() || (len(val.Tags) > 0) || val.Transaction.IsSet() || val.Service.IsSet() || val.FAAS.IsSet()
+	return (len(val.Samples) > 0) || val.Span.IsSet() || (len(val.Tags) > 0) || val.Transaction.IsSet() || val.Service.IsSet() || val.FAAS.IsSet() || val.Timestamp.IsSet()
 }
 
 func (val *metricset) Reset() {
-	val.Timestamp.Reset()
 	for k := range val.Samples {
 		delete(val.Samples, k)
 	}
@@ -1866,6 +1865,7 @@ func (val *metricset) Reset() {
 	val.Transaction.Reset()
 	val.Service.Reset()
 	val.FAAS.Reset()
+	val.Timestamp.Reset()
 }
 
 func (val *metricset) validate() error {
@@ -2123,11 +2123,10 @@ func (val *spanRoot) processNestedSource() error {
 }
 
 func (val *span) IsSet() bool {
-	return val.Timestamp.IsSet() || val.OTel.IsSet() || val.ID.IsSet() || val.TraceID.IsSet() || val.Action.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || (len(val.ChildIDs) > 0) || val.ParentID.IsSet() || (len(val.Links) > 0) || (len(val.Stacktrace) > 0) || val.Type.IsSet() || val.Subtype.IsSet() || val.TransactionID.IsSet() || val.Composite.IsSet() || val.Context.IsSet() || val.Start.IsSet() || val.SampleRate.IsSet() || val.Duration.IsSet() || val.Sync.IsSet()
+	return val.OTel.IsSet() || val.ID.IsSet() || val.TraceID.IsSet() || val.Action.IsSet() || val.Name.IsSet() || val.Outcome.IsSet() || (len(val.ChildIDs) > 0) || val.ParentID.IsSet() || (len(val.Links) > 0) || (len(val.Stacktrace) > 0) || val.Type.IsSet() || val.Subtype.IsSet() || val.TransactionID.IsSet() || val.Composite.IsSet() || val.Context.IsSet() || val.Start.IsSet() || val.SampleRate.IsSet() || val.Duration.IsSet() || val.Sync.IsSet() || val.Timestamp.IsSet()
 }
 
 func (val *span) Reset() {
-	val.Timestamp.Reset()
 	val.OTel.Reset()
 	val.ID.Reset()
 	val.TraceID.Reset()
@@ -2153,6 +2152,7 @@ func (val *span) Reset() {
 	val.SampleRate.Reset()
 	val.Duration.Reset()
 	val.Sync.Reset()
+	val.Timestamp.Reset()
 }
 
 func (val *span) validate() error {
@@ -2614,12 +2614,11 @@ func (val *transactionRoot) processNestedSource() error {
 }
 
 func (val *transaction) IsSet() bool {
-	return val.Marks.IsSet() || val.Timestamp.IsSet() || val.OTel.IsSet() || (len(val.Links) > 0) || val.TraceID.IsSet() || val.ID.IsSet() || val.ParentID.IsSet() || val.Name.IsSet() || val.Type.IsSet() || val.Result.IsSet() || (len(val.DroppedSpanStats) > 0) || val.Outcome.IsSet() || val.FAAS.IsSet() || val.Session.IsSet() || val.Context.IsSet() || val.UserExperience.IsSet() || val.SpanCount.IsSet() || val.SampleRate.IsSet() || val.Duration.IsSet() || val.Sampled.IsSet()
+	return val.Marks.IsSet() || val.OTel.IsSet() || (len(val.Links) > 0) || val.TraceID.IsSet() || val.ID.IsSet() || val.ParentID.IsSet() || val.Name.IsSet() || val.Type.IsSet() || val.Result.IsSet() || (len(val.DroppedSpanStats) > 0) || val.Outcome.IsSet() || val.FAAS.IsSet() || val.Session.IsSet() || val.Context.IsSet() || val.UserExperience.IsSet() || val.SpanCount.IsSet() || val.SampleRate.IsSet() || val.Duration.IsSet() || val.Sampled.IsSet() || val.Timestamp.IsSet()
 }
 
 func (val *transaction) Reset() {
 	val.Marks.Reset()
-	val.Timestamp.Reset()
 	val.OTel.Reset()
 	for i := range val.Links {
 		val.Links[i].Reset()
@@ -2644,6 +2643,7 @@ func (val *transaction) Reset() {
 	val.SampleRate.Reset()
 	val.Duration.Reset()
 	val.Sampled.Reset()
+	val.Timestamp.Reset()
 }
 
 func (val *transaction) validate() error {
@@ -3054,14 +3054,13 @@ func (val *logRoot) processNestedSource() error {
 }
 
 func (val *log) IsSet() bool {
-	return (len(val.Labels) > 0) || val.Timestamp.IsSet() || val.EcsLogServiceFields.IsSet() || val.EcsLogErrorFields.IsSet() || val.EcsLogEventFields.IsSet() || val.EcsLogProcessFields.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.SpanID.IsSet() || val.Message.IsSet() || val.FAAS.IsSet() || val.EcsLogLogFields.IsSet()
+	return (len(val.Labels) > 0) || val.EcsLogServiceFields.IsSet() || val.EcsLogErrorFields.IsSet() || val.EcsLogEventFields.IsSet() || val.EcsLogProcessFields.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.SpanID.IsSet() || val.Message.IsSet() || val.FAAS.IsSet() || val.EcsLogLogFields.IsSet() || val.Timestamp.IsSet()
 }
 
 func (val *log) Reset() {
 	for k := range val.Labels {
 		delete(val.Labels, k)
 	}
-	val.Timestamp.Reset()
 	val.EcsLogServiceFields.Reset()
 	val.EcsLogErrorFields.Reset()
 	val.EcsLogEventFields.Reset()
@@ -3072,6 +3071,7 @@ func (val *log) Reset() {
 	val.Message.Reset()
 	val.FAAS.Reset()
 	val.EcsLogLogFields.Reset()
+	val.Timestamp.Reset()
 }
 
 func (val *log) validate() error {
