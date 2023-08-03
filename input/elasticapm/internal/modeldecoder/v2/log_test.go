@@ -20,11 +20,9 @@ package v2
 import (
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
@@ -50,7 +48,7 @@ func TestDecodeNestedLog(t *testing.T) {
 			require.NoError(t, DecodeNestedLog(dec, &input, &batch))
 			require.Len(t, batch, 1)
 			assert.Equal(t, "something happened", batch[0].Message)
-			assert.Equal(t, "2022-09-08 06:02:51 +0000 UTC", batch[0].Timestamp.AsTime().String())
+			assert.Equal(t, uint64(1662616971000000*1000), batch[0].Timestamp)
 			assert.Equal(t, "trace-id", batch[0].Trace.Id)
 			assert.Equal(t, "transaction-id", batch[0].Transaction.Id)
 			assert.Equal(t, "warn", batch[0].Log.Level)
@@ -68,13 +66,13 @@ func TestDecodeNestedLog(t *testing.T) {
 		})
 
 		t.Run("withoutTimestamp", func(t *testing.T) {
-			now := time.Now().UTC()
-			input := modeldecoder.Input{Base: &modelpb.APMEvent{Timestamp: timestamppb.New(now)}}
+			now := modelpb.PBTimestampNow()
+			input := modeldecoder.Input{Base: &modelpb.APMEvent{Timestamp: now}}
 			str := `{"log":{"message":"something happened"}}`
 			dec := decoder.NewJSONDecoder(strings.NewReader(str))
 			var batch modelpb.Batch
 			require.NoError(t, DecodeNestedLog(dec, &input, &batch))
-			assert.Equal(t, now, batch[0].Timestamp.AsTime())
+			assert.Equal(t, now, batch[0].Timestamp)
 		})
 
 		t.Run("withError", func(t *testing.T) {
@@ -84,7 +82,7 @@ func TestDecodeNestedLog(t *testing.T) {
 			var batch modelpb.Batch
 			require.NoError(t, DecodeNestedLog(dec, &input, &batch))
 			require.Len(t, batch, 1)
-			assert.Equal(t, "2022-09-08 06:02:51 +0000 UTC", batch[0].Timestamp.AsTime().String())
+			assert.Equal(t, uint64(1662616971000000*1000), batch[0].Timestamp)
 			assert.Equal(t, "trace-id", batch[0].Trace.Id)
 			assert.Equal(t, "transaction-id", batch[0].Transaction.Id)
 			assert.Equal(t, "error", batch[0].Log.Level)
@@ -111,7 +109,7 @@ func TestDecodeNestedLog(t *testing.T) {
 			var batch modelpb.Batch
 			require.NoError(t, DecodeNestedLog(dec, &input, &batch))
 			require.Len(t, batch, 1)
-			assert.Equal(t, "2022-09-08 06:02:51 +0000 UTC", batch[0].Timestamp.AsTime().String())
+			assert.Equal(t, uint64(1662616971000000*1000), batch[0].Timestamp)
 			assert.Equal(t, "trace-id", batch[0].Trace.Id)
 			assert.Equal(t, "transaction-id", batch[0].Transaction.Id)
 			assert.Equal(t, "error", batch[0].Log.Level)
@@ -138,7 +136,7 @@ func TestDecodeNestedLog(t *testing.T) {
 			var batch modelpb.Batch
 			require.NoError(t, DecodeNestedLog(dec, &input, &batch))
 			require.Len(t, batch, 1)
-			assert.Equal(t, "2022-09-08 06:02:51 +0000 UTC", batch[0].Timestamp.AsTime().String())
+			assert.Equal(t, uint64(1662616971000000*1000), batch[0].Timestamp)
 			assert.Equal(t, "trace-id", batch[0].Trace.Id)
 			assert.Equal(t, "transaction-id", batch[0].Transaction.Id)
 			assert.Equal(t, "error", batch[0].Log.Level)

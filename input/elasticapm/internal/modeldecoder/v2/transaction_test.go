@@ -33,7 +33,6 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/structpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
@@ -53,7 +52,7 @@ func TestResetTransactionOnRelease(t *testing.T) {
 
 func TestDecodeNestedTransaction(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
-		now := time.Now().UTC()
+		now := modelpb.PBTimestampNow()
 		input := modeldecoder.Input{Base: &modelpb.APMEvent{}}
 		str := `{"transaction":{"duration":100,"timestamp":1599996822281000,"id":"100","trace_id":"1","type":"request","span_count":{"started":2}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
@@ -63,15 +62,15 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Transaction)
 		assert.Equal(t, "request", batch[0].Transaction.Type)
-		assert.Equal(t, "2020-09-13 11:33:42.281 +0000 UTC", batch[0].Timestamp.AsTime().String())
+		assert.Equal(t, uint64(1599996822281000*1000), batch[0].Timestamp)
 
-		input = modeldecoder.Input{Base: &modelpb.APMEvent{Timestamp: timestamppb.New(now)}}
+		input = modeldecoder.Input{Base: &modelpb.APMEvent{Timestamp: now}}
 		str = `{"transaction":{"duration":100,"id":"100","trace_id":"1","type":"request","span_count":{"started":2}}}`
 		dec = decoder.NewJSONDecoder(strings.NewReader(str))
 		batch = modelpb.Batch{}
 		require.NoError(t, DecodeNestedTransaction(dec, &input, &batch))
 		// if no timestamp is provided, fall back to base event timestamp
-		assert.Equal(t, now, batch[0].Timestamp.AsTime())
+		assert.Equal(t, now, batch[0].Timestamp)
 
 		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &batch)
 		require.Error(t, err)
@@ -296,8 +295,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 
 		var input transaction
 		var out1, out2 modelpb.APMEvent
-		reqTime := time.Now().Add(time.Second)
-		out1.Timestamp = timestamppb.New(reqTime)
+		reqTime := modelpb.PBTimestampAdd(modelpb.PBTimestampNow(), time.Second)
+		out1.Timestamp = reqTime
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		input.OTel.Reset()
@@ -306,13 +305,13 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
 
 		// leave base event timestamp unmodified if event timestamp is unspecified
-		out1.Timestamp = timestamppb.New(reqTime)
+		out1.Timestamp = reqTime
 		mapToTransactionModel(&input, &out1)
-		assert.Equal(t, reqTime.UTC(), out1.Timestamp.AsTime())
+		assert.Equal(t, reqTime, out1.Timestamp)
 		input.Reset()
 
 		// ensure memory is not shared by reusing input model
-		out2.Timestamp = timestamppb.New(reqTime)
+		out2.Timestamp = reqTime
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToTransactionModel(&input, &out1)
 		input.Reset()

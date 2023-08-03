@@ -37,7 +37,6 @@ import (
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
@@ -469,8 +468,8 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 	if from.ParentID.IsSet() {
 		event.ParentId = from.ParentID.Val
 	}
-	if !from.Timestamp.Val.IsZero() {
-		event.Timestamp = timestamppb.New(from.Timestamp.Val)
+	if from.Timestamp.IsSet() {
+		event.Timestamp = uint64(from.Timestamp.Val)
 	}
 	if from.TraceID.IsSet() {
 		event.Trace = &modelpb.Trace{
@@ -730,8 +729,8 @@ func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 func mapToMetricsetModel(from *metricset, event *modelpb.APMEvent) bool {
 	event.Metricset = &modelpb.Metricset{Name: "app"}
 
-	if !from.Timestamp.Val.IsZero() {
-		event.Timestamp = timestamppb.New(from.Timestamp.Val)
+	if from.Timestamp.IsSet() {
+		event.Timestamp = uint64(from.Timestamp.Val)
 	}
 
 	if len(from.Samples) > 0 {
@@ -1178,19 +1177,19 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		val := from.Sync.Val
 		out.Sync = &val
 	}
-	if !from.Timestamp.Val.IsZero() {
-		event.Timestamp = timestamppb.New(from.Timestamp.Val)
+	if from.Timestamp.IsSet() {
+		event.Timestamp = uint64(from.Timestamp.Val)
 	} else if from.Start.IsSet() {
 		// event.Timestamp should have been initialized to the time the
 		// payload was received; offset that by "start" milliseconds for
 		// RUM.
-		base := time.Time{}
-		if event.Timestamp != nil {
-			base = event.Timestamp.AsTime()
+		var base uint64 = 0
+		if event.Timestamp != 0 {
+			base = event.Timestamp
 		}
-		event.Timestamp = timestamppb.New(base.Add(
-			time.Duration(float64(time.Millisecond) * from.Start.Val),
-		))
+		event.Timestamp = base + uint64(
+			time.Duration((float64(time.Millisecond) * from.Start.Val)).Nanoseconds(),
+		)
 	}
 	if from.TraceID.IsSet() {
 		event.Trace = &modelpb.Trace{
@@ -1410,8 +1409,8 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 		started := uint32(from.SpanCount.Started.Val)
 		out.SpanCount.Started = &started
 	}
-	if !from.Timestamp.Val.IsZero() {
-		event.Timestamp = timestamppb.New(from.Timestamp.Val)
+	if from.Timestamp.IsSet() {
+		event.Timestamp = uint64(from.Timestamp.Val)
 	}
 	if from.TraceID.IsSet() {
 		event.Trace = &modelpb.Trace{
@@ -1466,8 +1465,8 @@ func mapToLogModel(from *log, event *modelpb.APMEvent) {
 		event.Faas = populateNil(event.Faas)
 		mapToFAASModel(from.FAAS, event.Faas)
 	}
-	if !from.Timestamp.Val.IsZero() {
-		event.Timestamp = timestamppb.New(from.Timestamp.Val)
+	if from.Timestamp.IsSet() {
+		event.Timestamp = uint64(from.Timestamp.Val)
 	}
 	if from.TraceID.IsSet() {
 		event.Trace = &modelpb.Trace{

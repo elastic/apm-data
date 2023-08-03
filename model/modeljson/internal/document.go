@@ -68,23 +68,19 @@ type Document struct {
 	Process     *Process     `json:"process,omitempty"`
 	Event       *Event       `json:"event,omitempty"`
 
-	Timestamp  Time        `json:"@timestamp"`
 	DataStream *DataStream `json:"data_stream,omitempty"`
 	Message    string      `json:"message,omitempty"`
 	DocCount   uint64      `json:"_doc_count,omitempty"`
+	Timestamp  Time        `json:"@timestamp"`
 }
 
-type Time time.Time
+type Time uint64
 
 func (t Time) MarshalFastJSON(w *fastjson.Writer) error {
 	w.RawByte('"')
-	w.Time(time.Time(t), timestampFormat)
+	w.Time(time.Unix(0, int64(t)).UTC(), timestampFormat)
 	w.RawByte('"')
 	return nil
-}
-
-func (t Time) isZero() bool {
-	return time.Time(t).IsZero()
 }
 
 type DataStream struct {

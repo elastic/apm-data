@@ -32,14 +32,12 @@ func EventModelJSON(e *modelpb.Event, out *modeljson.Event) {
 		Type:     e.Type,
 		Duration: int64(e.Duration.AsDuration().Nanoseconds()),
 		Severity: e.Severity,
+		Received: modeljson.Time(e.Received),
 	}
 	if e.SuccessCount != nil {
 		out.SuccessCount = modeljson.SummaryMetric{
 			Count: e.SuccessCount.Count,
 			Sum:   e.SuccessCount.Sum,
 		}
-	}
-	if e.Received.IsValid() {
-		out.Received = modeljson.Time(e.Received.AsTime())
 	}
 }

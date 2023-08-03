@@ -15,17 +15,19 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package modeljson
+package modelpb
 
-type Event struct {
-	Outcome      string        `json:"outcome,omitempty"`
-	Action       string        `json:"action,omitempty"`
-	Dataset      string        `json:"dataset,omitempty"`
-	Kind         string        `json:"kind,omitempty"`
-	Category     string        `json:"category,omitempty"`
-	Type         string        `json:"type,omitempty"`
-	SuccessCount SummaryMetric `json:"success_count,omitempty"`
-	Duration     int64         `json:"duration,omitempty"`
-	Severity     uint64        `json:"severity,omitempty"`
-	Received     Time          `json:"received,omitempty"`
+import (
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+)
+
+func TestTimestamp(t *testing.T) {
+	now := time.Now().UTC()
+
+	assert.Equal(t, uint64(now.UnixNano()), TimeToPBTimestamp(now))
+	assert.Equal(t, now, PBTimestampToTime(TimeToPBTimestamp(now)))
+	assert.Equal(t, now.Truncate(time.Minute), PBTimestampToTime(PBTimestampTruncate(TimeToPBTimestamp(now), time.Minute)))
 }

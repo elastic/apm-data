@@ -26,7 +26,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -36,6 +35,7 @@ const (
 func TestEventToModelJSON(t *testing.T) {
 	now, err := time.Parse(time.RFC3339, testTime)
 	require.NoError(t, err)
+	tt := modelpb.TimeToPBTimestamp(now)
 
 	testCases := map[string]struct {
 		proto    *modelpb.Event
@@ -59,7 +59,7 @@ func TestEventToModelJSON(t *testing.T) {
 				},
 				Duration: durationpb.New(3 * time.Second),
 				Severity: 4,
-				Received: timestamppb.New(now),
+				Received: tt,
 			},
 			expected: &modeljson.Event{
 				Outcome:  "outcome",
@@ -74,7 +74,7 @@ func TestEventToModelJSON(t *testing.T) {
 				},
 				Duration: int64(3 * time.Second),
 				Severity: 4,
-				Received: modeljson.Time(now),
+				Received: modeljson.Time(tt),
 			},
 		},
 	}
@@ -82,10 +82,7 @@ func TestEventToModelJSON(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			var out modeljson.Event
 			EventModelJSON(tc.proto, &out)
-			diff := cmp.Diff(*tc.expected, out,
-				cmp.Comparer(func(a modeljson.Time, b modeljson.Time) bool {
-					return time.Time(a).Equal(time.Time(b))
-				}))
+			diff := cmp.Diff(*tc.expected, out)
 			require.Empty(t, diff)
 		})
 	}

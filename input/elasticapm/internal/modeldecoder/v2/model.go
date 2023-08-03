@@ -346,9 +346,6 @@ type contextServiceRuntime struct {
 // captured by an APM agent in a monitored service.
 type errorEvent struct {
 	_ struct{} `validate:"requiredAnyOf=exception;log"`
-	// Timestamp holds the recorded time of the event, UTC based and formatted
-	// as microseconds since Unix epoch.
-	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
 	// Log holds additional information added when the error is logged.
 	Log errorLog `json:"log"`
 	// Culprit identifies the function call which was the primary perpetrator
@@ -371,6 +368,9 @@ type errorEvent struct {
 	Transaction errorTransactionRef `json:"transaction"`
 	// Context holds arbitrary contextual information for the event.
 	Context context `json:"context"`
+	// Timestamp holds the recorded time of the event, UTC based and formatted
+	// as microseconds since Unix epoch.
+	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
 }
 
 type errorException struct {
@@ -631,9 +631,6 @@ type networkConnection struct {
 }
 
 type metricset struct {
-	// Timestamp holds the recorded time of the event, UTC based and formatted
-	// as microseconds since Unix epoch
-	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
 	// Samples hold application metrics collected from the agent.
 	Samples map[string]metricsetSampleValue `json:"samples" validate:"required,patternKeys=patternNoAsteriskQuote"`
 	// Span holds selected information about the correlated transaction.
@@ -648,6 +645,9 @@ type metricset struct {
 	Service metricsetServiceRef `json:"service"`
 	// FAAS holds fields related to Function as a Service events.
 	FAAS faas `json:"faas"`
+	// Timestamp holds the recorded time of the event, UTC based and formatted
+	// as microseconds since Unix epoch
+	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
 }
 
 type metricsetSampleValue struct {
@@ -710,9 +710,6 @@ type metricsetServiceRef struct {
 
 type span struct {
 	_ struct{} `validate:"requiredAnyOf=start;timestamp"`
-	// Timestamp holds the recorded time of the event, UTC based and formatted
-	// as microseconds since Unix epoch
-	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
 	// OTel contains unmapped OpenTelemetry attributes.
 	OTel otel `json:"otel"`
 	// ID holds the hex encoded 64 random bits ID of the event.
@@ -760,6 +757,9 @@ type span struct {
 	Duration nullable.Float64 `json:"duration" validate:"required,min=0"`
 	// Sync indicates whether the span was executed synchronously or asynchronously.
 	Sync nullable.Bool `json:"sync"`
+	// Timestamp holds the recorded time of the event, UTC based and formatted
+	// as microseconds since Unix epoch
+	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
 }
 
 type spanContext struct {
@@ -905,9 +905,6 @@ type transaction struct {
 	// a transaction. Marks are organized into groups and can be set by the
 	// user or the agent. Marks are only reported by RUM agents.
 	Marks transactionMarks `json:"marks"`
-	// Timestamp holds the recorded time of the event, UTC based and formatted
-	// as microseconds since Unix epoch
-	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
 	// OTel contains unmapped OpenTelemetry attributes.
 	OTel otel `json:"otel"`
 	// Links holds links to other spans, potentially in other traces.
@@ -958,14 +955,14 @@ type transaction struct {
 	// is captured. If a transaction is unsampled no spans and less context
 	// information will be reported.
 	Sampled nullable.Bool `json:"sampled"`
+	// Timestamp holds the recorded time of the event, UTC based and formatted
+	// as microseconds since Unix epoch
+	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
 }
 
 type log struct {
 	// Labels are a flat mapping of user-defined key-value pairs.
 	Labels map[string]any `json:"labels" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
-	// Timestamp holds the recorded time of the event, UTC based and formatted
-	// as microseconds since Unix epoch
-	Timestamp nullable.TimeMicrosUnix `json:"@timestamp"`
 	// Below embedded fields are added to enable supporting both nested and flat JSON.
 	// This is achieved by generating code using static analysis of these structs.
 	// The logic parses JSON tag of each struct field to produce a code which, at runtime,
@@ -992,6 +989,9 @@ type log struct {
 	// The logic parses JSON tag of each struct field to produce a code which, at runtime,
 	// checks the nested map to retrieve the required value for each field.
 	EcsLogLogFields
+	// Timestamp holds the recorded time of the event, UTC based and formatted
+	// as microseconds since Unix epoch
+	Timestamp nullable.TimeMicrosUnix `json:"@timestamp"`
 }
 
 // EcsLogEventFields holds event.* fields for supporting ECS logging format and enables

@@ -45,7 +45,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 	"google.golang.org/protobuf/testing/protocmp"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -114,7 +113,7 @@ Caused by: LowLevelException
 	out := cmp.Diff([]*modelpb.APMEvent{{
 		Service:       service,
 		Agent:         agent,
-		Timestamp:     timestamppb.New(timestamp),
+		Timestamp:     modelpb.TimeToPBTimestamp(timestamp),
 		Labels:        modelpb.Labels{},
 		NumericLabels: modelpb.NumericLabels{},
 		Trace:         transactionEvent.Trace,
@@ -169,7 +168,7 @@ Caused by: LowLevelException
 	}, {
 		Service:       service,
 		Agent:         agent,
-		Timestamp:     timestamppb.New(timestamp),
+		Timestamp:     modelpb.TimeToPBTimestamp(timestamp),
 		Labels:        modelpb.Labels{},
 		NumericLabels: modelpb.NumericLabels{},
 		Trace:         transactionEvent.Trace,
@@ -333,7 +332,7 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 	out := cmp.Diff(&modelpb.APMEvent{
 		Service:       service,
 		Agent:         agent,
-		Timestamp:     timestamppb.New(timestamp),
+		Timestamp:     modelpb.TimeToPBTimestamp(timestamp),
 		Labels:        modelpb.Labels{},
 		NumericLabels: modelpb.NumericLabels{},
 		Trace:         transactionEvent.Trace,

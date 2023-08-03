@@ -25,7 +25,6 @@ import (
 	"regexp"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -33,6 +32,7 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 //
@@ -507,7 +507,7 @@ func TestSpanRequiredValidationRules(t *testing.T) {
 	// setup: create full struct with arbitrary values set
 	var event span
 	modeldecodertest.InitStructValues(&event)
-	event.Timestamp.Set(time.Now())
+	event.Timestamp.Set(modelpb.PBTimestampNow())
 	event.Outcome.Set("failure")
 	// Composite.Count must be > 1
 	event.Composite.Count.Set(2)

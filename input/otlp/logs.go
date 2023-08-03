@@ -43,7 +43,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 	"go.uber.org/zap"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -54,7 +53,7 @@ func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
 	}
 	defer c.sem.Release(1)
 
-	receiveTimestamp := time.Now()
+	receiveTimestamp := modelpb.PBTimestampNow()
 	c.config.Logger.Debug("consuming logs", zap.Stringer("logs", logsStringer(logs)))
 	resourceLogs := logs.ResourceLogs()
 	batch := make(modelpb.Batch, 0, resourceLogs.Len())
@@ -64,18 +63,18 @@ func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
 	return c.config.Processor.ProcessBatch(ctx, &batch)
 }
 
-func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTimestamp time.Time, out *modelpb.Batch) {
+func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTimestamp uint64, out *modelpb.Batch) {
 	var timeDelta time.Duration
 	resource := resourceLogs.Resource()
 	baseEvent := modelpb.APMEvent{
 		Event: &modelpb.Event{
-			Received: timestamppb.New(receiveTimestamp),
+			Received: receiveTimestamp,
 		},
 	}
 	translateResourceMetadata(resource, &baseEvent)
 
 	if exportTimestamp, ok := exportTimestamp(resource); ok {
-		timeDelta = receiveTimestamp.Sub(exportTimestamp)
+		timeDelta = modelpb.PBTimestampSub(receiveTimestamp, exportTimestamp)
 	}
 	scopeLogs := resourceLogs.ScopeLogs()
 	for i := 0; i < scopeLogs.Len(); i++ {
@@ -103,7 +102,7 @@ func (c *Consumer) convertLogRecord(
 ) *modelpb.APMEvent {
 	event := baseEvent.CloneVT()
 	initEventLabels(event)
-	event.Timestamp = timestamppb.New(record.Timestamp().AsTime().Add(timeDelta))
+	event.Timestamp = modelpb.TimeToPBTimestamp(record.Timestamp().AsTime().Add(timeDelta))
 	event.Event = populateNil(event.Event)
 	event.Event.Severity = uint64(record.SeverityNumber())
 	event.Log = populateNil(event.Log)

@@ -30,7 +30,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/testing/protocmp"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
@@ -59,7 +58,7 @@ func TestDecodeNestedSpan(t *testing.T) {
 		require.NoError(t, DecodeNestedSpan(dec, &input, &batch))
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Span)
-		assert.Equal(t, time.Time{}.Add(143*time.Millisecond), batch[0].Timestamp.AsTime())
+		assert.Equal(t, modelpb.PBTimestampAdd(eventBase.Timestamp, time.Duration((143*time.Millisecond).Nanoseconds())), batch[0].Timestamp)
 		assert.Equal(t, 100*time.Millisecond, batch[0].Event.Duration.AsDuration())
 		assert.Equal(t, "parent-123", batch[0].ParentId, protocmp.Transform())
 		assert.Equal(t, &modelpb.Trace{Id: "trace-ab"}, batch[0].Trace, protocmp.Transform())
@@ -184,18 +183,18 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		// add start to base event timestamp if event timestamp is unspecified and start is given
 		var input span
 		var out modelpb.APMEvent
-		reqTime := time.Now().Add(time.Hour).UTC()
-		out.Timestamp = timestamppb.New(reqTime)
+		reqTime := modelpb.PBTimestampAdd(modelpb.PBTimestampNow(), time.Hour)
+		out.Timestamp = reqTime
 		input.Start.Set(20.5)
 		mapToSpanModel(&input, &out)
-		timestamp := reqTime.Add(time.Duration(input.Start.Val * float64(time.Millisecond))).UTC()
-		assert.Equal(t, timestamp, out.Timestamp.AsTime())
+		timestamp := modelpb.PBTimestampAdd(reqTime, time.Duration(input.Start.Val*float64(time.Millisecond)))
+		assert.Equal(t, timestamp, out.Timestamp)
 
 		// leave base event timestamp unmodified if neither event timestamp nor start is specified
-		out = modelpb.APMEvent{Timestamp: timestamppb.New(reqTime)}
+		out = modelpb.APMEvent{Timestamp: reqTime}
 		input.Start.Reset()
 		mapToSpanModel(&input, &out)
-		assert.Equal(t, reqTime, out.Timestamp.AsTime())
+		assert.Equal(t, reqTime, out.Timestamp)
 	})
 
 	t.Run("sample-rate", func(t *testing.T) {
