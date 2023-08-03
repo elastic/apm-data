@@ -119,6 +119,16 @@ func IsInternalMetricName(name string) bool {
 		return true
 	case "jvm.thread.count":
 		return true
+	case "jvm.memory.non_heap.pool.used":
+		return true
+	case "jvm.memory.non_heap.pool.committed":
+		return true
+	case "jvm.memory.non_heap.pool.max":
+		return true
+	case "jvm.fd.used":
+		return true
+	case "jvm.fd.max":
+		return true
 	case "nodejs.eventloop.delay.avg.ms":
 		return true
 	case "nodejs.handles.active":
