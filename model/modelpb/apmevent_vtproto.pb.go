@@ -28,7 +28,6 @@ import (
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -43,6 +42,7 @@ func (m *APMEvent) CloneVT() *APMEvent {
 		return (*APMEvent)(nil)
 	}
 	r := &APMEvent{
+		Timestamp:   m.Timestamp,
 		Span:        m.Span.CloneVT(),
 		Transaction: m.Transaction.CloneVT(),
 		Metricset:   m.Metricset.CloneVT(),
@@ -72,13 +72,6 @@ func (m *APMEvent) CloneVT() *APMEvent {
 		Session:     m.Session.CloneVT(),
 		Process:     m.Process.CloneVT(),
 		Event:       m.Event.CloneVT(),
-	}
-	if rhs := m.Timestamp; rhs != nil {
-		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *timestamppb.Timestamp }); ok {
-			r.Timestamp = vtpb.CloneVT()
-		} else {
-			r.Timestamp = proto.Clone(rhs).(*timestamppb.Timestamp)
-		}
 	}
 	if rhs := m.NumericLabels; rhs != nil {
 		tmpContainer := make(map[string]*NumericLabelValue, len(rhs))
@@ -513,27 +506,10 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if m.Timestamp != nil {
-		if vtmsg, ok := interface{}(m.Timestamp).(interface {
-			MarshalToSizedBufferVT([]byte) (int, error)
-		}); ok {
-			size, err := vtmsg.MarshalToSizedBufferVT(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarint(dAtA, i, uint64(size))
-		} else {
-			encoded, err := proto.Marshal(m.Timestamp)
-			if err != nil {
-				return 0, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = encodeVarint(dAtA, i, uint64(len(encoded)))
-		}
+	if m.Timestamp != 0 {
+		i = encodeVarint(dAtA, i, uint64(m.Timestamp))
 		i--
-		dAtA[i] = 0xa
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -591,15 +567,8 @@ func (m *APMEvent) SizeVT() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Timestamp != nil {
-		if size, ok := interface{}(m.Timestamp).(interface {
-			SizeVT() int
-		}); ok {
-			l = size.SizeVT()
-		} else {
-			l = proto.Size(m.Timestamp)
-		}
-		n += 1 + l + sov(uint64(l))
+	if m.Timestamp != 0 {
+		n += 1 + sov(uint64(m.Timestamp))
 	}
 	if m.Span != nil {
 		l = m.Span.SizeVT()
@@ -783,10 +752,10 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Timestamp", wireType)
 			}
-			var msglen int
+			m.Timestamp = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflow
@@ -796,36 +765,11 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				m.Timestamp |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
-				return ErrInvalidLength
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLength
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Timestamp == nil {
-				m.Timestamp = &timestamppb.Timestamp{}
-			}
-			if unmarshal, ok := interface{}(m.Timestamp).(interface {
-				UnmarshalVT([]byte) error
-			}); ok {
-				if err := unmarshal.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-					return err
-				}
-			} else {
-				if err := proto.Unmarshal(dAtA[iNdEx:postIndex], m.Timestamp); err != nil {
-					return err
-				}
-			}
-			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Span", wireType)

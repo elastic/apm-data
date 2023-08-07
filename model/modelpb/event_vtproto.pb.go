@@ -29,7 +29,6 @@ import (
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -52,19 +51,13 @@ func (m *Event) CloneVT() *Event {
 		Type:         m.Type,
 		SuccessCount: m.SuccessCount.CloneVT(),
 		Severity:     m.Severity,
+		Received:     m.Received,
 	}
 	if rhs := m.Duration; rhs != nil {
 		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *durationpb.Duration }); ok {
 			r.Duration = vtpb.CloneVT()
 		} else {
 			r.Duration = proto.Clone(rhs).(*durationpb.Duration)
-		}
-	}
-	if rhs := m.Received; rhs != nil {
-		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *timestamppb.Timestamp }); ok {
-			r.Received = vtpb.CloneVT()
-		} else {
-			r.Received = proto.Clone(rhs).(*timestamppb.Timestamp)
 		}
 	}
 	if len(m.unknownFields) > 0 {
@@ -108,27 +101,10 @@ func (m *Event) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
-	if m.Received != nil {
-		if vtmsg, ok := interface{}(m.Received).(interface {
-			MarshalToSizedBufferVT([]byte) (int, error)
-		}); ok {
-			size, err := vtmsg.MarshalToSizedBufferVT(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarint(dAtA, i, uint64(size))
-		} else {
-			encoded, err := proto.Marshal(m.Received)
-			if err != nil {
-				return 0, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = encodeVarint(dAtA, i, uint64(len(encoded)))
-		}
+	if m.Received != 0 {
+		i = encodeVarint(dAtA, i, uint64(m.Received))
 		i--
-		dAtA[i] = 0x52
+		dAtA[i] = 0x50
 	}
 	if m.Severity != 0 {
 		i = encodeVarint(dAtA, i, uint64(m.Severity))
@@ -278,15 +254,8 @@ func (m *Event) SizeVT() (n int) {
 	if m.Severity != 0 {
 		n += 1 + sov(uint64(m.Severity))
 	}
-	if m.Received != nil {
-		if size, ok := interface{}(m.Received).(interface {
-			SizeVT() int
-		}); ok {
-			l = size.SizeVT()
-		} else {
-			l = proto.Size(m.Received)
-		}
-		n += 1 + l + sov(uint64(l))
+	if m.Received != 0 {
+		n += 1 + sov(uint64(m.Received))
 	}
 	n += len(m.unknownFields)
 	return n
@@ -613,10 +582,10 @@ func (m *Event) UnmarshalVT(dAtA []byte) error {
 				}
 			}
 		case 10:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Received", wireType)
 			}
-			var msglen int
+			m.Received = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflow
@@ -626,36 +595,11 @@ func (m *Event) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				m.Received |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
-				return ErrInvalidLength
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLength
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Received == nil {
-				m.Received = &timestamppb.Timestamp{}
-			}
-			if unmarshal, ok := interface{}(m.Received).(interface {
-				UnmarshalVT([]byte) error
-			}); ok {
-				if err := unmarshal.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-					return err
-				}
-			} else {
-				if err := proto.Unmarshal(dAtA[iNdEx:postIndex], m.Received); err != nil {
-					return err
-				}
-			}
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skip(dAtA[iNdEx:])
