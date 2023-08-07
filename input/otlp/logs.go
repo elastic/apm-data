@@ -43,7 +43,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 	"go.uber.org/zap"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -69,7 +68,7 @@ func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTi
 	resource := resourceLogs.Resource()
 	baseEvent := modelpb.APMEvent{
 		Event: &modelpb.Event{
-			Received: timestamppb.New(receiveTimestamp),
+			Received: modelpb.FromTime(receiveTimestamp),
 		},
 	}
 	translateResourceMetadata(resource, &baseEvent)
@@ -103,7 +102,7 @@ func (c *Consumer) convertLogRecord(
 ) *modelpb.APMEvent {
 	event := baseEvent.CloneVT()
 	initEventLabels(event)
-	event.Timestamp = timestamppb.New(record.Timestamp().AsTime().Add(timeDelta))
+	event.Timestamp = modelpb.FromTime(record.Timestamp().AsTime().Add(timeDelta))
 	event.Event = populateNil(event.Event)
 	event.Event.Severity = uint64(record.SeverityNumber())
 	event.Log = populateNil(event.Log)

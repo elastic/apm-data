@@ -50,7 +50,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"golang.org/x/sync/semaphore"
 	"google.golang.org/protobuf/testing/protocmp"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -141,7 +140,7 @@ func TestConsumeMetrics(t *testing.T) {
 	expected := []*modelpb.APMEvent{{
 		Agent:     &agent,
 		Service:   &service,
-		Timestamp: timestamppb.New(timestamp0),
+		Timestamp: modelpb.FromTime(timestamp0),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -168,7 +167,7 @@ func TestConsumeMetrics(t *testing.T) {
 	}, {
 		Agent:     &agent,
 		Service:   &service,
-		Timestamp: timestamppb.New(timestamp1),
+		Timestamp: modelpb.FromTime(timestamp1),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -179,7 +178,7 @@ func TestConsumeMetrics(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"k": {Value: "v"}},
-		Timestamp: timestamppb.New(timestamp1),
+		Timestamp: modelpb.FromTime(timestamp1),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -191,7 +190,7 @@ func TestConsumeMetrics(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"k": {Value: "v2"}},
-		Timestamp: timestamppb.New(timestamp1),
+		Timestamp: modelpb.FromTime(timestamp1),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -203,7 +202,7 @@ func TestConsumeMetrics(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"k2": {Value: "v"}},
-		Timestamp: timestamppb.New(timestamp1),
+		Timestamp: modelpb.FromTime(timestamp1),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -342,7 +341,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "idle"}, "cpu": {Value: "0"}},
-		Timestamp: timestamppb.New(timestamp),
+		Timestamp: modelpb.FromTime(timestamp),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -357,7 +356,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "system"}, "cpu": {Value: "0"}},
-		Timestamp: timestamppb.New(timestamp),
+		Timestamp: modelpb.FromTime(timestamp),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -372,7 +371,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "user"}, "cpu": {Value: "0"}},
-		Timestamp: timestamppb.New(timestamp),
+		Timestamp: modelpb.FromTime(timestamp),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -387,7 +386,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "idle"}, "cpu": {Value: "1"}},
-		Timestamp: timestamppb.New(timestamp),
+		Timestamp: modelpb.FromTime(timestamp),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -402,7 +401,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "system"}, "cpu": {Value: "1"}},
-		Timestamp: timestamppb.New(timestamp),
+		Timestamp: modelpb.FromTime(timestamp),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -417,7 +416,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "user"}, "cpu": {Value: "1"}},
-		Timestamp: timestamppb.New(timestamp),
+		Timestamp: modelpb.FromTime(timestamp),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -432,7 +431,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "idle"}, "cpu": {Value: "2"}},
-		Timestamp: timestamppb.New(timestamp),
+		Timestamp: modelpb.FromTime(timestamp),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -447,7 +446,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "system"}, "cpu": {Value: "2"}},
-		Timestamp: timestamppb.New(timestamp),
+		Timestamp: modelpb.FromTime(timestamp),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -462,7 +461,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "user"}, "cpu": {Value: "2"}},
-		Timestamp: timestamppb.New(timestamp),
+		Timestamp: modelpb.FromTime(timestamp),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -477,7 +476,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "idle"}, "cpu": {Value: "3"}},
-		Timestamp: timestamppb.New(timestamp),
+		Timestamp: modelpb.FromTime(timestamp),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -492,7 +491,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "system"}, "cpu": {Value: "3"}},
-		Timestamp: timestamppb.New(timestamp),
+		Timestamp: modelpb.FromTime(timestamp),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -507,7 +506,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "user"}, "cpu": {Value: "3"}},
-		Timestamp: timestamppb.New(timestamp),
+		Timestamp: modelpb.FromTime(timestamp),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -552,7 +551,7 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "free"}},
-		Timestamp: timestamppb.New(timestamp),
+		Timestamp: modelpb.FromTime(timestamp),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -567,7 +566,7 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"state": {Value: "used"}},
-		Timestamp: timestamppb.New(timestamp),
+		Timestamp: modelpb.FromTime(timestamp),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -631,7 +630,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"type": {Value: "heap"}, "pool": {Value: "G1 Eden Space"}},
-		Timestamp: timestamppb.New(timestamp),
+		Timestamp: modelpb.FromTime(timestamp),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -646,7 +645,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Agent:     &agent,
 		Service:   &service,
 		Labels:    modelpb.Labels{"action": {Value: "end of minor GC"}, "gc": {Value: "G1 Young Generation"}},
-		Timestamp: timestamppb.New(timestamp),
+		Timestamp: modelpb.FromTime(timestamp),
 		Metricset: &modelpb.Metricset{
 			Name: "app",
 			Samples: []*modelpb.MetricsetSample{
@@ -675,7 +674,7 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 	// Use a large delta so that we can allow for a significant amount of
 	// delay in the test environment affecting the timestamp adjustment.
 	const timeDelta = time.Hour
-	const allowedError = 5 // seconds
+	const allowedError = 5 * time.Second // seconds
 
 	now := time.Now()
 	exportTimestamp := now.Add(-timeDelta)
@@ -695,7 +694,7 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 
 	events, _ := transformMetrics(t, metrics)
 	require.Len(t, events, 1)
-	assert.InDelta(t, now.Add(dataPointOffset).Unix(), events[0].Timestamp.AsTime().Unix(), allowedError)
+	assert.InDelta(t, modelpb.FromTime(now.Add(dataPointOffset)), events[0].Timestamp, float64(allowedError.Nanoseconds()))
 
 	for _, e := range events {
 		// telemetry.sdk.elastic_export_timestamp should not be sent as a label.
@@ -743,10 +742,10 @@ func eventsMatch(t *testing.T, expected []*modelpb.APMEvent, actual []*modelpb.A
 		return strings.Compare(actual[i].String(), actual[j].String()) == -1
 	})
 
-	now := time.Now().Unix()
+	now := modelpb.FromTime(time.Now())
 	for i, e := range actual {
-		assert.InDelta(t, now, e.Event.Received.AsTime().Unix(), 2)
-		e.Event.Received = nil
+		assert.InDelta(t, now, e.Event.Received, float64((2 * time.Second).Nanoseconds()))
+		e.Event.Received = 0
 		if expected[i].Event == nil {
 			e.Event = nil
 		}

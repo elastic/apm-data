@@ -23,12 +23,11 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func fullEvent(t *testing.B) *modelpb.APMEvent {
 	return &modelpb.APMEvent{
-		Timestamp: timestamppb.New(time.Unix(1, 1)),
+		Timestamp: uint64(time.Second.Nanoseconds() + 1),
 		Span: &modelpb.Span{
 			Message: &modelpb.Message{
 				Body: "body",

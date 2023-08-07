@@ -52,7 +52,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -100,7 +99,7 @@ func (c *Consumer) convertResourceSpans(
 ) {
 	baseEvent := modelpb.APMEvent{
 		Event: &modelpb.Event{
-			Received: timestamppb.New(receiveTimestamp),
+			Received: modelpb.FromTime(receiveTimestamp),
 		},
 	}
 	var timeDelta time.Duration
@@ -154,7 +153,7 @@ func (c *Consumer) convertSpan(
 	representativeCount := getRepresentativeCountFromTracestateHeader(otelSpan.TraceState().AsRaw())
 	event := baseEvent.CloneVT()
 	initEventLabels(event)
-	event.Timestamp = timestamppb.New(startTime.Add(timeDelta))
+	event.Timestamp = modelpb.FromTime(startTime.Add(timeDelta))
 	if id := hexTraceID(otelSpan.TraceID()); id != "" {
 		event.Trace = &modelpb.Trace{
 			Id: id,
@@ -888,7 +887,7 @@ func (c *Consumer) convertSpanEvent(
 	initEventLabels(event)
 	event.Transaction = nil // populate fields as required from parent
 	event.Span = nil        // populate fields as required from parent
-	event.Timestamp = timestamppb.New(spanEvent.Timestamp().AsTime().Add(timeDelta))
+	event.Timestamp = modelpb.FromTime(spanEvent.Timestamp().AsTime().Add(timeDelta))
 
 	isJaeger := strings.HasPrefix(parent.Agent.Name, "Jaeger")
 	if isJaeger {

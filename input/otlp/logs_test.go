@@ -47,7 +47,6 @@ import (
 	"golang.org/x/sync/semaphore"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -185,8 +184,8 @@ func TestConsumerConsumeLogs(t *testing.T) {
 					panic("already processes batch")
 				}
 				processed = *batch
-				assert.NotNil(t, processed[0].Timestamp)
-				processed[0].Timestamp = nil
+				assert.NotZero(t, processed[0].Timestamp)
+				processed[0].Timestamp = 0
 				return nil
 			}
 			consumer := otlp.NewConsumer(otlp.ConsumerConfig{
@@ -195,10 +194,10 @@ func TestConsumerConsumeLogs(t *testing.T) {
 			})
 			assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
-			now := time.Now().Unix()
+			now := modelpb.FromTime(time.Now())
 			for _, e := range processed {
-				assert.InDelta(t, now, e.Event.Received.AsTime().Unix(), 2)
-				e.Event.Received = nil
+				assert.InDelta(t, now, e.Event.Received, float64((2 * time.Second).Nanoseconds()))
+				e.Event.Received = 0
 			}
 
 			expected := proto.Clone(&commonEvent).(*modelpb.APMEvent)
@@ -285,8 +284,8 @@ Caused by: LowLevelException
 			panic("already processes batch")
 		}
 		processed = *batch
-		assert.NotNil(t, processed[0].Timestamp)
-		processed[0].Timestamp = nil
+		assert.NotZero(t, processed[0].Timestamp)
+		processed[0].Timestamp = 0
 		return nil
 	}
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
@@ -295,16 +294,16 @@ Caused by: LowLevelException
 	})
 	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
 
-	now := time.Now().Unix()
+	now := modelpb.FromTime(time.Now())
 	for _, e := range processed {
-		assert.InDelta(t, now, e.Event.Received.AsTime().Unix(), 2)
-		e.Event.Received = nil
+		assert.InDelta(t, now, e.Event.Received, float64((2 * time.Second).Nanoseconds()))
+		e.Event.Received = 0
 	}
 
 	assert.Len(t, processed, 2)
 	assert.Equal(t, modelpb.Labels{"key0": {Global: true, Value: "zero"}, "key1": {Value: "one"}}, modelpb.Labels(processed[0].Labels))
 	assert.Empty(t, processed[0].NumericLabels)
-	processed[1].Timestamp = nil
+	processed[1].Timestamp = 0
 	out := cmp.Diff(&modelpb.APMEvent{
 		Service: &modelpb.Service{
 			Name: "unknown",
@@ -435,8 +434,8 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 			panic("already processes batch")
 		}
 		processed = *batch
-		assert.NotNil(t, processed[0].Timestamp)
-		processed[0].Timestamp = timestamppb.New(time.Time{})
+		assert.NotZero(t, processed[0].Timestamp)
+		processed[0].Timestamp = 0
 		return nil
 	}
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
@@ -478,8 +477,8 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 			panic("already processes batch")
 		}
 		processed = *batch
-		assert.NotNil(t, processed[0].Timestamp)
-		processed[0].Timestamp = timestamppb.New(time.Time{})
+		assert.NotZero(t, processed[0].Timestamp)
+		processed[0].Timestamp = 0
 		return nil
 	}
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{

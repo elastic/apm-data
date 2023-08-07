@@ -26,7 +26,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -59,7 +58,7 @@ func TestEventToModelJSON(t *testing.T) {
 				},
 				Duration: durationpb.New(3 * time.Second),
 				Severity: 4,
-				Received: timestamppb.New(now),
+				Received: modelpb.FromTime(now),
 			},
 			expected: &modeljson.Event{
 				Outcome:  "outcome",
