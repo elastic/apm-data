@@ -30,7 +30,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/semaphore"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -292,7 +291,7 @@ func TestHandleStreamBaseEvent(t *testing.T) {
 	requestTimestamp := time.Date(2018, 8, 1, 10, 0, 0, 0, time.UTC)
 
 	baseEvent := modelpb.APMEvent{
-		Timestamp: timestamppb.New(requestTimestamp),
+		Timestamp: modelpb.FromTime(requestTimestamp),
 		UserAgent: &modelpb.UserAgent{Original: "rum-2.0"},
 		Source:    &modelpb.Source{Ip: modelpb.MustParseIP("192.0.0.1")},
 		Client:    &modelpb.Client{Ip: modelpb.MustParseIP("192.0.0.2")}, // X-Forwarded-For
@@ -320,7 +319,7 @@ func TestHandleStreamBaseEvent(t *testing.T) {
 	assert.Equal(t, "rum-2.0", events[0].UserAgent.Original)
 	assert.Equal(t, baseEvent.Source, events[0].Source)
 	assert.Equal(t, baseEvent.Client, events[0].Client)
-	assert.Equal(t, requestTimestamp.Add(50*time.Millisecond), events[0].Timestamp.AsTime()) // span's start is "50"
+	assert.Equal(t, modelpb.FromTime(requestTimestamp.Add(50*time.Millisecond)), events[0].Timestamp) // span's start is "50"
 }
 
 func TestLabelLeak(t *testing.T) {

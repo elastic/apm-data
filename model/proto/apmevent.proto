@@ -29,7 +29,6 @@ import "device.proto";
 import "error.proto";
 import "event.proto";
 import "faas.proto";
-import "google/protobuf/timestamp.proto";
 import "host.proto";
 import "http.proto";
 import "kubernetes.proto";
@@ -52,7 +51,8 @@ import "useragent.proto";
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
 message APMEvent {
-  google.protobuf.Timestamp timestamp = 1;
+  // nanoseconds since epoch
+  uint64 timestamp = 1;
   Span span = 2;
   map<string, NumericLabelValue> numeric_labels = 3;
   map<string, LabelValue> labels = 4;

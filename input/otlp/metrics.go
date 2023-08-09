@@ -44,7 +44,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -75,7 +74,7 @@ func (c *Consumer) convertMetrics(metrics pmetric.Metrics, receiveTimestamp time
 func (c *Consumer) convertResourceMetrics(resourceMetrics pmetric.ResourceMetrics, receiveTimestamp time.Time, out *modelpb.Batch) {
 	baseEvent := modelpb.APMEvent{
 		Event: &modelpb.Event{
-			Received: timestamppb.New(receiveTimestamp),
+			Received: modelpb.FromTime(receiveTimestamp),
 		},
 	}
 
@@ -107,7 +106,7 @@ func (c *Consumer) convertScopeMetrics(
 	}
 	for key, ms := range ms {
 		event := baseEvent.CloneVT()
-		event.Timestamp = timestamppb.New(key.timestamp.Add(timeDelta))
+		event.Timestamp = modelpb.FromTime(key.timestamp.Add(timeDelta))
 		metrs := make([]*modelpb.MetricsetSample, 0, len(ms.samples))
 		for _, s := range ms.samples {
 			metrs = append(metrs, s)

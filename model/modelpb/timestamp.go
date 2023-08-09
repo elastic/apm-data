@@ -15,31 +15,16 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package modeljson
+package modelpb
 
-import (
-	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
-	"github.com/elastic/apm-data/model/modelpb"
-)
+import "time"
 
-func EventModelJSON(e *modelpb.Event, out *modeljson.Event) {
-	*out = modeljson.Event{
-		Outcome:  e.Outcome,
-		Action:   e.Action,
-		Dataset:  e.Dataset,
-		Kind:     e.Kind,
-		Category: e.Category,
-		Type:     e.Type,
-		Duration: int64(e.Duration.AsDuration().Nanoseconds()),
-		Severity: e.Severity,
-	}
-	if e.SuccessCount != nil {
-		out.SuccessCount = modeljson.SummaryMetric{
-			Count: e.SuccessCount.Count,
-			Sum:   e.SuccessCount.Sum,
-		}
-	}
-	if e.Received != 0 {
-		out.Received = modeljson.Time(modelpb.ToTime(e.Received))
-	}
+// FromTime converts a time.Time to uint64 nanoseconds since Unix epoch.
+func FromTime(t time.Time) uint64 {
+	return uint64(t.UnixNano())
+}
+
+// ToTime converts uint64 nanoseconds since Unix epoch to a time.Time.
+func ToTime(v uint64) time.Time {
+	return time.Unix(int64(v/uint64(time.Second)), int64(v%uint64(time.Second))).UTC()
 }

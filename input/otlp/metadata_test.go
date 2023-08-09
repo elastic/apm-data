@@ -299,6 +299,6 @@ func transformResourceMetadata(t *testing.T, resourceAttrs map[string]interface{
 	(*events)[0].Span = nil
 	(*events)[0].Trace = nil
 	(*events)[0].Event = nil
-	(*events)[0].Timestamp = nil
+	(*events)[0].Timestamp = 0
 	return (*events)[0]
 }

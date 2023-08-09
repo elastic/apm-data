@@ -51,7 +51,7 @@ func MarshalAPMEvent(e *modelpb.APMEvent, w *fastjson.Writer) error {
 	}
 
 	doc := modeljson.Document{
-		Timestamp:     modeljson.Time(e.Timestamp.AsTime()),
+		Timestamp:     modeljson.Time(modelpb.ToTime(e.Timestamp)),
 		Labels:        labels,
 		NumericLabels: numericLabels,
 		Message:       e.Message,
@@ -100,10 +100,10 @@ func MarshalAPMEvent(e *modelpb.APMEvent, w *fastjson.Writer) error {
 	//
 	// TODO(axw) change @timestamp to use date_nanos, and remove this field.
 	var timestampStruct modeljson.Timestamp
-	if e.Timestamp != nil && !e.Timestamp.AsTime().IsZero() {
+	if e.Timestamp != 0 {
 		switch e.Type() {
 		case modelpb.TransactionEventType, modelpb.SpanEventType, modelpb.ErrorEventType:
-			timestampStruct.US = int(e.Timestamp.AsTime().UnixNano() / 1000)
+			timestampStruct.US = int(e.Timestamp / 1000)
 			doc.TimestampStruct = &timestampStruct
 		}
 	}
