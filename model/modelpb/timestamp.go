@@ -26,5 +26,5 @@ func FromTime(t time.Time) uint64 {
 
 // ToTime converts uint64 nanoseconds since Unix epoch to a time.Time.
 func ToTime(v uint64) time.Time {
-	return time.Unix(0, int64(v)).UTC()
+	return time.Unix(int64(v/uint64(time.Second)), int64(v%uint64(time.Second))).UTC()
 }
