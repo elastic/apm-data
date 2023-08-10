@@ -326,6 +326,8 @@ func TestHTTPHeader(t *testing.T) {
 			}},
 		{name: "valid2", input: `{"h":{"k":["a","b"]}}`, isSet: true, val: http.Header{"K": []string{"a", "b"}}},
 		{name: "null", input: `{"h":null}`},
+		{name: "null-value", input: `{"h":{"k": null}`, fail: true},
+		{name: "null-array", input: `{"h":{"k": [null]}`, fail: true},
 		{name: "invalid-type", input: `{"h":""}`, fail: true, isSet: true},
 		{name: "invalid-array", input: `{"h":{"k":["a",23]}}`, isSet: true, fail: true},
 		{name: "missing", input: `{}`},

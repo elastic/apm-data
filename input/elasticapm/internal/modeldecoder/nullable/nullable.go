@@ -128,7 +128,6 @@ func init() {
 			h := http.Header{}
 			for key, val := range m {
 				switch v := val.(type) {
-				case nil:
 				case string:
 					h.Add(key, v)
 				case []interface{}:
