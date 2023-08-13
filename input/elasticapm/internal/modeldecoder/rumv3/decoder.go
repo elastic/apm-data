@@ -31,7 +31,6 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecoderutil"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/model/modelpb"
-	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 var (
@@ -410,7 +409,7 @@ func mapToTransactionMetricsetModel(from *transactionMetricset, event *modelpb.A
 			}
 			if value := from.Samples.SpanSelfTimeSum.Value; value.IsSet() {
 				event.Span.SelfTime = populateNil(event.Span.SelfTime)
-				event.Span.SelfTime.Sum = durationpb.New(time.Duration(value.Val * 1000))
+				event.Span.SelfTime.Sum = uint64(value.Val * 1000)
 				ok = true
 			}
 		}
@@ -589,8 +588,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 	}
 	if from.Duration.IsSet() {
 		event.Event = populateNil(event.Event)
-		duration := time.Duration(from.Duration.Val * float64(time.Millisecond))
-		event.Event.Duration = durationpb.New(duration)
+		event.Event.Duration = uint64(from.Duration.Val * float64(time.Millisecond))
 	}
 	if from.ID.IsSet() {
 		out.Id = from.ID.Val
@@ -725,8 +723,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	}
 	if from.Duration.IsSet() {
 		event.Event = populateNil(event.Event)
-		duration := time.Duration(from.Duration.Val * float64(time.Millisecond))
-		event.Event.Duration = durationpb.New(duration)
+		event.Event.Duration = uint64(from.Duration.Val * float64(time.Millisecond))
 	}
 	if from.ID.IsSet() {
 		out.Id = from.ID.Val

@@ -18,10 +18,7 @@
 package modeldecoderutil
 
 import (
-	"time"
-
 	"github.com/elastic/apm-data/model/modelpb"
-	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 // SetInternalMetrics extracts well-known internal metrics from event.Metricset.Samples,
@@ -53,7 +50,7 @@ func SetInternalMetrics(event *modelpb.APMEvent) bool {
 				if event.Span.SelfTime == nil {
 					event.Span.SelfTime = &modelpb.AggregatedDuration{}
 				}
-				event.Span.SelfTime.Sum = durationpb.New(time.Duration(v.Value * 1000))
+				event.Span.SelfTime.Sum = uint64(v.Value * 1000)
 				haveMetrics = true
 			}
 		}

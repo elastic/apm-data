@@ -30,7 +30,7 @@ func EventModelJSON(e *modelpb.Event, out *modeljson.Event) {
 		Kind:     e.Kind,
 		Category: e.Category,
 		Type:     e.Type,
-		Duration: int64(e.Duration.AsDuration().Nanoseconds()),
+		Duration: e.Duration,
 		Severity: e.Severity,
 	}
 	if e.SuccessCount != nil {
