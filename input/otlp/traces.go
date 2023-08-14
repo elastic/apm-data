@@ -51,7 +51,6 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/durationpb"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -160,7 +159,7 @@ func (c *Consumer) convertSpan(
 		}
 	}
 	event.Event = populateNil(event.Event)
-	event.Event.Duration = durationpb.New(duration)
+	event.Event.Duration = uint64(duration)
 	event.Event.Outcome = spanStatusOutcome(otelSpan.Status())
 	if parentID != "" {
 		event.ParentId = parentID

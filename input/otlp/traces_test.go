@@ -820,8 +820,8 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	assert.Equal(t, uint64((exceptionOffset - transactionOffset).Nanoseconds()), (*batch)[2].Timestamp-(*batch)[0].Timestamp)
 
 	// Durations should be unaffected.
-	assert.Equal(t, transactionDuration, (*batch)[0].GetEvent().GetDuration().AsDuration())
-	assert.Equal(t, spanDuration, (*batch)[1].GetEvent().GetDuration().AsDuration())
+	assert.Equal(t, transactionDuration, time.Duration((*batch)[0].GetEvent().GetDuration()))
+	assert.Equal(t, spanDuration, time.Duration((*batch)[1].GetEvent().GetDuration()))
 
 	for _, b := range *batch {
 		// telemetry.sdk.elastic_export_timestamp should not be sent as a label.

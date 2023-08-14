@@ -25,7 +25,6 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 func TestSpanToModelJSON(t *testing.T) {
@@ -72,7 +71,7 @@ func TestSpanToModelJSON(t *testing.T) {
 					Resource: "destination_resource",
 					ResponseTime: &modelpb.AggregatedDuration{
 						Count: 3,
-						Sum:   durationpb.New(4 * time.Second),
+						Sum:   uint64(4 * time.Second),
 					},
 				},
 				Db: &modelpb.DB{
@@ -98,7 +97,7 @@ func TestSpanToModelJSON(t *testing.T) {
 				},
 				SelfTime: &modelpb.AggregatedDuration{
 					Count: 6,
-					Sum:   durationpb.New(7 * time.Second),
+					Sum:   uint64(7 * time.Second),
 				},
 				RepresentativeCount: 8,
 			},
