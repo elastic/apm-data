@@ -31,7 +31,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/testing/protocmp"
-	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
@@ -201,7 +200,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 					Outcome:                    "success",
 					Duration: &modelpb.AggregatedDuration{
 						Count: 2,
-						Sum:   durationpb.New(time.Duration(durationSumUs) * time.Microsecond),
+						Sum:   uint64(time.Duration(durationSumUs) * time.Microsecond),
 					},
 				},
 				{
@@ -209,7 +208,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 					Outcome:                    "unknown",
 					Duration: &modelpb.AggregatedDuration{
 						Count: 10,
-						Sum:   durationpb.New(time.Duration(durationSumUs) * time.Microsecond),
+						Sum:   uint64(time.Duration(durationSumUs) * time.Microsecond),
 					},
 				},
 			},

@@ -28,7 +28,6 @@ import (
 
 	proto "google.golang.org/protobuf/proto"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	durationpb "google.golang.org/protobuf/types/known/durationpb"
 )
 
 const (
@@ -50,15 +49,9 @@ func (m *Event) CloneVT() *Event {
 		Category:     m.Category,
 		Type:         m.Type,
 		SuccessCount: m.SuccessCount.CloneVT(),
+		Duration:     m.Duration,
 		Severity:     m.Severity,
 		Received:     m.Received,
-	}
-	if rhs := m.Duration; rhs != nil {
-		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *durationpb.Duration }); ok {
-			r.Duration = vtpb.CloneVT()
-		} else {
-			r.Duration = proto.Clone(rhs).(*durationpb.Duration)
-		}
 	}
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -111,27 +104,10 @@ func (m *Event) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x48
 	}
-	if m.Duration != nil {
-		if vtmsg, ok := interface{}(m.Duration).(interface {
-			MarshalToSizedBufferVT([]byte) (int, error)
-		}); ok {
-			size, err := vtmsg.MarshalToSizedBufferVT(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarint(dAtA, i, uint64(size))
-		} else {
-			encoded, err := proto.Marshal(m.Duration)
-			if err != nil {
-				return 0, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = encodeVarint(dAtA, i, uint64(len(encoded)))
-		}
+	if m.Duration != 0 {
+		i = encodeVarint(dAtA, i, uint64(m.Duration))
 		i--
-		dAtA[i] = 0x42
+		dAtA[i] = 0x40
 	}
 	if m.SuccessCount != nil {
 		size, err := m.SuccessCount.MarshalToSizedBufferVT(dAtA[:i])
@@ -241,15 +217,8 @@ func (m *Event) SizeVT() (n int) {
 		l = m.SuccessCount.SizeVT()
 		n += 1 + l + sov(uint64(l))
 	}
-	if m.Duration != nil {
-		if size, ok := interface{}(m.Duration).(interface {
-			SizeVT() int
-		}); ok {
-			l = size.SizeVT()
-		} else {
-			l = proto.Size(m.Duration)
-		}
-		n += 1 + l + sov(uint64(l))
+	if m.Duration != 0 {
+		n += 1 + sov(uint64(m.Duration))
 	}
 	if m.Severity != 0 {
 		n += 1 + sov(uint64(m.Severity))
@@ -519,10 +488,10 @@ func (m *Event) UnmarshalVT(dAtA []byte) error {
 			}
 			iNdEx = postIndex
 		case 8:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Duration", wireType)
 			}
-			var msglen int
+			m.Duration = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflow
@@ -532,36 +501,11 @@ func (m *Event) UnmarshalVT(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				m.Duration |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
-				return ErrInvalidLength
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLength
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Duration == nil {
-				m.Duration = &durationpb.Duration{}
-			}
-			if unmarshal, ok := interface{}(m.Duration).(interface {
-				UnmarshalVT([]byte) error
-			}); ok {
-				if err := unmarshal.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-					return err
-				}
-			} else {
-				if err := proto.Unmarshal(dAtA[iNdEx:postIndex], m.Duration); err != nil {
-					return err
-				}
-			}
-			iNdEx = postIndex
 		case 9:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Severity", wireType)

@@ -27,7 +27,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/testing/protocmp"
-	"google.golang.org/protobuf/types/known/durationpb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
@@ -268,7 +267,7 @@ func TestDecodeMetricsetInternal(t *testing.T) {
 			Subtype: "span_subtype",
 			SelfTime: &modelpb.AggregatedDuration{
 				Count: 123,
-				Sum:   durationpb.New(456 * time.Microsecond),
+				Sum:   uint64(456 * time.Microsecond),
 			},
 		},
 	}}, batch, protocmp.Transform()))
@@ -325,7 +324,7 @@ func TestDecodeMetricsetServiceName(t *testing.T) {
 			Subtype: "span_subtype",
 			SelfTime: &modelpb.AggregatedDuration{
 				Count: 123,
-				Sum:   durationpb.New(456 * time.Microsecond),
+				Sum:   uint64(456 * time.Microsecond),
 			},
 		},
 	}}, batch, protocmp.Transform()))
@@ -384,7 +383,7 @@ func TestDecodeMetricsetServiceNameAndVersion(t *testing.T) {
 			Subtype: "span_subtype",
 			SelfTime: &modelpb.AggregatedDuration{
 				Count: 123,
-				Sum:   durationpb.New(456 * time.Microsecond),
+				Sum:   uint64(456 * time.Microsecond),
 			},
 		},
 	}}, batch, protocmp.Transform()))
@@ -442,7 +441,7 @@ func TestDecodeMetricsetServiceVersion(t *testing.T) {
 			Subtype: "span_subtype",
 			SelfTime: &modelpb.AggregatedDuration{
 				Count: 123,
-				Sum:   durationpb.New(456 * time.Microsecond),
+				Sum:   uint64(456 * time.Microsecond),
 			},
 		},
 	}}, batch, protocmp.Transform()))

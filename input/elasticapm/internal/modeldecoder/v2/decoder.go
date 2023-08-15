@@ -36,7 +36,6 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
-	"google.golang.org/protobuf/types/known/durationpb"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
@@ -325,7 +324,7 @@ func mapToDroppedSpansModel(from []transactionDroppedSpanStats, tx *modelpb.Tran
 				to.Duration.Count = uint64(f.Duration.Count.Val)
 				sum := f.Duration.Sum
 				if sum.IsSet() {
-					to.Duration.Sum = durationpb.New(time.Duration(sum.Us.Val) * time.Microsecond)
+					to.Duration.Sum = uint64(time.Duration(sum.Us.Val) * time.Microsecond)
 				}
 			}
 			if f.ServiceTargetType.IsSet() {
@@ -1130,8 +1129,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 	}
 	if from.Duration.IsSet() {
 		event.Event = populateNil(event.Event)
-		duration := time.Duration(from.Duration.Val * float64(time.Millisecond))
-		event.Event.Duration = durationpb.New(duration)
+		event.Event.Duration = uint64(from.Duration.Val * float64(time.Millisecond))
 	}
 	if from.ID.IsSet() {
 		out.Id = from.ID.Val
@@ -1183,7 +1181,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		// event.Timestamp should have been initialized to the time the
 		// payload was received; offset that by "start" milliseconds for
 		// RUM.
-		event.Timestamp += uint64(time.Duration(float64(time.Millisecond) * from.Start.Val).Nanoseconds())
+		event.Timestamp += uint64(float64(time.Millisecond) * from.Start.Val)
 	}
 	if from.TraceID.IsSet() {
 		event.Trace = &modelpb.Trace{
@@ -1331,9 +1329,8 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 		}
 	}
 	if from.Duration.IsSet() {
-		duration := time.Duration(from.Duration.Val * float64(time.Millisecond))
 		event.Event = populateNil(event.Event)
-		event.Event.Duration = durationpb.New(duration)
+		event.Event.Duration = uint64(from.Duration.Val * float64(time.Millisecond))
 	}
 	if from.ID.IsSet() {
 		out.Id = from.ID.Val

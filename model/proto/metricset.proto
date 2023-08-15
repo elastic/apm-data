@@ -19,8 +19,6 @@ syntax = "proto3";
 
 package elastic.apm.v1;
 
-import "google/protobuf/duration.proto";
-
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
 message Metricset {
@@ -59,5 +57,7 @@ message SummaryMetric {
 
 message AggregatedDuration {
   uint64 count = 1;
-  google.protobuf.Duration sum = 2;
+
+  // nanoseconds
+  uint64 sum = 2;
 }

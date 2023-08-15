@@ -1055,7 +1055,7 @@ func (v *Event) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.Int64(v.Duration)
+		w.Uint64(v.Duration)
 	}
 	if v.Kind != "" {
 		const prefix = ",\"kind\":"

@@ -25,7 +25,6 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 const (
@@ -56,7 +55,7 @@ func TestEventToModelJSON(t *testing.T) {
 					Count: 1,
 					Sum:   2,
 				},
-				Duration: durationpb.New(3 * time.Second),
+				Duration: uint64(3 * time.Second),
 				Severity: 4,
 				Received: modelpb.FromTime(now),
 			},
@@ -71,7 +70,7 @@ func TestEventToModelJSON(t *testing.T) {
 					Count: 1,
 					Sum:   2,
 				},
-				Duration: int64(3 * time.Second),
+				Duration: uint64(3 * time.Second),
 				Severity: 4,
 				Received: modeljson.Time(now),
 			},
