@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"go/types"
 	"io"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -141,6 +142,10 @@ func generateJSONPropertySlice(info *fieldInfo, parent *property, child *propert
 		}
 	default:
 		return fmt.Errorf("unhandled slice item type %s", itemsType)
+	}
+	if items.Min == "" && strings.HasPrefix(itemType.String(), "uint") {
+		items.Min = json.Number("0")
+		delete(info.tags, tagMinVals)
 	}
 	if minVals, ok := info.tags[tagMinVals]; ok {
 		items.Min = json.Number(minVals)
