@@ -144,7 +144,6 @@ func generateJSONPropertySlice(info *fieldInfo, parent *property, child *propert
 	}
 	if items.Min == "" && strings.HasPrefix(itemType.String(), "uint") {
 		items.Min = json.Number("0")
-		delete(info.tags, tagMinVals)
 	}
 	if minVals, ok := info.tags[tagMinVals]; ok {
 		items.Min = json.Number(minVals)
