@@ -1951,12 +1951,6 @@ func (val *metricsetSampleValue) validate() error {
 			return fmt.Errorf("'values' required when 'counts' is set")
 		}
 	}
-	for _, elem := range val.Counts {
-		//lint:ignore SA4003 don't reject the check for uint
-		if elem < 0 {
-			return fmt.Errorf("'counts': validation rule 'minVals(0)' violated")
-		}
-	}
 	if !(len(val.Counts) > 0) {
 		if len(val.Values) > 0 {
 			return fmt.Errorf("'counts' required when 'values' is set")
