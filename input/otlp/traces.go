@@ -70,6 +70,12 @@ const (
 	attributeNetworkMNC               = "net.host.carrier.mnc"
 	attributeNetworkCarrierName       = "net.host.carrier.name"
 	attributeNetworkICC               = "net.host.carrier.icc"
+	attributeHttpRequestMethod        = "http.request.method"
+	attributeHttpResponseStatusCode   = "http.response.status_code"
+	attributeServerAddress            = "server.address"
+	attributeServerPort               = "server.port"
+	attributeUrlFull                  = "url.full"
+	attributeUserAgentOriginal        = "user_agent.original"
 )
 
 // ConsumeTraces consumes OpenTelemetry trace data,
@@ -257,11 +263,11 @@ func TranslateTransaction(
 			setLabel(k, event, ifaceAttributeValue(v))
 		case pcommon.ValueTypeInt:
 			switch kDots {
-			case semconv.AttributeHTTPStatusCode:
+			case semconv.AttributeHTTPStatusCode, attributeHttpResponseStatusCode:
 				isHTTP = true
 				httpResponse.StatusCode = uint32(v.Int())
 				http.Response = &httpResponse
-			case semconv.AttributeNetPeerPort:
+			case semconv.AttributeNetPeerPort, attributeServerPort:
 				event.Source = populateNil(event.Source)
 				event.Source.Port = uint32(v.Int())
 			case semconv.AttributeNetHostPort:
@@ -277,11 +283,11 @@ func TranslateTransaction(
 			stringval := truncate(v.Str())
 			switch kDots {
 			// http.*
-			case semconv.AttributeHTTPMethod:
+			case semconv.AttributeHTTPMethod, attributeHttpRequestMethod:
 				isHTTP = true
 				httpRequest.Method = stringval
 				http.Request = &httpRequest
-			case semconv.AttributeHTTPURL, semconv.AttributeHTTPTarget, "http.path":
+			case semconv.AttributeHTTPURL, semconv.AttributeHTTPTarget, "http.path", attributeUrlFull:
 				isHTTP = true
 				httpURL = stringval
 			case semconv.AttributeHTTPHost:
@@ -290,7 +296,7 @@ func TranslateTransaction(
 			case semconv.AttributeHTTPScheme:
 				isHTTP = true
 				httpScheme = stringval
-			case semconv.AttributeHTTPStatusCode:
+			case semconv.AttributeHTTPStatusCode, attributeHttpResponseStatusCode:
 				if intv, err := strconv.Atoi(stringval); err == nil {
 					isHTTP = true
 					httpResponse.StatusCode = uint32(intv)
@@ -315,7 +321,7 @@ func TranslateTransaction(
 					event.Client = populateNil(event.Client)
 					event.Client.Ip = ip
 				}
-			case semconv.AttributeHTTPUserAgent:
+			case semconv.AttributeHTTPUserAgent, attributeUserAgentOriginal:
 				event.UserAgent = populateNil(event.UserAgent)
 				event.UserAgent.Original = stringval
 
@@ -325,7 +331,7 @@ func TranslateTransaction(
 				if ip, err := modelpb.ParseIP(stringval); err == nil {
 					event.Source.Ip = ip
 				}
-			case semconv.AttributeNetPeerName:
+			case semconv.AttributeNetPeerName, attributeServerAddress:
 				event.Source = populateNil(event.Source)
 				event.Source.Domain = stringval
 			case semconv.AttributeNetHostName:
@@ -533,11 +539,11 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 			setLabel(k, event, v.Double())
 		case pcommon.ValueTypeInt:
 			switch kDots {
-			case "http.status_code":
+			case "http.status_code", attributeHttpResponseStatusCode:
 				httpResponse.StatusCode = uint32(v.Int())
 				http.Response = &httpResponse
 				isHTTP = true
-			case semconv.AttributeNetPeerPort, "peer.port":
+			case semconv.AttributeNetPeerPort, "peer.port", attributeServerPort:
 				netPeerPort = int(v.Int())
 			case semconv.AttributeRPCGRPCStatusCode:
 				rpcSystem = "grpc"
@@ -562,7 +568,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 			case semconv.AttributeHTTPURL:
 				httpURL = stringval
 				isHTTP = true
-			case semconv.AttributeHTTPMethod:
+			case semconv.AttributeHTTPMethod, attributeHttpRequestMethod:
 				httpRequest.Method = stringval
 				http.Request = &httpRequest
 				isHTTP = true
@@ -619,6 +625,10 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				event.Network.Carrier = populateNil(event.Network.Carrier)
 				event.Network.Carrier.Icc = stringval
 
+			// server.*
+			case attributeServerAddress:
+				netPeerName = stringval
+
 			// session.*
 			case "session.id":
 				event.Session = populateNil(event.Session)
@@ -650,6 +660,11 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				rpcSystem = "grpc"
 				isRPC = true
 			case semconv.AttributeRPCMethod:
+
+			// url.*
+			case attributeUrlFull:
+				httpURL = stringval
+				isHTTP = true
 
 			// miscellaneous
 			case "span.kind": // filter out

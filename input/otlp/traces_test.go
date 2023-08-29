@@ -246,6 +246,19 @@ func TestHTTPTransactionURL(t *testing.T) {
 			"http.target": "/foo",
 		})
 	})
+	t.Run("url.full", func(t *testing.T) {
+		test(t, &modelpb.URL{
+			Scheme:   "https",
+			Original: "https://testing.invalid:80/foo?bar",
+			Full:     "https://testing.invalid:80/foo?bar",
+			Path:     "/foo",
+			Query:    "bar",
+			Domain:   "testing.invalid",
+			Port:     80,
+		}, map[string]interface{}{
+			"url.full": "https://testing.invalid:80/foo?bar",
+		})
+	})
 }
 
 func TestHTTPSpanURL(t *testing.T) {
@@ -416,10 +429,23 @@ func TestHTTPTransactionFlavor(t *testing.T) {
 }
 
 func TestHTTPTransactionUserAgent(t *testing.T) {
-	event := transformTransactionWithAttributes(t, map[string]interface{}{
-		"http.user_agent": "Foo/bar (baz)",
+	test := func(t *testing.T, attrs map[string]interface{}) {
+		t.Helper()
+		event := transformTransactionWithAttributes(t, attrs)
+		assert.Equal(t, &modelpb.UserAgent{Original: "Foo/bar (baz)"}, event.UserAgent)
+	}
+
+	t.Run("http.user_agent", func(t *testing.T) {
+		test(t, map[string]interface{}{
+			"http.user_agent": "Foo/bar (baz)",
+		})
 	})
-	assert.Equal(t, &modelpb.UserAgent{Original: "Foo/bar (baz)"}, event.UserAgent)
+
+	t.Run("user_agent.original", func(t *testing.T) {
+		test(t, map[string]interface{}{
+			"user_agent.original": "Foo/bar (baz)",
+		})
+	})
 }
 
 func TestHTTPTransactionClientIP(t *testing.T) {
@@ -435,10 +461,23 @@ func TestHTTPTransactionClientIP(t *testing.T) {
 }
 
 func TestHTTPTransactionStatusCode(t *testing.T) {
-	event := transformTransactionWithAttributes(t, map[string]interface{}{
-		"http.status_code": 200,
+	test := func(t *testing.T, expected uint32, attrs map[string]interface{}) {
+		t.Helper()
+		event := transformSpanWithAttributes(t, attrs)
+		assert.Equal(t, expected, event.Http.Response.StatusCode)
+	}
+
+	t.Run("http.status_code", func(t *testing.T) {
+		test(t, 200, map[string]interface{}{
+			"http.status_code": 200,
+		})
 	})
-	assert.Equal(t, uint32(200), event.Http.Response.StatusCode)
+
+	t.Run("http.response.status_code", func(t *testing.T) {
+		test(t, 200, map[string]interface{}{
+			"http.response.status_code": 200,
+		})
+	})
 }
 
 func TestDatabaseSpan(t *testing.T) {
@@ -483,6 +522,24 @@ func TestDatabaseSpan(t *testing.T) {
 		Name:     "mysql",
 		Resource: "mysql",
 	}, event.Span.DestinationService, protocmp.Transform()))
+}
+
+func TestDatabaseSpanWithServerAttributes(t *testing.T) {
+	event := transformSpanWithAttributes(t, map[string]interface{}{
+		"db.system":      "mysql",
+		"db.name":        "ShopDb",
+		"server.address": "shopdb.example.com",
+		"server.port":    3306,
+	})
+
+	assert.Equal(t, "db", event.Span.Type)
+	assert.Equal(t, "mysql", event.Span.Subtype)
+	assert.Equal(t, "", event.Span.Action)
+
+	assert.Equal(t, &modelpb.Destination{
+		Address: "shopdb.example.com",
+		Port:    3306,
+	}, event.Destination)
 }
 
 func TestInstrumentationLibrary(t *testing.T) {
