@@ -267,7 +267,7 @@ func TranslateTransaction(
 				isHTTP = true
 				httpResponse.StatusCode = uint32(v.Int())
 				http.Response = &httpResponse
-			case semconv.AttributeNetPeerPort, attributeServerPort:
+			case semconv.AttributeNetPeerPort:
 				event.Source = populateNil(event.Source)
 				event.Source.Port = uint32(v.Int())
 			case semconv.AttributeNetHostPort:
@@ -331,7 +331,7 @@ func TranslateTransaction(
 				if ip, err := modelpb.ParseIP(stringval); err == nil {
 					event.Source.Ip = ip
 				}
-			case semconv.AttributeNetPeerName, attributeServerAddress:
+			case semconv.AttributeNetPeerName:
 				event.Source = populateNil(event.Source)
 				event.Source.Domain = stringval
 			case semconv.AttributeNetHostName:
