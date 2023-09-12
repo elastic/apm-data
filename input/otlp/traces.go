@@ -287,7 +287,7 @@ func TranslateTransaction(
 				isHTTP = true
 				httpRequest.Method = stringval
 				http.Request = &httpRequest
-			case semconv.AttributeHTTPURL, semconv.AttributeHTTPTarget, "http.path", attributeUrlFull:
+			case semconv.AttributeHTTPURL, semconv.AttributeHTTPTarget, "http.path":
 				isHTTP = true
 				httpURL = stringval
 			case semconv.AttributeHTTPHost:
@@ -377,6 +377,11 @@ func TranslateTransaction(
 				isRPC = true
 			case semconv.AttributeRPCService:
 			case semconv.AttributeRPCMethod:
+
+			// URL
+			case attributeUrlFull:
+				isHTTP = true
+				httpURL = stringval
 
 			// miscellaneous
 			case "type":
