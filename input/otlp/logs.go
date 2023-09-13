@@ -66,19 +66,17 @@ func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
 func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTimestamp time.Time, out *modelpb.Batch) {
 	var timeDelta time.Duration
 	resource := resourceLogs.Resource()
-	baseEvent := modelpb.APMEvent{
-		Event: &modelpb.Event{
-			Received: modelpb.FromTime(receiveTimestamp),
-		},
-	}
-	translateResourceMetadata(resource, &baseEvent)
+	baseEvent := modelpb.APMEventFromVTPool()
+	baseEvent.Event = modelpb.EventFromVTPool()
+	baseEvent.Event.Received = modelpb.FromTime(receiveTimestamp)
+	translateResourceMetadata(resource, baseEvent)
 
 	if exportTimestamp, ok := exportTimestamp(resource); ok {
 		timeDelta = receiveTimestamp.Sub(exportTimestamp)
 	}
 	scopeLogs := resourceLogs.ScopeLogs()
 	for i := 0; i < scopeLogs.Len(); i++ {
-		c.convertInstrumentationLibraryLogs(scopeLogs.At(i), &baseEvent, timeDelta, out)
+		c.convertInstrumentationLibraryLogs(scopeLogs.At(i), baseEvent, timeDelta, out)
 	}
 }
 
@@ -103,9 +101,13 @@ func (c *Consumer) convertLogRecord(
 	event := baseEvent.CloneVT()
 	initEventLabels(event)
 	event.Timestamp = modelpb.FromTime(record.Timestamp().AsTime().Add(timeDelta))
-	event.Event = populateNil(event.Event)
+	if event.Event == nil {
+		event.Event = modelpb.EventFromVTPool()
+	}
 	event.Event.Severity = uint64(record.SeverityNumber())
-	event.Log = populateNil(event.Log)
+	if event.Log == nil {
+		event.Log = modelpb.LogFromVTPool()
+	}
 	event.Log.Level = record.SeverityText()
 	if body := record.Body(); body.Type() != pcommon.ValueTypeEmpty {
 		event.Message = body.AsString()
@@ -114,12 +116,15 @@ func (c *Consumer) convertLogRecord(
 		}
 	}
 	if traceID := record.TraceID(); !traceID.IsEmpty() {
-		event.Trace = &modelpb.Trace{
-			Id: hex.EncodeToString(traceID[:]),
+		if event.Trace == nil {
+			event.Trace = modelpb.TraceFromVTPool()
 		}
+		event.Trace.Id = hex.EncodeToString(traceID[:])
 	}
 	if spanID := record.SpanID(); !spanID.IsEmpty() {
-		event.Span = populateNil(event.Span)
+		if event.Span == nil {
+			event.Span = modelpb.SpanFromVTPool()
+		}
 		event.Span.Id = hex.EncodeToString(spanID[:])
 	}
 	attrs := record.Attributes()
@@ -145,7 +150,9 @@ func (c *Consumer) convertLogRecord(
 		case "event.domain":
 			eventDomain = v.Str()
 		case "session.id":
-			event.Session = populateNil(event.Session)
+			if event.Session == nil {
+				event.Session = modelpb.SessionFromVTPool()
+			}
 			event.Session.Id = v.Str()
 		default:
 			setLabel(replaceDots(k), event, ifaceAttributeValue(v))
@@ -167,7 +174,9 @@ func (c *Consumer) convertLogRecord(
 	if eventDomain == "device" && eventName != "" {
 		event.Event.Category = "device"
 		if eventName == "crash" {
-			event.Error = populateNil(event.Error)
+			if event.Error == nil {
+				event.Error = modelpb.ErrorFromVTPool()
+			}
 			event.Error.Type = "crash"
 		} else {
 			event.Event.Kind = "event"

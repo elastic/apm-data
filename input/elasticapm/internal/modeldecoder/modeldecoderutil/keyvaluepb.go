@@ -31,10 +31,10 @@ func ToKv(m map[string]any) []*modelpb.KeyValue {
 	kv := []*modelpb.KeyValue{}
 	for k, v := range m {
 		value, _ := structpb.NewValue(v)
-		kv = append(kv, &modelpb.KeyValue{
-			Key:   k,
-			Value: value,
-		})
+		pbkv := modelpb.KeyValueFromVTPool()
+		pbkv.Key = k
+		pbkv.Value = value
+		kv = append(kv, pbkv)
 	}
 
 	return kv

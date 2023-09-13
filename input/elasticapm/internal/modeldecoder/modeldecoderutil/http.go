@@ -51,10 +51,10 @@ func HTTPHeadersToModelpb(h http.Header) []*modelpb.HTTPHeader {
 	}
 	headers := make([]*modelpb.HTTPHeader, 0, len(h))
 	for k, v := range h {
-		headers = append(headers, &modelpb.HTTPHeader{
-			Key:   k,
-			Value: v,
-		})
+		pbheader := modelpb.HTTPHeaderFromVTPool()
+		pbheader.Key = k
+		pbheader.Value = v
+		headers = append(headers, pbheader)
 	}
 	return headers
 }

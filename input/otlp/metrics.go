@@ -72,21 +72,19 @@ func (c *Consumer) convertMetrics(metrics pmetric.Metrics, receiveTimestamp time
 }
 
 func (c *Consumer) convertResourceMetrics(resourceMetrics pmetric.ResourceMetrics, receiveTimestamp time.Time, out *modelpb.Batch) {
-	baseEvent := modelpb.APMEvent{
-		Event: &modelpb.Event{
-			Received: modelpb.FromTime(receiveTimestamp),
-		},
-	}
+	baseEvent := modelpb.APMEventFromVTPool()
+	baseEvent.Event = modelpb.EventFromVTPool()
+	baseEvent.Event.Received = modelpb.FromTime(receiveTimestamp)
 
 	var timeDelta time.Duration
 	resource := resourceMetrics.Resource()
-	translateResourceMetadata(resource, &baseEvent)
+	translateResourceMetadata(resource, baseEvent)
 	if exportTimestamp, ok := exportTimestamp(resource); ok {
 		timeDelta = receiveTimestamp.Sub(exportTimestamp)
 	}
 	scopeMetrics := resourceMetrics.ScopeMetrics()
 	for i := 0; i < scopeMetrics.Len(); i++ {
-		c.convertScopeMetrics(scopeMetrics.At(i), &baseEvent, timeDelta, out)
+		c.convertScopeMetrics(scopeMetrics.At(i), baseEvent, timeDelta, out)
 	}
 }
 
@@ -111,7 +109,9 @@ func (c *Consumer) convertScopeMetrics(
 		for _, s := range ms.samples {
 			metrs = append(metrs, s)
 		}
-		event.Metricset = &modelpb.Metricset{Samples: metrs, Name: "app"}
+		event.Metricset = modelpb.MetricsetFromVTPool()
+		event.Metricset.Samples = metrs
+		event.Metricset.Name = "app"
 		if ms.attributes.Len() > 0 {
 			initEventLabels(event)
 			ms.attributes.Range(func(k string, v pcommon.Value) bool {
@@ -206,13 +206,12 @@ func numberSample(dp pmetric.NumberDataPoint, metricType modelpb.MetricType) (mo
 }
 
 func summarySample(dp pmetric.SummaryDataPoint) *modelpb.MetricsetSample {
-	return &modelpb.MetricsetSample{
-		Type: modelpb.MetricType_METRIC_TYPE_SUMMARY,
-		Summary: &modelpb.SummaryMetric{
-			Count: uint64(dp.Count()),
-			Sum:   dp.Sum(),
-		},
-	}
+	ms := modelpb.MetricsetSampleFromVTPool()
+	ms.Type = modelpb.MetricType_METRIC_TYPE_SUMMARY
+	ms.Summary = modelpb.SummaryMetricFromVTPool()
+	ms.Summary.Count = uint64(dp.Count())
+	ms.Summary.Sum = dp.Sum()
+	return ms
 }
 
 func histogramSample(bucketCounts pcommon.UInt64Slice, explicitBounds pcommon.Float64Slice) (*modelpb.MetricsetSample, bool) {
@@ -228,7 +227,7 @@ func histogramSample(bucketCounts pcommon.UInt64Slice, explicitBounds pcommon.Fl
 	// The values in the explicit_bounds array must be strictly increasing.
 	//
 	if bucketCounts.Len() != explicitBounds.Len()+1 || explicitBounds.Len() == 0 {
-		return &modelpb.MetricsetSample{}, false
+		return modelpb.MetricsetSampleFromVTPool(), false
 	}
 
 	// For the bucket values, we follow the approach described by Prometheus's
@@ -271,13 +270,12 @@ func histogramSample(bucketCounts pcommon.UInt64Slice, explicitBounds pcommon.Fl
 		counts = append(counts, uint64(count))
 		values = append(values, value)
 	}
-	return &modelpb.MetricsetSample{
-		Type: modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
-		Histogram: &modelpb.Histogram{
-			Counts: counts,
-			Values: values,
-		},
-	}, true
+	ms := modelpb.MetricsetSampleFromVTPool()
+	ms.Type = modelpb.MetricType_METRIC_TYPE_HISTOGRAM
+	ms.Histogram = modelpb.HistogramFromVTPool()
+	ms.Histogram.Counts = counts
+	ms.Histogram.Values = values
+	return ms, true
 }
 
 type metricsets map[metricsetKey]metricset
