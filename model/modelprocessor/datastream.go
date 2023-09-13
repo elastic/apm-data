@@ -50,7 +50,7 @@ type SetDataStream struct {
 func (s *SetDataStream) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	for i := range *b {
 		if (*b)[i].DataStream == nil {
-			(*b)[i].DataStream = &modelpb.DataStream{}
+			(*b)[i].DataStream = modelpb.DataStreamFromVTPool()
 		}
 		(*b)[i].DataStream.Namespace = s.Namespace
 		if (*b)[i].DataStream.Type == "" || (*b)[i].DataStream.Dataset == "" {
