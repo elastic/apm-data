@@ -50,7 +50,6 @@ import (
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/protobuf/proto"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -415,7 +414,7 @@ func TranslateTransaction(
 	}
 
 	if isHTTP {
-		if !proto.Equal(&http, &modelpb.HTTP{}) {
+		if http.SizeVT() != 0 {
 			event.Http = &http
 		}
 
@@ -744,7 +743,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 		if httpResponse.StatusCode > 0 && event.Event.Outcome == outcomeUnknown {
 			event.Event.Outcome = clientHTTPStatusCodeOutcome(int(httpResponse.StatusCode))
 		}
-		if !proto.Equal(&http, &modelpb.HTTP{}) {
+		if http.SizeVT() != 0 {
 			event.Http = &http
 		}
 		event.Url = populateNil(event.Url)
@@ -851,7 +850,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 	if destAddr != "" {
 		event.Destination = &modelpb.Destination{Address: destAddr, Port: uint32(destPort)}
 	}
-	if !proto.Equal(&destinationService, &modelpb.DestinationService{}) {
+	if destinationService.SizeVT() != 0 {
 		if destinationService.Type == "" {
 			// Copy span type to destination.service.type.
 			destinationService.Type = event.Span.Type
@@ -859,7 +858,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 		event.Span.DestinationService = &destinationService
 	}
 
-	if !proto.Equal(&serviceTarget, &modelpb.ServiceTarget{}) {
+	if serviceTarget.SizeVT() != 0 {
 		event.Service.Target = &serviceTarget
 	}
 
