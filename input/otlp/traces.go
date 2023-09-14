@@ -64,18 +64,19 @@ const (
 	outcomeFailure = "failure"
 	outcomeUnknown = "unknown"
 
-	attributeNetworkConnectionType    = "net.host.connection.type"
-	attributeNetworkConnectionSubtype = "net.host.connection.subtype"
-	attributeNetworkMCC               = "net.host.carrier.mcc"
-	attributeNetworkMNC               = "net.host.carrier.mnc"
-	attributeNetworkCarrierName       = "net.host.carrier.name"
-	attributeNetworkICC               = "net.host.carrier.icc"
-	attributeHttpRequestMethod        = "http.request.method"
-	attributeHttpResponseStatusCode   = "http.response.status_code"
-	attributeServerAddress            = "server.address"
-	attributeServerPort               = "server.port"
-	attributeUrlFull                  = "url.full"
-	attributeUserAgentOriginal        = "user_agent.original"
+	attributeNetworkConnectionType      = "net.host.connection.type"
+	attributeNetworkConnectionSubtype   = "net.host.connection.subtype"
+	attributeNetworkMCC                 = "net.host.carrier.mcc"
+	attributeNetworkMNC                 = "net.host.carrier.mnc"
+	attributeNetworkCarrierName         = "net.host.carrier.name"
+	attributeNetworkICC                 = "net.host.carrier.icc"
+	attributeHttpRequestMethod          = "http.request.method"
+	attributeHttpResponseStatusCode     = "http.response.status_code"
+	attributeServerAddress              = "server.address"
+	attributeServerPort                 = "server.port"
+	attributeUrlFull                    = "url.full"
+	attributeUserAgentOriginal          = "user_agent.original"
+	attributeDbElasticsearchClusterName = "db.elasticsearch.cluster.name"
 )
 
 // ConsumeTraces consumes OpenTelemetry trace data,
@@ -588,7 +589,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				// Statement should not be truncated, use original string value.
 				db.Statement = v.Str()
 				isDatabase = true
-			case semconv.AttributeDBName, "db.instance":
+			case semconv.AttributeDBName, "db.instance", attributeDbElasticsearchClusterName:
 				db.Instance = stringval
 				isDatabase = true
 			case semconv.AttributeDBSystem, "db.type":
