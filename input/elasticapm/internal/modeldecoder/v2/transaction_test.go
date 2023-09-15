@@ -104,10 +104,10 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		// do not overwrite client.ip if already set in metadata
 		ip := modeldecodertest.DefaultValues().IP
 		assert.Equal(t, ip, out.GetClient().GetIp())
-		assert.Equal(t, modelpb.Labels{
+		assert.Empty(t, cmp.Diff(modelpb.Labels{
 			"init0": {Global: true, Value: "init"}, "init1": {Global: true, Value: "init"}, "init2": {Global: true, Value: "init"},
 			"overwritten0": {Value: "overwritten"}, "overwritten1": {Value: "overwritten"},
-		}, modelpb.Labels(out.Labels))
+		}, modelpb.Labels(out.Labels), protocmp.Transform()))
 		//assert.Equal(t, tLabels, out.Transaction.Labels)
 		exceptions := func(key string) bool { return false }
 		modeldecodertest.AssertStructValues(t, &out.Service, exceptions, otherVal)

@@ -18,22 +18,34 @@
 package modeldecoderutil
 
 import (
+	"testing"
+
 	"github.com/elastic/apm-data/model/modelpb"
-	"google.golang.org/protobuf/types/known/structpb"
+	"github.com/stretchr/testify/assert"
 )
 
-func MapToKv(m map[string]any, out []*modelpb.KeyValue) {
-	nm := normalizeMap(m)
-	if len(nm) == 0 {
-		return
+func TestReslice(t *testing.T) {
+	originalCap := 10
+	s := make([]*modelpb.APMEvent, originalCap)
+	for i := range s {
+		s[i] = &modelpb.APMEvent{}
 	}
 
-	i := 0
-	for k, v := range nm {
-		value, _ := structpb.NewValue(v)
-		pbkv := out[i]
-		pbkv.Key = k
-		pbkv.Value = value
-		i++
+	downsize := 4
+	s = Reslice(s, downsize, nil)
+	for _, e := range s {
+		assert.NotNil(t, e)
 	}
+	assert.Equal(t, downsize, len(s))
+	assert.Equal(t, originalCap, cap(s))
+
+	upsize := 20
+	s = Reslice(s, upsize, func() *modelpb.APMEvent { return &modelpb.APMEvent{} })
+	assert.Equal(t, upsize, len(s))
+	for _, e := range s {
+		t.Log(e)
+		assert.NotNil(t, e)
+	}
+	assert.Equal(t, upsize, cap(s))
+
 }

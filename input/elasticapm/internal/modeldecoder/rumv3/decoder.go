@@ -105,6 +105,12 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *mode
 		return modeldecoder.NewValidationErr(err)
 	}
 	event := input.Base.CloneVT()
+	for k := range event.Labels {
+		delete(event.Labels, k)
+	}
+	for k := range event.NumericLabels {
+		delete(event.NumericLabels, k)
+	}
 	mapToErrorModel(&root.Error, event)
 	*batch = append(*batch, event)
 	return nil
@@ -219,8 +225,9 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 				event.Http.Request.Referrer = from.Context.Page.Referer.Val
 			}
 		}
-		if len(from.Context.Custom) > 0 {
-			out.Custom = modeldecoderutil.ToKv(from.Context.Custom)
+		if n := len(from.Context.Custom); n > 0 {
+			out.Custom = modeldecoderutil.Reslice(out.Custom, n, modelpb.KeyValueFromVTPool)
+			modeldecoderutil.MapToKv(from.Context.Custom, out.Custom)
 		}
 	}
 	if from.Culprit.IsSet() {
@@ -284,8 +291,9 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 }
 
 func mapToExceptionModel(from errorException, out *modelpb.Exception) {
-	if len(from.Attributes) > 0 {
-		out.Attributes = modeldecoderutil.ToKv(from.Attributes)
+	if n := len(from.Attributes); n > 0 {
+		out.Attributes = modeldecoderutil.Reslice(out.Attributes, n, modelpb.KeyValueFromVTPool)
+		modeldecoderutil.MapToKv(from.Attributes, out.Attributes)
 	}
 	if from.Code.IsSet() {
 		out.Code = modeldecoderutil.ExceptionCodeString(from.Code.Val)
@@ -388,7 +396,7 @@ func mapToMetadataModel(m *metadata, out *modelpb.APMEvent) {
 			out.User = modelpb.UserFromVTPool()
 		}
 		if m.User.Domain.IsSet() {
-			out.User.Domain = fmt.Sprint(m.User.Domain.Val)
+			out.User.Domain = m.User.Domain.Val
 		}
 		if m.User.ID.IsSet() {
 			out.User.Id = fmt.Sprint(m.User.ID.Val)
@@ -450,7 +458,8 @@ func mapToTransactionMetricsetModel(from *transactionMetricset, event *modelpb.A
 
 func mapToResponseModel(from contextResponse, out *modelpb.HTTPResponse) {
 	if from.Headers.IsSet() {
-		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
+		out.Headers = modeldecoderutil.Reslice(out.Headers, len(from.Headers.Val), modelpb.HTTPHeaderFromVTPool)
+		modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val, out.Headers)
 	}
 	if from.StatusCode.IsSet() {
 		out.StatusCode = uint32(from.StatusCode.Val)
@@ -473,11 +482,13 @@ func mapToRequestModel(from contextRequest, out *modelpb.HTTPRequest) {
 	if from.Method.IsSet() {
 		out.Method = from.Method.Val
 	}
-	if len(from.Env) > 0 {
-		out.Env = modeldecoderutil.ToKv(from.Env)
+	if n := len(from.Env); n > 0 {
+		out.Env = modeldecoderutil.Reslice(out.Env, n, modelpb.KeyValueFromVTPool)
+		modeldecoderutil.MapToKv(from.Env, out.Env)
 	}
 	if from.Headers.IsSet() {
-		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
+		out.Headers = modeldecoderutil.Reslice(out.Headers, len(from.Headers.Val), modelpb.HTTPHeaderFromVTPool)
+		modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val, out.Headers)
 	}
 }
 
@@ -701,8 +712,10 @@ func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFram
 			fr.Classname = eventFrame.Classname.Val
 		}
 		if eventFrame.ColumnNumber.IsSet() {
-			val := uint32(eventFrame.ColumnNumber.Val)
-			fr.Colno = &val
+			if fr.Colno == nil {
+				fr.Colno = new(uint32)
+			}
+			*fr.Colno = uint32(eventFrame.ColumnNumber.Val)
 		}
 		if eventFrame.ContextLine.IsSet() {
 			fr.ContextLine = eventFrame.ContextLine.Val
@@ -760,8 +773,9 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 
 	// map transaction specific data
 	if from.Context.IsSet() {
-		if len(from.Context.Custom) > 0 {
-			out.Custom = modeldecoderutil.ToKv(from.Context.Custom)
+		if n := len(from.Context.Custom); n > 0 {
+			out.Custom = modeldecoderutil.Reslice(out.Custom, n, modelpb.KeyValueFromVTPool)
+			modeldecoderutil.MapToKv(from.Context.Custom, out.Custom)
 		}
 		if len(from.Context.Tags) > 0 {
 			modeldecoderutil.MergeLabels(from.Context.Tags, event)
@@ -920,7 +934,7 @@ func overwriteUserInMetadataModel(from user, out *modelpb.APMEvent) {
 	}
 	out.User = modelpb.UserFromVTPool()
 	if from.Domain.IsSet() {
-		out.User.Domain = fmt.Sprint(from.Domain.Val)
+		out.User.Domain = from.Domain.Val
 	}
 	if from.ID.IsSet() {
 		out.User.Id = fmt.Sprint(from.ID.Val)

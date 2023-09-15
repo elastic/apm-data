@@ -23,8 +23,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
@@ -222,14 +224,14 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, out)
-		assert.Equal(t, expected(otherVal.Str, otherVal.IP, otherVal.N), out)
+		assert.Empty(t, cmp.Diff(expected(otherVal.Str, otherVal.IP, otherVal.N), out, protocmp.Transform()))
 
 		// map an empty modeldecoder metadata to the model
 		// and assert values are unchanged
 		input.Reset()
 		modeldecodertest.SetZeroStructValues(&input)
 		mapToMetadataModel(&input, out)
-		assert.Equal(t, expected(otherVal.Str, otherVal.IP, otherVal.N), out)
+		assert.Empty(t, cmp.Diff(expected(otherVal.Str, otherVal.IP, otherVal.N), out, protocmp.Transform()))
 	})
 
 	t.Run("reused-memory", func(t *testing.T) {

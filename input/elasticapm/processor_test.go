@@ -27,9 +27,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/semaphore"
+	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -356,15 +358,15 @@ func TestLabelLeak(t *testing.T) {
 	txs := processed
 	assert.Len(t, txs, 2)
 	// Assert first tx
-	assert.Equal(t, modelpb.NumericLabels{
+	assert.Empty(t, cmp.Diff(modelpb.NumericLabels{
 		"time_set": {Value: 1652185276},
 		"numeric":  {Global: true, Value: 1},
-	}, modelpb.NumericLabels(txs[0].NumericLabels))
-	assert.Equal(t, modelpb.Labels{
+	}, modelpb.NumericLabels(txs[0].NumericLabels), protocmp.Transform()))
+	assert.Empty(t, cmp.Diff(modelpb.Labels{
 		"appOs":     {Value: "Android"},
 		"email_set": {Value: "hello@hello.com"},
 		"ci_commit": {Global: true, Value: "unknown"},
-	}, modelpb.Labels(txs[0].Labels))
+	}, modelpb.Labels(txs[0].Labels), protocmp.Transform()))
 
 	// Assert second tx
 	assert.Equal(t, modelpb.NumericLabels{"numeric": {Global: true, Value: 1}}, modelpb.NumericLabels(txs[1].NumericLabels))

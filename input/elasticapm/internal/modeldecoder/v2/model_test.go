@@ -20,6 +20,7 @@ package v2
 import (
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -33,6 +34,7 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 //
@@ -568,6 +570,217 @@ func TestTransactionRequiredValidationRules(t *testing.T) {
 	}
 	cb := assertRequiredFn(t, requiredKeys, event.validate)
 	modeldecodertest.SetZeroStructValue(&event, cb)
+}
+
+func BenchmarkMapToModelPb(b *testing.B) {
+	timemicro := nullable.TimeMicrosUnix{}
+	timemicro.Set(time.Now())
+
+	s := nullable.String{}
+	s.Set("foo")
+
+	i := nullable.Int{}
+	i.Set(50)
+
+	bo := nullable.Bool{}
+	bo.Set(true)
+
+	h := nullable.HTTPHeader{}
+	h.Set(http.Header{
+		"http-key": []string{"http-value"},
+	})
+
+	ip := nullable.String{}
+	ip.Set("1.1.1.1")
+
+	input := errorRoot{
+		Error: errorEvent{
+			Timestamp: timemicro,
+			Log: errorLog{
+				Level:        s,
+				LoggerName:   s,
+				Message:      s,
+				ParamMessage: s,
+				Stacktrace: []stacktraceFrame{
+					{
+						Vars: map[string]any{
+							"key": "value",
+						},
+						Filename:     s,
+						AbsPath:      s,
+						Classname:    s,
+						ContextLine:  s,
+						Function:     s,
+						Module:       s,
+						PostContext:  []string{"foo"},
+						PreContext:   []string{"bar"},
+						LineNumber:   i,
+						ColumnNumber: i,
+						LibraryFrame: bo,
+					},
+				},
+			},
+			Culprit:       s,
+			ID:            s,
+			ParentID:      s,
+			TraceID:       s,
+			TransactionID: s,
+			Exception: errorException{
+				Attributes: map[string]any{
+					"key": "value",
+				},
+				Code:  nullable.Interface{},
+				Cause: []errorException{},
+				Stacktrace: []stacktraceFrame{
+					{
+						Vars: map[string]any{
+							"key": "value",
+						},
+						Filename:     s,
+						AbsPath:      s,
+						Classname:    s,
+						ContextLine:  s,
+						Function:     s,
+						Module:       s,
+						PostContext:  []string{"foo"},
+						PreContext:   []string{"bar"},
+						LineNumber:   i,
+						ColumnNumber: i,
+						LibraryFrame: bo,
+					},
+				},
+				Message: s,
+				Module:  s,
+				Type:    s,
+				Handled: bo,
+			},
+			Transaction: errorTransactionRef{
+				Name:    s,
+				Type:    s,
+				Sampled: bo,
+			},
+			Context: context{
+				Custom: map[string]any{
+					"key": "value",
+				},
+				Tags: map[string]any{
+					"key": "value",
+				},
+				Service: contextService{
+					Agent: contextServiceAgent{
+						EphemeralID: s,
+						Name:        s,
+						Version:     s,
+					},
+					Environment: s,
+					Framework: contextServiceFramework{
+						Name:    s,
+						Version: s,
+					},
+					ID: s,
+					Language: contextServiceLanguage{
+						Name:    s,
+						Version: s,
+					},
+					Name: s,
+					Node: contextServiceNode{
+						Name: s,
+					},
+					Origin: contextServiceOrigin{
+						ID:      s,
+						Name:    s,
+						Version: s,
+					},
+					Runtime: contextServiceRuntime{
+						Name:    s,
+						Version: s,
+					},
+					Target: contextServiceTarget{
+						Name: s,
+						Type: s,
+					},
+					Version: s,
+				},
+				Cloud: contextCloud{
+					Origin: contextCloudOrigin{
+						Account: contextCloudOriginAccount{
+							ID: s,
+						},
+						Provider: s,
+						Region:   s,
+						Service: contextCloudOriginService{
+							Name: s,
+						},
+					},
+				},
+				User: user{
+					Domain: s,
+					ID:     nullable.Interface{},
+					Email:  s,
+					Name:   s,
+				},
+				Page: contextPage{
+					Referer: s,
+					URL:     s,
+				},
+				Request: contextRequest{
+					Cookies: map[string]any{
+						"key": "value",
+					},
+					Env: map[string]any{
+						"key": "value",
+					},
+					Body:    nullable.Interface{},
+					Headers: h,
+					URL: contextRequestURL{
+						Port:     nullable.Interface{},
+						Full:     s,
+						Hash:     s,
+						Hostname: s,
+						Path:     s,
+						Protocol: s,
+						Raw:      s,
+						Search:   s,
+					},
+					HTTPVersion: s,
+					Method:      s,
+					Socket: contextRequestSocket{
+						RemoteAddress: ip,
+						Encrypted:     bo,
+					},
+				},
+				Message: contextMessage{
+					Headers: h,
+					Body:    s,
+					Queue: contextMessageQueue{
+						Name: s,
+					},
+					RoutingKey: s,
+					Age: contextMessageAge{
+						Milliseconds: i,
+					},
+				},
+				Response: contextResponse{
+					Headers:         h,
+					StatusCode:      i,
+					TransferSize:    i,
+					DecodedBodySize: i,
+					EncodedBodySize: i,
+					Finished:        bo,
+					HeadersSent:     bo,
+				},
+			},
+		},
+	}
+
+	out := modelpb.APMEventFromVTPool()
+	b.Run("error-model", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			mapToErrorModel(&input.Error, out)
+			out.ResetVT()
+		}
+	})
+
 }
 
 var regexpArrayAccessor = regexp.MustCompile(`\[.*\]\.`)

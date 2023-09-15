@@ -38,6 +38,12 @@ func GlobalLabelsFrom(from map[string]any, to *modelpb.APMEvent) {
 		v.Global = true
 		to.NumericLabels[k] = v
 	}
+	if len(to.Labels) == 0 {
+		to.Labels = nil
+	}
+	if len(to.NumericLabels) == 0 {
+		to.NumericLabels = nil
+	}
 }
 
 // MergeLabels merges eventLabels into the APMEvent. This is used for
@@ -45,11 +51,26 @@ func GlobalLabelsFrom(from map[string]any, to *modelpb.APMEvent) {
 //
 // If eventLabels is non-nil, it is first cloned.
 func MergeLabels(eventLabels map[string]any, to *modelpb.APMEvent) {
-	if to.NumericLabels == nil {
-		to.NumericLabels = make(modelpb.NumericLabels)
+	count := 0
+	numericCount := 0
+	for _, v := range eventLabels {
+		switch v.(type) {
+		case string, bool:
+			count++
+		case float64, json.Number:
+			numericCount++
+		}
 	}
-	if to.Labels == nil {
-		to.Labels = make(modelpb.Labels)
+
+	if count == 0 && numericCount == 0 {
+		return
+	}
+
+	if to.NumericLabels == nil && numericCount > 0 {
+		to.NumericLabels = make(modelpb.NumericLabels, numericCount)
+	}
+	if to.Labels == nil && count > 0 {
+		to.Labels = make(modelpb.Labels, count)
 	}
 	for k, v := range eventLabels {
 		switch v := v.(type) {
@@ -65,24 +86,4 @@ func MergeLabels(eventLabels map[string]any, to *modelpb.APMEvent) {
 			}
 		}
 	}
-	if len(to.NumericLabels) == 0 {
-		to.NumericLabels = nil
-	}
-	if len(to.Labels) == 0 {
-		to.Labels = nil
-	}
-}
-
-// NormalizeLabelValues transforms the values in labels, replacing any
-// instance of json.Number with float64, and returning labels.
-func NormalizeLabelValues(labels map[string]any) map[string]any {
-	for k, v := range labels {
-		switch v := v.(type) {
-		case json.Number:
-			if floatVal, err := v.Float64(); err == nil {
-				labels[k] = floatVal
-			}
-		}
-	}
-	return labels
 }

@@ -17,23 +17,15 @@
 
 package modeldecoderutil
 
-import (
-	"github.com/elastic/apm-data/model/modelpb"
-	"google.golang.org/protobuf/types/known/structpb"
-)
-
-func MapToKv(m map[string]any, out []*modelpb.KeyValue) {
-	nm := normalizeMap(m)
-	if len(nm) == 0 {
-		return
+func Reslice[S ~[]E, E any](s S, n int, fn func() E) S {
+	if diff := n - cap(s); diff > 0 {
+		extra := make([]E, diff)
+		if fn != nil {
+			for i := range extra {
+				extra[i] = fn()
+			}
+		}
+		s = append([]E(s)[:cap(s)], extra...)
 	}
-
-	i := 0
-	for k, v := range nm {
-		value, _ := structpb.NewValue(v)
-		pbkv := out[i]
-		pbkv.Key = k
-		pbkv.Value = value
-		i++
-	}
+	return s[:n]
 }
