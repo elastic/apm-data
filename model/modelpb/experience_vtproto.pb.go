@@ -43,12 +43,11 @@ func (m *UserExperience) CloneVT() *UserExperience {
 	if m == nil {
 		return (*UserExperience)(nil)
 	}
-	r := &UserExperience{
-		CumulativeLayoutShift: m.CumulativeLayoutShift,
-		FirstInputDelay:       m.FirstInputDelay,
-		TotalBlockingTime:     m.TotalBlockingTime,
-		LongTask:              m.LongTask.CloneVT(),
-	}
+	r := UserExperienceFromVTPool()
+	r.CumulativeLayoutShift = m.CumulativeLayoutShift
+	r.FirstInputDelay = m.FirstInputDelay
+	r.TotalBlockingTime = m.TotalBlockingTime
+	r.LongTask = m.LongTask.CloneVT()
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -64,11 +63,10 @@ func (m *LongtaskMetrics) CloneVT() *LongtaskMetrics {
 	if m == nil {
 		return (*LongtaskMetrics)(nil)
 	}
-	r := &LongtaskMetrics{
-		Count: m.Count,
-		Sum:   m.Sum,
-		Max:   m.Max,
-	}
+	r := LongtaskMetricsFromVTPool()
+	r.Count = m.Count
+	r.Sum = m.Sum
+	r.Max = m.Max
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -198,8 +196,10 @@ var vtprotoPool_UserExperience = sync.Pool{
 }
 
 func (m *UserExperience) ResetVT() {
-	m.LongTask.ReturnToVTPool()
-	m.Reset()
+	if m != nil {
+		m.LongTask.ReturnToVTPool()
+		m.Reset()
+	}
 }
 func (m *UserExperience) ReturnToVTPool() {
 	if m != nil {
@@ -218,7 +218,9 @@ var vtprotoPool_LongtaskMetrics = sync.Pool{
 }
 
 func (m *LongtaskMetrics) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *LongtaskMetrics) ReturnToVTPool() {
 	if m != nil {

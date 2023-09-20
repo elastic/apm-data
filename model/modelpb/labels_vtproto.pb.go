@@ -43,10 +43,9 @@ func (m *LabelValue) CloneVT() *LabelValue {
 	if m == nil {
 		return (*LabelValue)(nil)
 	}
-	r := &LabelValue{
-		Value:  m.Value,
-		Global: m.Global,
-	}
+	r := LabelValueFromVTPool()
+	r.Value = m.Value
+	r.Global = m.Global
 	if rhs := m.Values; rhs != nil {
 		tmpContainer := make([]string, len(rhs))
 		copy(tmpContainer, rhs)
@@ -67,10 +66,9 @@ func (m *NumericLabelValue) CloneVT() *NumericLabelValue {
 	if m == nil {
 		return (*NumericLabelValue)(nil)
 	}
-	r := &NumericLabelValue{
-		Value:  m.Value,
-		Global: m.Global,
-	}
+	r := NumericLabelValueFromVTPool()
+	r.Value = m.Value
+	r.Global = m.Global
 	if rhs := m.Values; rhs != nil {
 		tmpContainer := make([]float64, len(rhs))
 		copy(tmpContainer, rhs)
@@ -212,9 +210,11 @@ var vtprotoPool_LabelValue = sync.Pool{
 }
 
 func (m *LabelValue) ResetVT() {
-	f0 := m.Values[:0]
-	m.Reset()
-	m.Values = f0
+	if m != nil {
+		f0 := m.Values[:0]
+		m.Reset()
+		m.Values = f0
+	}
 }
 func (m *LabelValue) ReturnToVTPool() {
 	if m != nil {
@@ -233,9 +233,11 @@ var vtprotoPool_NumericLabelValue = sync.Pool{
 }
 
 func (m *NumericLabelValue) ResetVT() {
-	f0 := m.Values[:0]
-	m.Reset()
-	m.Values = f0
+	if m != nil {
+		f0 := m.Values[:0]
+		m.Reset()
+		m.Values = f0
+	}
 }
 func (m *NumericLabelValue) ReturnToVTPool() {
 	if m != nil {

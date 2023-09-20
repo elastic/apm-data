@@ -41,38 +41,37 @@ func (m *APMEvent) CloneVT() *APMEvent {
 	if m == nil {
 		return (*APMEvent)(nil)
 	}
-	r := &APMEvent{
-		Timestamp:   m.Timestamp,
-		Span:        m.Span.CloneVT(),
-		Transaction: m.Transaction.CloneVT(),
-		Metricset:   m.Metricset.CloneVT(),
-		Error:       m.Error.CloneVT(),
-		Cloud:       m.Cloud.CloneVT(),
-		Service:     m.Service.CloneVT(),
-		Faas:        m.Faas.CloneVT(),
-		Network:     m.Network.CloneVT(),
-		Container:   m.Container.CloneVT(),
-		User:        m.User.CloneVT(),
-		Device:      m.Device.CloneVT(),
-		Kubernetes:  m.Kubernetes.CloneVT(),
-		Observer:    m.Observer.CloneVT(),
-		DataStream:  m.DataStream.CloneVT(),
-		Agent:       m.Agent.CloneVT(),
-		Http:        m.Http.CloneVT(),
-		UserAgent:   m.UserAgent.CloneVT(),
-		ParentId:    m.ParentId,
-		Message:     m.Message,
-		Trace:       m.Trace.CloneVT(),
-		Host:        m.Host.CloneVT(),
-		Url:         m.Url.CloneVT(),
-		Log:         m.Log.CloneVT(),
-		Source:      m.Source.CloneVT(),
-		Client:      m.Client.CloneVT(),
-		Destination: m.Destination.CloneVT(),
-		Session:     m.Session.CloneVT(),
-		Process:     m.Process.CloneVT(),
-		Event:       m.Event.CloneVT(),
-	}
+	r := APMEventFromVTPool()
+	r.Timestamp = m.Timestamp
+	r.Span = m.Span.CloneVT()
+	r.Transaction = m.Transaction.CloneVT()
+	r.Metricset = m.Metricset.CloneVT()
+	r.Error = m.Error.CloneVT()
+	r.Cloud = m.Cloud.CloneVT()
+	r.Service = m.Service.CloneVT()
+	r.Faas = m.Faas.CloneVT()
+	r.Network = m.Network.CloneVT()
+	r.Container = m.Container.CloneVT()
+	r.User = m.User.CloneVT()
+	r.Device = m.Device.CloneVT()
+	r.Kubernetes = m.Kubernetes.CloneVT()
+	r.Observer = m.Observer.CloneVT()
+	r.DataStream = m.DataStream.CloneVT()
+	r.Agent = m.Agent.CloneVT()
+	r.Http = m.Http.CloneVT()
+	r.UserAgent = m.UserAgent.CloneVT()
+	r.ParentId = m.ParentId
+	r.Message = m.Message
+	r.Trace = m.Trace.CloneVT()
+	r.Host = m.Host.CloneVT()
+	r.Url = m.Url.CloneVT()
+	r.Log = m.Log.CloneVT()
+	r.Source = m.Source.CloneVT()
+	r.Client = m.Client.CloneVT()
+	r.Destination = m.Destination.CloneVT()
+	r.Session = m.Session.CloneVT()
+	r.Process = m.Process.CloneVT()
+	r.Event = m.Event.CloneVT()
 	if rhs := m.NumericLabels; rhs != nil {
 		tmpContainer := make(map[string]*NumericLabelValue, len(rhs))
 		for k, v := range rhs {
@@ -521,36 +520,38 @@ var vtprotoPool_APMEvent = sync.Pool{
 }
 
 func (m *APMEvent) ResetVT() {
-	m.Span.ReturnToVTPool()
-	m.Transaction.ReturnToVTPool()
-	m.Metricset.ReturnToVTPool()
-	m.Error.ReturnToVTPool()
-	m.Cloud.ReturnToVTPool()
-	m.Service.ReturnToVTPool()
-	m.Faas.ReturnToVTPool()
-	m.Network.ReturnToVTPool()
-	m.Container.ReturnToVTPool()
-	m.User.ReturnToVTPool()
-	m.Device.ReturnToVTPool()
-	m.Kubernetes.ReturnToVTPool()
-	m.Observer.ReturnToVTPool()
-	m.DataStream.ReturnToVTPool()
-	m.Agent.ReturnToVTPool()
-	m.Http.ReturnToVTPool()
-	m.UserAgent.ReturnToVTPool()
-	m.Trace.ReturnToVTPool()
-	m.Host.ReturnToVTPool()
-	m.Url.ReturnToVTPool()
-	m.Log.ReturnToVTPool()
-	m.Source.ReturnToVTPool()
-	m.Client.ReturnToVTPool()
-	f0 := m.ChildIds[:0]
-	m.Destination.ReturnToVTPool()
-	m.Session.ReturnToVTPool()
-	m.Process.ReturnToVTPool()
-	m.Event.ReturnToVTPool()
-	m.Reset()
-	m.ChildIds = f0
+	if m != nil {
+		m.Span.ReturnToVTPool()
+		m.Transaction.ReturnToVTPool()
+		m.Metricset.ReturnToVTPool()
+		m.Error.ReturnToVTPool()
+		m.Cloud.ReturnToVTPool()
+		m.Service.ReturnToVTPool()
+		m.Faas.ReturnToVTPool()
+		m.Network.ReturnToVTPool()
+		m.Container.ReturnToVTPool()
+		m.User.ReturnToVTPool()
+		m.Device.ReturnToVTPool()
+		m.Kubernetes.ReturnToVTPool()
+		m.Observer.ReturnToVTPool()
+		m.DataStream.ReturnToVTPool()
+		m.Agent.ReturnToVTPool()
+		m.Http.ReturnToVTPool()
+		m.UserAgent.ReturnToVTPool()
+		m.Trace.ReturnToVTPool()
+		m.Host.ReturnToVTPool()
+		m.Url.ReturnToVTPool()
+		m.Log.ReturnToVTPool()
+		m.Source.ReturnToVTPool()
+		m.Client.ReturnToVTPool()
+		f0 := m.ChildIds[:0]
+		m.Destination.ReturnToVTPool()
+		m.Session.ReturnToVTPool()
+		m.Process.ReturnToVTPool()
+		m.Event.ReturnToVTPool()
+		m.Reset()
+		m.ChildIds = f0
+	}
 }
 func (m *APMEvent) ReturnToVTPool() {
 	if m != nil {

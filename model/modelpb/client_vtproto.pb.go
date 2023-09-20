@@ -41,11 +41,10 @@ func (m *Client) CloneVT() *Client {
 	if m == nil {
 		return (*Client)(nil)
 	}
-	r := &Client{
-		Ip:     m.Ip.CloneVT(),
-		Domain: m.Domain,
-		Port:   m.Port,
-	}
+	r := ClientFromVTPool()
+	r.Ip = m.Ip.CloneVT()
+	r.Domain = m.Domain
+	r.Port = m.Port
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -119,8 +118,10 @@ var vtprotoPool_Client = sync.Pool{
 }
 
 func (m *Client) ResetVT() {
-	m.Ip.ReturnToVTPool()
-	m.Reset()
+	if m != nil {
+		m.Ip.ReturnToVTPool()
+		m.Reset()
+	}
 }
 func (m *Client) ReturnToVTPool() {
 	if m != nil {

@@ -41,19 +41,18 @@ func (m *StacktraceFrame) CloneVT() *StacktraceFrame {
 	if m == nil {
 		return (*StacktraceFrame)(nil)
 	}
-	r := &StacktraceFrame{
-		Filename:            m.Filename,
-		Classname:           m.Classname,
-		ContextLine:         m.ContextLine,
-		Module:              m.Module,
-		Function:            m.Function,
-		AbsPath:             m.AbsPath,
-		SourcemapError:      m.SourcemapError,
-		Original:            m.Original.CloneVT(),
-		LibraryFrame:        m.LibraryFrame,
-		SourcemapUpdated:    m.SourcemapUpdated,
-		ExcludeFromGrouping: m.ExcludeFromGrouping,
-	}
+	r := StacktraceFrameFromVTPool()
+	r.Filename = m.Filename
+	r.Classname = m.Classname
+	r.ContextLine = m.ContextLine
+	r.Module = m.Module
+	r.Function = m.Function
+	r.AbsPath = m.AbsPath
+	r.SourcemapError = m.SourcemapError
+	r.Original = m.Original.CloneVT()
+	r.LibraryFrame = m.LibraryFrame
+	r.SourcemapUpdated = m.SourcemapUpdated
+	r.ExcludeFromGrouping = m.ExcludeFromGrouping
 	if rhs := m.Vars; rhs != nil {
 		tmpContainer := make([]*KeyValue, len(rhs))
 		for k, v := range rhs {
@@ -94,13 +93,12 @@ func (m *Original) CloneVT() *Original {
 	if m == nil {
 		return (*Original)(nil)
 	}
-	r := &Original{
-		AbsPath:      m.AbsPath,
-		Filename:     m.Filename,
-		Classname:    m.Classname,
-		Function:     m.Function,
-		LibraryFrame: m.LibraryFrame,
-	}
+	r := OriginalFromVTPool()
+	r.AbsPath = m.AbsPath
+	r.Filename = m.Filename
+	r.Classname = m.Classname
+	r.Function = m.Function
+	r.LibraryFrame = m.LibraryFrame
 	if rhs := m.Lineno; rhs != nil {
 		tmpVal := *rhs
 		r.Lineno = &tmpVal
@@ -372,17 +370,19 @@ var vtprotoPool_StacktraceFrame = sync.Pool{
 }
 
 func (m *StacktraceFrame) ResetVT() {
-	for _, mm := range m.Vars {
-		mm.ResetVT()
+	if m != nil {
+		for _, mm := range m.Vars {
+			mm.ResetVT()
+		}
+		f0 := m.Vars[:0]
+		m.Original.ReturnToVTPool()
+		f1 := m.PreContext[:0]
+		f2 := m.PostContext[:0]
+		m.Reset()
+		m.Vars = f0
+		m.PreContext = f1
+		m.PostContext = f2
 	}
-	f0 := m.Vars[:0]
-	m.Original.ReturnToVTPool()
-	f1 := m.PreContext[:0]
-	f2 := m.PostContext[:0]
-	m.Reset()
-	m.Vars = f0
-	m.PreContext = f1
-	m.PostContext = f2
 }
 func (m *StacktraceFrame) ReturnToVTPool() {
 	if m != nil {
@@ -401,7 +401,9 @@ var vtprotoPool_Original = sync.Pool{
 }
 
 func (m *Original) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *Original) ReturnToVTPool() {
 	if m != nil {

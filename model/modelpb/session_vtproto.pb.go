@@ -41,10 +41,9 @@ func (m *Session) CloneVT() *Session {
 	if m == nil {
 		return (*Session)(nil)
 	}
-	r := &Session{
-		Id:       m.Id,
-		Sequence: m.Sequence,
-	}
+	r := SessionFromVTPool()
+	r.Id = m.Id
+	r.Sequence = m.Sequence
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -108,7 +107,9 @@ var vtprotoPool_Session = sync.Pool{
 }
 
 func (m *Session) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *Session) ReturnToVTPool() {
 	if m != nil {

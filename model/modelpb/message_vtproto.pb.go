@@ -41,11 +41,10 @@ func (m *Message) CloneVT() *Message {
 	if m == nil {
 		return (*Message)(nil)
 	}
-	r := &Message{
-		Body:       m.Body,
-		QueueName:  m.QueueName,
-		RoutingKey: m.RoutingKey,
-	}
+	r := MessageFromVTPool()
+	r.Body = m.Body
+	r.QueueName = m.QueueName
+	r.RoutingKey = m.RoutingKey
 	if rhs := m.Headers; rhs != nil {
 		tmpContainer := make([]*HTTPHeader, len(rhs))
 		for k, v := range rhs {
@@ -146,12 +145,14 @@ var vtprotoPool_Message = sync.Pool{
 }
 
 func (m *Message) ResetVT() {
-	for _, mm := range m.Headers {
-		mm.ResetVT()
+	if m != nil {
+		for _, mm := range m.Headers {
+			mm.ResetVT()
+		}
+		f0 := m.Headers[:0]
+		m.Reset()
+		m.Headers = f0
 	}
-	f0 := m.Headers[:0]
-	m.Reset()
-	m.Headers = f0
 }
 func (m *Message) ReturnToVTPool() {
 	if m != nil {

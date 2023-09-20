@@ -41,14 +41,13 @@ func (m *Faas) CloneVT() *Faas {
 	if m == nil {
 		return (*Faas)(nil)
 	}
-	r := &Faas{
-		Id:               m.Id,
-		Execution:        m.Execution,
-		TriggerType:      m.TriggerType,
-		TriggerRequestId: m.TriggerRequestId,
-		Name:             m.Name,
-		Version:          m.Version,
-	}
+	r := FaasFromVTPool()
+	r.Id = m.Id
+	r.Execution = m.Execution
+	r.TriggerType = m.TriggerType
+	r.TriggerRequestId = m.TriggerRequestId
+	r.Name = m.Name
+	r.Version = m.Version
 	if rhs := m.ColdStart; rhs != nil {
 		tmpVal := *rhs
 		r.ColdStart = &tmpVal
@@ -156,7 +155,9 @@ var vtprotoPool_Faas = sync.Pool{
 }
 
 func (m *Faas) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *Faas) ReturnToVTPool() {
 	if m != nil {

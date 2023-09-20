@@ -42,9 +42,8 @@ func (m *KeyValue) CloneVT() *KeyValue {
 	if m == nil {
 		return (*KeyValue)(nil)
 	}
-	r := &KeyValue{
-		Key: m.Key,
-	}
+	r := KeyValueFromVTPool()
+	r.Key = m.Key
 	if rhs := m.Value; rhs != nil {
 		if vtpb, ok := interface{}(rhs).(interface{ CloneVT() *structpb.Value }); ok {
 			r.Value = vtpb.CloneVT()
@@ -132,7 +131,9 @@ var vtprotoPool_KeyValue = sync.Pool{
 }
 
 func (m *KeyValue) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *KeyValue) ReturnToVTPool() {
 	if m != nil {

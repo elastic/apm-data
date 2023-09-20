@@ -41,12 +41,11 @@ func (m *Observer) CloneVT() *Observer {
 	if m == nil {
 		return (*Observer)(nil)
 	}
-	r := &Observer{
-		Hostname: m.Hostname,
-		Name:     m.Name,
-		Type:     m.Type,
-		Version:  m.Version,
-	}
+	r := ObserverFromVTPool()
+	r.Hostname = m.Hostname
+	r.Name = m.Name
+	r.Type = m.Type
+	r.Version = m.Version
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -126,7 +125,9 @@ var vtprotoPool_Observer = sync.Pool{
 }
 
 func (m *Observer) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *Observer) ReturnToVTPool() {
 	if m != nil {

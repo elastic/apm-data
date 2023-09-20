@@ -41,11 +41,10 @@ func (m *DataStream) CloneVT() *DataStream {
 	if m == nil {
 		return (*DataStream)(nil)
 	}
-	r := &DataStream{
-		Type:      m.Type,
-		Dataset:   m.Dataset,
-		Namespace: m.Namespace,
-	}
+	r := DataStreamFromVTPool()
+	r.Type = m.Type
+	r.Dataset = m.Dataset
+	r.Namespace = m.Namespace
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -118,7 +117,9 @@ var vtprotoPool_DataStream = sync.Pool{
 }
 
 func (m *DataStream) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *DataStream) ReturnToVTPool() {
 	if m != nil {

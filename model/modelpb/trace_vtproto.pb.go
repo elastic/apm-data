@@ -41,9 +41,8 @@ func (m *Trace) CloneVT() *Trace {
 	if m == nil {
 		return (*Trace)(nil)
 	}
-	r := &Trace{
-		Id: m.Id,
-	}
+	r := TraceFromVTPool()
+	r.Id = m.Id
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -102,7 +101,9 @@ var vtprotoPool_Trace = sync.Pool{
 }
 
 func (m *Trace) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *Trace) ReturnToVTPool() {
 	if m != nil {

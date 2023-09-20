@@ -41,12 +41,11 @@ func (m *Source) CloneVT() *Source {
 	if m == nil {
 		return (*Source)(nil)
 	}
-	r := &Source{
-		Ip:     m.Ip.CloneVT(),
-		Nat:    m.Nat.CloneVT(),
-		Domain: m.Domain,
-		Port:   m.Port,
-	}
+	r := SourceFromVTPool()
+	r.Ip = m.Ip.CloneVT()
+	r.Nat = m.Nat.CloneVT()
+	r.Domain = m.Domain
+	r.Port = m.Port
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -62,9 +61,8 @@ func (m *NAT) CloneVT() *NAT {
 	if m == nil {
 		return (*NAT)(nil)
 	}
-	r := &NAT{
-		Ip: m.Ip.CloneVT(),
-	}
+	r := NATFromVTPool()
+	r.Ip = m.Ip.CloneVT()
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -191,9 +189,11 @@ var vtprotoPool_Source = sync.Pool{
 }
 
 func (m *Source) ResetVT() {
-	m.Ip.ReturnToVTPool()
-	m.Nat.ReturnToVTPool()
-	m.Reset()
+	if m != nil {
+		m.Ip.ReturnToVTPool()
+		m.Nat.ReturnToVTPool()
+		m.Reset()
+	}
 }
 func (m *Source) ReturnToVTPool() {
 	if m != nil {
@@ -212,8 +212,10 @@ var vtprotoPool_NAT = sync.Pool{
 }
 
 func (m *NAT) ResetVT() {
-	m.Ip.ReturnToVTPool()
-	m.Reset()
+	if m != nil {
+		m.Ip.ReturnToVTPool()
+		m.Reset()
+	}
 }
 func (m *NAT) ReturnToVTPool() {
 	if m != nil {

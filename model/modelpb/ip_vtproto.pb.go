@@ -42,9 +42,8 @@ func (m *IP) CloneVT() *IP {
 	if m == nil {
 		return (*IP)(nil)
 	}
-	r := &IP{
-		V4: m.V4,
-	}
+	r := IPFromVTPool()
+	r.V4 = m.V4
 	if rhs := m.V6; rhs != nil {
 		tmpBytes := make([]byte, len(rhs))
 		copy(tmpBytes, rhs)
@@ -114,9 +113,11 @@ var vtprotoPool_IP = sync.Pool{
 }
 
 func (m *IP) ResetVT() {
-	f0 := m.V6[:0]
-	m.Reset()
-	m.V6 = f0
+	if m != nil {
+		f0 := m.V6[:0]
+		m.Reset()
+		m.V6 = f0
+	}
 }
 func (m *IP) ReturnToVTPool() {
 	if m != nil {

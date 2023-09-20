@@ -41,14 +41,13 @@ func (m *Host) CloneVT() *Host {
 	if m == nil {
 		return (*Host)(nil)
 	}
-	r := &Host{
-		Os:           m.Os.CloneVT(),
-		Hostname:     m.Hostname,
-		Name:         m.Name,
-		Id:           m.Id,
-		Architecture: m.Architecture,
-		Type:         m.Type,
-	}
+	r := HostFromVTPool()
+	r.Os = m.Os.CloneVT()
+	r.Hostname = m.Hostname
+	r.Name = m.Name
+	r.Id = m.Id
+	r.Architecture = m.Architecture
+	r.Type = m.Type
 	if rhs := m.Ip; rhs != nil {
 		tmpContainer := make([]*IP, len(rhs))
 		for k, v := range rhs {
@@ -164,13 +163,15 @@ var vtprotoPool_Host = sync.Pool{
 }
 
 func (m *Host) ResetVT() {
-	m.Os.ReturnToVTPool()
-	for _, mm := range m.Ip {
-		mm.ResetVT()
+	if m != nil {
+		m.Os.ReturnToVTPool()
+		for _, mm := range m.Ip {
+			mm.ResetVT()
+		}
+		f0 := m.Ip[:0]
+		m.Reset()
+		m.Ip = f0
 	}
-	f0 := m.Ip[:0]
-	m.Reset()
-	m.Ip = f0
 }
 func (m *Host) ReturnToVTPool() {
 	if m != nil {

@@ -41,12 +41,11 @@ func (m *User) CloneVT() *User {
 	if m == nil {
 		return (*User)(nil)
 	}
-	r := &User{
-		Domain: m.Domain,
-		Id:     m.Id,
-		Email:  m.Email,
-		Name:   m.Name,
-	}
+	r := UserFromVTPool()
+	r.Domain = m.Domain
+	r.Id = m.Id
+	r.Email = m.Email
+	r.Name = m.Name
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -126,7 +125,9 @@ var vtprotoPool_User = sync.Pool{
 }
 
 func (m *User) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *User) ReturnToVTPool() {
 	if m != nil {

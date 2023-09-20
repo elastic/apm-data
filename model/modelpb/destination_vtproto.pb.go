@@ -41,10 +41,9 @@ func (m *Destination) CloneVT() *Destination {
 	if m == nil {
 		return (*Destination)(nil)
 	}
-	r := &Destination{
-		Address: m.Address,
-		Port:    m.Port,
-	}
+	r := DestinationFromVTPool()
+	r.Address = m.Address
+	r.Port = m.Port
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -108,7 +107,9 @@ var vtprotoPool_Destination = sync.Pool{
 }
 
 func (m *Destination) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *Destination) ReturnToVTPool() {
 	if m != nil {

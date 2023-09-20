@@ -41,16 +41,15 @@ func (m *URL) CloneVT() *URL {
 	if m == nil {
 		return (*URL)(nil)
 	}
-	r := &URL{
-		Original: m.Original,
-		Scheme:   m.Scheme,
-		Full:     m.Full,
-		Domain:   m.Domain,
-		Path:     m.Path,
-		Query:    m.Query,
-		Fragment: m.Fragment,
-		Port:     m.Port,
-	}
+	r := URLFromVTPool()
+	r.Original = m.Original
+	r.Scheme = m.Scheme
+	r.Full = m.Full
+	r.Domain = m.Domain
+	r.Path = m.Path
+	r.Query = m.Query
+	r.Fragment = m.Fragment
+	r.Port = m.Port
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -156,7 +155,9 @@ var vtprotoPool_URL = sync.Pool{
 }
 
 func (m *URL) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *URL) ReturnToVTPool() {
 	if m != nil {

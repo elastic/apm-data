@@ -41,9 +41,8 @@ func (m *HTTPHeader) CloneVT() *HTTPHeader {
 	if m == nil {
 		return (*HTTPHeader)(nil)
 	}
-	r := &HTTPHeader{
-		Key: m.Key,
-	}
+	r := HTTPHeaderFromVTPool()
+	r.Key = m.Key
 	if rhs := m.Value; rhs != nil {
 		tmpContainer := make([]string, len(rhs))
 		copy(tmpContainer, rhs)
@@ -116,9 +115,11 @@ var vtprotoPool_HTTPHeader = sync.Pool{
 }
 
 func (m *HTTPHeader) ResetVT() {
-	f0 := m.Value[:0]
-	m.Reset()
-	m.Value = f0
+	if m != nil {
+		f0 := m.Value[:0]
+		m.Reset()
+		m.Value = f0
+	}
 }
 func (m *HTTPHeader) ReturnToVTPool() {
 	if m != nil {

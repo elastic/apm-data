@@ -43,11 +43,10 @@ func (m *Metricset) CloneVT() *Metricset {
 	if m == nil {
 		return (*Metricset)(nil)
 	}
-	r := &Metricset{
-		Name:     m.Name,
-		Interval: m.Interval,
-		DocCount: m.DocCount,
-	}
+	r := MetricsetFromVTPool()
+	r.Name = m.Name
+	r.Interval = m.Interval
+	r.DocCount = m.DocCount
 	if rhs := m.Samples; rhs != nil {
 		tmpContainer := make([]*MetricsetSample, len(rhs))
 		for k, v := range rhs {
@@ -70,14 +69,13 @@ func (m *MetricsetSample) CloneVT() *MetricsetSample {
 	if m == nil {
 		return (*MetricsetSample)(nil)
 	}
-	r := &MetricsetSample{
-		Type:      m.Type,
-		Name:      m.Name,
-		Unit:      m.Unit,
-		Histogram: m.Histogram.CloneVT(),
-		Summary:   m.Summary.CloneVT(),
-		Value:     m.Value,
-	}
+	r := MetricsetSampleFromVTPool()
+	r.Type = m.Type
+	r.Name = m.Name
+	r.Unit = m.Unit
+	r.Histogram = m.Histogram.CloneVT()
+	r.Summary = m.Summary.CloneVT()
+	r.Value = m.Value
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -93,7 +91,7 @@ func (m *Histogram) CloneVT() *Histogram {
 	if m == nil {
 		return (*Histogram)(nil)
 	}
-	r := &Histogram{}
+	r := HistogramFromVTPool()
 	if rhs := m.Values; rhs != nil {
 		tmpContainer := make([]float64, len(rhs))
 		copy(tmpContainer, rhs)
@@ -119,10 +117,9 @@ func (m *SummaryMetric) CloneVT() *SummaryMetric {
 	if m == nil {
 		return (*SummaryMetric)(nil)
 	}
-	r := &SummaryMetric{
-		Count: m.Count,
-		Sum:   m.Sum,
-	}
+	r := SummaryMetricFromVTPool()
+	r.Count = m.Count
+	r.Sum = m.Sum
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -138,10 +135,9 @@ func (m *AggregatedDuration) CloneVT() *AggregatedDuration {
 	if m == nil {
 		return (*AggregatedDuration)(nil)
 	}
-	r := &AggregatedDuration{
-		Count: m.Count,
-		Sum:   m.Sum,
-	}
+	r := AggregatedDurationFromVTPool()
+	r.Count = m.Count
+	r.Sum = m.Sum
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -452,12 +448,14 @@ var vtprotoPool_Metricset = sync.Pool{
 }
 
 func (m *Metricset) ResetVT() {
-	for _, mm := range m.Samples {
-		mm.ResetVT()
+	if m != nil {
+		for _, mm := range m.Samples {
+			mm.ResetVT()
+		}
+		f0 := m.Samples[:0]
+		m.Reset()
+		m.Samples = f0
 	}
-	f0 := m.Samples[:0]
-	m.Reset()
-	m.Samples = f0
 }
 func (m *Metricset) ReturnToVTPool() {
 	if m != nil {
@@ -476,9 +474,11 @@ var vtprotoPool_MetricsetSample = sync.Pool{
 }
 
 func (m *MetricsetSample) ResetVT() {
-	m.Histogram.ReturnToVTPool()
-	m.Summary.ReturnToVTPool()
-	m.Reset()
+	if m != nil {
+		m.Histogram.ReturnToVTPool()
+		m.Summary.ReturnToVTPool()
+		m.Reset()
+	}
 }
 func (m *MetricsetSample) ReturnToVTPool() {
 	if m != nil {
@@ -497,11 +497,13 @@ var vtprotoPool_Histogram = sync.Pool{
 }
 
 func (m *Histogram) ResetVT() {
-	f0 := m.Values[:0]
-	f1 := m.Counts[:0]
-	m.Reset()
-	m.Values = f0
-	m.Counts = f1
+	if m != nil {
+		f0 := m.Values[:0]
+		f1 := m.Counts[:0]
+		m.Reset()
+		m.Values = f0
+		m.Counts = f1
+	}
 }
 func (m *Histogram) ReturnToVTPool() {
 	if m != nil {
@@ -520,7 +522,9 @@ var vtprotoPool_SummaryMetric = sync.Pool{
 }
 
 func (m *SummaryMetric) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *SummaryMetric) ReturnToVTPool() {
 	if m != nil {
@@ -539,7 +543,9 @@ var vtprotoPool_AggregatedDuration = sync.Pool{
 }
 
 func (m *AggregatedDuration) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *AggregatedDuration) ReturnToVTPool() {
 	if m != nil {

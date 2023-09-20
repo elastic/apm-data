@@ -41,14 +41,13 @@ func (m *Process) CloneVT() *Process {
 	if m == nil {
 		return (*Process)(nil)
 	}
-	r := &Process{
-		Ppid:        m.Ppid,
-		Thread:      m.Thread.CloneVT(),
-		Title:       m.Title,
-		CommandLine: m.CommandLine,
-		Executable:  m.Executable,
-		Pid:         m.Pid,
-	}
+	r := ProcessFromVTPool()
+	r.Ppid = m.Ppid
+	r.Thread = m.Thread.CloneVT()
+	r.Title = m.Title
+	r.CommandLine = m.CommandLine
+	r.Executable = m.Executable
+	r.Pid = m.Pid
 	if rhs := m.Argv; rhs != nil {
 		tmpContainer := make([]string, len(rhs))
 		copy(tmpContainer, rhs)
@@ -69,10 +68,9 @@ func (m *ProcessThread) CloneVT() *ProcessThread {
 	if m == nil {
 		return (*ProcessThread)(nil)
 	}
-	r := &ProcessThread{
-		Name: m.Name,
-		Id:   m.Id,
-	}
+	r := ProcessThreadFromVTPool()
+	r.Name = m.Name
+	r.Id = m.Id
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -219,10 +217,12 @@ var vtprotoPool_Process = sync.Pool{
 }
 
 func (m *Process) ResetVT() {
-	m.Thread.ReturnToVTPool()
-	f0 := m.Argv[:0]
-	m.Reset()
-	m.Argv = f0
+	if m != nil {
+		m.Thread.ReturnToVTPool()
+		f0 := m.Argv[:0]
+		m.Reset()
+		m.Argv = f0
+	}
 }
 func (m *Process) ReturnToVTPool() {
 	if m != nil {
@@ -241,7 +241,9 @@ var vtprotoPool_ProcessThread = sync.Pool{
 }
 
 func (m *ProcessThread) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *ProcessThread) ReturnToVTPool() {
 	if m != nil {

@@ -41,12 +41,11 @@ func (m *Kubernetes) CloneVT() *Kubernetes {
 	if m == nil {
 		return (*Kubernetes)(nil)
 	}
-	r := &Kubernetes{
-		Namespace: m.Namespace,
-		NodeName:  m.NodeName,
-		PodName:   m.PodName,
-		PodUid:    m.PodUid,
-	}
+	r := KubernetesFromVTPool()
+	r.Namespace = m.Namespace
+	r.NodeName = m.NodeName
+	r.PodName = m.PodName
+	r.PodUid = m.PodUid
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -126,7 +125,9 @@ var vtprotoPool_Kubernetes = sync.Pool{
 }
 
 func (m *Kubernetes) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *Kubernetes) ReturnToVTPool() {
 	if m != nil {

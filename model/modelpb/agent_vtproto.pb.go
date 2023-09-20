@@ -42,12 +42,11 @@ func (m *Agent) CloneVT() *Agent {
 	if m == nil {
 		return (*Agent)(nil)
 	}
-	r := &Agent{
-		Name:             m.Name,
-		Version:          m.Version,
-		EphemeralId:      m.EphemeralId,
-		ActivationMethod: m.ActivationMethod,
-	}
+	r := AgentFromVTPool()
+	r.Name = m.Name
+	r.Version = m.Version
+	r.EphemeralId = m.EphemeralId
+	r.ActivationMethod = m.ActivationMethod
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -139,7 +138,9 @@ var vtprotoPool_Agent = sync.Pool{
 }
 
 func (m *Agent) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *Agent) ReturnToVTPool() {
 	if m != nil {

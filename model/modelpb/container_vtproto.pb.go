@@ -41,13 +41,12 @@ func (m *Container) CloneVT() *Container {
 	if m == nil {
 		return (*Container)(nil)
 	}
-	r := &Container{
-		Id:        m.Id,
-		Name:      m.Name,
-		Runtime:   m.Runtime,
-		ImageName: m.ImageName,
-		ImageTag:  m.ImageTag,
-	}
+	r := ContainerFromVTPool()
+	r.Id = m.Id
+	r.Name = m.Name
+	r.Runtime = m.Runtime
+	r.ImageName = m.ImageName
+	r.ImageTag = m.ImageTag
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -134,7 +133,9 @@ var vtprotoPool_Container = sync.Pool{
 }
 
 func (m *Container) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *Container) ReturnToVTPool() {
 	if m != nil {

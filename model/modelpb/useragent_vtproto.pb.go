@@ -41,10 +41,9 @@ func (m *UserAgent) CloneVT() *UserAgent {
 	if m == nil {
 		return (*UserAgent)(nil)
 	}
-	r := &UserAgent{
-		Original: m.Original,
-		Name:     m.Name,
-	}
+	r := UserAgentFromVTPool()
+	r.Original = m.Original
+	r.Name = m.Name
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -110,7 +109,9 @@ var vtprotoPool_UserAgent = sync.Pool{
 }
 
 func (m *UserAgent) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *UserAgent) ReturnToVTPool() {
 	if m != nil {

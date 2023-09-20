@@ -41,13 +41,12 @@ func (m *OS) CloneVT() *OS {
 	if m == nil {
 		return (*OS)(nil)
 	}
-	r := &OS{
-		Name:     m.Name,
-		Version:  m.Version,
-		Platform: m.Platform,
-		Full:     m.Full,
-		Type:     m.Type,
-	}
+	r := OSFromVTPool()
+	r.Name = m.Name
+	r.Version = m.Version
+	r.Platform = m.Platform
+	r.Full = m.Full
+	r.Type = m.Type
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -134,7 +133,9 @@ var vtprotoPool_OS = sync.Pool{
 }
 
 func (m *OS) ResetVT() {
-	m.Reset()
+	if m != nil {
+		m.Reset()
+	}
 }
 func (m *OS) ReturnToVTPool() {
 	if m != nil {
