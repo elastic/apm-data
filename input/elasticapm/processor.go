@@ -365,7 +365,7 @@ func (p *Processor) handleStream(
 func (p *Processor) processBatch(ctx context.Context, processor modelpb.BatchProcessor, batch *modelpb.Batch) error {
 	defer func() {
 		for i := range *batch {
-			(*batch)[i] = nil
+			(*batch)[i].ReturnToVTPool()
 		}
 		batchPool.Put(batch)
 	}()
