@@ -51,6 +51,8 @@ import (
 
 // ConsumeMetrics consumes OpenTelemetry metrics data, converting into
 // the Elastic APM metrics model and sending to the reporter.
+// The returned Result contains the number of accepted and rejected data points.
+// A non-nil error indicates that at least 1 data point is rejected.
 func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) (Result, error) {
 	totalCount := int64(metrics.DataPointCount())
 	if err := c.sem.Acquire(ctx, 1); err != nil {

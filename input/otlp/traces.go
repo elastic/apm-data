@@ -80,6 +80,8 @@ const (
 
 // ConsumeTraces consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
+// The returned Result contains the number of accepted and rejected spans.
+// A non-nil error indicates that at least 1 span is rejected.
 func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) (Result, error) {
 	totalCount := int64(traces.SpanCount())
 	if err := c.sem.Acquire(ctx, 1); err != nil {

@@ -47,6 +47,10 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
+// ConsumeLogs consumes OpenTelemetry log data, converting into
+// the Elastic APM log model and sending to the reporter.
+// The returned Result contains the number of accepted and rejected log records.
+// A non-nil error indicates that at least 1 log record is rejected.
 func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) (Result, error) {
 	totalCount := int64(logs.LogRecordCount()) // Use flattened log record count
 	if err := c.sem.Acquire(ctx, 1); err != nil {
