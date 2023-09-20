@@ -433,7 +433,7 @@ func TestConcurrentAsync(t *testing.T) {
 				p.semAcquire(context.Background(), false)
 			}
 		}
-		processed := atomic.LoadUint64(&batchProcessor.processed)
+		processed := batchProcessor.processed.Load()
 		pResult.Accepted += int(processed)
 		return
 	}
@@ -511,7 +511,7 @@ func (nopBatchProcessor) ProcessBatch(context.Context, *modelpb.Batch) error {
 
 type accountProcessor struct {
 	batch     chan *modelpb.Batch
-	processed uint64
+	processed atomic.Uint64
 }
 
 func (p *accountProcessor) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
@@ -528,6 +528,6 @@ func (p *accountProcessor) ProcessBatch(ctx context.Context, b *modelpb.Batch) e
 			return ctx.Err()
 		}
 	}
-	atomic.AddUint64(&p.processed, 1)
+	p.processed.Add(1)
 	return nil
 }
