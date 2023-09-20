@@ -48,7 +48,7 @@ import (
 )
 
 func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) (Result, error) {
-	totalCount := logs.LogRecordCount() // Use flattened log record count
+	totalCount := int64(logs.LogRecordCount()) // Use flattened log record count
 	if err := c.sem.Acquire(ctx, 1); err != nil {
 		return parseResultFromError(err, totalCount)
 	}

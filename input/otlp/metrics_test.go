@@ -132,8 +132,10 @@ func TestConsumeMetrics(t *testing.T) {
 	invalidHistogramDP.ExplicitBounds().Append( /* should be non-empty */ )
 	expectDropped++
 
-	events, stats := transformMetrics(t, metrics)
+	events, stats, result, err := transformMetrics(t, metrics)
+	assert.Error(t, err, "unsupported data points")
 	assert.Equal(t, expectDropped, stats.UnsupportedMetricsDropped)
+	assert.Equal(t, otlp.Result{Accepted: 10, Rejected: expectDropped}, result)
 
 	service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
 	agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
@@ -263,12 +265,15 @@ func TestConsumeMetricsNaN(t *testing.T) {
 		dp.SetDoubleValue(value)
 	}
 
-	events, stats := transformMetrics(t, metrics)
+	events, stats, result, err := transformMetrics(t, metrics)
+	assert.Error(t, err, "unsupported data points")
 	assert.Equal(t, int64(3), stats.UnsupportedMetricsDropped)
+	assert.Equal(t, otlp.Result{Rejected: 3, Accepted: 0}, result)
 	assert.Empty(t, events)
 }
 
 func TestConsumeMetricsHostCPU(t *testing.T) {
+	var dpCount int64
 	metrics := pmetric.NewMetrics()
 	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
@@ -283,6 +288,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 		dp.SetDoubleValue(value)
 		dp.Attributes().FromRaw(attributes)
+		dpCount++
 	}
 
 	addFloat64Gauge("system.cpu.utilization", 0.8, map[string]interface{}{
@@ -337,7 +343,8 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		"cpu":   "3",
 	})
 
-	events, _ := transformMetrics(t, metrics)
+	events, _, result, err := transformMetrics(t, metrics)
+	assert.NoError(t, err)
 	service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
 	agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
 	expected := []*modelpb.APMEvent{{
@@ -523,9 +530,11 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 	}}
 
 	eventsMatch(t, expected, events)
+	assert.Equal(t, otlp.Result{Rejected: 0, Accepted: dpCount}, result)
 }
 
 func TestConsumeMetricsHostMemory(t *testing.T) {
+	var dpCount int64
 	metrics := pmetric.NewMetrics()
 	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
@@ -540,6 +549,7 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 		dp.SetIntValue(value)
 		dp.Attributes().FromRaw(attributes)
+		dpCount++
 	}
 	addInt64Sum("system.memory.usage", 4773351424, map[string]interface{}{
 		"state": "free",
@@ -547,7 +557,8 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 	addInt64Sum("system.memory.usage", 3563778048, map[string]interface{}{
 		"state": "used",
 	})
-	events, _ := transformMetrics(t, metrics)
+	events, _, result, err := transformMetrics(t, metrics)
+	assert.NoError(t, err)
 	service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
 	agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
 	expected := []*modelpb.APMEvent{{
@@ -583,9 +594,11 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 	}}
 
 	eventsMatch(t, expected, events)
+	assert.Equal(t, otlp.Result{Rejected: 0, Accepted: dpCount}, result)
 }
 
 func TestConsumeMetrics_JVM(t *testing.T) {
+	var dpCount int64
 	metrics := pmetric.NewMetrics()
 	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
@@ -601,6 +614,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 		dp.SetIntValue(value)
 		dp.Attributes().FromRaw(attributes)
+		dpCount++
 	}
 	addInt64Histogram := func(name string, counts []uint64, values []float64, attributes map[string]interface{}) {
 		metric := metricSlice.AppendEmpty()
@@ -611,6 +625,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		dp.BucketCounts().Append(counts...)
 		dp.ExplicitBounds().Append(values...)
 		dp.Attributes().FromRaw(attributes)
+		dpCount++
 	}
 
 	addInt64Gauge("process.runtime.jvm.memory.limit", 20000, map[string]interface{}{
@@ -626,7 +641,8 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		"action": "end of minor GC",
 	})
 
-	events, _ := transformMetrics(t, metrics)
+	events, _, result, err := transformMetrics(t, metrics)
+	assert.NoError(t, err)
 	service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
 	agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
 	expected := []*modelpb.APMEvent{{
@@ -665,6 +681,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	}}
 
 	eventsMatch(t, expected, events)
+	assert.Equal(t, otlp.Result{Accepted: dpCount}, result)
 }
 
 func TestConsumeMetricsExportTimestamp(t *testing.T) {
@@ -695,7 +712,8 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 	dp.SetTimestamp(pcommon.NewTimestampFromTime(exportedDataPointTimestamp))
 	dp.SetIntValue(1)
 
-	events, _ := transformMetrics(t, metrics)
+	events, _, _, err := transformMetrics(t, metrics)
+	assert.NoError(t, err)
 	require.Len(t, events, 1)
 	assert.InDelta(t, modelpb.FromTime(now.Add(dataPointOffset)), events[0].Timestamp, float64(allowedError.Nanoseconds()))
 
@@ -722,7 +740,7 @@ func TestMetricsLogging(t *testing.T) {
 }
 */
 
-func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEvent, otlp.ConsumerStats) {
+func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEvent, otlp.ConsumerStats, otlp.Result, error) {
 	var batches []*modelpb.Batch
 	recorder := batchRecorderBatchProcessor(&batches)
 
@@ -730,10 +748,9 @@ func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEven
 		Processor: recorder,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	_, err := consumer.ConsumeMetrics(context.Background(), metrics)
-	require.NoError(t, err)
+	result, err := consumer.ConsumeMetrics(context.Background(), metrics)
 	require.Len(t, batches, 1)
-	return *batches[0], consumer.Stats()
+	return *batches[0], consumer.Stats(), result, err
 }
 
 func eventsMatch(t *testing.T, expected []*modelpb.APMEvent, actual []*modelpb.APMEvent) {

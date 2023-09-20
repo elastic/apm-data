@@ -196,7 +196,7 @@ func TestConsumerConsumeLogs(t *testing.T) {
 			})
 			result, err := consumer.ConsumeLogs(context.Background(), logs)
 			assert.NoError(t, err)
-			assert.Equal(t, otlp.Result{AcceptedCount: logs.LogRecordCount()}, result)
+			assert.Equal(t, otlp.Result{Accepted: int64(logs.LogRecordCount())}, result)
 
 			now := modelpb.FromTime(time.Now())
 			for _, e := range processed {
@@ -301,7 +301,7 @@ Caused by: LowLevelException
 	})
 	result, err := consumer.ConsumeLogs(context.Background(), logs)
 	assert.NoError(t, err)
-	assert.Equal(t, otlp.Result{AcceptedCount: 2}, result)
+	assert.Equal(t, otlp.Result{Accepted: 2}, result)
 
 	now := modelpb.FromTime(time.Now())
 	for _, e := range processed {
@@ -453,7 +453,7 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 	})
 	result, err := consumer.ConsumeLogs(context.Background(), logs)
 	assert.NoError(t, err)
-	assert.Equal(t, otlp.Result{AcceptedCount: 1}, result)
+	assert.Equal(t, otlp.Result{Accepted: 1}, result)
 
 	assert.Len(t, processed, 1)
 	assert.Equal(t, "event", processed[0].Event.Kind)
@@ -498,7 +498,7 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 	})
 	result, err := consumer.ConsumeLogs(context.Background(), logs)
 	assert.NoError(t, err)
-	assert.Equal(t, otlp.Result{AcceptedCount: 3}, result)
+	assert.Equal(t, otlp.Result{Accepted: 3}, result)
 
 	assert.Len(t, processed, 3)
 	assert.Equal(t, modelpb.Labels{"key0": {Global: true, Value: "zero"}, "key1": {Value: "one"}}, modelpb.Labels(processed[0].Labels))

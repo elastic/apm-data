@@ -23,16 +23,16 @@ type ErrorWithResult struct {
 }
 
 type Result struct {
-	RejectedCount int
-	AcceptedCount int
+	Rejected int64
+	Accepted int64
 }
 
-func parseResultFromError(err error, totalCount int) (Result, error) {
+func parseResultFromError(err error, totalCount int64) (Result, error) {
 	if err == nil {
-		return Result{AcceptedCount: totalCount}, nil
+		return Result{Accepted: totalCount}, nil
 	}
 	if errorWithCounts, ok := err.(ErrorWithResult); ok {
 		return errorWithCounts.Result, errorWithCounts.error
 	}
-	return Result{RejectedCount: totalCount}, err
+	return Result{Rejected: totalCount}, err
 }

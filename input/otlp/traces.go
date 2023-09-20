@@ -81,7 +81,7 @@ const (
 // ConsumeTraces consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
 func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) (Result, error) {
-	totalCount := traces.SpanCount()
+	totalCount := int64(traces.SpanCount())
 	if err := c.sem.Acquire(ctx, 1); err != nil {
 		return parseResultFromError(err, totalCount)
 	}
