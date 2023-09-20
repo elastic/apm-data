@@ -50,16 +50,17 @@ import (
 
 // ConsumeMetrics consumes OpenTelemetry metrics data, converting into
 // the Elastic APM metrics model and sending to the reporter.
-func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) error {
+func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) (Result, error) {
+	totalCount := metrics.DataPointCount()
 	if err := c.sem.Acquire(ctx, 1); err != nil {
-		return err
+		return parseResultFromError(err, totalCount)
 	}
 	defer c.sem.Release(1)
 
 	receiveTimestamp := time.Now()
 	c.config.Logger.Debug("consuming metrics", zap.Stringer("metrics", metricsStringer(metrics)))
 	batch := c.convertMetrics(metrics, receiveTimestamp)
-	return c.config.Processor.ProcessBatch(ctx, batch)
+	return parseResultFromError(c.config.Processor.ProcessBatch(ctx, batch), totalCount)
 }
 
 func (c *Consumer) convertMetrics(metrics pmetric.Metrics, receiveTimestamp time.Time) *modelpb.Batch {

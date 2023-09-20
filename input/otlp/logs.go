@@ -47,9 +47,10 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
+func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) (Result, error) {
+	totalCount := logs.LogRecordCount() // Use flattened log record count
 	if err := c.sem.Acquire(ctx, 1); err != nil {
-		return err
+		return parseResultFromError(err, totalCount)
 	}
 	defer c.sem.Release(1)
 
@@ -60,7 +61,7 @@ func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
 	for i := 0; i < resourceLogs.Len(); i++ {
 		c.convertResourceLogs(resourceLogs.At(i), receiveTimestamp, &batch)
 	}
-	return c.config.Processor.ProcessBatch(ctx, &batch)
+	return parseResultFromError(c.config.Processor.ProcessBatch(ctx, &batch), totalCount)
 }
 
 func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTimestamp time.Time, out *modelpb.Batch) {

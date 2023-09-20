@@ -64,7 +64,9 @@ func TestConsumerConsumeLogs(t *testing.T) {
 			Semaphore: semaphore.NewWeighted(100),
 		})
 		logs := plog.NewLogs()
-		assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
+		result, err := consumer.ConsumeLogs(context.Background(), logs)
+		assert.NoError(t, err)
+		assert.Equal(t, otlp.Result{}, result)
 	})
 
 	commonEvent := modelpb.APMEvent{
@@ -192,7 +194,9 @@ func TestConsumerConsumeLogs(t *testing.T) {
 				Processor: processor,
 				Semaphore: semaphore.NewWeighted(100),
 			})
-			assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
+			result, err := consumer.ConsumeLogs(context.Background(), logs)
+			assert.NoError(t, err)
+			assert.Equal(t, otlp.Result{AcceptedCount: logs.LogRecordCount()}, result)
 
 			now := modelpb.FromTime(time.Now())
 			for _, e := range processed {
@@ -230,16 +234,19 @@ func TestConsumeLogsSemaphore(t *testing.T) {
 	startCh := make(chan struct{})
 	go func() {
 		close(startCh)
-		assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
+		_, err := consumer.ConsumeLogs(context.Background(), logs)
+		assert.NoError(t, err)
 	}()
 
 	<-startCh
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
-	assert.Equal(t, consumer.ConsumeLogs(ctx, logs).Error(), "context deadline exceeded")
+	_, err := consumer.ConsumeLogs(ctx, logs)
+	assert.Equal(t, err.Error(), "context deadline exceeded")
 	close(doneCh)
 
-	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
+	_, err = consumer.ConsumeLogs(context.Background(), logs)
+	assert.NoError(t, err)
 }
 
 func TestConsumerConsumeLogsException(t *testing.T) {
@@ -292,7 +299,9 @@ Caused by: LowLevelException
 		Processor: processor,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
+	result, err := consumer.ConsumeLogs(context.Background(), logs)
+	assert.NoError(t, err)
+	assert.Equal(t, otlp.Result{AcceptedCount: 2}, result)
 
 	now := modelpb.FromTime(time.Now())
 	for _, e := range processed {
@@ -442,7 +451,9 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 		Processor: processor,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
+	result, err := consumer.ConsumeLogs(context.Background(), logs)
+	assert.NoError(t, err)
+	assert.Equal(t, otlp.Result{AcceptedCount: 1}, result)
 
 	assert.Len(t, processed, 1)
 	assert.Equal(t, "event", processed[0].Event.Kind)
@@ -485,7 +496,9 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 		Processor: processor,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
+	result, err := consumer.ConsumeLogs(context.Background(), logs)
+	assert.NoError(t, err)
+	assert.Equal(t, otlp.Result{AcceptedCount: 3}, result)
 
 	assert.Len(t, processed, 3)
 	assert.Equal(t, modelpb.Labels{"key0": {Global: true, Value: "zero"}, "key1": {Value: "one"}}, modelpb.Labels(processed[0].Labels))

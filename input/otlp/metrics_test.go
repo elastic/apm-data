@@ -232,16 +232,19 @@ func TestConsumeMetricsSemaphore(t *testing.T) {
 	startCh := make(chan struct{})
 	go func() {
 		close(startCh)
-		assert.NoError(t, consumer.ConsumeMetrics(context.Background(), metrics))
+		_, err := consumer.ConsumeMetrics(context.Background(), metrics)
+		assert.NoError(t, err)
 	}()
 
 	<-startCh
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
-	assert.Equal(t, consumer.ConsumeMetrics(ctx, metrics).Error(), "context deadline exceeded")
+	_, err := consumer.ConsumeMetrics(ctx, metrics)
+	assert.Equal(t, err.Error(), "context deadline exceeded")
 	close(doneCh)
 
-	assert.NoError(t, consumer.ConsumeMetrics(context.Background(), metrics))
+	_, err = consumer.ConsumeMetrics(context.Background(), metrics)
+	assert.NoError(t, err)
 }
 
 func TestConsumeMetricsNaN(t *testing.T) {
@@ -727,7 +730,7 @@ func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEven
 		Processor: recorder,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	err := consumer.ConsumeMetrics(context.Background(), metrics)
+	_, err := consumer.ConsumeMetrics(context.Background(), metrics)
 	require.NoError(t, err)
 	require.Len(t, batches, 1)
 	return *batches[0], consumer.Stats()

@@ -73,7 +73,9 @@ func TestConsumer_ConsumeTraces_Empty(t *testing.T) {
 		Semaphore: semaphore.NewWeighted(100),
 	})
 	traces := ptrace.NewTraces()
-	assert.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+	result, err := consumer.ConsumeTraces(context.Background(), traces)
+	assert.NoError(t, err)
+	assert.Equal(t, otlp.Result{}, result)
 }
 
 func TestOutcome(t *testing.T) {
@@ -940,17 +942,19 @@ func TestConsumeTracesSemaphore(t *testing.T) {
 	startCh := make(chan struct{})
 	go func() {
 		close(startCh)
-		assert.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+		_, err := consumer.ConsumeTraces(context.Background(), traces)
+		assert.NoError(t, err)
 	}()
 
 	<-startCh
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
-	err := consumer.ConsumeTraces(ctx, traces)
+	_, err := consumer.ConsumeTraces(ctx, traces)
 	assert.Equal(t, err.Error(), "context deadline exceeded")
 	close(doneCh)
 
-	assert.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+	_, err = consumer.ConsumeTraces(context.Background(), traces)
+	assert.NoError(t, err)
 }
 
 func TestConsumer_JaegerMetadata(t *testing.T) {
@@ -999,7 +1003,9 @@ func TestConsumer_JaegerMetadata(t *testing.T) {
 			jaegerBatch.Process = tc.process
 			traces, err := jaegertranslator.ProtoToTraces([]*jaegermodel.Batch{jaegerBatch})
 			require.NoError(t, err)
-			require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+			result, err := consumer.ConsumeTraces(context.Background(), traces)
+			require.NoError(t, err)
+			require.Equal(t, otlp.Result{AcceptedCount: 1}, result)
 
 			docs := encodeBatch(t, batches...)
 			approveEventDocs(t, "metadata_"+tc.name, docs)
@@ -1067,7 +1073,9 @@ func TestConsumer_JaegerSampleRate(t *testing.T) {
 		Processor: recorder,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+	result, err := consumer.ConsumeTraces(context.Background(), traces)
+	require.NoError(t, err)
+	require.Equal(t, otlp.Result{AcceptedCount: 4}, result)
 	require.Len(t, batches, 1)
 	batch := *batches[0]
 
@@ -1101,7 +1109,9 @@ func TestConsumer_JaegerTraceID(t *testing.T) {
 		}},
 	}})
 	require.NoError(t, err)
-	require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+	result, err := consumer.ConsumeTraces(context.Background(), traces)
+	require.NoError(t, err)
+	require.Equal(t, otlp.Result{AcceptedCount: 2}, result)
 
 	batch := *batches[0]
 	assert.Equal(t, "00000000000000000000000046467830", batch[0].Trace.Id)
@@ -1229,7 +1239,9 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 				Processor: recorder,
 				Semaphore: semaphore.NewWeighted(100),
 			})
-			require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+			result, err := consumer.ConsumeTraces(context.Background(), traces)
+			require.NoError(t, err)
+			require.Equal(t, otlp.Result{AcceptedCount: len(tc.spans)}, result)
 
 			docs := encodeBatch(t, batches...)
 			approveEventDocs(t, "transaction_"+tc.name, docs)
@@ -1349,7 +1361,9 @@ func TestConsumer_JaegerSpan(t *testing.T) {
 				Processor: recorder,
 				Semaphore: semaphore.NewWeighted(100),
 			})
-			require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+			result, err := consumer.ConsumeTraces(context.Background(), traces)
+			require.NoError(t, err)
+			require.Equal(t, otlp.Result{AcceptedCount: len(tc.spans)}, result)
 
 			docs := encodeBatch(t, batches...)
 			approveEventDocs(t, "span_"+tc.name, docs)
@@ -1382,7 +1396,9 @@ func TestJaegerServiceVersion(t *testing.T) {
 		Processor: recorder,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+	result, err := consumer.ConsumeTraces(context.Background(), traces)
+	require.NoError(t, err)
+	require.Equal(t, otlp.Result{AcceptedCount: 2}, result)
 
 	batch := *batches[0]
 	assert.Equal(t, "process_tag_value", batch[0].Service.Version)
@@ -1790,7 +1806,8 @@ func transformTraces(t *testing.T, traces ptrace.Traces) *modelpb.Batch {
 		Processor: processor,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+	_, err := consumer.ConsumeTraces(context.Background(), traces)
+	require.NoError(t, err)
 	return &processed
 }
 

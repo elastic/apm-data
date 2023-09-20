@@ -80,9 +80,10 @@ const (
 
 // ConsumeTraces consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
-func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) error {
+func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) (Result, error) {
+	totalCount := traces.SpanCount()
 	if err := c.sem.Acquire(ctx, 1); err != nil {
-		return err
+		return parseResultFromError(err, totalCount)
 	}
 	defer c.sem.Release(1)
 
@@ -94,7 +95,7 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) erro
 	for i := 0; i < resourceSpans.Len(); i++ {
 		c.convertResourceSpans(resourceSpans.At(i), receiveTimestamp, &batch)
 	}
-	return c.config.Processor.ProcessBatch(ctx, &batch)
+	return parseResultFromError(c.config.Processor.ProcessBatch(ctx, &batch), totalCount)
 }
 
 func (c *Consumer) convertResourceSpans(
