@@ -204,7 +204,10 @@ func TestHandleStreamErrors(t *testing.T) {
 func TestHandleStream(t *testing.T) {
 	var events []*modelpb.APMEvent
 	batchProcessor := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
-		events = append(events, (*batch)...)
+		events = make([]*modelpb.APMEvent, len(*batch))
+		for i := range *batch {
+			events[i] = (*batch)[i].CloneVT()
+		}
 		return nil
 	})
 
@@ -245,7 +248,10 @@ func TestHandleStream(t *testing.T) {
 func TestHandleStreamRUMv3(t *testing.T) {
 	var events []*modelpb.APMEvent
 	batchProcessor := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
-		events = append(events, (*batch)...)
+		events = make([]*modelpb.APMEvent, len(*batch))
+		for i := range *batch {
+			events[i] = (*batch)[i].CloneVT()
+		}
 		return nil
 	})
 
@@ -299,7 +305,10 @@ func TestHandleStreamBaseEvent(t *testing.T) {
 
 	var events []*modelpb.APMEvent
 	batchProcessor := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
-		events = append(events, (*batch)...)
+		events = make([]*modelpb.APMEvent, len(*batch))
+		for i := range *batch {
+			events[i] = (*batch)[i].CloneVT()
+		}
 		return nil
 	})
 
@@ -337,7 +346,10 @@ func TestLabelLeak(t *testing.T) {
 
 	processed := make(modelpb.Batch, 2)
 	batchProcessor := modelpb.ProcessBatchFunc(func(_ context.Context, b *modelpb.Batch) error {
-		copy(processed, *b)
+		processed = make([]*modelpb.APMEvent, len(*b))
+		for i := range *b {
+			processed[i] = (*b)[i].CloneVT()
+		}
 		return nil
 	})
 
@@ -521,8 +533,13 @@ func (p *accountProcessor) ProcessBatch(ctx context.Context, b *modelpb.Batch) e
 	default:
 	}
 	if p.batch != nil {
+		events := make(modelpb.Batch, len(*b))
+		for i := range *b {
+			events[i] = (*b)[i].CloneVT()
+		}
+
 		select {
-		case p.batch <- b:
+		case p.batch <- &events:
 		case <-ctx.Done():
 			return ctx.Err()
 		}
