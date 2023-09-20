@@ -34,4 +34,4 @@ if ! PATH="${BUILD_DIR}/bin" protoc --version; then
 fi
 
 GOBIN="${BUILD_DIR}/bin" go install "google.golang.org/protobuf/cmd/protoc-gen-go@${PROTOC_GO_VERSION}"
-GOBIN="${BUILD_DIR}/bin" go install "github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto@${VTPROTOBUF_VERSION}"
+GOBIN="${BUILD_DIR}/bin" go install -modfile=tools/go.mod "github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto"
