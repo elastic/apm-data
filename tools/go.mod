@@ -1,6 +1,6 @@
 module github.com/elastic/apm-data/tools
 
-go 1.21.1
+go 1.20
 
 replace github.com/planetscale/vtprotobuf => github.com/elastic/vtprotobuf v0.0.0-20230920122325-4b486ed04f6e
 
