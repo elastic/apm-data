@@ -183,7 +183,7 @@ func TestConsumerConsumeLogs(t *testing.T) {
 				if processed != nil {
 					panic("already processes batch")
 				}
-				processed = *batch
+				processed = batch.Clone()
 				assert.NotZero(t, processed[0].Timestamp)
 				processed[0].Timestamp = 0
 				return nil
@@ -219,7 +219,8 @@ func TestConsumeLogsSemaphore(t *testing.T) {
 	doneCh := make(chan struct{})
 	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
 		<-doneCh
-		batches = append(batches, batch)
+		batchCopy := batch.Clone()
+		batches = append(batches, &batchCopy)
 		return nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
@@ -283,7 +284,7 @@ Caused by: LowLevelException
 		if processed != nil {
 			panic("already processes batch")
 		}
-		processed = *batch
+		processed = batch.Clone()
 		assert.NotZero(t, processed[0].Timestamp)
 		processed[0].Timestamp = 0
 		return nil
@@ -433,7 +434,7 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 		if processed != nil {
 			panic("already processes batch")
 		}
-		processed = *batch
+		processed = batch.Clone()
 		assert.NotZero(t, processed[0].Timestamp)
 		processed[0].Timestamp = 0
 		return nil
@@ -476,7 +477,7 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 		if processed != nil {
 			panic("already processes batch")
 		}
-		processed = *batch
+		processed = batch.Clone()
 		assert.NotZero(t, processed[0].Timestamp)
 		processed[0].Timestamp = 0
 		return nil

@@ -44,3 +44,14 @@ func (f ProcessBatchFunc) ProcessBatch(ctx context.Context, b *Batch) error {
 
 // Batch is a collection of APM events.
 type Batch []*APMEvent
+
+// Clone returns a deep copy of the batch
+//
+// All the events are cloned.
+func (b Batch) Clone() Batch {
+	cp := make(Batch, len(b))
+	for i := range b {
+		cp[i] = b[i].CloneVT()
+	}
+	return cp
+}
