@@ -540,6 +540,9 @@ func (val *errorLog) validate() error {
 		return fmt.Errorf("'pmg': validation rule 'maxLength(1024)' violated")
 	}
 	for _, elem := range val.Stacktrace {
+		if !elem.IsSet() {
+			return fmt.Errorf("st slice element required")
+		}
 		if err := elem.validate(); err != nil {
 			return errors.Wrapf(err, "st")
 		}
@@ -621,6 +624,9 @@ func (val *errorException) validate() error {
 		return fmt.Errorf("'cd': validation rule 'inputTypes(string;int)' violated ")
 	}
 	for _, elem := range val.Cause {
+		if !elem.IsSet() {
+			return fmt.Errorf("ca slice element required")
+		}
 		if err := elem.validate(); err != nil {
 			return errors.Wrapf(err, "ca")
 		}
@@ -629,6 +635,9 @@ func (val *errorException) validate() error {
 		return fmt.Errorf("'mo': validation rule 'maxLength(1024)' violated")
 	}
 	for _, elem := range val.Stacktrace {
+		if !elem.IsSet() {
+			return fmt.Errorf("st slice element required")
+		}
 		if err := elem.validate(); err != nil {
 			return errors.Wrapf(err, "st")
 		}
@@ -1047,11 +1056,17 @@ func (val *transaction) validate() error {
 		return fmt.Errorf("'t' required")
 	}
 	for _, elem := range val.Spans {
+		if !elem.IsSet() {
+			return fmt.Errorf("y slice element required")
+		}
 		if err := elem.validate(); err != nil {
 			return errors.Wrapf(err, "y")
 		}
 	}
 	for _, elem := range val.Metricsets {
+		if !elem.IsSet() {
+			return fmt.Errorf("me slice element required")
+		}
 		if err := elem.validate(); err != nil {
 			return errors.Wrapf(err, "me")
 		}
@@ -1201,6 +1216,9 @@ func (val *span) validate() error {
 		return fmt.Errorf("'n' required")
 	}
 	for _, elem := range val.Stacktrace {
+		if !elem.IsSet() {
+			return fmt.Errorf("st slice element required")
+		}
 		if err := elem.validate(); err != nil {
 			return errors.Wrapf(err, "st")
 		}

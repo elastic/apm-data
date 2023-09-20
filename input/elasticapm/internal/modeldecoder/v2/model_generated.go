@@ -964,6 +964,9 @@ func (val *errorLog) validate() error {
 		return fmt.Errorf("'param_message': validation rule 'maxLength(1024)' violated")
 	}
 	for _, elem := range val.Stacktrace {
+		if !elem.IsSet() {
+			return fmt.Errorf("stacktrace slice element required")
+		}
 		if err := elem.validate(); err != nil {
 			return errors.Wrapf(err, "stacktrace")
 		}
@@ -1049,11 +1052,17 @@ func (val *errorException) validate() error {
 		return fmt.Errorf("'code': validation rule 'inputTypes(string;int)' violated ")
 	}
 	for _, elem := range val.Cause {
+		if !elem.IsSet() {
+			return fmt.Errorf("cause slice element required")
+		}
 		if err := elem.validate(); err != nil {
 			return errors.Wrapf(err, "cause")
 		}
 	}
 	for _, elem := range val.Stacktrace {
+		if !elem.IsSet() {
+			return fmt.Errorf("stacktrace slice element required")
+		}
 		if err := elem.validate(); err != nil {
 			return errors.Wrapf(err, "stacktrace")
 		}
@@ -2148,11 +2157,17 @@ func (val *span) validate() error {
 		return fmt.Errorf("'parent_id' required")
 	}
 	for _, elem := range val.Links {
+		if !elem.IsSet() {
+			return fmt.Errorf("links slice element required")
+		}
 		if err := elem.validate(); err != nil {
 			return errors.Wrapf(err, "links")
 		}
 	}
 	for _, elem := range val.Stacktrace {
+		if !elem.IsSet() {
+			return fmt.Errorf("stacktrace slice element required")
+		}
 		if err := elem.validate(); err != nil {
 			return errors.Wrapf(err, "stacktrace")
 		}
@@ -2588,6 +2603,9 @@ func (val *transaction) validate() error {
 		}
 	}
 	for _, elem := range val.Links {
+		if !elem.IsSet() {
+			return fmt.Errorf("links slice element required")
+		}
 		if err := elem.validate(); err != nil {
 			return errors.Wrapf(err, "links")
 		}
@@ -2620,6 +2638,9 @@ func (val *transaction) validate() error {
 		return fmt.Errorf("'result': validation rule 'maxLength(1024)' violated")
 	}
 	for _, elem := range val.DroppedSpanStats {
+		if !elem.IsSet() {
+			return fmt.Errorf("dropped_spans_stats slice element required")
+		}
 		if err := elem.validate(); err != nil {
 			return errors.Wrapf(err, "dropped_spans_stats")
 		}
