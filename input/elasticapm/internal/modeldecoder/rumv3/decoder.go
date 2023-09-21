@@ -192,9 +192,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			if event.Http == nil {
 				event.Http = modelpb.HTTPFromVTPool()
 			}
-			if event.Http.Request == nil {
-				event.Http.Request = modelpb.HTTPRequestFromVTPool()
-			}
+			event.Http.Request = modelpb.HTTPRequestFromVTPool()
 			mapToRequestModel(from.Context.Request, event.Http.Request)
 			if from.Context.Request.HTTPVersion.IsSet() {
 				event.Http.Version = from.Context.Request.HTTPVersion.Val
@@ -204,9 +202,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			if event.Http == nil {
 				event.Http = modelpb.HTTPFromVTPool()
 			}
-			if event.Http.Response == nil {
-				event.Http.Response = modelpb.HTTPResponseFromVTPool()
-			}
+			event.Http.Response = modelpb.HTTPResponseFromVTPool()
 			mapToResponseModel(from.Context.Response, event.Http.Response)
 		}
 		if from.Context.Page.IsSet() {
@@ -596,9 +592,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 			if event.Http == nil {
 				event.Http = modelpb.HTTPFromVTPool()
 			}
-			if event.Http.Request == nil {
-				event.Http.Request = modelpb.HTTPRequestFromVTPool()
-			}
+			event.Http.Request = modelpb.HTTPRequestFromVTPool()
 			event.Http.Request.Method = from.Context.HTTP.Method.Val
 		}
 		if from.Context.HTTP.StatusCode.IsSet() {
@@ -874,9 +868,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 		out.SpanCount.Started = &started
 	}
 	if from.TraceID.IsSet() {
-		if event.Trace == nil {
-			event.Trace = modelpb.TraceFromVTPool()
-		}
+		event.Trace = modelpb.TraceFromVTPool()
 		event.Trace.Id = from.TraceID.Val
 	}
 	if from.Type.IsSet() {

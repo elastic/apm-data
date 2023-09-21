@@ -116,9 +116,7 @@ func (c *Consumer) convertLogRecord(
 		}
 	}
 	if traceID := record.TraceID(); !traceID.IsEmpty() {
-		if event.Trace == nil {
-			event.Trace = modelpb.TraceFromVTPool()
-		}
+		event.Trace = modelpb.TraceFromVTPool()
 		event.Trace.Id = hex.EncodeToString(traceID[:])
 	}
 	if spanID := record.SpanID(); !spanID.IsEmpty() {

@@ -319,7 +319,7 @@ func mapToDroppedSpansModel(from []transactionDroppedSpanStats, tx *modelpb.Tran
 			to.Outcome = f.Outcome.Val
 		}
 		if f.Duration.IsSet() {
-			to.Duration = &modelpb.AggregatedDuration{}
+			to.Duration = modelpb.AggregatedDurationFromVTPool()
 			to.Duration.Count = uint64(f.Duration.Count.Val)
 			sum := f.Duration.Sum
 			if sum.IsSet() {
