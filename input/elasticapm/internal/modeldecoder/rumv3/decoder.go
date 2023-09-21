@@ -280,11 +280,9 @@ func mapToExceptionModel(from errorException, out *modelpb.Exception) {
 	if len(from.Cause) > 0 {
 		out.Cause = make([]*modelpb.Exception, len(from.Cause))
 		for i := 0; i < len(from.Cause); i++ {
-			if from.Cause[i].IsSet() {
-				var ex modelpb.Exception
-				mapToExceptionModel(from.Cause[i], &ex)
-				out.Cause[i] = &ex
-			}
+			var ex modelpb.Exception
+			mapToExceptionModel(from.Cause[i], &ex)
+			out.Cause[i] = &ex
 		}
 	}
 	if from.Handled.IsSet() {
@@ -731,10 +729,8 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	if from.Marks.IsSet() {
 		out.Marks = make(map[string]*modelpb.TransactionMark, len(from.Marks.Events))
 		for event, val := range from.Marks.Events {
-			if len(val.Measurements) > 0 {
-				out.Marks[event] = &modelpb.TransactionMark{
-					Measurements: val.Measurements,
-				}
+			out.Marks[event] = &modelpb.TransactionMark{
+				Measurements: val.Measurements,
 			}
 		}
 	}
