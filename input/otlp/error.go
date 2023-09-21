@@ -26,6 +26,10 @@ type ErrorWithResult struct {
 	Result
 }
 
+func NewErrorWithResult(err error, result Result) ErrorWithResult {
+	return ErrorWithResult{error: err, Result: result}
+}
+
 type Result struct {
 	Rejected int64
 	Accepted int64
