@@ -27,10 +27,10 @@ type BatchProcessor interface {
 	// Processing may involve anything, e.g. modifying, adding, removing,
 	// aggregating, or publishing events.
 	//
-	// The caller should not assume the batch to be valid after the
-	// method has returned.
+	// The caller should not assume the batch or any events inside of it
+	// to be valid after the method has returned.
 	// If the batch needs to be processed asynchronously or kept around,
-	// the processor must create a copy of the slice.
+	// the processor must clone the batch using the Clone method.
 	ProcessBatch(context.Context, *Batch) error
 }
 
@@ -44,3 +44,14 @@ func (f ProcessBatchFunc) ProcessBatch(ctx context.Context, b *Batch) error {
 
 // Batch is a collection of APM events.
 type Batch []*APMEvent
+
+// Clone returns a deep copy of the batch
+//
+// All the events are cloned.
+func (b Batch) Clone() Batch {
+	cp := make(Batch, len(b))
+	for i := range b {
+		cp[i] = b[i].CloneVT()
+	}
+	return cp
+}
