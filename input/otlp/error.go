@@ -17,6 +17,10 @@
 
 package otlp
 
+// ErrorWithResult is an error that contains additional rejected and accepted
+// counts. It can be used by ProcessBatch to signal partial failure.
+// This should be used sparingly as it will be changed when we move away from
+// ProcessBatch and process events individually in the future.
 type ErrorWithResult struct {
 	error
 	Result
