@@ -322,21 +322,6 @@ func (g *CodeGenerator) generateValidation(structTyp structType, key string) err
 	fmt.Fprintf(&g.buf, `
 func (val *%s) validate() error {
 `, structTyp.name)
-	var isRoot bool
-	for _, rootObjs := range g.rootObjs {
-		if structTyp.name == rootObjs.name {
-			isRoot = true
-			break
-		}
-	}
-	if !isRoot {
-		fmt.Fprint(&g.buf, `
-if !val.IsSet() {
-	return nil
-}
-`[1:])
-	}
-
 	var validation validationGenerator
 	for i := 0; i < len(structTyp.fields); i++ {
 		f := structTyp.fields[i]

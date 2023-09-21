@@ -311,31 +311,29 @@ func mapToFAASModel(from faas, faas *modelpb.Faas) {
 
 func mapToDroppedSpansModel(from []transactionDroppedSpanStats, tx *modelpb.Transaction) {
 	for _, f := range from {
-		if f.IsSet() {
-			var to modelpb.DroppedSpanStats
-			if f.DestinationServiceResource.IsSet() {
-				to.DestinationServiceResource = f.DestinationServiceResource.Val
-			}
-			if f.Outcome.IsSet() {
-				to.Outcome = f.Outcome.Val
-			}
-			if f.Duration.IsSet() {
-				to.Duration = &modelpb.AggregatedDuration{}
-				to.Duration.Count = uint64(f.Duration.Count.Val)
-				sum := f.Duration.Sum
-				if sum.IsSet() {
-					to.Duration.Sum = uint64(time.Duration(sum.Us.Val) * time.Microsecond)
-				}
-			}
-			if f.ServiceTargetType.IsSet() {
-				to.ServiceTargetType = f.ServiceTargetType.Val
-			}
-			if f.ServiceTargetName.IsSet() {
-				to.ServiceTargetName = f.ServiceTargetName.Val
-			}
-
-			tx.DroppedSpansStats = append(tx.DroppedSpansStats, &to)
+		var to modelpb.DroppedSpanStats
+		if f.DestinationServiceResource.IsSet() {
+			to.DestinationServiceResource = f.DestinationServiceResource.Val
 		}
+		if f.Outcome.IsSet() {
+			to.Outcome = f.Outcome.Val
+		}
+		if f.Duration.IsSet() {
+			to.Duration = &modelpb.AggregatedDuration{}
+			to.Duration.Count = uint64(f.Duration.Count.Val)
+			sum := f.Duration.Sum
+			if sum.IsSet() {
+				to.Duration.Sum = uint64(time.Duration(sum.Us.Val) * time.Microsecond)
+			}
+		}
+		if f.ServiceTargetType.IsSet() {
+			to.ServiceTargetType = f.ServiceTargetType.Val
+		}
+		if f.ServiceTargetName.IsSet() {
+			to.ServiceTargetName = f.ServiceTargetName.Val
+		}
+
+		tx.DroppedSpansStats = append(tx.DroppedSpansStats, &to)
 	}
 }
 
@@ -507,11 +505,9 @@ func mapToExceptionModel(from errorException, out *modelpb.Exception) {
 	if len(from.Cause) > 0 {
 		out.Cause = make([]*modelpb.Exception, len(from.Cause))
 		for i := 0; i < len(from.Cause); i++ {
-			if from.Cause[i].IsSet() {
-				var ex modelpb.Exception
-				mapToExceptionModel(from.Cause[i], &ex)
-				out.Cause[i] = &ex
-			}
+			var ex modelpb.Exception
+			mapToExceptionModel(from.Cause[i], &ex)
+			out.Cause[i] = &ex
 		}
 	}
 	if from.Handled.IsSet() {
@@ -1341,10 +1337,8 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	if from.Marks.IsSet() {
 		out.Marks = make(map[string]*modelpb.TransactionMark, len(from.Marks.Events))
 		for event, val := range from.Marks.Events {
-			if len(val.Measurements) > 0 {
-				out.Marks[event] = &modelpb.TransactionMark{
-					Measurements: val.Measurements,
-				}
+			out.Marks[event] = &modelpb.TransactionMark{
+				Measurements: val.Measurements,
 			}
 		}
 	}

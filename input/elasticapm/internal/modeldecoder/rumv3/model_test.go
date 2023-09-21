@@ -127,6 +127,9 @@ func TestErrorRequiredValidationRules(t *testing.T) {
 	// setup: create full struct with arbitrary values set
 	var event errorEvent
 	modeldecodertest.InitStructValues(&event)
+	// modeldecodertest is appending an empty value to the cause
+	// which is not valid
+	event.Exception.Cause = nil
 	// test vanilla struct is valid
 	require.NoError(t, event.validate())
 

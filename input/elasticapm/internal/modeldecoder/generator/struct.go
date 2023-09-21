@@ -26,10 +26,12 @@ func generateStructValidation(w io.Writer, fields []structField, f structField, 
 	// if field is a custom struct, call its validation function
 	if isCustomStruct {
 		fmt.Fprintf(w, `
-		if err := val.%s.validate(); err != nil{
-			return errors.Wrapf(err, "%s")
+		if val.%s.IsSet() {
+			if err := val.%s.validate(); err != nil {
+				return errors.Wrapf(err, "%s")
+			}
 		}
-		`[1:], f.Name(), jsonName(f))
+		`[1:], f.Name(), f.Name(), jsonName(f))
 	}
 
 	// handle generally available rules:
