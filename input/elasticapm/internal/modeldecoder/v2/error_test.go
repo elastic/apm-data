@@ -94,6 +94,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		_, out := initializedInputMetadata(modeldecodertest.DefaultValues())
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
+		input.Exception.Cause = nil
 		mapToErrorModel(&input, out)
 		input.Reset()
 
@@ -149,6 +150,8 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 				// Message and Type are only set for ECS compatible log event type
 				"message",
 				"type",
+				// populator adding invalid values
+				"exception.cause",
 			} {
 				if strings.HasPrefix(key, s) {
 					return true
@@ -160,6 +163,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		var out1, out2 modelpb.APMEvent
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
+		input.Exception.Cause = nil
 		mapToErrorModel(&input, &out1)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Error, exceptions, defaultVal)
@@ -168,6 +172,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
+		input.Exception.Cause = nil
 		mapToErrorModel(&input, &out2)
 		modeldecodertest.AssertStructValues(t, out2.Error, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, out1.Error, exceptions, defaultVal)

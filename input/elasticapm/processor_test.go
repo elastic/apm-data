@@ -260,12 +260,16 @@ func TestHandleStreamRUMv3(t *testing.T) {
 		MaxEventSize: 100 * 1024,
 		Semaphore:    semaphore.NewWeighted(1),
 	})
+	var result Result
 	err := p.HandleStream(
 		context.Background(), false, &modelpb.APMEvent{},
 		strings.NewReader(payload), 10, batchProcessor,
-		&Result{},
+		&result,
 	)
 	require.NoError(t, err)
+	for _, resultErr := range result.Errors {
+		require.NoError(t, resultErr)
+	}
 
 	processors := make([]modelpb.APMEventType, len(events))
 	for i, event := range events {
