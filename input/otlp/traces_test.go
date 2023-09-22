@@ -1785,7 +1785,7 @@ func transformTraces(t *testing.T, traces ptrace.Traces) *modelpb.Batch {
 		if processed != nil {
 			panic("already processes batch")
 		}
-		processed = *batch
+		processed = batch.Clone()
 		return nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
