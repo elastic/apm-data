@@ -370,23 +370,24 @@ func mapToClientModel(from contextRequest, source **modelpb.Source, client **mod
 			if *client == nil {
 				*client = modelpb.ClientFromVTPool()
 			}
-			(*client).Ip = (*source).Ip
+			(*client).Ip = (*source).Ip.CloneVT()
 		}
 		if addr, port := netutil.ClientAddrFromHeaders(from.Headers.Val); addr.IsValid() {
 			if (*source).GetIp() != nil {
 				(*source).Nat = modelpb.NATFromVTPool()
-				(*source).Nat.Ip = (*source).Ip
+				(*source).Nat.Ip = (*source).Ip.CloneVT()
 			}
 			if *client == nil {
 				*client = modelpb.ClientFromVTPool()
 			}
-			ip := modelpb.Addr2IP(addr)
+			clientIp := modelpb.Addr2IP(addr)
+			sourceIp := clientIp.CloneVT()
 
-			(*client).Ip, (*client).Port = ip, uint32(port)
+			(*client).Ip, (*client).Port = clientIp, uint32(port)
 			if *source == nil {
 				*source = modelpb.SourceFromVTPool()
 			}
-			(*source).Ip, (*source).Port = ip, uint32(port)
+			(*source).Ip, (*source).Port = sourceIp, uint32(port)
 		}
 	}
 }
