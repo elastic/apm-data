@@ -521,11 +521,9 @@ func mapToExceptionModel(from errorException, out *modelpb.Exception) {
 		out.Code = modeldecoderutil.ExceptionCodeString(from.Code.Val)
 	}
 	if len(from.Cause) > 0 {
-		out.Cause = make([]*modelpb.Exception, len(from.Cause))
+		out.Cause = modeldecoderutil.Reslice(out.Cause, len(from.Cause), modelpb.ExceptionFromVTPool)
 		for i := 0; i < len(from.Cause); i++ {
-			ex := modelpb.ExceptionFromVTPool()
-			mapToExceptionModel(from.Cause[i], ex)
-			out.Cause[i] = ex
+			mapToExceptionModel(from.Cause[i], out.Cause[i])
 		}
 	}
 	if from.Handled.IsSet() {
