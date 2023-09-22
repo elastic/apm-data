@@ -133,9 +133,15 @@ func TestConsumeMetrics(t *testing.T) {
 	expectDropped++
 
 	events, stats, result, err := transformMetrics(t, metrics)
-	assert.Error(t, err, "unsupported data points")
+	assert.NoError(t, err)
 	assert.Equal(t, expectDropped, stats.UnsupportedMetricsDropped)
-	assert.Equal(t, otlp.Result{Accepted: 10, Rejected: expectDropped}, result)
+	expectedResult := otlp.ConsumeMetricsResult{
+		AcceptedMetrics:    4,
+		RejectedMetrics:    2,
+		AcceptedDataPoints: 10,
+		RejectedDataPoints: 2,
+	}
+	assert.Equal(t, expectedResult, result)
 
 	service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
 	agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
@@ -250,6 +256,7 @@ func TestConsumeMetricsSemaphore(t *testing.T) {
 }
 
 func TestConsumeMetricsNaN(t *testing.T) {
+	var dpCount int64
 	timestamp := time.Unix(123, 0).UTC()
 	metrics := pmetric.NewMetrics()
 	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
@@ -263,12 +270,13 @@ func TestConsumeMetricsNaN(t *testing.T) {
 		dp := gauge.DataPoints().AppendEmpty()
 		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 		dp.SetDoubleValue(value)
+		dpCount++
 	}
 
 	events, stats, result, err := transformMetrics(t, metrics)
-	assert.Error(t, err, "unsupported data points")
+	assert.NoError(t, err)
 	assert.Equal(t, int64(3), stats.UnsupportedMetricsDropped)
-	assert.Equal(t, otlp.Result{Rejected: 3, Accepted: 0}, result)
+	assert.Equal(t, otlp.ConsumeMetricsResult{RejectedDataPoints: dpCount, RejectedMetrics: dpCount}, result)
 	assert.Empty(t, events)
 }
 
@@ -530,7 +538,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 	}}
 
 	eventsMatch(t, expected, events)
-	assert.Equal(t, otlp.Result{Rejected: 0, Accepted: dpCount}, result)
+	assert.Equal(t, otlp.ConsumeMetricsResult{AcceptedDataPoints: dpCount, AcceptedMetrics: dpCount}, result)
 }
 
 func TestConsumeMetricsHostMemory(t *testing.T) {
@@ -594,7 +602,7 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 	}}
 
 	eventsMatch(t, expected, events)
-	assert.Equal(t, otlp.Result{Rejected: 0, Accepted: dpCount}, result)
+	assert.Equal(t, otlp.ConsumeMetricsResult{AcceptedDataPoints: dpCount, AcceptedMetrics: dpCount}, result)
 }
 
 func TestConsumeMetrics_JVM(t *testing.T) {
@@ -681,7 +689,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	}}
 
 	eventsMatch(t, expected, events)
-	assert.Equal(t, otlp.Result{Accepted: dpCount}, result)
+	assert.Equal(t, otlp.ConsumeMetricsResult{AcceptedDataPoints: dpCount, AcceptedMetrics: dpCount}, result)
 }
 
 func TestConsumeMetricsExportTimestamp(t *testing.T) {
@@ -740,7 +748,7 @@ func TestMetricsLogging(t *testing.T) {
 }
 */
 
-func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEvent, otlp.ConsumerStats, otlp.Result, error) {
+func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEvent, otlp.ConsumerStats, otlp.ConsumeMetricsResult, error) {
 	var batches []*modelpb.Batch
 	recorder := batchRecorderBatchProcessor(&batches)
 

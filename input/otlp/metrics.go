@@ -36,7 +36,6 @@ package otlp
 
 import (
 	"context"
-	"errors"
 	"math"
 	"strings"
 	"sync/atomic"
@@ -49,47 +48,58 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
+type ConsumeMetricsResult struct {
+	RejectedMetrics    int64
+	AcceptedMetrics    int64
+	RejectedDataPoints int64
+	AcceptedDataPoints int64
+}
+
 // ConsumeMetrics consumes OpenTelemetry metrics data, converting into
 // the Elastic APM metrics model and sending to the reporter.
-// The returned Result contains the number of accepted and rejected data points.
-// A non-nil error indicates that at least 1 data point is rejected.
-func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) (Result, error) {
-	totalCount := int64(metrics.DataPointCount())
+// The returned ConsumeMetricsResult contains the number of {accepted,rejected} {data points,metrics}.
+func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) (ConsumeMetricsResult, error) {
+	totalDataPoints := int64(metrics.DataPointCount())
+	totalMetrics := int64(metrics.MetricCount())
 	if err := c.sem.Acquire(ctx, 1); err != nil {
-		return parseResultFromError(err, totalCount)
+		return ConsumeMetricsResult{
+			RejectedDataPoints: totalDataPoints,
+			RejectedMetrics:    totalMetrics,
+		}, err
 	}
 	defer c.sem.Release(1)
 
 	receiveTimestamp := time.Now()
 	c.config.Logger.Debug("consuming metrics", zap.Stringer("metrics", metricsStringer(metrics)))
-	var err error
-	batch, droppedDataPoints := c.convertMetrics(metrics, receiveTimestamp)
-	if droppedDataPoints > 0 {
-		err = errors.New("unsupported data points")
+	batch, droppedDataPoints, droppedMetrics := c.convertMetrics(metrics, receiveTimestamp)
+	if err := c.config.Processor.ProcessBatch(ctx, batch); err != nil {
+		// Assume that everything went wrong
+		return ConsumeMetricsResult{
+			RejectedDataPoints: totalDataPoints,
+			RejectedMetrics:    totalMetrics,
+		}, err
 	}
-	processBatchErr := c.config.Processor.ProcessBatch(ctx, batch)
-	if processBatchErr == nil {
-		return Result{Rejected: droppedDataPoints, Accepted: totalCount - droppedDataPoints}, err
-	}
-	if errorWithResult, ok := processBatchErr.(ErrorWithResult); ok {
-		return Result{
-			Rejected: droppedDataPoints + errorWithResult.Rejected,
-			Accepted: totalCount - (droppedDataPoints + errorWithResult.Rejected),
-		}, errors.Join(err, processBatchErr)
-	}
-	return Result{Rejected: totalCount}, processBatchErr
+	return ConsumeMetricsResult{
+		AcceptedDataPoints: totalDataPoints - droppedDataPoints,
+		RejectedDataPoints: droppedDataPoints,
+		AcceptedMetrics:    totalMetrics - droppedMetrics,
+		RejectedMetrics:    droppedMetrics,
+	}, nil
 }
 
-func (c *Consumer) convertMetrics(metrics pmetric.Metrics, receiveTimestamp time.Time) (batch *modelpb.Batch, droppedDataPoints int64) {
+func (c *Consumer) convertMetrics(metrics pmetric.Metrics, receiveTimestamp time.Time) (batch *modelpb.Batch, droppedDataPoints, droppedMetrics int64) {
 	batch = &modelpb.Batch{}
 	resourceMetrics := metrics.ResourceMetrics()
 	for i := 0; i < resourceMetrics.Len(); i++ {
-		droppedDataPoints += c.convertResourceMetrics(resourceMetrics.At(i), receiveTimestamp, batch)
+		dp, m := c.convertResourceMetrics(resourceMetrics.At(i), receiveTimestamp, batch)
+		droppedDataPoints += dp
+		droppedMetrics += m
 	}
 	return
 }
 
-func (c *Consumer) convertResourceMetrics(resourceMetrics pmetric.ResourceMetrics, receiveTimestamp time.Time, out *modelpb.Batch) (droppedDataPoints int64) {
+func (c *Consumer) convertResourceMetrics(resourceMetrics pmetric.ResourceMetrics, receiveTimestamp time.Time, out *modelpb.Batch) (
+	droppedDataPoints, droppedMetrics int64) {
 	baseEvent := modelpb.APMEvent{
 		Event: &modelpb.Event{
 			Received: modelpb.FromTime(receiveTimestamp),
@@ -104,7 +114,9 @@ func (c *Consumer) convertResourceMetrics(resourceMetrics pmetric.ResourceMetric
 	}
 	scopeMetrics := resourceMetrics.ScopeMetrics()
 	for i := 0; i < scopeMetrics.Len(); i++ {
-		droppedDataPoints += c.convertScopeMetrics(scopeMetrics.At(i), &baseEvent, timeDelta, out)
+		dp, m := c.convertScopeMetrics(scopeMetrics.At(i), &baseEvent, timeDelta, out)
+		droppedDataPoints += dp
+		droppedMetrics += m
 	}
 	return
 }
@@ -114,13 +126,12 @@ func (c *Consumer) convertScopeMetrics(
 	baseEvent *modelpb.APMEvent,
 	timeDelta time.Duration,
 	out *modelpb.Batch,
-) (droppedDataPoints int64) {
+) (droppedDataPoints, droppedMetrics int64) {
 	ms := make(metricsets)
 	otelMetrics := in.Metrics()
-	var unsupported int64
 	for i := 0; i < otelMetrics.Len(); i++ {
 		if droppedDp := c.addMetric(otelMetrics.At(i), ms); droppedDp > 0 {
-			unsupported++
+			droppedMetrics++
 			droppedDataPoints += droppedDp
 		}
 	}
@@ -147,8 +158,8 @@ func (c *Consumer) convertScopeMetrics(
 		}
 		*out = append(*out, event)
 	}
-	if unsupported > 0 {
-		atomic.AddInt64(&c.stats.unsupportedMetricsDropped, unsupported)
+	if droppedMetrics > 0 {
+		atomic.AddInt64(&c.stats.unsupportedMetricsDropped, droppedMetrics)
 	}
 	return
 }

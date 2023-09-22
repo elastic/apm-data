@@ -75,7 +75,7 @@ func TestConsumer_ConsumeTraces_Empty(t *testing.T) {
 	traces := ptrace.NewTraces()
 	result, err := consumer.ConsumeTraces(context.Background(), traces)
 	assert.NoError(t, err)
-	assert.Equal(t, otlp.Result{}, result)
+	assert.Equal(t, otlp.ConsumeTracesResult{}, result)
 }
 
 func TestOutcome(t *testing.T) {
@@ -1005,7 +1005,7 @@ func TestConsumer_JaegerMetadata(t *testing.T) {
 			require.NoError(t, err)
 			result, err := consumer.ConsumeTraces(context.Background(), traces)
 			require.NoError(t, err)
-			require.Equal(t, otlp.Result{Accepted: 1}, result)
+			require.Equal(t, otlp.ConsumeTracesResult{AcceptedSpans: 1}, result)
 
 			docs := encodeBatch(t, batches...)
 			approveEventDocs(t, "metadata_"+tc.name, docs)
@@ -1075,7 +1075,7 @@ func TestConsumer_JaegerSampleRate(t *testing.T) {
 	})
 	result, err := consumer.ConsumeTraces(context.Background(), traces)
 	require.NoError(t, err)
-	require.Equal(t, otlp.Result{Accepted: 4}, result)
+	require.Equal(t, otlp.ConsumeTracesResult{AcceptedSpans: 4}, result)
 	require.Len(t, batches, 1)
 	batch := *batches[0]
 
@@ -1111,7 +1111,7 @@ func TestConsumer_JaegerTraceID(t *testing.T) {
 	require.NoError(t, err)
 	result, err := consumer.ConsumeTraces(context.Background(), traces)
 	require.NoError(t, err)
-	require.Equal(t, otlp.Result{Accepted: 2}, result)
+	require.Equal(t, otlp.ConsumeTracesResult{AcceptedSpans: 2}, result)
 
 	batch := *batches[0]
 	assert.Equal(t, "00000000000000000000000046467830", batch[0].Trace.Id)
@@ -1241,7 +1241,7 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 			})
 			result, err := consumer.ConsumeTraces(context.Background(), traces)
 			require.NoError(t, err)
-			require.Equal(t, otlp.Result{Accepted: int64(len(tc.spans))}, result)
+			require.Equal(t, otlp.ConsumeTracesResult{AcceptedSpans: int64(len(tc.spans))}, result)
 
 			docs := encodeBatch(t, batches...)
 			approveEventDocs(t, "transaction_"+tc.name, docs)
@@ -1363,7 +1363,7 @@ func TestConsumer_JaegerSpan(t *testing.T) {
 			})
 			result, err := consumer.ConsumeTraces(context.Background(), traces)
 			require.NoError(t, err)
-			require.Equal(t, otlp.Result{Accepted: int64(len(tc.spans))}, result)
+			require.Equal(t, otlp.ConsumeTracesResult{AcceptedSpans: int64(len(tc.spans))}, result)
 
 			docs := encodeBatch(t, batches...)
 			approveEventDocs(t, "span_"+tc.name, docs)
@@ -1398,7 +1398,7 @@ func TestJaegerServiceVersion(t *testing.T) {
 	})
 	result, err := consumer.ConsumeTraces(context.Background(), traces)
 	require.NoError(t, err)
-	require.Equal(t, otlp.Result{Accepted: 2}, result)
+	require.Equal(t, otlp.ConsumeTracesResult{AcceptedSpans: 2}, result)
 
 	batch := *batches[0]
 	assert.Equal(t, "process_tag_value", batch[0].Service.Version)
