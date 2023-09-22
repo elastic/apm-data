@@ -167,7 +167,6 @@ func (c *Consumer) convertScopeMetrics(
 		}
 		*out = append(*out, event)
 	}
-	return
 }
 
 func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets, remainingDataPoints, remainingMetrics *int64) {
