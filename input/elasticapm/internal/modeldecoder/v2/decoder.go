@@ -1894,7 +1894,7 @@ func mapSpanLinks(from []spanLink, out *[]*modelpb.SpanLink) {
 	}
 }
 
-func targetFromDestinationResource(res string) (*modelpb.ServiceTarget) {
+func targetFromDestinationResource(res string) *modelpb.ServiceTarget {
 	target := modelpb.ServiceTargetFromVTPool()
 	submatch := reForServiceTargetExpr.FindStringSubmatch(res)
 	switch len(submatch) {
