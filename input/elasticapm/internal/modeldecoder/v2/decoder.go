@@ -1271,7 +1271,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		out.RepresentativeCount = 1
 	}
 	if len(from.Stacktrace) > 0 {
-		out.Stacktrace = modeldecoderutil.Reslice(out.Stacktrace, len(from.Stacktrace), nil)
+		out.Stacktrace = modeldecoderutil.Reslice(out.Stacktrace, len(from.Stacktrace), modelpb.StacktraceFrameFromVTPool)
 		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
 	}
 	if from.Sync.IsSet() {
