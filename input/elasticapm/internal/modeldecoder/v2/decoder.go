@@ -1079,7 +1079,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		out.Composite = composite
 	}
 	if len(from.ChildIDs) > 0 {
-		event.ChildIds = make([]string, len(from.ChildIDs))
+		event.ChildIds = modeldecoderutil.Reslice(event.ChildIds, len(from.ChildIDs), nil)
 		copy(event.ChildIds, from.ChildIDs)
 	}
 	if from.Context.Database.IsSet() {
@@ -1298,7 +1298,8 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		mapOTelAttributesSpan(from.OTel, event)
 	}
 	if len(from.Links) > 0 {
-		mapSpanLinks(from.Links, &out.Links)
+		out.Links = modeldecoderutil.Reslice(out.Links, len(from.Links), modelpb.SpanLinkFromVTPool)
+		mapSpanLinks(from.Links, out.Links)
 	}
 	if out.Type == "" {
 		out.Type = "unknown"
@@ -1565,7 +1566,8 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 		if event.Span == nil {
 			event.Span = modelpb.SpanFromVTPool()
 		}
-		mapSpanLinks(from.Links, &event.Span.Links)
+		event.Span.Links = modeldecoderutil.Reslice(event.Span.Links, len(from.Links), modelpb.SpanLinkFromVTPool)
+		mapSpanLinks(from.Links, event.Span.Links)
 	}
 	if out.Type == "" {
 		out.Type = "unknown"
@@ -1875,13 +1877,10 @@ func isOTelDoubleAttribute(k string) bool {
 	return false
 }
 
-func mapSpanLinks(from []spanLink, out *[]*modelpb.SpanLink) {
-	*out = make([]*modelpb.SpanLink, len(from))
+func mapSpanLinks(from []spanLink, out []*modelpb.SpanLink) {
 	for i, link := range from {
-		sl := modelpb.SpanLinkFromVTPool()
-		sl.SpanId = link.SpanID.Val
-		sl.TraceId = link.TraceID.Val
-		(*out)[i] = sl
+		out[i].SpanId = link.SpanID.Val
+		out[i].TraceId = link.TraceID.Val
 	}
 }
 
