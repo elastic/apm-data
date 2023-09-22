@@ -221,7 +221,8 @@ func TestConsumeMetricsSemaphore(t *testing.T) {
 	doneCh := make(chan struct{})
 	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
 		<-doneCh
-		batches = append(batches, batch)
+		batchCopy := batch.Clone()
+		batches = append(batches, &batchCopy)
 		return nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
