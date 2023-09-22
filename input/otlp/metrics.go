@@ -69,9 +69,15 @@ func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) 
 	}
 	defer c.sem.Release(1)
 
+	remainingDataPoints := totalDataPoints
+	remainingMetrics := totalMetrics
 	receiveTimestamp := time.Now()
 	c.config.Logger.Debug("consuming metrics", zap.Stringer("metrics", metricsStringer(metrics)))
-	batch, droppedDataPoints, droppedMetrics := c.convertMetrics(metrics, receiveTimestamp)
+	batch := c.convertMetrics(metrics, receiveTimestamp, &remainingDataPoints, &remainingMetrics)
+	if remainingMetrics > 0 {
+		// Some metrics remained after conversion, meaning that they were dropped.
+		atomic.AddInt64(&c.stats.unsupportedMetricsDropped, remainingMetrics)
+	}
 	if err := c.config.Processor.ProcessBatch(ctx, batch); err != nil {
 		// Assume that everything went wrong
 		return ConsumeMetricsResult{
@@ -80,25 +86,32 @@ func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) 
 		}, err
 	}
 	return ConsumeMetricsResult{
-		AcceptedDataPoints: totalDataPoints - droppedDataPoints,
-		RejectedDataPoints: droppedDataPoints,
-		AcceptedMetrics:    totalMetrics - droppedMetrics,
-		RejectedMetrics:    droppedMetrics,
+		AcceptedDataPoints: totalDataPoints - remainingDataPoints,
+		RejectedDataPoints: remainingDataPoints,
+		AcceptedMetrics:    totalMetrics - remainingMetrics,
+		RejectedMetrics:    remainingMetrics,
 	}, nil
 }
 
-func (c *Consumer) convertMetrics(metrics pmetric.Metrics, receiveTimestamp time.Time) (batch *modelpb.Batch, droppedDataPoints, droppedMetrics int64) {
+func (c *Consumer) convertMetrics(
+	metrics pmetric.Metrics,
+	receiveTimestamp time.Time,
+	remainingDataPoints, remainingMetrics *int64,
+) (batch *modelpb.Batch) {
 	batch = &modelpb.Batch{}
 	resourceMetrics := metrics.ResourceMetrics()
 	for i := 0; i < resourceMetrics.Len(); i++ {
-		dp, m := c.convertResourceMetrics(resourceMetrics.At(i), receiveTimestamp, batch)
-		droppedDataPoints += dp
-		droppedMetrics += m
+		c.convertResourceMetrics(resourceMetrics.At(i), receiveTimestamp, batch, remainingDataPoints, remainingMetrics)
 	}
 	return
 }
 
-func (c *Consumer) convertResourceMetrics(resourceMetrics pmetric.ResourceMetrics, receiveTimestamp time.Time, out *modelpb.Batch) (
+func (c *Consumer) convertResourceMetrics(
+	resourceMetrics pmetric.ResourceMetrics,
+	receiveTimestamp time.Time,
+	out *modelpb.Batch,
+	remainingDataPoints, remainingMetrics *int64,
+) (
 	droppedDataPoints, droppedMetrics int64) {
 	baseEvent := modelpb.APMEvent{
 		Event: &modelpb.Event{
@@ -114,9 +127,7 @@ func (c *Consumer) convertResourceMetrics(resourceMetrics pmetric.ResourceMetric
 	}
 	scopeMetrics := resourceMetrics.ScopeMetrics()
 	for i := 0; i < scopeMetrics.Len(); i++ {
-		dp, m := c.convertScopeMetrics(scopeMetrics.At(i), &baseEvent, timeDelta, out)
-		droppedDataPoints += dp
-		droppedMetrics += m
+		c.convertScopeMetrics(scopeMetrics.At(i), &baseEvent, timeDelta, out, remainingDataPoints, remainingMetrics)
 	}
 	return
 }
@@ -126,14 +137,12 @@ func (c *Consumer) convertScopeMetrics(
 	baseEvent *modelpb.APMEvent,
 	timeDelta time.Duration,
 	out *modelpb.Batch,
-) (droppedDataPoints, droppedMetrics int64) {
+	remainingDataPoints, remainingMetrics *int64,
+) {
 	ms := make(metricsets)
 	otelMetrics := in.Metrics()
 	for i := 0; i < otelMetrics.Len(); i++ {
-		if droppedDp := c.addMetric(otelMetrics.At(i), ms); droppedDp > 0 {
-			droppedMetrics++
-			droppedDataPoints += droppedDp
-		}
+		c.addMetric(otelMetrics.At(i), ms, remainingDataPoints, remainingMetrics)
 	}
 	for key, ms := range ms {
 		event := baseEvent.CloneVT()
@@ -158,13 +167,11 @@ func (c *Consumer) convertScopeMetrics(
 		}
 		*out = append(*out, event)
 	}
-	if droppedMetrics > 0 {
-		atomic.AddInt64(&c.stats.unsupportedMetricsDropped, droppedMetrics)
-	}
 	return
 }
 
-func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) (droppedDataPoints int64) {
+func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets, remainingDataPoints, remainingMetrics *int64) {
+	var anyDropped bool
 	// TODO(axw) support units
 	switch metric.Type() {
 	case pmetric.MetricTypeGauge:
@@ -174,11 +181,11 @@ func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) (droppedDataP
 			if sample, ok := numberSample(dp, modelpb.MetricType_METRIC_TYPE_GAUGE); ok {
 				sample.Name = metric.Name()
 				ms.upsert(dp.Timestamp().AsTime(), dp.Attributes(), &sample)
+				*remainingDataPoints--
 			} else {
-				droppedDataPoints++
+				anyDropped = true
 			}
 		}
-		return
 	case pmetric.MetricTypeSum:
 		dps := metric.Sum().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
@@ -186,11 +193,11 @@ func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) (droppedDataP
 			if sample, ok := numberSample(dp, modelpb.MetricType_METRIC_TYPE_COUNTER); ok {
 				sample.Name = metric.Name()
 				ms.upsert(dp.Timestamp().AsTime(), dp.Attributes(), &sample)
+				*remainingDataPoints--
 			} else {
-				droppedDataPoints++
+				anyDropped = true
 			}
 		}
-		return
 	case pmetric.MetricTypeHistogram:
 		dps := metric.Histogram().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
@@ -198,10 +205,12 @@ func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) (droppedDataP
 			if sample, ok := histogramSample(dp.BucketCounts(), dp.ExplicitBounds()); ok {
 				sample.Name = metric.Name()
 				ms.upsert(dp.Timestamp().AsTime(), dp.Attributes(), sample)
+				*remainingDataPoints--
 			} else {
-				droppedDataPoints++
+				anyDropped = true
 			}
 		}
+
 	case pmetric.MetricTypeSummary:
 		dps := metric.Summary().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
@@ -209,12 +218,16 @@ func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) (droppedDataP
 			sample := summarySample(dp)
 			sample.Name = metric.Name()
 			ms.upsert(dp.Timestamp().AsTime(), dp.Attributes(), sample)
+			*remainingDataPoints--
 		}
 	default:
-		// Unsupported metric: report that it has been dropped.
-		droppedDataPoints += int64(metric.ExponentialHistogram().DataPoints().Len()) // FIXME(carsonip): it was forward-compatible, but not after this change
+		// Unsupported metric:
+		// It will be recorded as dropped as remainingDataPoints and remainingMetrics are not decreased
+		anyDropped = true
 	}
-	return
+	if !anyDropped {
+		*remainingMetrics--
+	}
 }
 
 func numberSample(dp pmetric.NumberDataPoint, metricType modelpb.MetricType) (modelpb.MetricsetSample, bool) {
