@@ -599,8 +599,8 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 			if event.Http == nil {
 				event.Http = modelpb.HTTPFromVTPool()
 			}
-			if event.Http.Response == nil {
-				event.Http.Response = modelpb.HTTPResponseFromVTPool()
+			if response == nil {
+				response = modelpb.HTTPResponseFromVTPool()
 			}
 			event.Http.Response = response
 			event.Http.Response.StatusCode = uint32(from.Context.HTTP.StatusCode.Val)
@@ -615,8 +615,8 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 			if event.Http == nil {
 				event.Http = modelpb.HTTPFromVTPool()
 			}
-			if event.Http.Response == nil {
-				event.Http.Response = modelpb.HTTPResponseFromVTPool()
+			if response == nil {
+				response = modelpb.HTTPResponseFromVTPool()
 			}
 			event.Http.Response = response
 			if from.Context.HTTP.Response.DecodedBodySize.IsSet() {
