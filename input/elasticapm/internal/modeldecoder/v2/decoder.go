@@ -895,7 +895,7 @@ func mapToRequestModel(from contextRequest, out *modelpb.HTTPRequest) {
 		out.Cookies = modeldecoderutil.ToKv(from.Cookies, out.Cookies)
 	}
 	if from.Headers.IsSet() {
-		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
+		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val, out.Headers)
 	}
 }
 
@@ -936,7 +936,7 @@ func mapToResponseModel(from contextResponse, out *modelpb.HTTPResponse) {
 		out.Finished = &val
 	}
 	if from.Headers.IsSet() {
-		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
+		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val, out.Headers)
 	}
 	if from.HeadersSent.IsSet() {
 		val := from.HeadersSent.Val
@@ -1174,7 +1174,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 				response.EncodedBodySize = &val
 			}
 			if from.Context.HTTP.Response.Headers.IsSet() {
-				response.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Context.HTTP.Response.Headers.Val)
+				response.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Context.HTTP.Response.Headers.Val, response.Headers)
 			}
 			if from.Context.HTTP.Response.StatusCode.IsSet() {
 				response.StatusCode = uint32(from.Context.HTTP.Response.StatusCode.Val)
@@ -1207,7 +1207,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 			message.Body = from.Context.Message.Body.Val
 		}
 		if from.Context.Message.Headers.IsSet() {
-			message.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Context.Message.Headers.Val)
+			message.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Context.Message.Headers.Val, message.Headers)
 		}
 		if from.Context.Message.Age.Milliseconds.IsSet() {
 			val := uint64(from.Context.Message.Age.Milliseconds.Val)
@@ -1405,7 +1405,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 				out.Message.Body = from.Context.Message.Body.Val
 			}
 			if from.Context.Message.Headers.IsSet() {
-				out.Message.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Context.Message.Headers.Val)
+				out.Message.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Context.Message.Headers.Val, out.Message.Headers)
 			}
 			if from.Context.Message.Queue.IsSet() && from.Context.Message.Queue.Name.IsSet() {
 				out.Message.QueueName = from.Context.Message.Queue.Name.Val

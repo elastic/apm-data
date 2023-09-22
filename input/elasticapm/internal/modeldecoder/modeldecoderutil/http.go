@@ -45,18 +45,18 @@ func HTTPHeadersToStructPb(h http.Header) *structpb.Struct {
 	return nil
 }
 
-func HTTPHeadersToModelpb(h http.Header) []*modelpb.HTTPHeader {
+func HTTPHeadersToModelpb(h http.Header, out []*modelpb.HTTPHeader) []*modelpb.HTTPHeader {
 	if len(h) == 0 {
 		return nil
 	}
-	headers := make([]*modelpb.HTTPHeader, 0, len(h))
+	out = Reslice(out, len(h), modelpb.HTTPHeaderFromVTPool)
+	i := 0
 	for k, v := range h {
-		pbheader := modelpb.HTTPHeaderFromVTPool()
-		pbheader.Key = k
-		pbheader.Value = v
-		headers = append(headers, pbheader)
+		out[i].Key = k
+		out[i].Value = v
+		i++
 	}
-	return headers
+	return out
 }
 
 // NormalizeHTTPRequestBody recurses through v, replacing any instance of
