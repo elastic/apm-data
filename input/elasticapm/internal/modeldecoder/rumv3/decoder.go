@@ -144,7 +144,7 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 		event.Transaction = modelpb.TransactionFromVTPool()
 		event.Transaction.Id = transaction.Transaction.Id
 		event.ParentId = transaction.GetTransaction().GetId() // may be overridden later
-		event.Trace = transaction.Trace
+		event.Trace = transaction.Trace.CloneVT()
 		*batch = append(*batch, event)
 	}
 	spans := (*batch)[offset:]
