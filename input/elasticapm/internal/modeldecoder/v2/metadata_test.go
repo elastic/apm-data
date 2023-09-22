@@ -297,9 +297,13 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, &out2)
 		out2.Host.Ip = []*modelpb.IP{defaultVal.IP}
-		out2.Client = populateNil(out2.Client)
+		if out2.Client == nil {
+			out2.Client = &modelpb.Client{}
+		}
 		out2.Client.Ip = defaultVal.IP
-		out2.Source = populateNil(out2.Source)
+		if out2.Source == nil {
+			out2.Source = &modelpb.Source{}
+		}
 		out2.Source.Ip = defaultVal.IP
 		modeldecodertest.AssertStructValues(t, &out2, isMetadataException, otherVal)
 		modeldecodertest.AssertStructValues(t, &out1, isMetadataException, defaultVal)

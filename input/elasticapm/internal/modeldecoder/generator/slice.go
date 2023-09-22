@@ -31,11 +31,14 @@ func generateSliceValidation(w io.Writer, fields []structField, f structField, i
 	if isCustomStruct {
 		fmt.Fprintf(w, `
 for _, elem := range val.%s{
+	if !elem.IsSet() {
+		return fmt.Errorf("%s slice element required")
+	}
 	if err := elem.validate(); err != nil{
 		return errors.Wrapf(err, "%s")
 	}
 }
-`[1:], f.Name(), jsonName(f))
+`[1:], f.Name(), jsonName(f), jsonName(f))
 	}
 	// handle configured validation rules
 	rules, err := validationRules(f.tag)

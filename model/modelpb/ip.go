@@ -43,14 +43,14 @@ func MustParseIP(s string) *IP {
 
 func Addr2IP(addr netip.Addr) *IP {
 	if addr.Is4() {
-		return &IP{
-			V4: binary.BigEndian.Uint32(addr.AsSlice()),
-		}
+		ip := IPFromVTPool()
+		ip.V4 = binary.BigEndian.Uint32(addr.AsSlice())
+		return ip
 	}
 
-	return &IP{
-		V6: addr.AsSlice(),
-	}
+	ip := IPFromVTPool()
+	ip.V6 = addr.AsSlice()
+	return ip
 }
 
 func IP2Addr(i *IP) netip.Addr {

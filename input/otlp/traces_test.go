@@ -931,7 +931,8 @@ func TestConsumeTracesSemaphore(t *testing.T) {
 	doneCh := make(chan struct{})
 	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
 		<-doneCh
-		batches = append(batches, batch)
+		batchCopy := batch.Clone()
+		batches = append(batches, &batchCopy)
 		return nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
@@ -1660,7 +1661,8 @@ func testDuration() time.Duration {
 
 func batchRecorderBatchProcessor(out *[]*modelpb.Batch) modelpb.BatchProcessor {
 	return modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
-		*out = append(*out, batch)
+		batchCopy := batch.Clone()
+		*out = append(*out, &batchCopy)
 		return nil
 	})
 }
@@ -1799,7 +1801,7 @@ func transformTraces(t *testing.T, traces ptrace.Traces) *modelpb.Batch {
 		if processed != nil {
 			panic("already processes batch")
 		}
-		processed = *batch
+		processed = batch.Clone()
 		return nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{

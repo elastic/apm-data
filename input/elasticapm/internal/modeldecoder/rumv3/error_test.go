@@ -94,6 +94,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		out := initializedMetadata()
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
+		input.Exception.Cause = nil
 		mapToErrorModel(&input, out)
 		input.Reset()
 
@@ -136,6 +137,8 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 				// Message and Type are only set for ECS compatible log event type
 				"message",
 				"type",
+				// populator adding invalid values
+				"exception.cause",
 			} {
 				if strings.HasPrefix(key, s) {
 					return true
@@ -149,6 +152,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		out1.Timestamp = reqTime
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
+		input.Exception.Cause = nil
 		mapToErrorModel(&input, &out1)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Error, exceptions, defaultVal)
@@ -156,6 +160,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		// leave event timestamp unmodified if eventTime is zero
 		out1.Timestamp = reqTime
 		modeldecodertest.SetStructValues(&input, defaultVal)
+		input.Exception.Cause = nil
 		mapToErrorModel(&input, &out1)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Error, exceptions, defaultVal)

@@ -60,13 +60,11 @@ func convertOpenTelemetryExceptionSpanEvent(
 		exceptionMessage = "[EMPTY]"
 	}
 	exceptionHandled := !exceptionEscaped
-	exceptionError := modelpb.Error{
-		Exception: &modelpb.Exception{
-			Message: exceptionMessage,
-			Type:    exceptionType,
-			Handled: &exceptionHandled,
-		},
-	}
+	exceptionError := modelpb.ErrorFromVTPool()
+	exceptionError.Exception = modelpb.ExceptionFromVTPool()
+	exceptionError.Exception.Message = exceptionMessage
+	exceptionError.Exception.Type = exceptionType
+	exceptionError.Exception.Handled = &exceptionHandled
 	// TODO(axw) replace github.com/gofrs/uuid, not worth having the dependency just for this.
 	if id, err := uuid.NewV4(); err == nil {
 		exceptionError.Id = id.String()
@@ -79,7 +77,7 @@ func convertOpenTelemetryExceptionSpanEvent(
 			exceptionError.StackTrace = exceptionStacktrace
 		}
 	}
-	return &exceptionError
+	return exceptionError
 }
 
 func setExceptionStacktrace(s, language string, out *modelpb.Exception) error {
@@ -153,7 +151,7 @@ func setJavaExceptionStacktrace(s string, out *modelpb.Exception) error {
 			// "Caused by:" lines are at the same level of indentation
 			// as the enclosing exception.
 			current.Cause = make([]*modelpb.Exception, 1)
-			current.Cause[0] = &modelpb.Exception{}
+			current.Cause[0] = modelpb.ExceptionFromVTPool()
 			current.enclosing = current.Exception
 			current.Exception = current.Cause[0]
 			current.Exception.Handled = current.enclosing.Handled
@@ -166,7 +164,7 @@ func setJavaExceptionStacktrace(s string, out *modelpb.Exception) error {
 			// enclosing exception; we just account for the indentation here.
 			stack = append(stack, current)
 			current.enclosing = current.Exception
-			current.Exception = &modelpb.Exception{}
+			current.Exception = modelpb.ExceptionFromVTPool()
 			current.indent = indent
 		default:
 			return fmt.Errorf("unexpected line %q", line)
@@ -204,13 +202,13 @@ func parseJavaStacktraceFrame(s string, out *modelpb.Exception) error {
 			lineno = &un
 		}
 	}
-	out.Stacktrace = append(out.Stacktrace, &modelpb.StacktraceFrame{
-		Module:    module,
-		Classname: classname,
-		Function:  function,
-		Filename:  file,
-		Lineno:    lineno,
-	})
+	sf := modelpb.StacktraceFrameFromVTPool()
+	sf.Module = module
+	sf.Classname = classname
+	sf.Function = function
+	sf.Filename = file
+	sf.Lineno = lineno
+	out.Stacktrace = append(out.Stacktrace, sf)
 	return nil
 }
 

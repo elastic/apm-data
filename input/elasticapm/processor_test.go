@@ -204,7 +204,7 @@ func TestHandleStreamErrors(t *testing.T) {
 func TestHandleStream(t *testing.T) {
 	var events []*modelpb.APMEvent
 	batchProcessor := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
-		events = append(events, (*batch)...)
+		events = batch.Clone()
 		return nil
 	})
 
@@ -245,7 +245,7 @@ func TestHandleStream(t *testing.T) {
 func TestHandleStreamRUMv3(t *testing.T) {
 	var events []*modelpb.APMEvent
 	batchProcessor := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
-		events = append(events, (*batch)...)
+		events = batch.Clone()
 		return nil
 	})
 
@@ -260,12 +260,16 @@ func TestHandleStreamRUMv3(t *testing.T) {
 		MaxEventSize: 100 * 1024,
 		Semaphore:    semaphore.NewWeighted(1),
 	})
+	var result Result
 	err := p.HandleStream(
 		context.Background(), false, &modelpb.APMEvent{},
 		strings.NewReader(payload), 10, batchProcessor,
-		&Result{},
+		&result,
 	)
 	require.NoError(t, err)
+	for _, resultErr := range result.Errors {
+		require.NoError(t, resultErr)
+	}
 
 	processors := make([]modelpb.APMEventType, len(events))
 	for i, event := range events {
@@ -299,7 +303,7 @@ func TestHandleStreamBaseEvent(t *testing.T) {
 
 	var events []*modelpb.APMEvent
 	batchProcessor := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
-		events = append(events, (*batch)...)
+		events = batch.Clone()
 		return nil
 	})
 
@@ -337,7 +341,7 @@ func TestLabelLeak(t *testing.T) {
 
 	processed := make(modelpb.Batch, 2)
 	batchProcessor := modelpb.ProcessBatchFunc(func(_ context.Context, b *modelpb.Batch) error {
-		copy(processed, *b)
+		processed = b.Clone()
 		return nil
 	})
 
@@ -433,7 +437,7 @@ func TestConcurrentAsync(t *testing.T) {
 				p.semAcquire(context.Background(), false)
 			}
 		}
-		processed := atomic.LoadUint64(&batchProcessor.processed)
+		processed := batchProcessor.processed.Load()
 		pResult.Accepted += int(processed)
 		return
 	}
@@ -511,7 +515,7 @@ func (nopBatchProcessor) ProcessBatch(context.Context, *modelpb.Batch) error {
 
 type accountProcessor struct {
 	batch     chan *modelpb.Batch
-	processed uint64
+	processed atomic.Uint64
 }
 
 func (p *accountProcessor) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
@@ -521,12 +525,13 @@ func (p *accountProcessor) ProcessBatch(ctx context.Context, b *modelpb.Batch) e
 	default:
 	}
 	if p.batch != nil {
+		events := b.Clone()
 		select {
-		case p.batch <- b:
+		case p.batch <- &events:
 		case <-ctx.Done():
 			return ctx.Err()
 		}
 	}
-	atomic.AddUint64(&p.processed, 1)
+	p.processed.Add(1)
 	return nil
 }

@@ -37,21 +37,20 @@ func ParseURL(original, defaultHostname, defaultScheme string) *URL {
 	if url.Host == "" {
 		url.Host = defaultHostname
 	}
-	out := URL{
-		Original: original,
-		Scheme:   url.Scheme,
-		Full:     truncate(url.String()),
-		Domain:   truncate(url.Hostname()),
-		Path:     truncate(url.Path),
-		Query:    truncate(url.RawQuery),
-		Fragment: url.Fragment,
-	}
+	out := URLFromVTPool()
+	out.Original = original
+	out.Scheme = url.Scheme
+	out.Full = truncate(url.String())
+	out.Domain = truncate(url.Hostname())
+	out.Path = truncate(url.Path)
+	out.Query = truncate(url.RawQuery)
+	out.Fragment = url.Fragment
 	if port := url.Port(); port != "" {
 		if intv, err := strconv.Atoi(port); err == nil {
 			out.Port = uint32(intv)
 		}
 	}
-	return &out
+	return out
 }
 
 // truncate returns s truncated at n runes, and the number of runes in the resulting string (<= n).
