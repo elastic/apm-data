@@ -804,34 +804,27 @@ func mapToMetricsetModel(from *metricset, event *modelpb.APMEvent) bool {
 	}
 
 	if len(from.Samples) > 0 {
-		samples := make([]*modelpb.MetricsetSample, 0, len(from.Samples))
+		event.Metricset.Samples = modeldecoderutil.Reslice(event.Metricset.Samples, len(from.Samples), modelpb.MetricsetSampleFromVTPool)
+		i := 0
 		for name, sample := range from.Samples {
-			var counts []uint64
-			var values []float64
-			var histogram *modelpb.Histogram
-			if n := len(sample.Values); n > 0 {
-				values = make([]float64, n)
-				copy(values, sample.Values)
+			ms := event.Metricset.Samples[i]
+			if len(sample.Counts) != 0 || len(sample.Values) != 0 {
+				ms.Histogram = modelpb.HistogramFromVTPool()
+				if n := len(sample.Values); n > 0 {
+					ms.Histogram.Values = modeldecoderutil.Reslice(ms.Histogram.Values, n, nil)
+					copy(ms.Histogram.Values, sample.Values)
+				}
+				if n := len(sample.Counts); n > 0 {
+					ms.Histogram.Counts = modeldecoderutil.Reslice(ms.Histogram.Counts, n, nil)
+					copy(ms.Histogram.Counts, sample.Counts)
+				}
 			}
-			if n := len(sample.Counts); n > 0 {
-				counts = make([]uint64, n)
-				copy(counts, sample.Counts)
-			}
-			if len(counts) != 0 || len(values) != 0 {
-				histogram = modelpb.HistogramFromVTPool()
-				histogram.Values = values
-				histogram.Counts = counts
-			}
-
-			ms := modelpb.MetricsetSampleFromVTPool()
 			ms.Type = metricTypeText[sample.Type.Val]
 			ms.Name = name
 			ms.Unit = sample.Unit.Val
 			ms.Value = sample.Value.Val
-			ms.Histogram = histogram
-			samples = append(samples, ms)
+			i++
 		}
-		event.Metricset.Samples = samples
 	}
 
 	if len(from.Tags) > 0 {
