@@ -142,7 +142,7 @@ func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) bool {
 			dp := dps.At(i)
 			if sample, ok := numberSample(dp, modelpb.MetricType_METRIC_TYPE_GAUGE); ok {
 				sample.Name = metric.Name()
-				ms.upsert(dp.Timestamp().AsTime(), dp.Attributes(), &sample)
+				ms.upsert(dp.Timestamp().AsTime(), dp.Attributes(), sample)
 			} else {
 				anyDropped = true
 			}
@@ -154,7 +154,7 @@ func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) bool {
 			dp := dps.At(i)
 			if sample, ok := numberSample(dp, modelpb.MetricType_METRIC_TYPE_COUNTER); ok {
 				sample.Name = metric.Name()
-				ms.upsert(dp.Timestamp().AsTime(), dp.Attributes(), &sample)
+				ms.upsert(dp.Timestamp().AsTime(), dp.Attributes(), sample)
 			} else {
 				anyDropped = true
 			}
@@ -186,7 +186,7 @@ func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) bool {
 	return !anyDropped
 }
 
-func numberSample(dp pmetric.NumberDataPoint, metricType modelpb.MetricType) (modelpb.MetricsetSample, bool) {
+func numberSample(dp pmetric.NumberDataPoint, metricType modelpb.MetricType) (*modelpb.MetricsetSample, bool) {
 	var value float64
 	switch dp.ValueType() {
 	case pmetric.NumberDataPointValueTypeInt:
@@ -194,15 +194,15 @@ func numberSample(dp pmetric.NumberDataPoint, metricType modelpb.MetricType) (mo
 	case pmetric.NumberDataPointValueTypeDouble:
 		value = dp.DoubleValue()
 		if math.IsNaN(value) || math.IsInf(value, 0) {
-			return modelpb.MetricsetSample{}, false
+			return nil, false
 		}
 	default:
-		return modelpb.MetricsetSample{}, false
+		return nil, false
 	}
-	return modelpb.MetricsetSample{
-		Type:  metricType,
-		Value: value,
-	}, true
+	ms := modelpb.MetricsetSampleFromVTPool()
+	ms.Type = metricType
+	ms.Value = value
+	return ms, true
 }
 
 func summarySample(dp pmetric.SummaryDataPoint) *modelpb.MetricsetSample {

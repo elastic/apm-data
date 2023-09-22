@@ -293,9 +293,9 @@ func mapToExceptionModel(from errorException, out *modelpb.Exception) {
 	if len(from.Cause) > 0 {
 		out.Cause = make([]*modelpb.Exception, len(from.Cause))
 		for i := 0; i < len(from.Cause); i++ {
-			var ex modelpb.Exception
-			mapToExceptionModel(from.Cause[i], &ex)
-			out.Cause[i] = &ex
+			ex := modelpb.ExceptionFromVTPool()
+			mapToExceptionModel(from.Cause[i], ex)
+			out.Cause[i] = ex
 		}
 	}
 	if from.Handled.IsSet() {
@@ -587,7 +587,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		out.DestinationService = service
 	}
 	if from.Context.HTTP.IsSet() {
-		var response modelpb.HTTPResponse
+		var response *modelpb.HTTPResponse
 		if from.Context.HTTP.Method.IsSet() {
 			if event.Http == nil {
 				event.Http = modelpb.HTTPFromVTPool()
@@ -599,7 +599,10 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 			if event.Http == nil {
 				event.Http = modelpb.HTTPFromVTPool()
 			}
-			event.Http.Response = &response
+			if event.Http.Response == nil {
+				event.Http.Response = modelpb.HTTPResponseFromVTPool()
+			}
+			event.Http.Response = response
 			event.Http.Response.StatusCode = uint32(from.Context.HTTP.StatusCode.Val)
 		}
 		if from.Context.HTTP.URL.IsSet() {
@@ -612,7 +615,10 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 			if event.Http == nil {
 				event.Http = modelpb.HTTPFromVTPool()
 			}
-			event.Http.Response = &response
+			if event.Http.Response == nil {
+				event.Http.Response = modelpb.HTTPResponseFromVTPool()
+			}
+			event.Http.Response = response
 			if from.Context.HTTP.Response.DecodedBodySize.IsSet() {
 				val := uint64(from.Context.HTTP.Response.DecodedBodySize.Val)
 				event.Http.Response.DecodedBodySize = &val
@@ -687,7 +693,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 
 func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFrame) {
 	for idx, eventFrame := range from {
-		fr := modelpb.StacktraceFrame{}
+		fr := modelpb.StacktraceFrameFromVTPool()
 		if eventFrame.AbsPath.IsSet() {
 			fr.AbsPath = eventFrame.AbsPath.Val
 		}
@@ -722,7 +728,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFram
 			fr.PreContext = make([]string, len(eventFrame.PreContext))
 			copy(fr.PreContext, eventFrame.PreContext)
 		}
-		out[idx] = &fr
+		out[idx] = fr
 	}
 }
 

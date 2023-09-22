@@ -311,7 +311,7 @@ func mapToFAASModel(from faas, faas *modelpb.Faas) {
 
 func mapToDroppedSpansModel(from []transactionDroppedSpanStats, tx *modelpb.Transaction) {
 	for _, f := range from {
-		var to modelpb.DroppedSpanStats
+		to := modelpb.DroppedSpanStatsFromVTPool()
 		if f.DestinationServiceResource.IsSet() {
 			to.DestinationServiceResource = f.DestinationServiceResource.Val
 		}
@@ -333,7 +333,7 @@ func mapToDroppedSpansModel(from []transactionDroppedSpanStats, tx *modelpb.Tran
 			to.ServiceTargetName = f.ServiceTargetName.Val
 		}
 
-		tx.DroppedSpansStats = append(tx.DroppedSpansStats, &to)
+		tx.DroppedSpansStats = append(tx.DroppedSpansStats, to)
 	}
 }
 
@@ -462,7 +462,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 		out.Id = from.ID.Val
 	}
 	if from.Log.IsSet() {
-		log := modelpb.ErrorLog{}
+		log := modelpb.ErrorLogFromVTPool()
 		if from.Log.Level.IsSet() {
 			log.Level = from.Log.Level.Val
 		}
@@ -479,7 +479,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			log.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Log.Stacktrace))
 			mapToStracktraceModel(from.Log.Stacktrace, log.Stacktrace)
 		}
-		out.Log = &log
+		out.Log = log
 	}
 	if from.ParentID.IsSet() {
 		event.ParentId = from.ParentID.Val
@@ -522,9 +522,9 @@ func mapToExceptionModel(from errorException, out *modelpb.Exception) {
 	if len(from.Cause) > 0 {
 		out.Cause = make([]*modelpb.Exception, len(from.Cause))
 		for i := 0; i < len(from.Cause); i++ {
-			var ex modelpb.Exception
-			mapToExceptionModel(from.Cause[i], &ex)
-			out.Cause[i] = &ex
+			ex := modelpb.ExceptionFromVTPool()
+			mapToExceptionModel(from.Cause[i], ex)
+			out.Cause[i] = ex
 		}
 	}
 	if from.Handled.IsSet() {
@@ -1074,7 +1074,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		}
 	}
 	if from.Composite.IsSet() {
-		composite := modelpb.Composite{}
+		composite := modelpb.CompositeFromVTPool()
 		if from.Composite.Count.IsSet() {
 			composite.Count = uint32(from.Composite.Count.Val)
 		}
@@ -1084,14 +1084,14 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		if strategy, ok := compressionStrategyText[from.Composite.CompressionStrategy.Val]; ok {
 			composite.CompressionStrategy = strategy
 		}
-		out.Composite = &composite
+		out.Composite = composite
 	}
 	if len(from.ChildIDs) > 0 {
 		event.ChildIds = make([]string, len(from.ChildIDs))
 		copy(event.ChildIds, from.ChildIDs)
 	}
 	if from.Context.Database.IsSet() {
-		db := modelpb.DB{}
+		db := modelpb.DBFromVTPool()
 		if from.Context.Database.Instance.IsSet() {
 			db.Instance = from.Context.Database.Instance.Val
 		}
@@ -1111,7 +1111,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		if from.Context.Database.User.IsSet() {
 			db.UserName = from.Context.Database.User.Val
 		}
-		out.Db = &db
+		out.Db = db
 	}
 	if from.Context.Destination.Address.IsSet() || from.Context.Destination.Port.IsSet() {
 		if from.Context.Destination.Address.IsSet() {
@@ -1128,7 +1128,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		}
 	}
 	if from.Context.Destination.Service.IsSet() {
-		service := modelpb.DestinationService{}
+		service := modelpb.DestinationServiceFromVTPool()
 		if from.Context.Destination.Service.Name.IsSet() {
 			service.Name = from.Context.Destination.Service.Name.Val
 		}
@@ -1138,7 +1138,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		if from.Context.Destination.Service.Type.IsSet() {
 			service.Type = from.Context.Destination.Service.Type.Val
 		}
-		out.DestinationService = &service
+		out.DestinationService = service
 	}
 	if from.Context.HTTP.IsSet() {
 		if from.Context.HTTP.Method.IsSet() {
@@ -1201,7 +1201,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		}
 	}
 	if from.Context.Message.IsSet() {
-		message := modelpb.Message{}
+		message := modelpb.MessageFromVTPool()
 		if from.Context.Message.Body.IsSet() {
 			message.Body = from.Context.Message.Body.Val
 		}
@@ -1218,7 +1218,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		if from.Context.Message.RoutingKey.IsSet() {
 			message.RoutingKey = from.Context.Message.RoutingKey.Val
 		}
-		out.Message = &message
+		out.Message = message
 	}
 	if from.Context.Service.IsSet() {
 		mapToServiceModel(from.Context.Service, &event.Service)
@@ -1229,7 +1229,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 			event.Service = modelpb.ServiceFromVTPool()
 		}
 		outTarget := targetFromDestinationResource(from.Context.Destination.Service.Resource.Val)
-		event.Service.Target = &outTarget
+		event.Service.Target = outTarget
 	}
 	if len(from.Context.Tags) > 0 {
 		modeldecoderutil.MergeLabels(from.Context.Tags, event)
@@ -1315,7 +1315,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 
 func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFrame) {
 	for idx, eventFrame := range from {
-		fr := modelpb.StacktraceFrame{}
+		fr := modelpb.StacktraceFrameFromVTPool()
 		if eventFrame.AbsPath.IsSet() {
 			fr.AbsPath = eventFrame.AbsPath.Val
 		}
@@ -1357,7 +1357,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFram
 		if len(eventFrame.Vars) > 0 {
 			fr.Vars = modeldecoderutil.ToKv(eventFrame.Vars)
 		}
-		out[idx] = &fr
+		out[idx] = fr
 	}
 }
 
@@ -1894,7 +1894,8 @@ func mapSpanLinks(from []spanLink, out *[]*modelpb.SpanLink) {
 	}
 }
 
-func targetFromDestinationResource(res string) (target modelpb.ServiceTarget) {
+func targetFromDestinationResource(res string) (*modelpb.ServiceTarget) {
+	target := modelpb.ServiceTargetFromVTPool()
 	submatch := reForServiceTargetExpr.FindStringSubmatch(res)
 	switch len(submatch) {
 	case 3:
@@ -1903,5 +1904,5 @@ func targetFromDestinationResource(res string) (target modelpb.ServiceTarget) {
 	default:
 		target.Name = res
 	}
-	return
+	return target
 }
