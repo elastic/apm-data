@@ -477,7 +477,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			log.ParamMessage = from.Log.ParamMessage.Val
 		}
 		if len(from.Log.Stacktrace) > 0 {
-			log.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Log.Stacktrace))
+			log.Stacktrace = modeldecoderutil.Reslice(log.Stacktrace, len(from.Log.Stacktrace), modelpb.StacktraceFrameFromVTPool)
 			mapToStracktraceModel(from.Log.Stacktrace, log.Stacktrace)
 		}
 		out.Log = log
@@ -538,7 +538,7 @@ func mapToExceptionModel(from errorException, out *modelpb.Exception) {
 		out.Module = from.Module.Val
 	}
 	if len(from.Stacktrace) > 0 {
-		out.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Stacktrace))
+		out.Stacktrace = modeldecoderutil.Reslice(out.Stacktrace, len(from.Stacktrace), modelpb.StacktraceFrameFromVTPool)
 		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
 	}
 	if from.Type.IsSet() {
@@ -1273,7 +1273,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		out.RepresentativeCount = 1
 	}
 	if len(from.Stacktrace) > 0 {
-		out.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Stacktrace))
+		out.Stacktrace = modeldecoderutil.Reslice(out.Stacktrace, len(from.Stacktrace), nil)
 		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
 	}
 	if from.Sync.IsSet() {
@@ -1309,7 +1309,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 
 func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFrame) {
 	for idx, eventFrame := range from {
-		fr := modelpb.StacktraceFrameFromVTPool()
+		fr := out[idx]
 		if eventFrame.AbsPath.IsSet() {
 			fr.AbsPath = eventFrame.AbsPath.Val
 		}
@@ -1341,17 +1341,16 @@ func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFram
 			fr.Module = eventFrame.Module.Val
 		}
 		if len(eventFrame.PostContext) > 0 {
-			fr.PostContext = make([]string, len(eventFrame.PostContext))
+			fr.PostContext = modeldecoderutil.Reslice(fr.PostContext, len(eventFrame.PostContext), nil)
 			copy(fr.PostContext, eventFrame.PostContext)
 		}
 		if len(eventFrame.PreContext) > 0 {
-			fr.PreContext = make([]string, len(eventFrame.PreContext))
+			fr.PreContext = modeldecoderutil.Reslice(fr.PreContext, len(eventFrame.PreContext), nil)
 			copy(fr.PreContext, eventFrame.PreContext)
 		}
 		if len(eventFrame.Vars) > 0 {
 			fr.Vars = modeldecoderutil.ToKv(eventFrame.Vars, fr.Vars)
 		}
-		out[idx] = fr
 	}
 }
 
