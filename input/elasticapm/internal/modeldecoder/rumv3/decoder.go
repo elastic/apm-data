@@ -220,7 +220,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			}
 		}
 		if len(from.Context.Custom) > 0 {
-			out.Custom = modeldecoderutil.ToKv(from.Context.Custom)
+			out.Custom = modeldecoderutil.ToKv(from.Context.Custom, out.Custom)
 		}
 	}
 	if from.Culprit.IsSet() {
@@ -285,7 +285,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 
 func mapToExceptionModel(from errorException, out *modelpb.Exception) {
 	if len(from.Attributes) > 0 {
-		out.Attributes = modeldecoderutil.ToKv(from.Attributes)
+		out.Attributes = modeldecoderutil.ToKv(from.Attributes, out.Attributes)
 	}
 	if from.Code.IsSet() {
 		out.Code = modeldecoderutil.ExceptionCodeString(from.Code.Val)
@@ -474,7 +474,7 @@ func mapToRequestModel(from contextRequest, out *modelpb.HTTPRequest) {
 		out.Method = from.Method.Val
 	}
 	if len(from.Env) > 0 {
-		out.Env = modeldecoderutil.ToKv(from.Env)
+		out.Env = modeldecoderutil.ToKv(from.Env, out.Env)
 	}
 	if from.Headers.IsSet() {
 		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
@@ -761,7 +761,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	// map transaction specific data
 	if from.Context.IsSet() {
 		if len(from.Context.Custom) > 0 {
-			out.Custom = modeldecoderutil.ToKv(from.Context.Custom)
+			out.Custom = modeldecoderutil.ToKv(from.Context.Custom, out.Custom)
 		}
 		if len(from.Context.Tags) > 0 {
 			modeldecoderutil.MergeLabels(from.Context.Tags, event)
