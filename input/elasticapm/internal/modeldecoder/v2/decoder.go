@@ -457,7 +457,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 	}
 	if from.Exception.IsSet() {
 		out.Exception = modelpb.ExceptionFromVTPool()
-		mapToExceptionModel(from.Exception, out.Exception)
+		mapToExceptionModel(&from.Exception, out.Exception)
 	}
 	if from.ID.IsSet() {
 		out.Id = from.ID.Val
@@ -513,7 +513,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 	}
 }
 
-func mapToExceptionModel(from errorException, out *modelpb.Exception) {
+func mapToExceptionModel(from *errorException, out *modelpb.Exception) {
 	if len(from.Attributes) > 0 {
 		out.Attributes = modeldecoderutil.ToKv(from.Attributes, out.Attributes)
 	}
@@ -523,11 +523,12 @@ func mapToExceptionModel(from errorException, out *modelpb.Exception) {
 	if len(from.Cause) > 0 {
 		out.Cause = modeldecoderutil.Reslice(out.Cause, len(from.Cause), modelpb.ExceptionFromVTPool)
 		for i := 0; i < len(from.Cause); i++ {
-			mapToExceptionModel(from.Cause[i], out.Cause[i])
+			mapToExceptionModel(&from.Cause[i], out.Cause[i])
 		}
 	}
 	if from.Handled.IsSet() {
-		out.Handled = &from.Handled.Val
+		handled := from.Handled.Val
+		out.Handled = &handled
 	}
 	if from.Message.IsSet() {
 		out.Message = from.Message.Val
