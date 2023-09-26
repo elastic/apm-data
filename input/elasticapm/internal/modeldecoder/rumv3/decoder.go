@@ -386,7 +386,7 @@ func mapToMetadataModel(m *metadata, out *modelpb.APMEvent) {
 			out.User = modelpb.UserFromVTPool()
 		}
 		if m.User.Domain.IsSet() {
-			out.User.Domain = fmt.Sprint(m.User.Domain.Val)
+			out.User.Domain = m.User.Domain.Val
 		}
 		if m.User.ID.IsSet() {
 			out.User.Id = fmt.Sprint(m.User.ID.Val)
@@ -917,7 +917,7 @@ func overwriteUserInMetadataModel(from user, out *modelpb.APMEvent) {
 	}
 	out.User = modelpb.UserFromVTPool()
 	if from.Domain.IsSet() {
-		out.User.Domain = fmt.Sprint(from.Domain.Val)
+		out.User.Domain = from.Domain.Val
 	}
 	if from.ID.IsSet() {
 		out.User.Id = fmt.Sprint(from.ID.Val)
