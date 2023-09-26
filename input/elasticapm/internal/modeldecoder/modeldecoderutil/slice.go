@@ -17,26 +17,18 @@
 
 package modeldecoderutil
 
-import (
-	"github.com/elastic/apm-data/model/modelpb"
-	"google.golang.org/protobuf/types/known/structpb"
-)
-
-func ToKv(m map[string]any, out []*modelpb.KeyValue) []*modelpb.KeyValue {
-	m = normalizeMap(m)
-	if len(m) == 0 {
-		return nil
+// Reslice increases the slice's capacity, if necessary, to match n.
+// If specified, the newFn function is used to create the elements
+// to populate the additional space appended to the slice.
+func Reslice[Slice ~[]model, model any](slice Slice, n int, newFn func() model) Slice {
+	if diff := n - cap(slice); diff > 0 {
+		extra := make([]model, diff)
+		if newFn != nil {
+			for i := range extra {
+				extra[i] = newFn()
+			}
+		}
+		slice = append([]model(slice)[:cap(slice)], extra...)
 	}
-
-	out = Reslice(out, len(m), modelpb.KeyValueFromVTPool)
-
-	i := 0
-	for k, v := range m {
-		value, _ := structpb.NewValue(v)
-		out[i].Key = k
-		out[i].Value = value
-		i++
-	}
-
-	return out
+	return slice[:n]
 }

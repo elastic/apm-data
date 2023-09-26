@@ -449,7 +449,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			}
 		}
 		if len(from.Context.Custom) > 0 {
-			out.Custom = modeldecoderutil.ToKv(from.Context.Custom)
+			out.Custom = modeldecoderutil.ToKv(from.Context.Custom, out.Custom)
 		}
 	}
 	if from.Culprit.IsSet() {
@@ -477,7 +477,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			log.ParamMessage = from.Log.ParamMessage.Val
 		}
 		if len(from.Log.Stacktrace) > 0 {
-			log.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Log.Stacktrace))
+			log.Stacktrace = modeldecoderutil.Reslice(log.Stacktrace, len(from.Log.Stacktrace), modelpb.StacktraceFrameFromVTPool)
 			mapToStracktraceModel(from.Log.Stacktrace, log.Stacktrace)
 		}
 		out.Log = log
@@ -515,17 +515,15 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 
 func mapToExceptionModel(from errorException, out *modelpb.Exception) {
 	if len(from.Attributes) > 0 {
-		out.Attributes = modeldecoderutil.ToKv(from.Attributes)
+		out.Attributes = modeldecoderutil.ToKv(from.Attributes, out.Attributes)
 	}
 	if from.Code.IsSet() {
 		out.Code = modeldecoderutil.ExceptionCodeString(from.Code.Val)
 	}
 	if len(from.Cause) > 0 {
-		out.Cause = make([]*modelpb.Exception, len(from.Cause))
+		out.Cause = modeldecoderutil.Reslice(out.Cause, len(from.Cause), modelpb.ExceptionFromVTPool)
 		for i := 0; i < len(from.Cause); i++ {
-			ex := modelpb.ExceptionFromVTPool()
-			mapToExceptionModel(from.Cause[i], ex)
-			out.Cause[i] = ex
+			mapToExceptionModel(from.Cause[i], out.Cause[i])
 		}
 	}
 	if from.Handled.IsSet() {
@@ -538,7 +536,7 @@ func mapToExceptionModel(from errorException, out *modelpb.Exception) {
 		out.Module = from.Module.Val
 	}
 	if len(from.Stacktrace) > 0 {
-		out.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Stacktrace))
+		out.Stacktrace = modeldecoderutil.Reslice(out.Stacktrace, len(from.Stacktrace), modelpb.StacktraceFrameFromVTPool)
 		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
 	}
 	if from.Type.IsSet() {
@@ -804,34 +802,27 @@ func mapToMetricsetModel(from *metricset, event *modelpb.APMEvent) bool {
 	}
 
 	if len(from.Samples) > 0 {
-		samples := make([]*modelpb.MetricsetSample, 0, len(from.Samples))
+		event.Metricset.Samples = modeldecoderutil.Reslice(event.Metricset.Samples, len(from.Samples), modelpb.MetricsetSampleFromVTPool)
+		i := 0
 		for name, sample := range from.Samples {
-			var counts []uint64
-			var values []float64
-			var histogram *modelpb.Histogram
-			if n := len(sample.Values); n > 0 {
-				values = make([]float64, n)
-				copy(values, sample.Values)
+			ms := event.Metricset.Samples[i]
+			if len(sample.Counts) != 0 || len(sample.Values) != 0 {
+				ms.Histogram = modelpb.HistogramFromVTPool()
+				if n := len(sample.Values); n > 0 {
+					ms.Histogram.Values = modeldecoderutil.Reslice(ms.Histogram.Values, n, nil)
+					copy(ms.Histogram.Values, sample.Values)
+				}
+				if n := len(sample.Counts); n > 0 {
+					ms.Histogram.Counts = modeldecoderutil.Reslice(ms.Histogram.Counts, n, nil)
+					copy(ms.Histogram.Counts, sample.Counts)
+				}
 			}
-			if n := len(sample.Counts); n > 0 {
-				counts = make([]uint64, n)
-				copy(counts, sample.Counts)
-			}
-			if len(counts) != 0 || len(values) != 0 {
-				histogram = modelpb.HistogramFromVTPool()
-				histogram.Values = values
-				histogram.Counts = counts
-			}
-
-			ms := modelpb.MetricsetSampleFromVTPool()
 			ms.Type = metricTypeText[sample.Type.Val]
 			ms.Name = name
 			ms.Unit = sample.Unit.Val
 			ms.Value = sample.Value.Val
-			ms.Histogram = histogram
-			samples = append(samples, ms)
+			i++
 		}
-		event.Metricset.Samples = samples
 	}
 
 	if len(from.Tags) > 0 {
@@ -886,16 +877,16 @@ func mapToRequestModel(from contextRequest, out *modelpb.HTTPRequest) {
 		out.Method = from.Method.Val
 	}
 	if len(from.Env) > 0 {
-		out.Env = modeldecoderutil.ToKv(from.Env)
+		out.Env = modeldecoderutil.ToKv(from.Env, out.Env)
 	}
 	if from.Body.IsSet() {
 		out.Body = modeldecoderutil.ToValue(modeldecoderutil.NormalizeHTTPRequestBody(from.Body.Val))
 	}
 	if len(from.Cookies) > 0 {
-		out.Cookies = modeldecoderutil.ToKv(from.Cookies)
+		out.Cookies = modeldecoderutil.ToKv(from.Cookies, out.Cookies)
 	}
 	if from.Headers.IsSet() {
-		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
+		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val, out.Headers)
 	}
 }
 
@@ -936,7 +927,7 @@ func mapToResponseModel(from contextResponse, out *modelpb.HTTPResponse) {
 		out.Finished = &val
 	}
 	if from.Headers.IsSet() {
-		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
+		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val, out.Headers)
 	}
 	if from.HeadersSent.IsSet() {
 		val := from.HeadersSent.Val
@@ -1088,7 +1079,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		out.Composite = composite
 	}
 	if len(from.ChildIDs) > 0 {
-		event.ChildIds = make([]string, len(from.ChildIDs))
+		event.ChildIds = modeldecoderutil.Reslice(event.ChildIds, len(from.ChildIDs), nil)
 		copy(event.ChildIds, from.ChildIDs)
 	}
 	if from.Context.Database.IsSet() {
@@ -1174,7 +1165,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 				response.EncodedBodySize = &val
 			}
 			if from.Context.HTTP.Response.Headers.IsSet() {
-				response.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Context.HTTP.Response.Headers.Val)
+				response.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Context.HTTP.Response.Headers.Val, response.Headers)
 			}
 			if from.Context.HTTP.Response.StatusCode.IsSet() {
 				response.StatusCode = uint32(from.Context.HTTP.Response.StatusCode.Val)
@@ -1207,7 +1198,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 			message.Body = from.Context.Message.Body.Val
 		}
 		if from.Context.Message.Headers.IsSet() {
-			message.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Context.Message.Headers.Val)
+			message.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Context.Message.Headers.Val, message.Headers)
 		}
 		if from.Context.Message.Age.Milliseconds.IsSet() {
 			val := uint64(from.Context.Message.Age.Milliseconds.Val)
@@ -1280,7 +1271,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		out.RepresentativeCount = 1
 	}
 	if len(from.Stacktrace) > 0 {
-		out.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Stacktrace))
+		out.Stacktrace = modeldecoderutil.Reslice(out.Stacktrace, len(from.Stacktrace), modelpb.StacktraceFrameFromVTPool)
 		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
 	}
 	if from.Sync.IsSet() {
@@ -1307,7 +1298,8 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		mapOTelAttributesSpan(from.OTel, event)
 	}
 	if len(from.Links) > 0 {
-		mapSpanLinks(from.Links, &out.Links)
+		out.Links = modeldecoderutil.Reslice(out.Links, len(from.Links), modelpb.SpanLinkFromVTPool)
+		mapSpanLinks(from.Links, out.Links)
 	}
 	if out.Type == "" {
 		out.Type = "unknown"
@@ -1316,7 +1308,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 
 func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFrame) {
 	for idx, eventFrame := range from {
-		fr := modelpb.StacktraceFrameFromVTPool()
+		fr := out[idx]
 		if eventFrame.AbsPath.IsSet() {
 			fr.AbsPath = eventFrame.AbsPath.Val
 		}
@@ -1348,17 +1340,16 @@ func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFram
 			fr.Module = eventFrame.Module.Val
 		}
 		if len(eventFrame.PostContext) > 0 {
-			fr.PostContext = make([]string, len(eventFrame.PostContext))
+			fr.PostContext = modeldecoderutil.Reslice(fr.PostContext, len(eventFrame.PostContext), nil)
 			copy(fr.PostContext, eventFrame.PostContext)
 		}
 		if len(eventFrame.PreContext) > 0 {
-			fr.PreContext = make([]string, len(eventFrame.PreContext))
+			fr.PreContext = modeldecoderutil.Reslice(fr.PreContext, len(eventFrame.PreContext), nil)
 			copy(fr.PreContext, eventFrame.PreContext)
 		}
 		if len(eventFrame.Vars) > 0 {
-			fr.Vars = modeldecoderutil.ToKv(eventFrame.Vars)
+			fr.Vars = modeldecoderutil.ToKv(eventFrame.Vars, fr.Vars)
 		}
-		out[idx] = fr
 	}
 }
 
@@ -1390,7 +1381,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 
 	if from.Context.IsSet() {
 		if len(from.Context.Custom) > 0 {
-			out.Custom = modeldecoderutil.ToKv(from.Context.Custom)
+			out.Custom = modeldecoderutil.ToKv(from.Context.Custom, out.Custom)
 		}
 		if len(from.Context.Tags) > 0 {
 			modeldecoderutil.MergeLabels(from.Context.Tags, event)
@@ -1405,7 +1396,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 				out.Message.Body = from.Context.Message.Body.Val
 			}
 			if from.Context.Message.Headers.IsSet() {
-				out.Message.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Context.Message.Headers.Val)
+				out.Message.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Context.Message.Headers.Val, out.Message.Headers)
 			}
 			if from.Context.Message.Queue.IsSet() && from.Context.Message.Queue.Name.IsSet() {
 				out.Message.QueueName = from.Context.Message.Queue.Name.Val
@@ -1575,7 +1566,8 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 		if event.Span == nil {
 			event.Span = modelpb.SpanFromVTPool()
 		}
-		mapSpanLinks(from.Links, &event.Span.Links)
+		event.Span.Links = modeldecoderutil.Reslice(event.Span.Links, len(from.Links), modelpb.SpanLinkFromVTPool)
+		mapSpanLinks(from.Links, event.Span.Links)
 	}
 	if out.Type == "" {
 		out.Type = "unknown"
@@ -1885,13 +1877,10 @@ func isOTelDoubleAttribute(k string) bool {
 	return false
 }
 
-func mapSpanLinks(from []spanLink, out *[]*modelpb.SpanLink) {
-	*out = make([]*modelpb.SpanLink, len(from))
+func mapSpanLinks(from []spanLink, out []*modelpb.SpanLink) {
 	for i, link := range from {
-		sl := modelpb.SpanLinkFromVTPool()
-		sl.SpanId = link.SpanID.Val
-		sl.TraceId = link.TraceID.Val
-		(*out)[i] = sl
+		out[i].SpanId = link.SpanID.Val
+		out[i].TraceId = link.TraceID.Val
 	}
 }
 
