@@ -9,6 +9,7 @@ fmt:
 
 protolint:
 	docker run --volume "$(PWD):/workspace" --workdir /workspace bufbuild/buf lint model/proto
+	docker run --volume "$(PWD):/workspace" --workdir /workspace bufbuild/buf breaking model/proto --against https://github.com/elastic/apm-data.git#branch=main,subdir=model/proto
 
 gomodtidy:
 	go mod tidy -v
