@@ -808,9 +808,11 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	if from.Marks.IsSet() {
 		out.Marks = make(map[string]*modelpb.TransactionMark, len(from.Marks.Events))
 		for event, val := range from.Marks.Events {
-			tm := modelpb.TransactionMarkFromVTPool()
-			tm.Measurements = val.Measurements
-			out.Marks[event] = tm
+			if len(val.Measurements) > 0 {
+				tm := modelpb.TransactionMarkFromVTPool()
+				tm.Measurements = val.Measurements
+				out.Marks[event] = tm
+			}
 		}
 	}
 	if from.Name.IsSet() {
