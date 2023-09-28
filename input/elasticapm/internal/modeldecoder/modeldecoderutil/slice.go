@@ -22,13 +22,23 @@ package modeldecoderutil
 // to populate the additional space appended to the slice.
 func Reslice[Slice ~[]model, model any](slice Slice, n int, newFn func() model) Slice {
 	if diff := n - cap(slice); diff > 0 {
-		extra := make([]model, diff)
+		// start of the extra space
+		idx := cap(slice)
+
+		// Grow the slice
+		// Note: append gives no guarantee on the capacity of the resulting slice
+		// and might overallocate as long as there's enough space for n elements.
+		slice = append([]model(slice)[:cap(slice)], make([]model, diff)...)
 		if newFn != nil {
-			for i := range extra {
-				extra[i] = newFn()
+			// extend the slice to its capacity
+			slice = slice[:cap(slice)]
+
+			// populate the extra space
+			for ; idx < len(slice); idx++ {
+				slice[idx] = newFn()
 			}
 		}
-		slice = append([]model(slice)[:cap(slice)], extra...)
 	}
+
 	return slice[:n]
 }
