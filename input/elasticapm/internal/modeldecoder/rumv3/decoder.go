@@ -220,7 +220,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			}
 		}
 		if len(from.Context.Custom) > 0 {
-			out.Custom = modeldecoderutil.ToKv(from.Context.Custom)
+			out.Custom = modeldecoderutil.ToKv(from.Context.Custom, out.Custom)
 		}
 	}
 	if from.Culprit.IsSet() {
@@ -228,7 +228,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 	}
 	if from.Exception.IsSet() {
 		out.Exception = modelpb.ExceptionFromVTPool()
-		mapToExceptionModel(from.Exception, out.Exception)
+		mapToExceptionModel(&from.Exception, out.Exception)
 	}
 	if from.ID.IsSet() {
 		out.Id = from.ID.Val
@@ -251,7 +251,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			log.ParamMessage = from.Log.ParamMessage.Val
 		}
 		if len(from.Log.Stacktrace) > 0 {
-			log.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Log.Stacktrace))
+			log.Stacktrace = modeldecoderutil.Reslice(log.Stacktrace, len(from.Log.Stacktrace), modelpb.StacktraceFrameFromVTPool)
 			mapToStracktraceModel(from.Log.Stacktrace, log.Stacktrace)
 		}
 		out.Log = log
@@ -283,23 +283,22 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 	}
 }
 
-func mapToExceptionModel(from errorException, out *modelpb.Exception) {
+func mapToExceptionModel(from *errorException, out *modelpb.Exception) {
 	if len(from.Attributes) > 0 {
-		out.Attributes = modeldecoderutil.ToKv(from.Attributes)
+		out.Attributes = modeldecoderutil.ToKv(from.Attributes, out.Attributes)
 	}
 	if from.Code.IsSet() {
 		out.Code = modeldecoderutil.ExceptionCodeString(from.Code.Val)
 	}
 	if len(from.Cause) > 0 {
-		out.Cause = make([]*modelpb.Exception, len(from.Cause))
+		out.Cause = modeldecoderutil.Reslice(out.Cause, len(from.Cause), modelpb.ExceptionFromVTPool)
 		for i := 0; i < len(from.Cause); i++ {
-			ex := modelpb.ExceptionFromVTPool()
-			mapToExceptionModel(from.Cause[i], ex)
-			out.Cause[i] = ex
+			mapToExceptionModel(&from.Cause[i], out.Cause[i])
 		}
 	}
 	if from.Handled.IsSet() {
-		out.Handled = &from.Handled.Val
+		handled := from.Handled.Val
+		out.Handled = &handled
 	}
 	if from.Message.IsSet() {
 		out.Message = from.Message.Val
@@ -308,7 +307,7 @@ func mapToExceptionModel(from errorException, out *modelpb.Exception) {
 		out.Module = from.Module.Val
 	}
 	if len(from.Stacktrace) > 0 {
-		out.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Stacktrace))
+		out.Stacktrace = modeldecoderutil.Reslice(out.Stacktrace, len(from.Stacktrace), modelpb.StacktraceFrameFromVTPool)
 		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
 	}
 	if from.Type.IsSet() {
@@ -388,7 +387,7 @@ func mapToMetadataModel(m *metadata, out *modelpb.APMEvent) {
 			out.User = modelpb.UserFromVTPool()
 		}
 		if m.User.Domain.IsSet() {
-			out.User.Domain = fmt.Sprint(m.User.Domain.Val)
+			out.User.Domain = m.User.Domain.Val
 		}
 		if m.User.ID.IsSet() {
 			out.User.Id = fmt.Sprint(m.User.ID.Val)
@@ -450,7 +449,7 @@ func mapToTransactionMetricsetModel(from *transactionMetricset, event *modelpb.A
 
 func mapToResponseModel(from contextResponse, out *modelpb.HTTPResponse) {
 	if from.Headers.IsSet() {
-		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
+		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val, out.Headers)
 	}
 	if from.StatusCode.IsSet() {
 		out.StatusCode = uint32(from.StatusCode.Val)
@@ -474,10 +473,10 @@ func mapToRequestModel(from contextRequest, out *modelpb.HTTPRequest) {
 		out.Method = from.Method.Val
 	}
 	if len(from.Env) > 0 {
-		out.Env = modeldecoderutil.ToKv(from.Env)
+		out.Env = modeldecoderutil.ToKv(from.Env, out.Env)
 	}
 	if from.Headers.IsSet() {
-		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
+		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val, out.Headers)
 	}
 }
 
@@ -677,7 +676,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		out.RepresentativeCount = 1 / from.SampleRate.Val
 	}
 	if len(from.Stacktrace) > 0 {
-		out.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Stacktrace))
+		out.Stacktrace = modeldecoderutil.Reslice(out.Stacktrace, len(from.Stacktrace), modelpb.StacktraceFrameFromVTPool)
 		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
 	}
 	if from.Sync.IsSet() {
@@ -693,7 +692,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 
 func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFrame) {
 	for idx, eventFrame := range from {
-		fr := modelpb.StacktraceFrameFromVTPool()
+		fr := out[idx]
 		if eventFrame.AbsPath.IsSet() {
 			fr.AbsPath = eventFrame.AbsPath.Val
 		}
@@ -721,14 +720,13 @@ func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFram
 			fr.Module = eventFrame.Module.Val
 		}
 		if len(eventFrame.PostContext) > 0 {
-			fr.PostContext = make([]string, len(eventFrame.PostContext))
+			fr.PostContext = modeldecoderutil.Reslice(fr.PostContext, len(eventFrame.PostContext), nil)
 			copy(fr.PostContext, eventFrame.PostContext)
 		}
 		if len(eventFrame.PreContext) > 0 {
-			fr.PreContext = make([]string, len(eventFrame.PreContext))
+			fr.PreContext = modeldecoderutil.Reslice(fr.PreContext, len(eventFrame.PreContext), nil)
 			copy(fr.PreContext, eventFrame.PreContext)
 		}
-		out[idx] = fr
 	}
 }
 
@@ -761,7 +759,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	// map transaction specific data
 	if from.Context.IsSet() {
 		if len(from.Context.Custom) > 0 {
-			out.Custom = modeldecoderutil.ToKv(from.Context.Custom)
+			out.Custom = modeldecoderutil.ToKv(from.Context.Custom, out.Custom)
 		}
 		if len(from.Context.Tags) > 0 {
 			modeldecoderutil.MergeLabels(from.Context.Tags, event)
@@ -810,9 +808,11 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	if from.Marks.IsSet() {
 		out.Marks = make(map[string]*modelpb.TransactionMark, len(from.Marks.Events))
 		for event, val := range from.Marks.Events {
-			tm := modelpb.TransactionMarkFromVTPool()
-			tm.Measurements = val.Measurements
-			out.Marks[event] = tm
+			if len(val.Measurements) > 0 {
+				tm := modelpb.TransactionMarkFromVTPool()
+				tm.Measurements = val.Measurements
+				out.Marks[event] = tm
+			}
 		}
 	}
 	if from.Name.IsSet() {
@@ -920,7 +920,7 @@ func overwriteUserInMetadataModel(from user, out *modelpb.APMEvent) {
 	}
 	out.User = modelpb.UserFromVTPool()
 	if from.Domain.IsSet() {
-		out.User.Domain = fmt.Sprint(from.Domain.Val)
+		out.User.Domain = from.Domain.Val
 	}
 	if from.ID.IsSet() {
 		out.User.Id = fmt.Sprint(from.ID.Val)

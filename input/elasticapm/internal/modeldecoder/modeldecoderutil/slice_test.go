@@ -18,25 +18,40 @@
 package modeldecoderutil
 
 import (
+	"testing"
+
 	"github.com/elastic/apm-data/model/modelpb"
-	"google.golang.org/protobuf/types/known/structpb"
+	"github.com/stretchr/testify/assert"
 )
 
-func ToKv(m map[string]any, out []*modelpb.KeyValue) []*modelpb.KeyValue {
-	m = normalizeMap(m)
-	if len(m) == 0 {
-		return nil
+func TestReslice(t *testing.T) {
+	var s []*modelpb.APMEvent
+
+	originalSize := 10
+	s = Reslice(s, originalSize, modelpb.APMEventFromVTPool)
+	validateBackingArray(t, s, originalSize)
+	assert.Equal(t, originalSize, len(s))
+
+	downsize := 4
+	s = Reslice(s, downsize, nil)
+	validateBackingArray(t, s, downsize)
+	assert.Equal(t, downsize, len(s))
+
+	upsize := 21
+	s = Reslice(s, upsize, modelpb.APMEventFromVTPool)
+	validateBackingArray(t, s, upsize)
+	assert.Equal(t, upsize, len(s))
+}
+
+func validateBackingArray(t *testing.T, out []*modelpb.APMEvent, expectedLen int) {
+	t.Helper()
+
+	// validate length
+	assert.Equal(t, expectedLen, len(out))
+
+	// validate backing array is fully populated
+	backing := out[:cap(out)]
+	for i := 0; i < cap(backing); i++ {
+		assert.NotNil(t, backing[i])
 	}
-
-	out = Reslice(out, len(m), modelpb.KeyValueFromVTPool)
-
-	i := 0
-	for k, v := range m {
-		value, _ := structpb.NewValue(v)
-		out[i].Key = k
-		out[i].Value = value
-		i++
-	}
-
-	return out
 }
