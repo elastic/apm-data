@@ -100,7 +100,11 @@ func (c *Consumer) convertLogRecord(
 ) *modelpb.APMEvent {
 	event := baseEvent.CloneVT()
 	initEventLabels(event)
-	event.Timestamp = modelpb.FromTime(record.Timestamp().AsTime().Add(timeDelta))
+	if record.Timestamp() == 0 {
+		event.Timestamp = modelpb.FromTime(record.ObservedTimestamp().AsTime().Add(timeDelta))
+	} else {
+		event.Timestamp = modelpb.FromTime(record.Timestamp().AsTime().Add(timeDelta))
+	}
 	if event.Event == nil {
 		event.Event = modelpb.EventFromVTPool()
 	}
