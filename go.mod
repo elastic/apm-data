@@ -3,7 +3,6 @@ module github.com/elastic/apm-data
 go 1.20
 
 require (
-	github.com/gofrs/uuid v4.3.1+incompatible
 	github.com/google/go-cmp v0.5.9
 	github.com/jaegertracing/jaeger v1.38.1
 	github.com/json-iterator/go v1.1.12

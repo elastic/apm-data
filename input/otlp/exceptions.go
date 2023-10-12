@@ -36,12 +36,13 @@ package otlp
 
 import (
 	"bufio"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
+	"io"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/gofrs/uuid"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -65,9 +66,8 @@ func convertOpenTelemetryExceptionSpanEvent(
 	exceptionError.Exception.Message = exceptionMessage
 	exceptionError.Exception.Type = exceptionType
 	exceptionError.Exception.Handled = &exceptionHandled
-	// TODO(axw) replace github.com/gofrs/uuid, not worth having the dependency just for this.
-	if id, err := uuid.NewV4(); err == nil {
-		exceptionError.Id = id.String()
+	if id, err := newUUID(); err == nil {
+		exceptionError.Id = id
 	}
 	if exceptionStacktrace != "" {
 		if err := setExceptionStacktrace(exceptionStacktrace, language, exceptionError.Exception); err != nil {
@@ -214,4 +214,30 @@ func parseJavaStacktraceFrame(s string, out *modelpb.Exception) error {
 
 func isNotTab(r rune) bool {
 	return r != '\t'
+}
+
+func newUUID() (string, error) {
+	var u [16]byte
+	if _, err := io.ReadFull(rand.Reader, u[:]); err != nil {
+		return "", err
+	}
+	// set version V4
+	u[6] = (u[6] & 0x0f) | (4 << 4)
+	// set varian RFC4122
+	u[8] = (u[8]&(0xff>>2) | (0x02 << 6))
+
+	// convert to string
+	buf := make([]byte, 36)
+
+	hex.Encode(buf[0:8], u[0:4])
+	buf[8] = '-'
+	hex.Encode(buf[9:13], u[4:6])
+	buf[13] = '-'
+	hex.Encode(buf[14:18], u[6:8])
+	buf[18] = '-'
+	hex.Encode(buf[19:23], u[8:10])
+	buf[23] = '-'
+	hex.Encode(buf[24:], u[10:])
+
+	return string(buf), nil
 }
