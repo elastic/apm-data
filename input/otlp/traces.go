@@ -80,16 +80,14 @@ const (
 
 type ConsumeTracesResult struct {
 	RejectedSpans int64
-	AcceptedSpans int64
 }
 
 // ConsumeTraces consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
 // The returned ConsumeTracesResult contains the number of accepted and rejected spans.
 func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) (ConsumeTracesResult, error) {
-	totalCount := int64(traces.SpanCount())
 	if err := c.sem.Acquire(ctx, 1); err != nil {
-		return ConsumeTracesResult{RejectedSpans: totalCount}, err
+		return ConsumeTracesResult{}, err
 	}
 	defer c.sem.Release(1)
 
@@ -102,9 +100,9 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) (Con
 		c.convertResourceSpans(resourceSpans.At(i), receiveTimestamp, &batch)
 	}
 	if err := c.config.Processor.ProcessBatch(ctx, &batch); err != nil {
-		return ConsumeTracesResult{RejectedSpans: totalCount}, err
+		return ConsumeTracesResult{}, err
 	}
-	return ConsumeTracesResult{AcceptedSpans: totalCount}, nil
+	return ConsumeTracesResult{RejectedSpans: 0}, nil
 }
 
 func (c *Consumer) convertResourceSpans(

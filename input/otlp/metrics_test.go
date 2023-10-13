@@ -136,9 +136,7 @@ func TestConsumeMetrics(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectDropped, stats.UnsupportedMetricsDropped)
 	expectedResult := otlp.ConsumeMetricsResult{
-		AcceptedMetrics:    4,
 		RejectedMetrics:    2,
-		AcceptedDataPoints: 10,
 		RejectedDataPoints: 2,
 	}
 	assert.Equal(t, expectedResult, result)
@@ -282,7 +280,6 @@ func TestConsumeMetricsNaN(t *testing.T) {
 }
 
 func TestConsumeMetricsHostCPU(t *testing.T) {
-	var dpCount int64
 	metrics := pmetric.NewMetrics()
 	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
@@ -297,7 +294,6 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 		dp.SetDoubleValue(value)
 		dp.Attributes().FromRaw(attributes)
-		dpCount++
 	}
 
 	addFloat64Gauge("system.cpu.utilization", 0.8, map[string]interface{}{
@@ -539,11 +535,10 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 	}}
 
 	eventsMatch(t, expected, events)
-	assert.Equal(t, otlp.ConsumeMetricsResult{AcceptedDataPoints: dpCount, AcceptedMetrics: dpCount}, result)
+	assert.Equal(t, otlp.ConsumeMetricsResult{}, result)
 }
 
 func TestConsumeMetricsHostMemory(t *testing.T) {
-	var dpCount int64
 	metrics := pmetric.NewMetrics()
 	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
@@ -558,7 +553,6 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 		dp.SetIntValue(value)
 		dp.Attributes().FromRaw(attributes)
-		dpCount++
 	}
 	addInt64Sum("system.memory.usage", 4773351424, map[string]interface{}{
 		"state": "free",
@@ -603,11 +597,10 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 	}}
 
 	eventsMatch(t, expected, events)
-	assert.Equal(t, otlp.ConsumeMetricsResult{AcceptedDataPoints: dpCount, AcceptedMetrics: dpCount}, result)
+	assert.Equal(t, otlp.ConsumeMetricsResult{}, result)
 }
 
 func TestConsumeMetrics_JVM(t *testing.T) {
-	var dpCount int64
 	metrics := pmetric.NewMetrics()
 	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
@@ -623,7 +616,6 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 		dp.SetIntValue(value)
 		dp.Attributes().FromRaw(attributes)
-		dpCount++
 	}
 	addInt64Histogram := func(name string, counts []uint64, values []float64, attributes map[string]interface{}) {
 		metric := metricSlice.AppendEmpty()
@@ -634,7 +626,6 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		dp.BucketCounts().Append(counts...)
 		dp.ExplicitBounds().Append(values...)
 		dp.Attributes().FromRaw(attributes)
-		dpCount++
 	}
 
 	addInt64Gauge("process.runtime.jvm.memory.limit", 20000, map[string]interface{}{
@@ -690,7 +681,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	}}
 
 	eventsMatch(t, expected, events)
-	assert.Equal(t, otlp.ConsumeMetricsResult{AcceptedDataPoints: dpCount, AcceptedMetrics: dpCount}, result)
+	assert.Equal(t, otlp.ConsumeMetricsResult{}, result)
 }
 
 func TestConsumeMetricsExportTimestamp(t *testing.T) {

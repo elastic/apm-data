@@ -50,9 +50,7 @@ import (
 
 type ConsumeMetricsResult struct {
 	RejectedMetrics    int64
-	AcceptedMetrics    int64
 	RejectedDataPoints int64
-	AcceptedDataPoints int64
 }
 
 // ConsumeMetrics consumes OpenTelemetry metrics data, converting into
@@ -62,10 +60,7 @@ func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) 
 	totalDataPoints := int64(metrics.DataPointCount())
 	totalMetrics := int64(metrics.MetricCount())
 	if err := c.sem.Acquire(ctx, 1); err != nil {
-		return ConsumeMetricsResult{
-			RejectedDataPoints: totalDataPoints,
-			RejectedMetrics:    totalMetrics,
-		}, err
+		return ConsumeMetricsResult{}, err
 	}
 	defer c.sem.Release(1)
 
@@ -79,16 +74,10 @@ func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) 
 		atomic.AddInt64(&c.stats.unsupportedMetricsDropped, remainingMetrics)
 	}
 	if err := c.config.Processor.ProcessBatch(ctx, batch); err != nil {
-		// Assume that everything went wrong
-		return ConsumeMetricsResult{
-			RejectedDataPoints: totalDataPoints,
-			RejectedMetrics:    totalMetrics,
-		}, err
+		return ConsumeMetricsResult{}, err
 	}
 	return ConsumeMetricsResult{
-		AcceptedDataPoints: totalDataPoints - remainingDataPoints,
 		RejectedDataPoints: remainingDataPoints,
-		AcceptedMetrics:    totalMetrics - remainingMetrics,
 		RejectedMetrics:    remainingMetrics,
 	}, nil
 }

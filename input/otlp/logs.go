@@ -49,16 +49,14 @@ import (
 
 type ConsumeLogsResult struct {
 	RejectedLogRecords int64
-	AcceptedLogRecords int64
 }
 
 // ConsumeLogs consumes OpenTelemetry log data, converting into
 // the Elastic APM log model and sending to the reporter.
 // The returned ConsumeLogsResult contains the number of accepted and rejected log records.
 func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) (ConsumeLogsResult, error) {
-	totalCount := int64(logs.LogRecordCount()) // Use flattened log record count
 	if err := c.sem.Acquire(ctx, 1); err != nil {
-		return ConsumeLogsResult{RejectedLogRecords: totalCount}, err
+		return ConsumeLogsResult{}, err
 	}
 	defer c.sem.Release(1)
 
@@ -70,9 +68,9 @@ func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) (ConsumeLogs
 		c.convertResourceLogs(resourceLogs.At(i), receiveTimestamp, &batch)
 	}
 	if err := c.config.Processor.ProcessBatch(ctx, &batch); err != nil {
-		return ConsumeLogsResult{RejectedLogRecords: totalCount}, err
+		return ConsumeLogsResult{}, err
 	}
-	return ConsumeLogsResult{AcceptedLogRecords: totalCount}, nil
+	return ConsumeLogsResult{RejectedLogRecords: 0}, nil
 }
 
 func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTimestamp time.Time, out *modelpb.Batch) {
