@@ -99,5 +99,15 @@ jobs:
         script: |
           await core.summary
             .addHeading('Benchdiff')
-            .addDetails('Results', '${{ steps.benchdiff.outputs.benchstat_output }}')
+            .addCodeBlock(`${{ steps.benchdiff.outputs.benchstat_output }}`)
+            .write()
+
+    - name: Notify benchdiff with a GitHub summary with raw
+      continue-on-error: true
+      uses: actions/github-script@v6
+      with:
+        script: |
+          await core.summary
+            .addHeading('Benchdiff')
+            .addRaw(`${{ steps.benchdiff.outputs.benchstat_output }}`)
             .write()
