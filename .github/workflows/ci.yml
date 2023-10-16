@@ -49,6 +49,8 @@ jobs:
         go-version-file: go.mod
     # Version: https://github.com/WillAbides/benchdiff-action/releases/tag/v0.3.3
     - uses: WillAbides/benchdiff-action@4d1d267fa96763646dd7c0d58e242817ce392c61
+      id: benchdiff
+      continue-on-error: true
       with:
         benchdiff_version: 0.9.1
         status_sha: ${{ github.sha }}
@@ -65,3 +67,28 @@ jobs:
           --tolerance=20
           --benchmem
           --debug
+
+    - name: Notify benchdiff with a GitHub comment
+      continue-on-error: true
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const body = ```## Benchdiff
+          Command: `${{ steps.benchdiff.outputs.bench_command }}`
+          HEAD: ${{ steps.benchdiff.outputs.head_sha }}
+          Base: ${{ steps.benchdiff.outputs.base_sha }}
+          Degraded: ${{ steps.benchdiff.outputs.degraded_result }}
+
+          <details>
+          <summary>Results</summary>
+
+          ${{ steps.diff.outputs.benchstat_output }}
+
+          </details>
+          ```.replace(/  +/g, '')
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: body
+          })
