@@ -36,26 +36,11 @@ jobs:
 
   run-benchdiff:
     runs-on: ubuntu-latest
-    permissions:
-      # for the GitHub comment with the outcome
-      pull-requests: write
+    permissions: write-all
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - name: Notify with a GitHub comment and fail fast if no permissions
-      uses: actions/github-script@v6
-      with:
-        script: |
-          console.log(`Repo ${context.repo.repo}`)
-          console.log(`Issue ${context.issue.number}`)
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: "test"
-          })
-
     - uses: actions/setup-go@v4
       with:
         go-version-file: go.mod
@@ -106,3 +91,13 @@ jobs:
             repo: context.repo.repo,
             body: body
           })
+
+    - name: Notify benchdiff with a GitHub summary
+      continue-on-error: true
+      uses: actions/github-script@v6
+      with:
+        script: |
+          await core.summary
+            .addHeading('Benchdiff')
+            .addDetails('Results', '${{ steps.benchdiff.outputs.benchstat_output }}')
+            .write()
