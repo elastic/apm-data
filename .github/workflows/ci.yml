@@ -73,10 +73,10 @@ jobs:
       uses: actions/github-script@v6
       with:
         script: |
-          const body = ```## Benchdiff
-          Issue: `${context.issue.number}`
-          Repo: `${context.repo.repo}`
-          Command: `${{ steps.benchdiff.outputs.bench_command }}`
+          console.log(`Repo ${context.repo.repo}`)
+          console.log(`Issue ${context.issue.number}`)
+          const body = `## Benchdiff
+          Command: \`${{ steps.benchdiff.outputs.bench_command }}\`
           HEAD: ${{ steps.benchdiff.outputs.head_sha }}
           Base: ${{ steps.benchdiff.outputs.base_sha }}
           Degraded: ${{ steps.benchdiff.outputs.degraded_result }}
@@ -87,7 +87,7 @@ jobs:
           ${{ steps.benchdiff.outputs.benchstat_output }}
 
           </details>
-          ```.replace(/  +/g, '')
+          `.replace(/  +/g, '')
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
