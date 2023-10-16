@@ -1,6 +1,9 @@
 name: ci
 on: ["push", "pull_request"]
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -36,7 +39,8 @@ jobs:
 
   run-benchdiff:
     runs-on: ubuntu-latest
-    permissions: write-all
+    permissions:
+      checks: write
     steps:
     - uses: actions/checkout@v4
       with:
@@ -47,7 +51,6 @@ jobs:
     # Version: https://github.com/WillAbides/benchdiff-action/releases/tag/v0.3.3
     - uses: WillAbides/benchdiff-action@4d1d267fa96763646dd7c0d58e242817ce392c61
       id: benchdiff
-      continue-on-error: true
       with:
         benchdiff_version: 0.9.1
         status_sha: ${{ github.sha }}
@@ -64,50 +67,3 @@ jobs:
           --tolerance=20
           --benchmem
           --debug
-
-    - name: Notify benchdiff with a GitHub comment
-      continue-on-error: true
-      uses: actions/github-script@v6
-      with:
-        script: |
-          console.log(`Repo ${context.repo.repo}`)
-          console.log(`Issue ${context.issue.number}`)
-          const body = `## Benchdiff
-          Command: \`${{ steps.benchdiff.outputs.bench_command }}\`
-          HEAD: ${{ steps.benchdiff.outputs.head_sha }}
-          Base: ${{ steps.benchdiff.outputs.base_sha }}
-          Degraded: ${{ steps.benchdiff.outputs.degraded_result }}
-
-          <details>
-          <summary>Results</summary>
-
-          ${{ steps.benchdiff.outputs.benchstat_output }}
-
-          </details>
-          `.replace(/  +/g, '')
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: body
-          })
-
-    - name: Notify benchdiff with a GitHub summary
-      continue-on-error: true
-      uses: actions/github-script@v6
-      with:
-        script: |
-          await core.summary
-            .addHeading('Benchdiff')
-            .addCodeBlock(`${{ steps.benchdiff.outputs.benchstat_output }}`)
-            .write()
-
-    - name: Notify benchdiff with a GitHub summary with raw
-      continue-on-error: true
-      uses: actions/github-script@v6
-      with:
-        script: |
-          await core.summary
-            .addHeading('Benchdiff')
-            .addRaw(`${{ steps.benchdiff.outputs.benchstat_output }}`)
-            .write()
