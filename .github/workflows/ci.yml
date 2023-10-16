@@ -37,19 +37,7 @@ jobs:
     - name: Run tests
       run: make test
 
-  run-bench:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-go@v4
-      with:
-        go-version-file: go.mod
-    - name: Run bench
-      run: make bench
-      env:
-        BENCH_COUNT: 5
-
-  run-bench-report:
+  run-benchdiff:
     runs-on: ubuntu-latest
     permissions:
       checks: write
@@ -71,10 +59,10 @@ jobs:
         benchdiff_args: |
           --base-ref=origin/main
           --cpu=1,2
-          --count=10
+          --count=5
           --warmup-count=1
           --warmup-time=10ms
-          --benchtime=10ms
+          --benchtime=100ms
           --tolerance=20
           --benchmem
           --debug

@@ -4,12 +4,6 @@ all: generate-modelpb generate gomodtidy update-licenses fieldalignment fmt prot
 test:
 	go test -v -race ./...
 
-BENCH_BENCHTIME?=100ms
-BENCH_COUNT?=1
-.PHONY: bench
-bench:
-	go test -count=$(BENCH_COUNT) -benchmem -run=XXX -benchtime=$(BENCH_BENCHTIME) -bench='.*' ./...
-
 fmt:
 	go run golang.org/x/tools/cmd/goimports@v0.3.0 -w .
 
