@@ -36,3 +36,16 @@ jobs:
         cache: true
     - name: Run tests
       run: make test
+
+  run-bench:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
+      with:
+        go-version-file: go.mod
+        cache: true
+    - name: Run bench
+      run: make bench
+      env:
+        BENCH_COUNT: 5
