@@ -74,6 +74,8 @@ jobs:
       with:
         script: |
           const body = ```## Benchdiff
+          Issue: `${context.issue.number}`
+          Repo: `${context.repo.repo}`
           Command: `${{ steps.benchdiff.outputs.bench_command }}`
           HEAD: ${{ steps.benchdiff.outputs.head_sha }}
           Base: ${{ steps.benchdiff.outputs.base_sha }}
@@ -82,7 +84,7 @@ jobs:
           <details>
           <summary>Results</summary>
 
-          ${{ steps.diff.outputs.benchstat_output }}
+          ${{ steps.benchdiff.outputs.benchstat_output }}
 
           </details>
           ```.replace(/  +/g, '')
