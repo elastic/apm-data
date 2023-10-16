@@ -36,7 +36,9 @@ jobs:
 
   run-benchdiff:
     runs-on: ubuntu-latest
-    permissions: write-all
+    permissions:
+      # for the GitHub comment with the outcome
+      pull-requests: write
     steps:
     - uses: actions/checkout@v4
       with:
