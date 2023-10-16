@@ -49,3 +49,25 @@ jobs:
       run: make bench
       env:
         BENCH_COUNT: 5
+
+  run-bench-report:
+    runs-on: ubuntu-latest
+    steps:
+    # Version: https://github.com/WillAbides/benchdiff-action/releases/tag/v0.3.3
+    - uses: WillAbides/benchdiff-action@4d1d267fa96763646dd7c0d58e242817ce392c61
+      with:
+        benchdiff_version: 0.9.1
+        status_sha: ${{ github.sha }}
+        status_name: benchdiff-result
+        status_on_degraded: neutral
+        # See https://github.com/WillAbides/benchdiff
+        benchdiff_args: |
+          --base-ref=origin/main
+          --cpu=1,2
+          --count=10
+          --warmup-count=1
+          --warmup-time=10ms
+          --benchtime=10ms
+          --tolerance=20
+          --benchmem
+          --debug
