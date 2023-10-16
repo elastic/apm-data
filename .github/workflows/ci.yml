@@ -39,9 +39,7 @@ jobs:
 
   run-benchdiff:
     runs-on: ubuntu-latest
-    permissions:
-      checks: write
-      pull-requests: write
+    permissions: write-all
     steps:
     - uses: actions/checkout@v4
       with:
