@@ -53,7 +53,7 @@ type ConsumeLogsResult struct {
 
 // ConsumeLogs consumes OpenTelemetry log data, converting into
 // the Elastic APM log model and sending to the reporter.
-// The returned ConsumeLogsResult contains the number of accepted and rejected log records.
+// The returned ConsumeLogsResult contains the number of rejected log records.
 func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) (ConsumeLogsResult, error) {
 	if err := c.sem.Acquire(ctx, 1); err != nil {
 		return ConsumeLogsResult{}, err
