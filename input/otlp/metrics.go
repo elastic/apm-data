@@ -49,7 +49,6 @@ import (
 )
 
 type ConsumeMetricsResult struct {
-	RejectedMetrics    int64
 	RejectedDataPoints int64
 }
 
@@ -78,7 +77,6 @@ func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) 
 	}
 	return ConsumeMetricsResult{
 		RejectedDataPoints: remainingDataPoints,
-		RejectedMetrics:    remainingMetrics,
 	}, nil
 }
 
