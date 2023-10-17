@@ -54,7 +54,7 @@ type ConsumeMetricsResult struct {
 
 // ConsumeMetrics consumes OpenTelemetry metrics data, converting into
 // the Elastic APM metrics model and sending to the reporter.
-// The returned ConsumeMetricsResult contains the number of {accepted,rejected} {data points,metrics}.
+// The returned ConsumeMetricsResult contains the number of rejected data points.
 func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) (ConsumeMetricsResult, error) {
 	totalDataPoints := int64(metrics.DataPointCount())
 	totalMetrics := int64(metrics.MetricCount())
