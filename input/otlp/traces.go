@@ -84,7 +84,7 @@ type ConsumeTracesResult struct {
 
 // ConsumeTraces consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
-// The returned ConsumeTracesResult contains the number of accepted and rejected spans.
+// The returned ConsumeTracesResult contains the number of rejected spans.
 func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) (ConsumeTracesResult, error) {
 	if err := c.sem.Acquire(ctx, 1); err != nil {
 		return ConsumeTracesResult{}, err
