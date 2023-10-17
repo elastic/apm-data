@@ -132,8 +132,13 @@ func TestConsumeMetrics(t *testing.T) {
 	invalidHistogramDP.ExplicitBounds().Append( /* should be non-empty */ )
 	expectDropped++
 
-	events, stats := transformMetrics(t, metrics)
+	events, stats, result, err := transformMetrics(t, metrics)
+	assert.NoError(t, err)
 	assert.Equal(t, expectDropped, stats.UnsupportedMetricsDropped)
+	expectedResult := otlp.ConsumeMetricsResult{
+		RejectedDataPoints: 2,
+	}
+	assert.Equal(t, expectedResult, result)
 
 	service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
 	agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
@@ -233,19 +238,23 @@ func TestConsumeMetricsSemaphore(t *testing.T) {
 	startCh := make(chan struct{})
 	go func() {
 		close(startCh)
-		assert.NoError(t, consumer.ConsumeMetrics(context.Background(), metrics))
+		_, err := consumer.ConsumeMetrics(context.Background(), metrics)
+		assert.NoError(t, err)
 	}()
 
 	<-startCh
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
-	assert.Equal(t, consumer.ConsumeMetrics(ctx, metrics).Error(), "context deadline exceeded")
+	_, err := consumer.ConsumeMetrics(ctx, metrics)
+	assert.Equal(t, err.Error(), "context deadline exceeded")
 	close(doneCh)
 
-	assert.NoError(t, consumer.ConsumeMetrics(context.Background(), metrics))
+	_, err = consumer.ConsumeMetrics(context.Background(), metrics)
+	assert.NoError(t, err)
 }
 
 func TestConsumeMetricsNaN(t *testing.T) {
+	var dpCount int64
 	timestamp := time.Unix(123, 0).UTC()
 	metrics := pmetric.NewMetrics()
 	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
@@ -259,10 +268,13 @@ func TestConsumeMetricsNaN(t *testing.T) {
 		dp := gauge.DataPoints().AppendEmpty()
 		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 		dp.SetDoubleValue(value)
+		dpCount++
 	}
 
-	events, stats := transformMetrics(t, metrics)
+	events, stats, result, err := transformMetrics(t, metrics)
+	assert.NoError(t, err)
 	assert.Equal(t, int64(3), stats.UnsupportedMetricsDropped)
+	assert.Equal(t, otlp.ConsumeMetricsResult{RejectedDataPoints: dpCount}, result)
 	assert.Empty(t, events)
 }
 
@@ -335,7 +347,8 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		"cpu":   "3",
 	})
 
-	events, _ := transformMetrics(t, metrics)
+	events, _, result, err := transformMetrics(t, metrics)
+	assert.NoError(t, err)
 	service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
 	agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
 	expected := []*modelpb.APMEvent{{
@@ -521,6 +534,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 	}}
 
 	eventsMatch(t, expected, events)
+	assert.Equal(t, otlp.ConsumeMetricsResult{}, result)
 }
 
 func TestConsumeMetricsHostMemory(t *testing.T) {
@@ -545,7 +559,8 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 	addInt64Sum("system.memory.usage", 3563778048, map[string]interface{}{
 		"state": "used",
 	})
-	events, _ := transformMetrics(t, metrics)
+	events, _, result, err := transformMetrics(t, metrics)
+	assert.NoError(t, err)
 	service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
 	agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
 	expected := []*modelpb.APMEvent{{
@@ -581,6 +596,7 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 	}}
 
 	eventsMatch(t, expected, events)
+	assert.Equal(t, otlp.ConsumeMetricsResult{}, result)
 }
 
 func TestConsumeMetrics_JVM(t *testing.T) {
@@ -624,7 +640,8 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		"action": "end of minor GC",
 	})
 
-	events, _ := transformMetrics(t, metrics)
+	events, _, result, err := transformMetrics(t, metrics)
+	assert.NoError(t, err)
 	service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
 	agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
 	expected := []*modelpb.APMEvent{{
@@ -663,6 +680,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	}}
 
 	eventsMatch(t, expected, events)
+	assert.Equal(t, otlp.ConsumeMetricsResult{}, result)
 }
 
 func TestConsumeMetricsExportTimestamp(t *testing.T) {
@@ -693,7 +711,8 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 	dp.SetTimestamp(pcommon.NewTimestampFromTime(exportedDataPointTimestamp))
 	dp.SetIntValue(1)
 
-	events, _ := transformMetrics(t, metrics)
+	events, _, _, err := transformMetrics(t, metrics)
+	assert.NoError(t, err)
 	require.Len(t, events, 1)
 	assert.InDelta(t, modelpb.FromTime(now.Add(dataPointOffset)), events[0].Timestamp, float64(allowedError.Nanoseconds()))
 
@@ -720,7 +739,7 @@ func TestMetricsLogging(t *testing.T) {
 }
 */
 
-func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEvent, otlp.ConsumerStats) {
+func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEvent, otlp.ConsumerStats, otlp.ConsumeMetricsResult, error) {
 	var batches []*modelpb.Batch
 	recorder := batchRecorderBatchProcessor(&batches)
 
@@ -728,10 +747,9 @@ func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEven
 		Processor: recorder,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	err := consumer.ConsumeMetrics(context.Background(), metrics)
-	require.NoError(t, err)
+	result, err := consumer.ConsumeMetrics(context.Background(), metrics)
 	require.Len(t, batches, 1)
-	return *batches[0], consumer.Stats()
+	return *batches[0], consumer.Stats(), result, err
 }
 
 func eventsMatch(t *testing.T, expected []*modelpb.APMEvent, actual []*modelpb.APMEvent) {
