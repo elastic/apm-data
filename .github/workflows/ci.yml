@@ -50,6 +50,8 @@ jobs:
         go-version-file: go.mod
     # Version: https://github.com/WillAbides/benchdiff-action/releases/tag/v0.3.3
     - uses: WillAbides/benchdiff-action@4d1d267fa96763646dd7c0d58e242817ce392c61
+      ## As long as we cannot use write permissions on forked pull requests, then let's avoid failing
+      continue-on-error: true
       id: benchdiff
       with:
         benchdiff_version: 0.9.1
@@ -67,3 +69,10 @@ jobs:
           --tolerance=20
           --benchmem
           --debug
+
+    - run: echo "${{ steps.benchdiff.outputs.benchstat_output }}" > benchdiff-report.md
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: benchdiff-report
+        path: benchdiff-report.md
