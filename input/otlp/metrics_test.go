@@ -142,6 +142,7 @@ func TestConsumeMetrics(t *testing.T) {
 	assert.Equal(t, expectDropped, stats.UnsupportedMetricsDropped)
 	expectedResult := otlp.ConsumeMetricsResult{
 		RejectedDataPoints: 2,
+		ErrorMessage:       "unsupported data points",
 	}
 	assert.Equal(t, expectedResult, result)
 
@@ -279,7 +280,7 @@ func TestConsumeMetricsNaN(t *testing.T) {
 	events, stats, result, err := transformMetrics(t, metrics)
 	assert.NoError(t, err)
 	assert.Equal(t, int64(3), stats.UnsupportedMetricsDropped)
-	assert.Equal(t, otlp.ConsumeMetricsResult{RejectedDataPoints: dpCount}, result)
+	assert.Equal(t, otlp.ConsumeMetricsResult{RejectedDataPoints: dpCount, ErrorMessage: "unsupported data points"}, result)
 	assert.Empty(t, events)
 }
 
