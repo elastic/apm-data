@@ -487,7 +487,9 @@ func TestConsumerConsumeOTelLogsWithTimestamp(t *testing.T) {
 		Processor: processor,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
+	result, err := consumer.ConsumeLogs(context.Background(), logs)
+	assert.NoError(t, err)
+	assert.Equal(t, otlp.ConsumeLogsResult{}, result)
 
 	assert.Len(t, processed, 1)
 	assert.Equal(t, int(timestamp.AsTime().UnixNano()), int(processed[0].Timestamp))
@@ -518,7 +520,9 @@ func TestConsumerConsumeOTelLogsWithoutTimestamp(t *testing.T) {
 		Processor: processor,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
+	result, err := consumer.ConsumeLogs(context.Background(), logs)
+	assert.NoError(t, err)
+	assert.Equal(t, otlp.ConsumeLogsResult{}, result)
 
 	assert.Len(t, processed, 1)
 	assert.Equal(t, int(timestamp.AsTime().UnixNano()), int(processed[0].Timestamp))
@@ -550,7 +554,9 @@ func TestConsumerConsumeOTelLogsWithObservedTimestampWithoutTimestamp(t *testing
 		Processor: processor,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
+	result, err := consumer.ConsumeLogs(context.Background(), logs)
+	assert.NoError(t, err)
+	assert.Equal(t, otlp.ConsumeLogsResult{}, result)
 
 	assert.Len(t, processed, 1)
 	assert.Equal(t, int(observedTimestamp.AsTime().UnixNano()), int(processed[0].Timestamp))
