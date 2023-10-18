@@ -50,8 +50,8 @@ import (
 
 // ConsumeMetricsResult contains the number of rejected data points and error message for partial success response.
 type ConsumeMetricsResult struct {
-	RejectedDataPoints int64
 	ErrorMessage       string
+	RejectedDataPoints int64
 }
 
 // ConsumeMetrics calls ConsumeMetricsWithResult but ignores the result.

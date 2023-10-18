@@ -49,8 +49,8 @@ import (
 
 // ConsumeLogsResult contains the number of rejected log records and error message for partial success response.
 type ConsumeLogsResult struct {
-	RejectedLogRecords int64
 	ErrorMessage       string
+	RejectedLogRecords int64
 }
 
 // ConsumeLogs calls ConsumeLogsWithResult but ignores the result.

@@ -80,8 +80,8 @@ const (
 
 // ConsumeTracesResult contains the number of rejected spans and error message for partial success response.
 type ConsumeTracesResult struct {
-	RejectedSpans int64
 	ErrorMessage  string
+	RejectedSpans int64
 }
 
 // ConsumeTraces calls ConsumeTracesWithResult but ignores the result.
