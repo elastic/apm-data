@@ -47,9 +47,16 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
+type ConsumeLogsResult struct {
+	RejectedLogRecords int64
+}
+
+// ConsumeLogs consumes OpenTelemetry log data, converting into
+// the Elastic APM log model and sending to the reporter.
+// The returned ConsumeLogsResult contains the number of rejected log records.
+func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) (ConsumeLogsResult, error) {
 	if err := c.sem.Acquire(ctx, 1); err != nil {
-		return err
+		return ConsumeLogsResult{}, err
 	}
 	defer c.sem.Release(1)
 
@@ -60,7 +67,10 @@ func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
 	for i := 0; i < resourceLogs.Len(); i++ {
 		c.convertResourceLogs(resourceLogs.At(i), receiveTimestamp, &batch)
 	}
-	return c.config.Processor.ProcessBatch(ctx, &batch)
+	if err := c.config.Processor.ProcessBatch(ctx, &batch); err != nil {
+		return ConsumeLogsResult{}, err
+	}
+	return ConsumeLogsResult{RejectedLogRecords: 0}, nil
 }
 
 func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTimestamp time.Time, out *modelpb.Batch) {
