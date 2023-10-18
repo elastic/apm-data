@@ -78,11 +78,16 @@ const (
 	attributeDbElasticsearchClusterName = "db.elasticsearch.cluster.name"
 )
 
+type ConsumeTracesResult struct {
+	RejectedSpans int64
+}
+
 // ConsumeTraces consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
-func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) error {
+// The returned ConsumeTracesResult contains the number of rejected spans.
+func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) (ConsumeTracesResult, error) {
 	if err := c.sem.Acquire(ctx, 1); err != nil {
-		return err
+		return ConsumeTracesResult{}, err
 	}
 	defer c.sem.Release(1)
 
@@ -94,7 +99,10 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) erro
 	for i := 0; i < resourceSpans.Len(); i++ {
 		c.convertResourceSpans(resourceSpans.At(i), receiveTimestamp, &batch)
 	}
-	return c.config.Processor.ProcessBatch(ctx, &batch)
+	if err := c.config.Processor.ProcessBatch(ctx, &batch); err != nil {
+		return ConsumeTracesResult{}, err
+	}
+	return ConsumeTracesResult{RejectedSpans: 0}, nil
 }
 
 func (c *Consumer) convertResourceSpans(
