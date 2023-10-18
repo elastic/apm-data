@@ -50,6 +50,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/fastjson"
+	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
@@ -62,6 +63,10 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
+func TestConsumer_ConsumeTraces_Interface(t *testing.T) {
+	var _ consumer.Traces = otlp.NewConsumer(otlp.ConsumerConfig{})
+}
+
 func TestConsumer_ConsumeTraces_Empty(t *testing.T) {
 	var processor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
 		assert.Empty(t, batch)
@@ -73,7 +78,7 @@ func TestConsumer_ConsumeTraces_Empty(t *testing.T) {
 		Semaphore: semaphore.NewWeighted(100),
 	})
 	traces := ptrace.NewTraces()
-	result, err := consumer.ConsumeTraces(context.Background(), traces)
+	result, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
 	assert.NoError(t, err)
 	assert.Equal(t, otlp.ConsumeTracesResult{}, result)
 }
@@ -943,18 +948,18 @@ func TestConsumeTracesSemaphore(t *testing.T) {
 	startCh := make(chan struct{})
 	go func() {
 		close(startCh)
-		_, err := consumer.ConsumeTraces(context.Background(), traces)
+		_, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
 		assert.NoError(t, err)
 	}()
 
 	<-startCh
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
-	_, err := consumer.ConsumeTraces(ctx, traces)
+	_, err := consumer.ConsumeTracesWithResult(ctx, traces)
 	assert.Equal(t, err.Error(), "context deadline exceeded")
 	close(doneCh)
 
-	_, err = consumer.ConsumeTraces(context.Background(), traces)
+	_, err = consumer.ConsumeTracesWithResult(context.Background(), traces)
 	assert.NoError(t, err)
 }
 
@@ -1004,7 +1009,7 @@ func TestConsumer_JaegerMetadata(t *testing.T) {
 			jaegerBatch.Process = tc.process
 			traces, err := jaegertranslator.ProtoToTraces([]*jaegermodel.Batch{jaegerBatch})
 			require.NoError(t, err)
-			result, err := consumer.ConsumeTraces(context.Background(), traces)
+			result, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
 			require.NoError(t, err)
 			require.Equal(t, otlp.ConsumeTracesResult{}, result)
 
@@ -1074,7 +1079,7 @@ func TestConsumer_JaegerSampleRate(t *testing.T) {
 		Processor: recorder,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	result, err := consumer.ConsumeTraces(context.Background(), traces)
+	result, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
 	require.NoError(t, err)
 	require.Equal(t, otlp.ConsumeTracesResult{}, result)
 	require.Len(t, batches, 1)
@@ -1110,7 +1115,7 @@ func TestConsumer_JaegerTraceID(t *testing.T) {
 		}},
 	}})
 	require.NoError(t, err)
-	result, err := consumer.ConsumeTraces(context.Background(), traces)
+	result, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
 	require.NoError(t, err)
 	require.Equal(t, otlp.ConsumeTracesResult{}, result)
 
@@ -1240,7 +1245,7 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 				Processor: recorder,
 				Semaphore: semaphore.NewWeighted(100),
 			})
-			result, err := consumer.ConsumeTraces(context.Background(), traces)
+			result, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
 			require.NoError(t, err)
 			require.Equal(t, otlp.ConsumeTracesResult{}, result)
 
@@ -1362,7 +1367,7 @@ func TestConsumer_JaegerSpan(t *testing.T) {
 				Processor: recorder,
 				Semaphore: semaphore.NewWeighted(100),
 			})
-			result, err := consumer.ConsumeTraces(context.Background(), traces)
+			result, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
 			require.NoError(t, err)
 			require.Equal(t, otlp.ConsumeTracesResult{}, result)
 
@@ -1397,7 +1402,7 @@ func TestJaegerServiceVersion(t *testing.T) {
 		Processor: recorder,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	result, err := consumer.ConsumeTraces(context.Background(), traces)
+	result, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
 	require.NoError(t, err)
 	require.Equal(t, otlp.ConsumeTracesResult{}, result)
 
@@ -1808,7 +1813,7 @@ func transformTraces(t *testing.T, traces ptrace.Traces) *modelpb.Batch {
 		Processor: processor,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	_, err := consumer.ConsumeTraces(context.Background(), traces)
+	_, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
 	require.NoError(t, err)
 	return &processed
 }

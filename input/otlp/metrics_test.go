@@ -46,6 +46,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"golang.org/x/sync/semaphore"
@@ -54,6 +55,10 @@ import (
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
 )
+
+func TestConsumer_ConsumeMetrics_Interface(t *testing.T) {
+	var _ consumer.Metrics = otlp.NewConsumer(otlp.ConsumerConfig{})
+}
 
 func TestConsumeMetrics(t *testing.T) {
 	metrics := pmetric.NewMetrics()
@@ -238,18 +243,18 @@ func TestConsumeMetricsSemaphore(t *testing.T) {
 	startCh := make(chan struct{})
 	go func() {
 		close(startCh)
-		_, err := consumer.ConsumeMetrics(context.Background(), metrics)
+		_, err := consumer.ConsumeMetricsWithResult(context.Background(), metrics)
 		assert.NoError(t, err)
 	}()
 
 	<-startCh
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
-	_, err := consumer.ConsumeMetrics(ctx, metrics)
+	_, err := consumer.ConsumeMetricsWithResult(ctx, metrics)
 	assert.Equal(t, err.Error(), "context deadline exceeded")
 	close(doneCh)
 
-	_, err = consumer.ConsumeMetrics(context.Background(), metrics)
+	_, err = consumer.ConsumeMetricsWithResult(context.Background(), metrics)
 	assert.NoError(t, err)
 }
 
@@ -747,7 +752,7 @@ func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEven
 		Processor: recorder,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	result, err := consumer.ConsumeMetrics(context.Background(), metrics)
+	result, err := consumer.ConsumeMetricsWithResult(context.Background(), metrics)
 	require.Len(t, batches, 1)
 	return *batches[0], consumer.Stats(), result, err
 }
