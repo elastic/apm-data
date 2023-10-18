@@ -73,7 +73,21 @@ jobs:
     - name: Summary
       run: |
         echo "${{ steps.benchdiff.outputs.benchstat_output }}" > benchdiff-report.md
-        echo "${{ steps.benchdiff.outputs.benchstat_output }}" >> $GITHUB_STEP_SUMMARY
+        {
+          echo "## Benchdiff Results"
+          echo ""
+          echo "Command: `${{ steps.benchdiff.outputs.bench_command }}`"
+          echo "HEAD: ${{ steps.benchdiff.outputs.head_sha }}"
+          echo "Base: ${{ steps.benchdiff.outputs.base_sha }}"
+          echo "Degraded: ${{ steps.benchdiff.outputs.degraded_result }}"
+          echo ""
+          echo "<details>"
+          echo "<summary>Results</summary>"
+          echo ""
+          echo "${{ steps.benchdiff.outputs.benchstat_output }}"
+          echo ""
+          echo "</details>"
+        } >> $GITHUB_STEP_SUMMARY
 
     - uses: actions/upload-artifact@v3
       with:
