@@ -492,7 +492,7 @@ func TestConsumerConsumeOTelLogsWithTimestamp(t *testing.T) {
 		Processor: processor,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	result, err := consumer.ConsumeLogs(context.Background(), logs)
+	result, err := consumer.ConsumeLogsWithResult(context.Background(), logs)
 	assert.NoError(t, err)
 	assert.Equal(t, otlp.ConsumeLogsResult{}, result)
 
@@ -525,7 +525,7 @@ func TestConsumerConsumeOTelLogsWithoutTimestamp(t *testing.T) {
 		Processor: processor,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	result, err := consumer.ConsumeLogs(context.Background(), logs)
+	result, err := consumer.ConsumeLogsWithResult(context.Background(), logs)
 	assert.NoError(t, err)
 	assert.Equal(t, otlp.ConsumeLogsResult{}, result)
 
@@ -559,7 +559,7 @@ func TestConsumerConsumeOTelLogsWithObservedTimestampWithoutTimestamp(t *testing
 		Processor: processor,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	result, err := consumer.ConsumeLogs(context.Background(), logs)
+	result, err := consumer.ConsumeLogsWithResult(context.Background(), logs)
 	assert.NoError(t, err)
 	assert.Equal(t, otlp.ConsumeLogsResult{}, result)
 
