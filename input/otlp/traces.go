@@ -78,14 +78,22 @@ const (
 	attributeDbElasticsearchClusterName = "db.elasticsearch.cluster.name"
 )
 
+// ConsumeTracesResult contains the number of rejected spans and error message for partial success response.
 type ConsumeTracesResult struct {
+	ErrorMessage  string
 	RejectedSpans int64
 }
 
-// ConsumeTraces consumes OpenTelemetry trace data,
+// ConsumeTraces calls ConsumeTracesWithResult but ignores the result.
+// It exists to satisfy the go.opentelemetry.io/collector/consumer.Traces interface.
+func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) error {
+	_, err := c.ConsumeTracesWithResult(ctx, traces)
+	return err
+}
+
+// ConsumeTracesWithResult consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
-// The returned ConsumeTracesResult contains the number of rejected spans.
-func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) (ConsumeTracesResult, error) {
+func (c *Consumer) ConsumeTracesWithResult(ctx context.Context, traces ptrace.Traces) (ConsumeTracesResult, error) {
 	if err := c.sem.Acquire(ctx, 1); err != nil {
 		return ConsumeTracesResult{}, err
 	}
