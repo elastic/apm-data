@@ -48,14 +48,22 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
+// ConsumeMetricsResult contains the number of rejected data points and error message for partial success response.
 type ConsumeMetricsResult struct {
+	ErrorMessage       string
 	RejectedDataPoints int64
 }
 
-// ConsumeMetrics consumes OpenTelemetry metrics data, converting into
+// ConsumeMetrics calls ConsumeMetricsWithResult but ignores the result.
+// It exists to satisfy the go.opentelemetry.io/collector/consumer.Metrics interface.
+func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) error {
+	_, err := c.ConsumeMetricsWithResult(ctx, metrics)
+	return err
+}
+
+// ConsumeMetricsWithResult consumes OpenTelemetry metrics data, converting into
 // the Elastic APM metrics model and sending to the reporter.
-// The returned ConsumeMetricsResult contains the number of rejected data points.
-func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) (ConsumeMetricsResult, error) {
+func (c *Consumer) ConsumeMetricsWithResult(ctx context.Context, metrics pmetric.Metrics) (ConsumeMetricsResult, error) {
 	totalDataPoints := int64(metrics.DataPointCount())
 	totalMetrics := int64(metrics.MetricCount())
 	if err := c.sem.Acquire(ctx, 1); err != nil {
@@ -75,8 +83,13 @@ func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) 
 	if err := c.config.Processor.ProcessBatch(ctx, batch); err != nil {
 		return ConsumeMetricsResult{}, err
 	}
+	var errMsg string
+	if remainingDataPoints > 0 {
+		errMsg = "unsupported data points"
+	}
 	return ConsumeMetricsResult{
 		RejectedDataPoints: remainingDataPoints,
+		ErrorMessage:       errMsg,
 	}, nil
 }
 

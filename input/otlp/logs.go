@@ -47,14 +47,22 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
+// ConsumeLogsResult contains the number of rejected log records and error message for partial success response.
 type ConsumeLogsResult struct {
+	ErrorMessage       string
 	RejectedLogRecords int64
 }
 
-// ConsumeLogs consumes OpenTelemetry log data, converting into
+// ConsumeLogs calls ConsumeLogsWithResult but ignores the result.
+// It exists to satisfy the go.opentelemetry.io/collector/consumer.Logs interface.
+func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
+	_, err := c.ConsumeLogsWithResult(ctx, logs)
+	return err
+}
+
+// ConsumeLogsWithResult consumes OpenTelemetry log data, converting into
 // the Elastic APM log model and sending to the reporter.
-// The returned ConsumeLogsResult contains the number of rejected log records.
-func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) (ConsumeLogsResult, error) {
+func (c *Consumer) ConsumeLogsWithResult(ctx context.Context, logs plog.Logs) (ConsumeLogsResult, error) {
 	if err := c.sem.Acquire(ctx, 1); err != nil {
 		return ConsumeLogsResult{}, err
 	}

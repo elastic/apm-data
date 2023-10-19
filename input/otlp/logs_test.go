@@ -41,6 +41,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
@@ -51,6 +52,10 @@ import (
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
 )
+
+func TestConsumer_ConsumeLogs_Interface(t *testing.T) {
+	var _ consumer.Logs = otlp.NewConsumer(otlp.ConsumerConfig{})
+}
 
 func TestConsumerConsumeLogs(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
@@ -64,7 +69,7 @@ func TestConsumerConsumeLogs(t *testing.T) {
 			Semaphore: semaphore.NewWeighted(100),
 		})
 		logs := plog.NewLogs()
-		result, err := consumer.ConsumeLogs(context.Background(), logs)
+		result, err := consumer.ConsumeLogsWithResult(context.Background(), logs)
 		assert.NoError(t, err)
 		assert.Equal(t, otlp.ConsumeLogsResult{}, result)
 	})
@@ -194,7 +199,7 @@ func TestConsumerConsumeLogs(t *testing.T) {
 				Processor: processor,
 				Semaphore: semaphore.NewWeighted(100),
 			})
-			result, err := consumer.ConsumeLogs(context.Background(), logs)
+			result, err := consumer.ConsumeLogsWithResult(context.Background(), logs)
 			assert.NoError(t, err)
 			assert.Equal(t, otlp.ConsumeLogsResult{}, result)
 
@@ -235,18 +240,18 @@ func TestConsumeLogsSemaphore(t *testing.T) {
 	startCh := make(chan struct{})
 	go func() {
 		close(startCh)
-		_, err := consumer.ConsumeLogs(context.Background(), logs)
+		_, err := consumer.ConsumeLogsWithResult(context.Background(), logs)
 		assert.NoError(t, err)
 	}()
 
 	<-startCh
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
-	_, err := consumer.ConsumeLogs(ctx, logs)
+	_, err := consumer.ConsumeLogsWithResult(ctx, logs)
 	assert.Equal(t, err.Error(), "context deadline exceeded")
 	close(doneCh)
 
-	_, err = consumer.ConsumeLogs(context.Background(), logs)
+	_, err = consumer.ConsumeLogsWithResult(context.Background(), logs)
 	assert.NoError(t, err)
 }
 
@@ -300,7 +305,7 @@ Caused by: LowLevelException
 		Processor: processor,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	result, err := consumer.ConsumeLogs(context.Background(), logs)
+	result, err := consumer.ConsumeLogsWithResult(context.Background(), logs)
 	assert.NoError(t, err)
 	assert.Equal(t, otlp.ConsumeLogsResult{}, result)
 
@@ -452,7 +457,7 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 		Processor: processor,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	result, err := consumer.ConsumeLogs(context.Background(), logs)
+	result, err := consumer.ConsumeLogsWithResult(context.Background(), logs)
 	assert.NoError(t, err)
 	assert.Equal(t, otlp.ConsumeLogsResult{}, result)
 
@@ -597,7 +602,7 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 		Processor: processor,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	result, err := consumer.ConsumeLogs(context.Background(), logs)
+	result, err := consumer.ConsumeLogsWithResult(context.Background(), logs)
 	assert.NoError(t, err)
 	assert.Equal(t, otlp.ConsumeLogsResult{}, result)
 
