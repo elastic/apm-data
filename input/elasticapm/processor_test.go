@@ -170,6 +170,8 @@ func TestHandleStreamErrors(t *testing.T) {
 			},
 		},
 	}, {
+		name: "EmptyEvent",
+	}, {
 		name:     "TooLargeEvent",
 		payload:  validMetadata + "\n" + tooLargeEvent + "\n",
 		tooLarge: 1,
