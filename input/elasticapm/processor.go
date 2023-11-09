@@ -263,7 +263,7 @@ func (p *Processor) HandleStream(
 	// the batches are decoded synchronously, but the batch is processed
 	// asynchronously.
 	if err := p.semAcquire(ctx, async); err != nil {
-		return fmt.Errorf("failed to acquire semaphore: %w", err)
+		return fmt.Errorf("cannot acquire semaphore: %w", err)
 	}
 	sr := p.getStreamReader(reader)
 
@@ -284,7 +284,7 @@ func (p *Processor) HandleStream(
 		}
 		// no point in continuing if we couldn't read the metadata
 		if _, ok := err.(*InvalidInputError); ok {
-			return fmt.Errorf("invalid metadata in stream: %w", err)
+			return fmt.Errorf("cannot read metadata in stream: %w", err)
 		}
 		return &InvalidInputError{
 			Message:  err.Error(),
@@ -330,7 +330,7 @@ func (p *Processor) handleStream(
 	if async {
 		if !first {
 			if err := p.semAcquire(ctx, async); err != nil {
-				return fmt.Errorf("failed to acquire semaphore: %w", err)
+				return fmt.Errorf("cannot re-acquire semaphore: %w", err)
 			}
 		}
 		defer func() {
