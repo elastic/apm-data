@@ -180,11 +180,9 @@ func (c *Consumer) convertLogRecord(
 		return true
 	})
 
-	if exceptionMessage != "" && exceptionType != "" {
-		// Per OpenTelemetry semantic conventions:
-		//   `At least one of the following sets of attributes is required:
-		//   - exception.type
-		//   - exception.message`
+	// NOTE: we consider an error anything that contains an exception type
+	// or message, indipendently from the severity level.
+	if exceptionMessage != "" || exceptionType != "" {
 		event.Error = convertOpenTelemetryExceptionSpanEvent(
 			exceptionType, exceptionMessage, exceptionStacktrace,
 			exceptionEscaped, event.Service.Language.Name,
