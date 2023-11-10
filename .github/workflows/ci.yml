@@ -8,8 +8,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-go@v3
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v4
       with:
         go-version-file: go.mod
         cache: true
@@ -29,8 +29,8 @@ jobs:
   run-tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-go@v3
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v4
       with:
         go-version-file: go.mod
         cache: true
@@ -49,7 +49,7 @@ jobs:
       with:
         go-version-file: go.mod
     # Version: https://github.com/WillAbides/benchdiff-action/releases/tag/v0.3.3
-    - uses: WillAbides/benchdiff-action@4d1d267fa96763646dd7c0d58e242817ce392c61
+    - uses: WillAbides/benchdiff-action@73cb7d5d07b34bafea2335c606ff6e6f927db339
       ## As long as we cannot use write permissions on forked pull requests, then let's avoid failing
       continue-on-error: true
       id: benchdiff
