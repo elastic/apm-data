@@ -52,19 +52,36 @@ var (
 	javaStacktraceMoreRegexp = regexp.MustCompile(`\.\.\. ([0-9]+) more`)
 )
 
+const (
+	emptyExceptionMsg = "[EMPTY]"
+)
+
+// convertOpenTelemetryExceptionSpanEvent creates an otel Exception event
+// from the specified arguments.
+//
+// OpenTelemetry semantic convention require the presence of at least one
+// of the following attributes:
+// - exception.type
+// - exception.message
+// https://opentelemetry.io/docs/specs/semconv/exceptions/exceptions-spans/#attributes
+//
+// To fulfill this requirement we do not set exception.type if empty but
+// we always set exception.message defaulting to a constant value if empty.
 func convertOpenTelemetryExceptionSpanEvent(
 	exceptionType, exceptionMessage, exceptionStacktrace string,
 	exceptionEscaped bool,
 	language string,
 ) *modelpb.Error {
 	if exceptionMessage == "" {
-		exceptionMessage = "[EMPTY]"
+		exceptionMessage = emptyExceptionMsg
 	}
 	exceptionHandled := !exceptionEscaped
 	exceptionError := modelpb.ErrorFromVTPool()
 	exceptionError.Exception = modelpb.ExceptionFromVTPool()
 	exceptionError.Exception.Message = exceptionMessage
-	exceptionError.Exception.Type = exceptionType
+	if exceptionType != "" {
+		exceptionError.Exception.Type = exceptionType
+	}
 	exceptionError.Exception.Handled = &exceptionHandled
 	if id, err := newUniqueID(); err == nil {
 		exceptionError.Id = id
