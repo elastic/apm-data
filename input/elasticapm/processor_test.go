@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -60,7 +61,7 @@ func TestHandleStreamReaderError(t *testing.T) {
 		context.Background(), false, &modelpb.APMEvent{},
 		reader, 10, nopBatchProcessor{}, &actualResult,
 	)
-	assert.Equal(t, readErr, err)
+	assert.ErrorIs(t, err, readErr)
 	assert.Equal(t, Result{Accepted: 5}, actualResult)
 }
 
@@ -95,7 +96,7 @@ func TestHandleStreamBatchProcessorError(t *testing.T) {
 			context.Background(), false, &modelpb.APMEvent{},
 			strings.NewReader(payload), 10, processor, &actualResult,
 		)
-		assert.Equal(t, test.err, err)
+		assert.ErrorIs(t, err, test.err)
 		assert.Zero(t, actualResult)
 	}
 }
@@ -155,10 +156,10 @@ func TestHandleStreamErrors(t *testing.T) {
 	}, {
 		name:    "InvalidMetadata2",
 		payload: invalidMetadata2 + "\n",
-		err: &InvalidInputError{
+		err: fmt.Errorf("cannot read metadata in stream: %w", &InvalidInputError{
 			Message:  `"metadata" or "m" required`,
 			Document: invalidMetadata2,
-		},
+		}),
 	}, {
 		name:    "UnrecognizedEvent",
 		payload: validMetadata + "\n" + invalidEventType + "\n",
@@ -466,7 +467,7 @@ func TestConcurrentAsync(t *testing.T) {
 		// When the semaphore is full, `ErrQueueFull` is returned.
 		assert.Greater(t, len(res.Errors), 0)
 		for _, err := range res.Errors {
-			assert.EqualError(t, err, ErrQueueFull.Error())
+			assert.ErrorIs(t, err, ErrQueueFull)
 		}
 	})
 	t.Run("semaphore_empty", func(t *testing.T) {
