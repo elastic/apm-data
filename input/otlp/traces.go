@@ -76,6 +76,7 @@ const (
 	attributeUrlFull                    = "url.full"
 	attributeUserAgentOriginal          = "user_agent.original"
 	attributeDbElasticsearchClusterName = "db.elasticsearch.cluster.name"
+	attributeStackTrace                 = "code.stacktrace" // semconv 1.24 or laterd
 )
 
 // ConsumeTracesResult contains the number of rejected spans and error message for partial success response.
@@ -444,6 +445,9 @@ func TranslateTransaction(
 				// should set this as a resource attribute (OTel) or tracer
 				// tag (Jaeger).
 				event.Service.Version = stringval
+
+			case attributeStackTrace:
+				event.Span.OtelStacktrace = stringval
 			default:
 				modelpb.Labels(event.Labels).Set(k, stringval)
 			}
