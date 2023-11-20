@@ -41,6 +41,8 @@ message Span {
   repeated SpanLink links = 13;
   AggregatedDuration self_time = 14;
   double representative_count = 15;
+
+  string otel_stacktrace = 16;
 }
 
 message DB {
