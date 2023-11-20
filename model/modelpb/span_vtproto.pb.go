@@ -56,6 +56,7 @@ func (m *Span) CloneVT() *Span {
 	r.Name = m.Name
 	r.SelfTime = m.SelfTime.CloneVT()
 	r.RepresentativeCount = m.RepresentativeCount
+	r.OtelStacktrace = m.OtelStacktrace
 	if rhs := m.Sync; rhs != nil {
 		tmpVal := *rhs
 		r.Sync = &tmpVal
@@ -196,6 +197,15 @@ func (m *Span) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
+	}
+	if len(m.OtelStacktrace) > 0 {
+		i -= len(m.OtelStacktrace)
+		copy(dAtA[i:], m.OtelStacktrace)
+		i = encodeVarint(dAtA, i, uint64(len(m.OtelStacktrace)))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x82
 	}
 	if m.RepresentativeCount != 0 {
 		i -= 8
@@ -752,6 +762,10 @@ func (m *Span) SizeVT() (n int) {
 	}
 	if m.RepresentativeCount != 0 {
 		n += 9
+	}
+	l = len(m.OtelStacktrace)
+	if l > 0 {
+		n += 2 + l + sov(uint64(l))
 	}
 	n += len(m.unknownFields)
 	return n
@@ -1368,6 +1382,38 @@ func (m *Span) UnmarshalVT(dAtA []byte) error {
 			v = uint64(binary.LittleEndian.Uint64(dAtA[iNdEx:]))
 			iNdEx += 8
 			m.RepresentativeCount = float64(math.Float64frombits(v))
+		case 16:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OtelStacktrace", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OtelStacktrace = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skip(dAtA[iNdEx:])
