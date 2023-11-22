@@ -42,7 +42,11 @@ message Span {
   AggregatedDuration self_time = 14;
   double representative_count = 15;
 
-  string otel_stacktrace = 16;
+  Code code = 16;
+}
+
+message Code {
+  string stacktrace = 1;
 }
 
 message DB {

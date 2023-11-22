@@ -1597,16 +1597,11 @@ func TestGRPCTransactionFromNodejsSDK(t *testing.T) {
 }
 
 func TestSpanCodeStacktrace(t *testing.T) {
-	test := func(t *testing.T, expected string, attrs map[string]interface{}) {
-		t.Helper()
-		event := transformSpanWithAttributes(t, attrs)
-		assert.Equal(t, expected, event.Span.OtelStacktrace)
-	}
-
 	t.Run("code stacktrace", func(t *testing.T) {
-		test(t, "stacktrace value", map[string]interface{}{
+		event := transformSpanWithAttributes(t, map[string]interface{}{
 			"code.stacktrace": "stacktrace value",
 		})
+		assert.Equal(t, "stacktrace value", event.Span.Code.Stacktrace)
 	})
 }
 
