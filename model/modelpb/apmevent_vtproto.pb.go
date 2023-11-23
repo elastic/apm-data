@@ -72,6 +72,7 @@ func (m *APMEvent) CloneVT() *APMEvent {
 	r.Session = m.Session.CloneVT()
 	r.Process = m.Process.CloneVT()
 	r.Event = m.Event.CloneVT()
+	r.Code = m.Code.CloneVT()
 	if rhs := m.NumericLabels; rhs != nil {
 		tmpContainer := make(map[string]*NumericLabelValue, len(rhs))
 		for k, v := range rhs {
@@ -131,6 +132,18 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
+	}
+	if m.Code != nil {
+		size, err := m.Code.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0x92
 	}
 	if m.Event != nil {
 		size, err := m.Event.MarshalToSizedBufferVT(dAtA[:i])
@@ -549,6 +562,7 @@ func (m *APMEvent) ResetVT() {
 		m.Session.ReturnToVTPool()
 		m.Process.ReturnToVTPool()
 		m.Event.ReturnToVTPool()
+		m.Code.ReturnToVTPool()
 		m.Reset()
 		m.ChildIds = f0
 	}
@@ -717,6 +731,10 @@ func (m *APMEvent) SizeVT() (n int) {
 	}
 	if m.Event != nil {
 		l = m.Event.SizeVT()
+		n += 2 + l + sov(uint64(l))
+	}
+	if m.Code != nil {
+		l = m.Code.SizeVT()
 		n += 2 + l + sov(uint64(l))
 	}
 	n += len(m.unknownFields)
@@ -2094,6 +2112,42 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				m.Event = EventFromVTPool()
 			}
 			if err := m.Event.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 34:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Code", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLength
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Code == nil {
+				m.Code = CodeFromVTPool()
+			}
+			if err := m.Code.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

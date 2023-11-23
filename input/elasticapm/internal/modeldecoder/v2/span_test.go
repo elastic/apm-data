@@ -112,9 +112,6 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				// Derived using service.target.*
 				"destination_service.Resource",
 
-				// only provided for otel-based agents
-				"code",
-
 				// Not set for spans:
 				"destination_service.response_time",
 				"destination_service.ResponseTime.Count",

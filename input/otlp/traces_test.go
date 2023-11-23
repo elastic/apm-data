@@ -1601,7 +1601,7 @@ func TestSpanCodeStacktrace(t *testing.T) {
 		event := transformSpanWithAttributes(t, map[string]interface{}{
 			"code.stacktrace": "stacktrace value",
 		})
-		assert.Equal(t, "stacktrace value", event.Span.Code.Stacktrace)
+		assert.Equal(t, "stacktrace value", event.Code.Stacktrace)
 	})
 }
 

@@ -22,6 +22,7 @@ package elastic.apm.v1;
 import "agent.proto";
 import "client.proto";
 import "cloud.proto";
+import "code.proto";
 import "container.proto";
 import "datastream.proto";
 import "destination.proto";
@@ -89,4 +90,5 @@ message APMEvent {
   Session session = 31;
   Process process = 32;
   Event event = 33;
+  Code code = 34;
 }

@@ -243,7 +243,6 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"representative_count",
 				"stacktrace.library_frame",
 				"stacktrace.vars",
-				"code",
 				// stacktrace original and sourcemap values are set when sourcemapping is applied
 				"stacktrace.original",
 				"stacktrace.sourcemap",
