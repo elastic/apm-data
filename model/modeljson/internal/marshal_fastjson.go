@@ -601,6 +601,12 @@ func (v *Document) MarshalFastJSON(w *fastjson.Writer) error {
 			firstErr = err
 		}
 	}
+	if v.Code != nil {
+		w.RawString(",\"code\":")
+		if err := v.Code.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
 	if v.Container != nil {
 		w.RawString(",\"container\":")
 		if err := v.Container.MarshalFastJSON(w); err != nil && firstErr == nil {
