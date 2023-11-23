@@ -22,6 +22,7 @@ type Span struct {
 	Composite           *SpanComposite     `json:"composite,omitempty"`
 	Destination         *SpanDestination   `json:"destination,omitempty"`
 	DB                  *DB                `json:"db,omitempty"`
+	Code                *Code              `json:"code,omitempty"`
 	Sync                *bool              `json:"sync,omitempty"`
 	Kind                string             `json:"kind,omitempty"`
 	Action              string             `json:"action,omitempty"`
@@ -33,6 +34,10 @@ type Span struct {
 	Links               []SpanLink         `json:"links,omitempty"`
 	SelfTime            AggregatedDuration `json:"self_time,omitempty"`
 	RepresentativeCount float64            `json:"representative_count,omitempty"`
+}
+
+type Code struct {
+	Stacktrace string `json:"stacktrace,omitempty"`
 }
 
 type SpanDestination struct {

@@ -748,9 +748,6 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				isHTTP = true
 
 			case attributeStackTrace:
-				if event.Span.Code == nil {
-					event.Span.Code = modelpb.CodeFromVTPool()
-				}
 				event.Span.Code.Stacktrace = stringval
 
 			// miscellaneous
