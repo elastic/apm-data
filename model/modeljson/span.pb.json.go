@@ -93,6 +93,12 @@ func SpanModelJSON(e *modelpb.Span, out *modeljson.Span) {
 			}
 		}
 	}
+	if e.Code != nil {
+		out.Code = &modeljson.Code{
+			Stacktrace: e.Code.Stacktrace,
+		}
+	}
+
 	if n := len(e.Links); n > 0 {
 		out.Links = make([]modeljson.SpanLink, n)
 		for i, link := range e.Links {
