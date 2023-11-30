@@ -915,11 +915,18 @@ func TestSpanLinks(t *testing.T) {
 	spanLink.SetSpanID(linkedSpanID)
 	spanLink.SetTraceID(linkedTraceID)
 
+	childSpanID := pcommon.SpanID{16, 17, 18, 19, 20, 21, 22, 23}
+	childLink := ptrace.NewSpanLink()
+	childLink.SetSpanID(childSpanID)
+	childLink.SetTraceID(linkedTraceID)
+	childLink.Attributes().PutBool("elastic.is_child", true)
+
 	txEvent := transformTransactionWithAttributes(t, map[string]interface{}{}, func(span ptrace.Span) {
 		spanLink.CopyTo(span.Links().AppendEmpty())
 	})
-	spanEvent := transformTransactionWithAttributes(t, map[string]interface{}{}, func(span ptrace.Span) {
+	spanEvent := transformSpanWithAttributes(t, map[string]interface{}{}, func(span ptrace.Span) {
 		spanLink.CopyTo(span.Links().AppendEmpty())
+		childLink.CopyTo(span.Links().AppendEmpty())
 	})
 	for _, event := range []*modelpb.APMEvent{txEvent, spanEvent} {
 		assert.Equal(t, []*modelpb.SpanLink{{
@@ -927,6 +934,7 @@ func TestSpanLinks(t *testing.T) {
 			TraceId: "000102030405060708090a0b0c0d0e0f",
 		}}, event.Span.Links)
 	}
+	assert.Equal(t, spanEvent.ChildIds, []string{"1011121314151617"})
 }
 
 func TestConsumeTracesSemaphore(t *testing.T) {
