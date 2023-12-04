@@ -7,7 +7,7 @@
                 "version": "unknown"
             },
             "event": {
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "host": {
                 "hostname": "host-abc"
@@ -31,6 +31,7 @@
                     }
                 },
                 "representative_count": 1,
+                "result": "Success",
                 "sampled": true,
                 "type": "messaging"
             }

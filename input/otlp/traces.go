@@ -468,11 +468,12 @@ func TranslateTransaction(
 		}
 
 		// Set outcome nad result from status code.
+		// However, if outcome was explicitly set to failure, preserve it
 		if statusCode := httpResponse.StatusCode; statusCode > 0 {
-			if event.Event.Outcome == outcomeUnknown {
+			if event.Event.Outcome != outcomeFailure {
 				event.Event.Outcome = serverHTTPStatusCodeOutcome(int(statusCode))
 			}
-			if event.Transaction.Result == "" {
+			if event.Transaction.Result != "Error" {
 				event.Transaction.Result = httpStatusCodeResult(int(statusCode))
 			}
 		}
@@ -815,7 +816,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 	}
 
 	if isHTTP {
-		if httpResponse.StatusCode > 0 && event.Event.Outcome == outcomeUnknown {
+		if httpResponse.StatusCode > 0 {
 			event.Event.Outcome = clientHTTPStatusCodeOutcome(int(httpResponse.StatusCode))
 		}
 		if http.SizeVT() != 0 {
@@ -1183,9 +1184,11 @@ func replaceDots(s string) string {
 
 // spanStatusOutcome returns the outcome for transactions and spans based on
 // the given OTLP span status.
+// we translate status into success in case it is not ERROR
+// reference: https://opentelemetry.io/docs/concepts/signals/traces/#span-status
 func spanStatusOutcome(status ptrace.Status) string {
 	switch status.Code() {
-	case ptrace.StatusCodeOk:
+	case ptrace.StatusCodeOk, ptrace.StatusCodeUnset:
 		return outcomeSuccess
 	case ptrace.StatusCodeError:
 		return outcomeFailure
@@ -1198,7 +1201,7 @@ func spanStatusOutcome(status ptrace.Status) string {
 // is returned.
 func spanStatusResult(status ptrace.Status) string {
 	switch status.Code() {
-	case ptrace.StatusCodeOk:
+	case ptrace.StatusCodeOk, ptrace.StatusCodeUnset:
 		return "Success"
 	case ptrace.StatusCodeError:
 		return "Error"
