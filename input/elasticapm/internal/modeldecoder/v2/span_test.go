@@ -172,17 +172,18 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		input.Context.HTTP.StatusCode.Set(http.StatusBadRequest)
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, "failure", out.Event.Outcome)
-		// derive from other fields - success
-		input.Outcome.Reset()
-		input.Context.HTTP.StatusCode.Reset()
-		mapToSpanModel(&input, &out)
-		assert.Equal(t, "success", out.Event.Outcome)
-		// derive from other fields - unknown when not otel
+		// derive from other fields - unknown
 		input.Outcome.Reset()
 		input.OTel.Reset()
 		input.Context.HTTP.StatusCode.Reset()
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, "unknown", out.Event.Outcome)
+		// outcome is success when not assigned and it's otel
+		input.Outcome.Reset()
+		input.OTel.SpanKind.Set(spanKindInternal)
+		input.Context.HTTP.StatusCode.Reset()
+		mapToSpanModel(&input, &out)
+		assert.Equal(t, "success", out.Event.Outcome)
 	})
 
 	t.Run("timestamp", func(t *testing.T) {
