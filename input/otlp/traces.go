@@ -468,12 +468,11 @@ func TranslateTransaction(
 		}
 
 		// Set outcome nad result from status code.
-		// However, if outcome was explicitly set to failure, preserve it
 		if statusCode := httpResponse.StatusCode; statusCode > 0 {
-			if event.Event.Outcome != outcomeFailure {
+			if event.Event.Outcome == outcomeUnknown {
 				event.Event.Outcome = serverHTTPStatusCodeOutcome(int(statusCode))
 			}
-			if event.Transaction.Result != "Error" {
+			if event.Transaction.Result == "" {
 				event.Transaction.Result = httpStatusCodeResult(int(statusCode))
 			}
 		}
@@ -520,6 +519,14 @@ func TranslateTransaction(
 		event.Service.Framework = modelpb.FrameworkFromVTPool()
 		event.Service.Framework.Name = name
 		event.Service.Framework.Version = library.Version()
+	}
+
+	// if outcome and result are still not assigned, assign success
+	if event.Event.Outcome == outcomeUnknown {
+		event.Event.Outcome = outcomeSuccess
+		if event.Transaction.Result == "" {
+			event.Transaction.Result = "Success"
+		}
 	}
 }
 
@@ -816,7 +823,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 	}
 
 	if isHTTP {
-		if httpResponse.StatusCode > 0 {
+		if httpResponse.StatusCode > 0 && event.Event.Outcome == outcomeUnknown {
 			event.Event.Outcome = clientHTTPStatusCodeOutcome(int(httpResponse.StatusCode))
 		}
 		if http.SizeVT() != 0 {
@@ -945,6 +952,11 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 	if samplerType != (pcommon.Value{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate transaction metrics.
 		parseSamplerAttributes(samplerType, samplerParam, event)
+	}
+
+	// if outcome is still not assigned, assign success
+	if event.Event.Outcome == outcomeUnknown {
+		event.Event.Outcome = outcomeSuccess
 	}
 }
 
@@ -1184,11 +1196,9 @@ func replaceDots(s string) string {
 
 // spanStatusOutcome returns the outcome for transactions and spans based on
 // the given OTLP span status.
-// we translate status into success in case it is not ERROR
-// reference: https://opentelemetry.io/docs/concepts/signals/traces/#span-status
 func spanStatusOutcome(status ptrace.Status) string {
 	switch status.Code() {
-	case ptrace.StatusCodeOk, ptrace.StatusCodeUnset:
+	case ptrace.StatusCodeOk:
 		return outcomeSuccess
 	case ptrace.StatusCodeError:
 		return outcomeFailure
@@ -1201,7 +1211,7 @@ func spanStatusOutcome(status ptrace.Status) string {
 // is returned.
 func spanStatusResult(status ptrace.Status) string {
 	switch status.Code() {
-	case ptrace.StatusCodeOk, ptrace.StatusCodeUnset:
+	case ptrace.StatusCodeOk:
 		return "Success"
 	case ptrace.StatusCodeError:
 		return "Error"

@@ -421,8 +421,15 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		input.Context.Response.StatusCode.Set(http.StatusInternalServerError)
 		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "failure", out.Event.Outcome)
+		// derive from other fields - if unset, treat it as success
+		input.Outcome.Reset()
+		input.Context.Response.StatusCode.Reset()
+		mapToTransactionModel(&input, &out)
+		assert.Equal(t, "success", out.Event.Outcome)
+
 		// derive from other fields - unknown
 		input.Outcome.Reset()
+		input.OTel.Reset()
 		input.Context.Response.StatusCode.Reset()
 		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "unknown", out.Event.Outcome)
