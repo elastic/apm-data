@@ -94,7 +94,7 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) erro
 // ConsumeTracesWithResult consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
 func (c *Consumer) ConsumeTracesWithResult(ctx context.Context, traces ptrace.Traces) (ConsumeTracesResult, error) {
-	if err := c.sem.Acquire(ctx, 1); err != nil {
+	if err := semAcquire(ctx, c.sem, 1); err != nil {
 		return ConsumeTracesResult{}, err
 	}
 	defer c.sem.Release(1)
