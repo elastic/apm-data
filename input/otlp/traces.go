@@ -95,7 +95,7 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) erro
 // ConsumeTracesWithResult consumes OpenTelemetry trace data,
 // converting into Elastic APM events and reporting to the Elastic APM schema.
 func (c *Consumer) ConsumeTracesWithResult(ctx context.Context, traces ptrace.Traces) (ConsumeTracesResult, error) {
-	if err := c.sem.Acquire(ctx, 1); err != nil {
+	if err := semAcquire(ctx, c.sem, 1); err != nil {
 		return ConsumeTracesResult{}, err
 	}
 	defer c.sem.Release(1)
@@ -1154,13 +1154,19 @@ func translateSpanLinks(out *modelpb.APMEvent, in ptrace.SpanLinkSlice) {
 	if out.Span == nil {
 		out.Span = modelpb.SpanFromVTPool()
 	}
-	out.Span.Links = make([]*modelpb.SpanLink, n)
+	out.Span.Links = make([]*modelpb.SpanLink, 0, n)
 	for i := 0; i < n; i++ {
 		link := in.At(i)
-		sl := modelpb.SpanLinkFromVTPool()
-		sl.SpanId = hexSpanID(link.SpanID())
-		sl.TraceId = hexTraceID(link.TraceID())
-		out.Span.Links[i] = sl
+		// When a link has the elastic.is_child attribute set, it is stored in the child_ids instead
+		childAttribVal, childAttribPresent := link.Attributes().Get("elastic.is_child")
+		if childAttribPresent && childAttribVal.Bool() {
+			out.ChildIds = append(out.ChildIds, hexSpanID(link.SpanID()))
+		} else {
+			sl := modelpb.SpanLinkFromVTPool()
+			sl.SpanId = hexSpanID(link.SpanID())
+			sl.TraceId = hexTraceID(link.TraceID())
+			out.Span.Links = append(out.Span.Links, sl)
+		}
 	}
 }
 

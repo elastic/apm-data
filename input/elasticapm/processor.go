@@ -393,6 +393,9 @@ func (p *Processor) getStreamReader(r io.Reader) *streamReader {
 }
 
 func (p *Processor) semAcquire(ctx context.Context, async bool) error {
+	sp, ctx := apm.StartSpan(ctx, "Semaphore.Acquire", "Reporter")
+	defer sp.End()
+
 	if async {
 		if ok := p.sem.TryAcquire(1); !ok {
 			return ErrQueueFull
