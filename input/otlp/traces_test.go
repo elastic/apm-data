@@ -106,7 +106,7 @@ func TestOutcome(t *testing.T) {
 		assert.Equal(t, expectedOutcome, (*batch)[1].GetEvent().GetOutcome())
 	}
 
-	test(t, "unknown", "", ptrace.StatusCodeUnset)
+	test(t, "success", "Success", ptrace.StatusCodeUnset)
 	test(t, "success", "Success", ptrace.StatusCodeOk)
 	test(t, "failure", "Error", ptrace.StatusCodeError)
 }

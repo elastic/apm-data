@@ -8,7 +8,7 @@
             },
             "event": {
                 "duration": 79000000000,
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "host": {
                 "hostname": "host-abc"
@@ -24,6 +24,7 @@
             },
             "transaction": {
                 "representative_count": 1.25,
+                "result": "Success",
                 "sampled": true,
                 "type": "unknown"
             }
@@ -36,7 +37,7 @@
             },
             "event": {
                 "duration": 79000000000,
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "host": {
                 "hostname": "host-abc"
@@ -69,7 +70,7 @@
             },
             "event": {
                 "duration": 79000000000,
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "host": {
                 "hostname": "host-abc"
@@ -91,6 +92,7 @@
             },
             "transaction": {
                 "sampled": true,
+                "result": "Success",
                 "type": "unknown"
             }
         },
@@ -102,7 +104,7 @@
             },
             "event": {
                 "duration": 79000000000,
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "host": {
                 "hostname": "host-abc"
