@@ -23,7 +23,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -373,28 +372,5 @@ func TestLabelLeak(t *testing.T) {
 type nopBatchProcessor struct{}
 
 func (nopBatchProcessor) ProcessBatch(context.Context, *modelpb.Batch) error {
-	return nil
-}
-
-type accountProcessor struct {
-	batch     chan *modelpb.Batch
-	processed atomic.Uint64
-}
-
-func (p *accountProcessor) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-	}
-	if p.batch != nil {
-		events := b.Clone()
-		select {
-		case p.batch <- &events:
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	}
-	p.processed.Add(1)
 	return nil
 }
