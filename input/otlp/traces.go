@@ -521,6 +521,14 @@ func TranslateTransaction(
 		event.Service.Framework.Name = name
 		event.Service.Framework.Version = library.Version()
 	}
+
+	// if outcome and result are still not assigned, assign success
+	if event.Event.Outcome == outcomeUnknown {
+		event.Event.Outcome = outcomeSuccess
+		if event.Transaction.Result == "" {
+			event.Transaction.Result = "Success"
+		}
+	}
 }
 
 // TranslateSpan converts incoming otlp/otel trace data into the
@@ -951,6 +959,11 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 	if samplerType != (pcommon.Value{}) {
 		// The client has reported its sampling rate, so we can use it to extrapolate transaction metrics.
 		parseSamplerAttributes(samplerType, samplerParam, event)
+	}
+
+	// if outcome is still not assigned, assign success
+	if event.Event.Outcome == outcomeUnknown {
+		event.Event.Outcome = outcomeSuccess
 	}
 }
 
