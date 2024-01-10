@@ -759,7 +759,8 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				if event.Code == nil {
 					event.Code = modelpb.CodeFromVTPool()
 				}
-				event.Code.Stacktrace = stringval
+				// stacktrace is expected to be large thus un-truncated value is needed
+				event.Code.Stacktrace = v.Str()
 
 			// miscellaneous
 			case "span.kind": // filter out
