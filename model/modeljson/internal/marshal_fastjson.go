@@ -2567,18 +2567,6 @@ func (v *Span) MarshalFastJSON(w *fastjson.Writer) error {
 		}
 		w.String(v.Action)
 	}
-	if v.Code != nil {
-		const prefix = ",\"code\":"
-		if first {
-			first = false
-			w.RawString(prefix[1:])
-		} else {
-			w.RawString(prefix)
-		}
-		if err := v.Code.MarshalFastJSON(w); err != nil && firstErr == nil {
-			firstErr = err
-		}
-	}
 	if v.Composite != nil {
 		const prefix = ",\"composite\":"
 		if first {

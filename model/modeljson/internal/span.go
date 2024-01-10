@@ -22,7 +22,6 @@ type Span struct {
 	Composite           *SpanComposite     `json:"composite,omitempty"`
 	Destination         *SpanDestination   `json:"destination,omitempty"`
 	DB                  *DB                `json:"db,omitempty"`
-	Code                *Code              `json:"code,omitempty"`
 	Sync                *bool              `json:"sync,omitempty"`
 	Kind                string             `json:"kind,omitempty"`
 	Action              string             `json:"action,omitempty"`
