@@ -174,6 +174,14 @@ func (c *Consumer) convertLogRecord(
 				event.Session = modelpb.SessionFromVTPool()
 			}
 			event.Session.Id = v.Str()
+		case attributeNetworkConnectionType:
+			if event.Network == nil {
+				event.Network = modelpb.NetworkFromVTPool()
+			}
+			if event.Network.Connection == nil {
+				event.Network.Connection = modelpb.NetworkConnectionFromVTPool()
+			}
+			event.Network.Connection.Type = v.Str()
 		default:
 			setLabel(replaceDots(k), event, ifaceAttributeValue(v))
 		}

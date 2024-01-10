@@ -460,12 +460,12 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 
 		t.Run("network", func(t *testing.T) {
 			attrs := map[string]interface{}{
-				"net.host.connection.type":    "cell",
-				"net.host.connection.subtype": "LTE",
-				"net.host.carrier.name":       "Vodafone",
-				"net.host.carrier.mnc":        "01",
-				"net.host.carrier.mcc":        "101",
-				"net.host.carrier.icc":        "UK",
+				"network.connection.type":    "cell",
+				"network.connection.subtype": "LTE",
+				"network.carrier.name":       "Vodafone",
+				"network.carrier.mnc":        "01",
+				"network.carrier.mcc":        "101",
+				"network.carrier.icc":        "UK",
 			}
 			var input span
 			var event modelpb.APMEvent
