@@ -487,5 +487,8 @@ func fullEvent(t testing.TB) *modelpb.APMEvent {
 			Duration: uint64(3 * time.Second),
 			Severity: 4,
 		},
+		Code: &modelpb.Code{
+			Stacktrace: "stacktrace",
+		},
 	}
 }

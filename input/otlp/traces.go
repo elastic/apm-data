@@ -76,6 +76,7 @@ const (
 	attributeUrlFull                    = "url.full"
 	attributeUserAgentOriginal          = "user_agent.original"
 	attributeDbElasticsearchClusterName = "db.elasticsearch.cluster.name"
+	attributeStackTrace                 = "code.stacktrace" // semconv 1.24 or later
 )
 
 // ConsumeTracesResult contains the number of rejected spans and error message for partial success response.
@@ -753,6 +754,13 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 			case attributeUrlFull:
 				httpURL = stringval
 				isHTTP = true
+
+			case attributeStackTrace:
+				if event.Code == nil {
+					event.Code = modelpb.CodeFromVTPool()
+				}
+				// stacktrace is expected to be large thus un-truncated value is needed
+				event.Code.Stacktrace = v.Str()
 
 			// miscellaneous
 			case "span.kind": // filter out

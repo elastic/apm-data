@@ -1604,6 +1604,15 @@ func TestGRPCTransactionFromNodejsSDK(t *testing.T) {
 	})
 }
 
+func TestSpanCodeStacktrace(t *testing.T) {
+	t.Run("code stacktrace", func(t *testing.T) {
+		event := transformSpanWithAttributes(t, map[string]interface{}{
+			"code.stacktrace": "stacktrace value",
+		})
+		assert.Equal(t, "stacktrace value", event.Code.Stacktrace)
+	})
+}
+
 func testJaegerLogs() []jaegermodel.Log {
 	return []jaegermodel.Log{{
 		// errors that can be converted to elastic errors

@@ -14,8 +14,10 @@ protolint:
 gomodtidy:
 	go mod tidy -v
 
-generate:
+generate_code:
 	go generate ./...
+
+generate: generate_code update-licenses
 
 fieldalignment:
 	go run golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.4.0 -test=false $(shell go list ./... | grep -v modeldecoder/generator | grep -v test | grep -v model/modelpb)

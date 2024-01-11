@@ -35,6 +35,10 @@ type Span struct {
 	RepresentativeCount float64            `json:"representative_count,omitempty"`
 }
 
+type Code struct {
+	Stacktrace string `json:"stacktrace,omitempty"`
+}
+
 type SpanDestination struct {
 	Service SpanDestinationService `json:"service"`
 }
