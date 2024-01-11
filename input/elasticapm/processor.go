@@ -86,7 +86,6 @@ type Config struct {
 type StreamHandler interface {
 	HandleStream(
 		ctx context.Context,
-		async bool,
 		baseEvent *modelpb.APMEvent,
 		stream io.Reader,
 		batchSize int,
