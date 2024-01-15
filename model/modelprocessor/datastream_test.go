@@ -88,6 +88,14 @@ func TestSetDataStream(t *testing.T) {
 		output: &modelpb.DataStream{Type: "logs", Dataset: "apm.app.service_name", Namespace: "custom"},
 	}, {
 		input: &modelpb.APMEvent{
+			Log:        &modelpb.Log{},
+			Agent:      &modelpb.Agent{Name: "iOS/swift"},
+			Service:    &modelpb.Service{Name: "service-name"},
+			DataStream: &modelpb.DataStream{Dataset: "dataset", Namespace: "namespace"},
+		},
+		output: &modelpb.DataStream{Type: "logs", Dataset: "dataset", Namespace: "namespace"},
+	}, {
+		input: &modelpb.APMEvent{
 			Agent:       &modelpb.Agent{Name: "rum-js"},
 			Service:     &modelpb.Service{Name: "service-name"},
 			Metricset:   &modelpb.Metricset{},

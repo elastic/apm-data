@@ -52,7 +52,10 @@ func (s *SetDataStream) ProcessBatch(ctx context.Context, b *modelpb.Batch) erro
 		if (*b)[i].DataStream == nil {
 			(*b)[i].DataStream = modelpb.DataStreamFromVTPool()
 		}
-		(*b)[i].DataStream.Namespace = s.Namespace
+		if (*b)[i].DataStream.Namespace == "" {
+			// Only set namespace if it is not already set by user
+			(*b)[i].DataStream.Namespace = s.Namespace
+		}
 		if (*b)[i].DataStream.Type == "" || (*b)[i].DataStream.Dataset == "" {
 			s.setDataStream((*b)[i])
 		}
@@ -75,7 +78,10 @@ func (s *SetDataStream) setDataStream(event *modelpb.APMEvent) {
 		event.DataStream.Dataset = errorsDataset
 	case modelpb.LogEventType:
 		event.DataStream.Type = logsType
-		event.DataStream.Dataset = getAppLogsDataset(event)
+		if event.DataStream.Dataset == "" {
+			// Only set dataset if it is not already set by user
+			event.DataStream.Dataset = getAppLogsDataset(event)
+		}
 	case modelpb.MetricEventType:
 		event.DataStream.Type = metricsType
 		event.DataStream.Dataset = metricsetDataset(event)
