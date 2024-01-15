@@ -77,6 +77,8 @@ const (
 	attributeUserAgentOriginal          = "user_agent.original"
 	attributeDbElasticsearchClusterName = "db.elasticsearch.cluster.name"
 	attributeStackTrace                 = "code.stacktrace" // semconv 1.24 or later
+	attributeDataStreamDataset          = "data_stream.dataset"
+	attributeDataStreamNamespace        = "data_stream.namespace"
 )
 
 // ConsumeTracesResult contains the number of rejected spans and error message for partial success response.

@@ -440,6 +440,8 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 	record1 := newLogRecord("") // no log body
 	record1.Attributes().PutStr("event.domain", "device")
 	record1.Attributes().PutStr("event.name", "MyEvent")
+	record1.Attributes().PutStr("data_stream.dataset", "dataset")
+	record1.Attributes().PutStr("data_stream.namespace", "namespace")
 
 	record1.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
@@ -465,6 +467,8 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 	assert.Equal(t, "event", processed[0].Event.Kind)
 	assert.Equal(t, "device", processed[0].Event.Category)
 	assert.Equal(t, "MyEvent", processed[0].Event.Action)
+	assert.Equal(t, "dataset", processed[0].DataStream.Dataset)
+	assert.Equal(t, "namespace", processed[0].DataStream.Namespace)
 }
 
 func TestConsumerConsumeOTelLogsWithTimestamp(t *testing.T) {
