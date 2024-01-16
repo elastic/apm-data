@@ -442,8 +442,6 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 	record1 := newLogRecord("") // no log body
 	record1.Attributes().PutStr("event.domain", "device")
 	record1.Attributes().PutStr("event.name", "MyEvent")
-	record1.Attributes().PutStr("data_stream.dataset", "dataset")
-	record1.Attributes().PutStr("data_stream.namespace", "namespace")
 
 	record1.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 

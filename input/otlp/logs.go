@@ -182,16 +182,6 @@ func (c *Consumer) convertLogRecord(
 				event.Network.Connection = modelpb.NetworkConnectionFromVTPool()
 			}
 			event.Network.Connection.Type = v.Str()
-		case attributeDataStreamDataset:
-			if event.DataStream == nil {
-				event.DataStream = modelpb.DataStreamFromVTPool()
-			}
-			event.DataStream.Dataset = v.Str()
-		case attributeDataStreamNamespace:
-			if event.DataStream == nil {
-				event.DataStream = modelpb.DataStreamFromVTPool()
-			}
-			event.DataStream.Namespace = v.Str()
 		default:
 			setLabel(replaceDots(k), event, ifaceAttributeValue(v))
 		}
