@@ -435,6 +435,8 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
 	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
 	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKLanguage, "swift")
+	resourceAttrs.PutStr("data_stream.dataset", "dataset")
+	resourceAttrs.PutStr("data_stream.namespace", "namespace")
 	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
 
 	record1 := newLogRecord("") // no log body

@@ -290,6 +290,18 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 		case "telemetry.sdk.elastic_export_timestamp":
 			// Do nothing.
 
+		// data_stream.*
+		case attributeDataStreamDataset:
+			if out.DataStream == nil {
+				out.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			out.DataStream.Dataset = v.Str()
+		case attributeDataStreamNamespace:
+			if out.DataStream == nil {
+				out.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			out.DataStream.Namespace = v.Str()
+
 		default:
 			if out.Labels == nil {
 				out.Labels = make(modelpb.Labels)
