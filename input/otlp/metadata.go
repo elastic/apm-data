@@ -412,6 +412,25 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 	}
 }
 
+func translateScopeMetadata(scope pcommon.InstrumentationScope, out *modelpb.APMEvent) {
+	scope.Attributes().Range(func(k string, v pcommon.Value) bool {
+		switch k {
+		// data_stream.*
+		case attributeDataStreamDataset:
+			if out.DataStream == nil {
+				out.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			out.DataStream.Dataset = v.Str()
+		case attributeDataStreamNamespace:
+			if out.DataStream == nil {
+				out.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			out.DataStream.Namespace = v.Str()
+		}
+		return true
+	})
+}
+
 func cleanServiceName(name string) string {
 	return serviceNameInvalidRegexp.ReplaceAllString(truncate(name), "_")
 }

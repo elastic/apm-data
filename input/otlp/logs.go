@@ -106,18 +106,22 @@ func (c *Consumer) convertInstrumentationLibraryLogs(
 ) {
 	otelLogs := in.LogRecords()
 	for i := 0; i < otelLogs.Len(); i++ {
-		event := c.convertLogRecord(otelLogs.At(i), baseEvent, timeDelta)
+		event := c.convertLogRecordWithScope(otelLogs.At(i), in.Scope(), baseEvent, timeDelta)
 		*out = append(*out, event)
 	}
 }
 
-func (c *Consumer) convertLogRecord(
+func (c *Consumer) convertLogRecordWithScope(
 	record plog.LogRecord,
+	scope pcommon.InstrumentationScope,
 	baseEvent *modelpb.APMEvent,
 	timeDelta time.Duration,
 ) *modelpb.APMEvent {
 	event := baseEvent.CloneVT()
 	initEventLabels(event)
+
+	translateScopeMetadata(scope, event)
+
 	if record.Timestamp() == 0 {
 		event.Timestamp = modelpb.FromTime(record.ObservedTimestamp().AsTime().Add(timeDelta))
 	} else {
@@ -182,6 +186,17 @@ func (c *Consumer) convertLogRecord(
 				event.Network.Connection = modelpb.NetworkConnectionFromVTPool()
 			}
 			event.Network.Connection.Type = v.Str()
+		// data_stream.*
+		case attributeDataStreamDataset:
+			if event.DataStream == nil {
+				event.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			event.DataStream.Dataset = v.Str()
+		case attributeDataStreamNamespace:
+			if event.DataStream == nil {
+				event.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			event.DataStream.Namespace = v.Str()
 		default:
 			setLabel(replaceDots(k), event, ifaceAttributeValue(v))
 		}
