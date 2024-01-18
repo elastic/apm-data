@@ -36,6 +36,7 @@ package otlp_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -467,7 +468,7 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 	assert.Equal(t, "MyEvent", processed[0].Event.Action)
 }
 
-func TestConsumerConsumeOTelEventLogsDataStream(t *testing.T) {
+func TestConsumerConsumeLogsDataStream(t *testing.T) {
 	for _, tc := range []struct {
 		resourceDataStreamDataset   string
 		resourceDataStreamNamespace string
@@ -504,8 +505,8 @@ func TestConsumerConsumeOTelEventLogsDataStream(t *testing.T) {
 			expectedDataStreamNamespace: "2",
 		},
 	} {
-		t.Run(tc.resourceDataStreamDataset, func(t *testing.T) {
-
+		tcName := fmt.Sprintf("%s,%s", tc.expectedDataStreamDataset, tc.expectedDataStreamNamespace)
+		t.Run(tcName, func(t *testing.T) {
 			logs := plog.NewLogs()
 			resourceLogs := logs.ResourceLogs().AppendEmpty()
 			resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
