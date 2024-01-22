@@ -778,6 +778,90 @@ func TestSpanNetworkAttributes(t *testing.T) {
 	assert.Equal(t, &expected, spanEvent.Network)
 }
 
+func TestSpanDataStream(t *testing.T) {
+	for _, tc := range []struct {
+		resourceDataStreamDataset   string
+		resourceDataStreamNamespace string
+		scopeDataStreamDataset      string
+		scopeDataStreamNamespace    string
+		recordDataStreamDataset     string
+		recordDataStreamNamespace   string
+
+		expectedDataStreamDataset   string
+		expectedDataStreamNamespace string
+	}{
+		{
+			resourceDataStreamDataset:   "1",
+			resourceDataStreamNamespace: "2",
+			scopeDataStreamDataset:      "3",
+			scopeDataStreamNamespace:    "4",
+			recordDataStreamDataset:     "5",
+			recordDataStreamNamespace:   "6",
+			expectedDataStreamDataset:   "5",
+			expectedDataStreamNamespace: "6",
+		},
+		{
+			resourceDataStreamDataset:   "1",
+			resourceDataStreamNamespace: "2",
+			scopeDataStreamDataset:      "3",
+			scopeDataStreamNamespace:    "4",
+			expectedDataStreamDataset:   "3",
+			expectedDataStreamNamespace: "4",
+		},
+		{
+			resourceDataStreamDataset:   "1",
+			resourceDataStreamNamespace: "2",
+			expectedDataStreamDataset:   "1",
+			expectedDataStreamNamespace: "2",
+		},
+	} {
+		for _, isTxn := range []bool{false, true} {
+			tcName := fmt.Sprintf("%s,%s,txn=%v", tc.expectedDataStreamDataset, tc.expectedDataStreamNamespace, isTxn)
+			t.Run(tcName, func(t *testing.T) {
+				traces := ptrace.NewTraces()
+				resourceSpans := traces.ResourceSpans().AppendEmpty()
+				resourceAttrs := traces.ResourceSpans().At(0).Resource().Attributes()
+				if tc.resourceDataStreamDataset != "" {
+					resourceAttrs.PutStr("data_stream.dataset", tc.resourceDataStreamDataset)
+				}
+				if tc.resourceDataStreamNamespace != "" {
+					resourceAttrs.PutStr("data_stream.namespace", tc.resourceDataStreamNamespace)
+				}
+
+				scopeSpans := resourceSpans.ScopeSpans().AppendEmpty()
+				scopeAttrs := resourceSpans.ScopeSpans().At(0).Scope().Attributes()
+				if tc.scopeDataStreamDataset != "" {
+					scopeAttrs.PutStr("data_stream.dataset", tc.scopeDataStreamDataset)
+				}
+				if tc.scopeDataStreamNamespace != "" {
+					scopeAttrs.PutStr("data_stream.namespace", tc.scopeDataStreamNamespace)
+				}
+
+				otelSpan := scopeSpans.Spans().AppendEmpty()
+				otelSpan.SetTraceID(pcommon.TraceID{1})
+				otelSpan.SetSpanID(pcommon.SpanID{2})
+				if !isTxn {
+					otelSpan.SetParentSpanID(pcommon.SpanID{3})
+				}
+				if tc.recordDataStreamDataset != "" {
+					otelSpan.Attributes().PutStr("data_stream.dataset", tc.recordDataStreamDataset)
+				}
+				if tc.recordDataStreamNamespace != "" {
+					otelSpan.Attributes().PutStr("data_stream.namespace", tc.recordDataStreamNamespace)
+				}
+				events := transformTraces(t, traces)
+
+				dataStream := &modelpb.DataStream{
+					Dataset:   tc.expectedDataStreamDataset,
+					Namespace: tc.expectedDataStreamNamespace,
+				}
+
+				assert.Equal(t, dataStream, (*events)[0].DataStream)
+			})
+		}
+	}
+}
+
 func TestSessionID(t *testing.T) {
 	sessionAttributes := map[string]interface{}{
 		"session.id": "opbeans-swift",

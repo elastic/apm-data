@@ -174,6 +174,9 @@ func (c *Consumer) convertSpan(
 	spanID := hexSpanID(otelSpan.SpanID())
 	representativeCount := getRepresentativeCountFromTracestateHeader(otelSpan.TraceState().AsRaw())
 	event := baseEvent.CloneVT()
+
+	translateScopeMetadata(otelLibrary, event)
+
 	initEventLabels(event)
 	event.Timestamp = modelpb.FromTime(startTime.Add(timeDelta))
 	if id := hexTraceID(otelSpan.TraceID()); id != "" {
@@ -447,6 +450,19 @@ func TranslateTransaction(
 				// should set this as a resource attribute (OTel) or tracer
 				// tag (Jaeger).
 				event.Service.Version = stringval
+
+			// data_stream.*
+			case attributeDataStreamDataset:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Dataset = stringval
+			case attributeDataStreamNamespace:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Namespace = stringval
+
 			default:
 				modelpb.Labels(event.Labels).Set(k, stringval)
 			}
@@ -768,6 +784,19 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 			case "span.kind": // filter out
 			case semconv.AttributePeerService:
 				peerService = stringval
+
+			// data_stream.*
+			case attributeDataStreamDataset:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Dataset = stringval
+			case attributeDataStreamNamespace:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Namespace = stringval
+
 			default:
 				modelpb.Labels(event.Labels).Set(k, stringval)
 			}
