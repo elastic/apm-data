@@ -67,11 +67,14 @@ func (s *SetDataStream) setDataStream(event *modelpb.APMEvent) {
 	switch event.Type() {
 	case modelpb.SpanEventType, modelpb.TransactionEventType:
 		event.DataStream.Type = tracesType
-		event.DataStream.Dataset = tracesDataset
-		// In order to maintain different ILM policies, RUM traces are sent to
-		// a different datastream.
-		if isRUMAgentName(event.GetAgent().GetName()) {
-			event.DataStream.Dataset = rumTracesDataset
+		if event.DataStream.Dataset == "" {
+			// Only set dataset if it is not already set in the input event
+			event.DataStream.Dataset = tracesDataset
+			// In order to maintain different ILM policies, RUM traces are sent to
+			// a different datastream.
+			if isRUMAgentName(event.GetAgent().GetName()) {
+				event.DataStream.Dataset = rumTracesDataset
+			}
 		}
 	case modelpb.ErrorEventType:
 		event.DataStream.Type = logsType
@@ -84,7 +87,10 @@ func (s *SetDataStream) setDataStream(event *modelpb.APMEvent) {
 		}
 	case modelpb.MetricEventType:
 		event.DataStream.Type = metricsType
-		event.DataStream.Dataset = metricsetDataset(event)
+		if event.DataStream.Dataset == "" {
+			// Only set dataset if it is not already set in the input event
+			event.DataStream.Dataset = metricsetDataset(event)
+		}
 	}
 }
 

@@ -41,6 +41,12 @@ func TestSetDataStream(t *testing.T) {
 		input:  &modelpb.APMEvent{Span: &modelpb.Span{Type: "type"}},
 		output: &modelpb.DataStream{Type: "traces", Dataset: "apm", Namespace: "custom"},
 	}, {
+		input: &modelpb.APMEvent{
+			Span:       &modelpb.Span{Type: "type"},
+			DataStream: &modelpb.DataStream{Dataset: "dataset", Namespace: "namespace"},
+		},
+		output: &modelpb.DataStream{Type: "traces", Dataset: "dataset", Namespace: "namespace"},
+	}, {
 		input:  &modelpb.APMEvent{Transaction: &modelpb.Transaction{Type: "type"}, Agent: &modelpb.Agent{Name: "js-base"}},
 		output: &modelpb.DataStream{Type: "traces", Dataset: "apm.rum", Namespace: "custom"},
 	}, {
@@ -58,6 +64,13 @@ func TestSetDataStream(t *testing.T) {
 	}, {
 		input:  &modelpb.APMEvent{Span: &modelpb.Span{Type: "type"}, Agent: &modelpb.Agent{Name: "iOS/swift"}},
 		output: &modelpb.DataStream{Type: "traces", Dataset: "apm.rum", Namespace: "custom"},
+	}, {
+		input: &modelpb.APMEvent{
+			Span:       &modelpb.Span{Type: "type"},
+			Agent:      &modelpb.Agent{Name: "iOS/swift"},
+			DataStream: &modelpb.DataStream{Dataset: "dataset", Namespace: "namespace"},
+		},
+		output: &modelpb.DataStream{Type: "traces", Dataset: "dataset", Namespace: "namespace"},
 	}, {
 		input:  &modelpb.APMEvent{Transaction: &modelpb.Transaction{Type: "type"}, Agent: &modelpb.Agent{Name: "go"}},
 		output: &modelpb.DataStream{Type: "traces", Dataset: "apm", Namespace: "custom"},
@@ -127,11 +140,32 @@ func TestSetDataStream(t *testing.T) {
 		output: &modelpb.DataStream{Type: "metrics", Dataset: "apm.app.service_name", Namespace: "custom"},
 	}, {
 		input: &modelpb.APMEvent{
+			Agent:   &modelpb.Agent{Name: "rum-js"},
+			Service: &modelpb.Service{Name: "service-name"},
+			Metricset: &modelpb.Metricset{
+				Samples: []*modelpb.MetricsetSample{
+					{Name: "system.memory.total"}, // known agent metric
+					{Name: "custom_metric"},       // custom metric
+				},
+			},
+			DataStream: &modelpb.DataStream{Dataset: "dataset", Namespace: "namespace"},
+		},
+		output: &modelpb.DataStream{Type: "metrics", Dataset: "dataset", Namespace: "namespace"},
+	}, {
+		input: &modelpb.APMEvent{
 			Service:     &modelpb.Service{Name: "service-name"},
 			Metricset:   &modelpb.Metricset{},
 			Transaction: &modelpb.Transaction{Name: "foo"},
 		},
 		output: &modelpb.DataStream{Type: "metrics", Dataset: "apm.internal", Namespace: "custom"},
+	}, {
+		input: &modelpb.APMEvent{
+			Service:     &modelpb.Service{Name: "service-name"},
+			Metricset:   &modelpb.Metricset{},
+			Transaction: &modelpb.Transaction{Name: "foo"},
+			DataStream:  &modelpb.DataStream{Dataset: "dataset", Namespace: "namespace"},
+		},
+		output: &modelpb.DataStream{Type: "metrics", Dataset: "dataset", Namespace: "namespace"},
 	}, {
 		input: &modelpb.APMEvent{
 			Service:     &modelpb.Service{Name: "service-name"},
