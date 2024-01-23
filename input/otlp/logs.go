@@ -106,12 +106,12 @@ func (c *Consumer) convertInstrumentationLibraryLogs(
 ) {
 	otelLogs := in.LogRecords()
 	for i := 0; i < otelLogs.Len(); i++ {
-		event := c.convertLogRecordWithScope(otelLogs.At(i), in.Scope(), baseEvent, timeDelta)
+		event := c.convertLogRecord(otelLogs.At(i), in.Scope(), baseEvent, timeDelta)
 		*out = append(*out, event)
 	}
 }
 
-func (c *Consumer) convertLogRecordWithScope(
+func (c *Consumer) convertLogRecord(
 	record plog.LogRecord,
 	scope pcommon.InstrumentationScope,
 	baseEvent *modelpb.APMEvent,
