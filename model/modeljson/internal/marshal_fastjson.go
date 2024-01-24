@@ -3365,6 +3365,23 @@ func (v *Transaction) MarshalFastJSON(w *fastjson.Writer) error {
 		}
 		w.String(v.Name)
 	}
+	if v.ProfilerStackTraceIds != nil {
+		const prefix = ",\"profiler_stack_trace_ids\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		w.RawByte('[')
+		for i, v := range v.ProfilerStackTraceIds {
+			if i != 0 {
+				w.RawByte(',')
+			}
+			w.String(v)
+		}
+		w.RawByte(']')
+	}
 	if v.RepresentativeCount != 0 {
 		const prefix = ",\"representative_count\":"
 		if first {
