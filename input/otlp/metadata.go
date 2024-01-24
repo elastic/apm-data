@@ -289,6 +289,9 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 		// devices. APM server should drop this field.
 		case "telemetry.sdk.elastic_export_timestamp":
 			// Do nothing.
+		case "telemetry.distro.name":
+		case "telemetry.distro.version":
+			//distro version & name are handled below and should not end up as labels
 
 		default:
 			if out.Labels == nil {
@@ -374,12 +377,31 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 		// agent.version is a required field.
 		out.Agent.Version = "unknown"
 	}
-	if out.GetService().GetLanguage().GetName() != "" {
-		if out.Agent == nil {
-			out.Agent = modelpb.AgentFromVTPool()
+
+	distroName, distroNameSet := resource.Attributes().Get("telemetry.distro.name")
+	distroVersion, distroVersionSet := resource.Attributes().Get("telemetry.distro.version")
+
+	if distroNameSet && distroName.Str() != "" {
+		agentLang := "unknown"
+		if out.GetService().GetLanguage().GetName() != "" {
+			agentLang = out.GetService().GetLanguage().GetName()
 		}
-		out.Agent.Name = fmt.Sprintf("%s/%s", out.Agent.Name, out.Service.Language.Name)
+
+		out.Agent.Name = fmt.Sprintf("%s/%s/%s", out.Agent.Name, agentLang, distroName.Str())
+
+		//we intentionally do not want to fallback to the Otel SDK version if we have a distro name, this would only cause confusion
+		out.Agent.Version = "unknown"
+		if distroVersionSet && distroVersion.Str() != "" {
+			out.Agent.Version = distroVersion.Str()
+		}
 	} else {
+		//distro is not set, use just the language as suffix if present
+		if out.GetService().GetLanguage().GetName() != "" {
+			out.Agent.Name = fmt.Sprintf("%s/%s", out.Agent.Name, out.GetService().GetLanguage().GetName())
+		}
+	}
+
+	if out.GetService().GetLanguage().GetName() == "" {
 		if out.Service == nil {
 			out.Service = modelpb.ServiceFromVTPool()
 		}
