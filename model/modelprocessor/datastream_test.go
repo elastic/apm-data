@@ -106,7 +106,7 @@ func TestSetDataStream(t *testing.T) {
 			Service:    &modelpb.Service{Name: "service-name"},
 			DataStream: &modelpb.DataStream{Dataset: "dataset", Namespace: "namespace"},
 		},
-		output: &modelpb.DataStream{Type: "logs", Dataset: "dataset", Namespace: "namespace"},
+		output: &modelpb.DataStream{Type: "logs", Dataset: "apm.app.service_name", Namespace: "custom"},
 	}, {
 		input: &modelpb.APMEvent{
 			Agent:       &modelpb.Agent{Name: "rum-js"},
@@ -150,7 +150,7 @@ func TestSetDataStream(t *testing.T) {
 			},
 			DataStream: &modelpb.DataStream{Dataset: "dataset", Namespace: "namespace"},
 		},
-		output: &modelpb.DataStream{Type: "metrics", Dataset: "dataset", Namespace: "namespace"},
+		output: &modelpb.DataStream{Type: "metrics", Dataset: "apm.app.service_name", Namespace: "custom"},
 	}, {
 		input: &modelpb.APMEvent{
 			Service:     &modelpb.Service{Name: "service-name"},
@@ -193,11 +193,13 @@ func TestSetDataStream(t *testing.T) {
 	}}
 
 	for _, test := range tests {
-		batch := modelpb.Batch{test.input}
-		processor := modelprocessor.SetDataStream{Namespace: "custom"}
-		err := processor.ProcessBatch(context.Background(), &batch)
-		assert.NoError(t, err)
-		assert.Equal(t, test.output, batch[0].DataStream)
+		t.Run("", func(t *testing.T) {
+			batch := modelpb.Batch{test.input}
+			processor := modelprocessor.SetDataStream{Namespace: "custom"}
+			err := processor.ProcessBatch(context.Background(), &batch)
+			assert.NoError(t, err)
+			assert.Equal(t, test.output, batch[0].DataStream)
+		})
 	}
 
 }

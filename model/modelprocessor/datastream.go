@@ -84,13 +84,13 @@ func (s *SetDataStream) setDataStream(event *modelpb.APMEvent) {
 		event.DataStream.Dataset = errorsDataset
 	case modelpb.LogEventType:
 		event.DataStream.Type = logsType
-		if event.DataStream.Dataset == "" {
+		if event.DataStream.Dataset == "" || isRUMAgentName(event.GetAgent().GetName()) {
 			// Only set dataset if it is not already set in the input event
 			event.DataStream.Dataset = getAppLogsDataset(event)
 		}
 	case modelpb.MetricEventType:
 		event.DataStream.Type = metricsType
-		if event.DataStream.Dataset == "" {
+		if event.DataStream.Dataset == "" || isRUMAgentName(event.GetAgent().GetName()) {
 			// Only set dataset if it is not already set in the input event
 			event.DataStream.Dataset = metricsetDataset(event)
 		}
