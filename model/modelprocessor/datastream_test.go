@@ -70,7 +70,7 @@ func TestSetDataStream(t *testing.T) {
 			Agent:      &modelpb.Agent{Name: "iOS/swift"},
 			DataStream: &modelpb.DataStream{Dataset: "dataset", Namespace: "namespace"},
 		},
-		output: &modelpb.DataStream{Type: "traces", Dataset: "dataset", Namespace: "namespace"},
+		output: &modelpb.DataStream{Type: "traces", Dataset: "apm.rum", Namespace: "custom"},
 	}, {
 		input:  &modelpb.APMEvent{Transaction: &modelpb.Transaction{Type: "type"}, Agent: &modelpb.Agent{Name: "go"}},
 		output: &modelpb.DataStream{Type: "traces", Dataset: "apm", Namespace: "custom"},

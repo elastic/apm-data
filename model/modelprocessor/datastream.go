@@ -52,8 +52,10 @@ func (s *SetDataStream) ProcessBatch(ctx context.Context, b *modelpb.Batch) erro
 		if (*b)[i].DataStream == nil {
 			(*b)[i].DataStream = modelpb.DataStreamFromVTPool()
 		}
-		if (*b)[i].DataStream.Namespace == "" {
-			// Only set namespace if it is not already set in the input event
+		if (*b)[i].DataStream.Namespace == "" || isRUMAgentName((*b)[i].GetAgent().GetName()) {
+			// Only set namespace if
+			// 1. it is not already set in the input event; OR
+			// 2. it is from RUM agents, so that they cannot create arbitrarily many data streams
 			(*b)[i].DataStream.Namespace = s.Namespace
 		}
 		if (*b)[i].DataStream.Type == "" || (*b)[i].DataStream.Dataset == "" {
@@ -70,11 +72,12 @@ func (s *SetDataStream) setDataStream(event *modelpb.APMEvent) {
 		if event.DataStream.Dataset == "" {
 			// Only set dataset if it is not already set in the input event
 			event.DataStream.Dataset = tracesDataset
-			// In order to maintain different ILM policies, RUM traces are sent to
-			// a different datastream.
-			if isRUMAgentName(event.GetAgent().GetName()) {
-				event.DataStream.Dataset = rumTracesDataset
-			}
+		}
+		// In order to maintain different ILM policies, RUM traces are sent to
+		// a different datastream.
+		// RUM agents should not be able to configure dataset.
+		if isRUMAgentName(event.GetAgent().GetName()) {
+			event.DataStream.Dataset = rumTracesDataset
 		}
 	case modelpb.ErrorEventType:
 		event.DataStream.Type = logsType
