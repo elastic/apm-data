@@ -1159,6 +1159,20 @@ func (c *Consumer) convertJaegerErrorSpanEvent(event ptrace.SpanEvent, apmEvent 
 			isError = stringval == "error"
 		case "message":
 			logMessage = stringval
+
+		// data_stream.*
+		// Note: fields are parsed but dataset will be overridden by SetDataStream because it is an error
+		case attributeDataStreamDataset:
+			if apmEvent.DataStream == nil {
+				apmEvent.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			apmEvent.DataStream.Dataset = v.Str()
+		case attributeDataStreamNamespace:
+			if apmEvent.DataStream == nil {
+				apmEvent.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			apmEvent.DataStream.Namespace = v.Str()
+
 		default:
 			setLabel(replaceDots(k), apmEvent, ifaceAttributeValue(v))
 		}

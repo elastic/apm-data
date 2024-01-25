@@ -1320,6 +1320,36 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 				},
 			}},
 		},
+		{
+			name: "jaeger_data_stream",
+			spans: []*jaegermodel.Span{{
+				StartTime: testStartTime(),
+				Tags: []jaegermodel.KeyValue{
+					jaegerKeyValue("data_stream.dataset", "1"),
+					jaegerKeyValue("data_stream.namespace", "2"),
+				},
+			}},
+		},
+		{
+			name: "jaeger_data_stream_with_error",
+			spans: []*jaegermodel.Span{{
+				TraceID: jaegermodel.NewTraceID(0, 0x46467830),
+				Tags: []jaegermodel.KeyValue{
+					jaegerKeyValue("data_stream.dataset", "1"),
+					jaegerKeyValue("data_stream.namespace", "2"),
+				},
+				Logs: []jaegermodel.Log{{
+					Timestamp: testStartTime().Add(23 * time.Nanosecond),
+					Fields: jaegerKeyValues(
+						"event", "retrying connection",
+						"level", "error",
+						"error", "no connection established",
+						"data_stream.dataset", "3",
+						"data_stream.namespace", "4",
+					),
+				}},
+			}},
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			traces, err := jaegertranslator.ProtoToTraces([]*jaegermodel.Batch{{
@@ -1429,6 +1459,34 @@ func TestConsumer_JaegerSpan(t *testing.T) {
 		{
 			name:  "jaeger_custom",
 			spans: []*jaegermodel.Span{{}},
+		},
+		{
+			name: "jaeger_data_stream",
+			spans: []*jaegermodel.Span{{
+				Tags: []jaegermodel.KeyValue{
+					jaegerKeyValue("data_stream.dataset", "1"),
+					jaegerKeyValue("data_stream.namespace", "2"),
+				},
+			}},
+		},
+		{
+			name: "jaeger_data_stream_with_error",
+			spans: []*jaegermodel.Span{{
+				Tags: []jaegermodel.KeyValue{
+					jaegerKeyValue("data_stream.dataset", "1"),
+					jaegerKeyValue("data_stream.namespace", "2"),
+				},
+				Logs: []jaegermodel.Log{{
+					Timestamp: testStartTime().Add(23 * time.Nanosecond),
+					Fields: jaegerKeyValues(
+						"event", "retrying connection",
+						"level", "error",
+						"error", "no connection established",
+						"data_stream.dataset", "3",
+						"data_stream.namespace", "4",
+					),
+				}},
+			}},
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
