@@ -81,6 +81,12 @@ func TestSetDataStream(t *testing.T) {
 		input:  &modelpb.APMEvent{Error: &modelpb.Error{}},
 		output: &modelpb.DataStream{Type: "logs", Dataset: "apm.error", Namespace: "custom"},
 	}, {
+		input: &modelpb.APMEvent{Error: &modelpb.Error{}, DataStream: &modelpb.DataStream{
+			Dataset:   "dataset",
+			Namespace: "namespace",
+		}},
+		output: &modelpb.DataStream{Type: "logs", Dataset: "apm.error", Namespace: "namespace"},
+	}, {
 		input:  &modelpb.APMEvent{Log: &modelpb.Log{}},
 		output: &modelpb.DataStream{Type: "logs", Dataset: "apm.app.unknown", Namespace: "custom"},
 	}, {

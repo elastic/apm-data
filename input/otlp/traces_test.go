@@ -1702,27 +1702,34 @@ func TestSpanEventsDataStream(t *testing.T) {
 		t.Run(fmt.Sprintf("isException=%v", isException), func(t *testing.T) {
 			timestamp := time.Unix(123, 0).UTC()
 
-			event := ptrace.NewSpanEvent()
-			event.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
+			traces, spans := newTracesSpans()
+			traces.ResourceSpans().At(0).Resource().Attributes().PutStr(semconv.AttributeTelemetrySDKLanguage, "java")
+			traces.ResourceSpans().At(0).Resource().Attributes().PutStr("data_stream.dataset", "1")
+			traces.ResourceSpans().At(0).Resource().Attributes().PutStr("data_stream.namespace", "2")
+			otelSpan := spans.Spans().AppendEmpty()
+			otelSpan.SetTraceID(pcommon.TraceID{1})
+			otelSpan.SetSpanID(pcommon.SpanID{2})
+			otelSpan.Attributes().PutStr("data_stream.dataset", "3")
+			otelSpan.Attributes().PutStr("data_stream.namespace", "4")
+
+			spanEvent := ptrace.NewSpanEvent()
+			spanEvent.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 			if isException {
-				event.SetName("exception")
-				event.Attributes().PutStr("exception.type", "java.net.ConnectException.OSError")
-				event.Attributes().PutStr("exception.message", "Division by zero")
+				spanEvent.SetName("exception")
+				spanEvent.Attributes().PutStr("exception.type", "java.net.ConnectException.OSError")
+				spanEvent.Attributes().PutStr("exception.message", "Division by zero")
 			}
 
-			event.Attributes().PutStr("data_stream.dataset", "dataset")
-			event.Attributes().PutStr("data_stream.namespace", "namespace")
+			spanEvent.Attributes().PutStr("data_stream.dataset", "5")
+			spanEvent.Attributes().PutStr("data_stream.namespace", "6")
+			spanEvent.CopyTo(otelSpan.Events().AppendEmpty())
 
-			_, events := transformTransactionSpanEvents(t, "java", event)
-			if isException {
-				// Exceptions data_stream fields will only be stored as labels instead of actual event.DataStream.
-				assert.Nil(t, events[0].DataStream)
-			} else {
-				assert.Equal(t, &modelpb.DataStream{
-					Dataset:   "dataset",
-					Namespace: "namespace",
-				}, events[0].DataStream)
-			}
+			allEvents := transformTraces(t, traces)
+			events := (*allEvents)[1:]
+			assert.Equal(t, &modelpb.DataStream{
+				Dataset:   "5",
+				Namespace: "6",
+			}, events[0].DataStream)
 		})
 	}
 }

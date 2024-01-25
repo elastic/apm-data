@@ -1060,6 +1060,20 @@ func (c *Consumer) convertSpanEvent(
 				exceptionType = v.Str()
 			case "exception.escaped":
 				exceptionEscaped = v.Bool()
+
+			// data_stream.*
+			// Note: fields are parsed but dataset will be overridden by SetDataStream because it is an error
+			case attributeDataStreamDataset:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Dataset = v.Str()
+			case attributeDataStreamNamespace:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Namespace = v.Str()
+
 			default:
 				setLabel(replaceDots(k), event, ifaceAttributeValue(v))
 			}
