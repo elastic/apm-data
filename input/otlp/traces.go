@@ -1088,12 +1088,26 @@ func (c *Consumer) convertSpanEvent(
 		event.Message = spanEvent.Name()
 		setLogContext(event, parent)
 		spanEvent.Attributes().Range(func(k string, v pcommon.Value) bool {
-			k = replaceDots(k)
-			if isJaeger && k == "message" {
-				event.Message = truncate(v.Str())
-				return true
+			switch k {
+			// data_stream.*
+			case attributeDataStreamDataset:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Dataset = v.Str()
+			case attributeDataStreamNamespace:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Namespace = v.Str()
+			default:
+				k = replaceDots(k)
+				if isJaeger && k == "message" {
+					event.Message = truncate(v.Str())
+					return true
+				}
+				setLabel(k, event, ifaceAttributeValue(v))
 			}
-			setLabel(k, event, ifaceAttributeValue(v))
 			return true
 		})
 	}

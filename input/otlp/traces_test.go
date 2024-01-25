@@ -1697,6 +1697,36 @@ func TestSpanCodeStacktrace(t *testing.T) {
 	})
 }
 
+func TestSpanEventsDataStream(t *testing.T) {
+	for _, isException := range []bool{false, true} {
+		t.Run(fmt.Sprintf("isException=%v", isException), func(t *testing.T) {
+			timestamp := time.Unix(123, 0).UTC()
+
+			event := ptrace.NewSpanEvent()
+			event.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
+			if isException {
+				event.SetName("exception")
+				event.Attributes().PutStr("exception.type", "java.net.ConnectException.OSError")
+				event.Attributes().PutStr("exception.message", "Division by zero")
+			}
+
+			event.Attributes().PutStr("data_stream.dataset", "dataset")
+			event.Attributes().PutStr("data_stream.namespace", "namespace")
+
+			_, events := transformTransactionSpanEvents(t, "java", event)
+			if isException {
+				// Exceptions data_stream fields will only be stored as labels instead of actual event.DataStream.
+				assert.Nil(t, events[0].DataStream)
+			} else {
+				assert.Equal(t, &modelpb.DataStream{
+					Dataset:   "dataset",
+					Namespace: "namespace",
+				}, events[0].DataStream)
+			}
+		})
+	}
+}
+
 func testJaegerLogs() []jaegermodel.Log {
 	return []jaegermodel.Log{{
 		// errors that can be converted to elastic errors
