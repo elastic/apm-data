@@ -252,7 +252,6 @@ func TranslateTransaction(
 	)
 
 	var isHTTP, isRPC, isMessaging bool
-	var message modelpb.Message
 
 	var samplerType, samplerParam pcommon.Value
 	attributes.Range(func(kDots string, v pcommon.Value) bool {
@@ -411,8 +410,17 @@ func TranslateTransaction(
 
 			// messaging.*
 			case "message_bus.destination", semconv.AttributeMessagingDestination:
-				message.QueueName = stringval
+				if event.Transaction.Message == nil {
+					event.Transaction.Message = modelpb.MessageFromVTPool()
+				}
+				event.Transaction.Message.QueueName = stringval
 				isMessaging = true
+			case semconv.AttributeMessagingSystem:
+				isMessaging = true
+				modelpb.Labels(event.Labels).Set(k, stringval)
+			case semconv.AttributeMessagingOperation:
+				isMessaging = true
+				modelpb.Labels(event.Labels).Set(k, stringval)
 
 			// rpc.*
 			//
@@ -493,9 +501,6 @@ func TranslateTransaction(
 			}
 		}
 		event.Url = modelpb.ParseURL(httpURL, httpHost, httpScheme)
-	}
-	if isMessaging {
-		event.Transaction.Message = &message
 	}
 
 	if event.Client == nil && event.Source != nil {
