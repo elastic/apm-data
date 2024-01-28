@@ -561,6 +561,24 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			}, event.Transaction.Message)
 		})
 
+		t.Run("messaging_without_destination", func(t *testing.T) {
+			var input transaction
+			var event modelpb.APMEvent
+			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+			input.Type.Reset()
+			attrs := map[string]interface{}{
+				"messaging.system":    "kafka",
+				"messaging.operation": "publish",
+			}
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Reset()
+
+			mapToTransactionModel(&input, &event)
+			assert.Equal(t, "messaging", event.Transaction.Type)
+			assert.Equal(t, "CONSUMER", event.Span.Kind)
+			assert.Nil(t, event.Transaction.Message)
+		})
+
 		t.Run("network", func(t *testing.T) {
 			attrs := map[string]interface{}{
 				"network.connection.type":    "cell",
