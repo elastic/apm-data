@@ -21,7 +21,7 @@ jobs:
     - name: Get sha commit
       id: event
       run: |
-        echo "DEBUG: event type(${{ github.event_name}})"
+        echo "DEBUG: event type(${{ github.event_name }})"
         if [ "${{ github.event_name != 'pull_request' }}" = "true" ] ; then
           echo "ref=${{ github.sha }}" >> "$GITHUB_OUTPUT"
         else
