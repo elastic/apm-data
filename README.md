@@ -16,3 +16,4 @@ make all
 ## License
 
 This software is licensed under the [Apache 2 license](https://github.com/elastic/apm-data/blob/main/LICENSE).
+
