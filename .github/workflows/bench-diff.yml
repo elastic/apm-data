@@ -30,7 +30,7 @@ jobs:
       id: benchdiff
       with:
         benchdiff_version: 0.9.1
-        status_sha: ${{ github.sha }}
+        status_sha: ${{ github.event_name != 'pull_request' && github.sha || github.event.pull_request.head.sha }}
         status_name: benchdiff-result
         status_on_degraded: neutral
         # See https://github.com/WillAbides/benchdiff
