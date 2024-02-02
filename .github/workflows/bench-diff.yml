@@ -22,7 +22,7 @@ jobs:
       id: event
       run: |
         echo "DEBUG: event type(${{ github.event_name }})"
-        if [ "${{ github.event_name != 'pull_request' }}" = "true" ] ; then
+        if [ "${{ github.event_name != 'pull_request_target' }}" = "true" ] ; then
           echo "ref=${{ github.sha }}" >> "$GITHUB_OUTPUT"
         else
           echo "ref=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
