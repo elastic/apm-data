@@ -22,6 +22,7 @@ jobs:
       with:
         fetch-depth: 0
         persist-credentials: false
+        ref: ${{ github.event_name != 'pull_request' && github.sha || github.event.pull_request.head.sha }}
     - uses: actions/setup-go@v5
       with:
         go-version-file: go.mod
