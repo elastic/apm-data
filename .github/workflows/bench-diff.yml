@@ -24,7 +24,7 @@ jobs:
         echo "DEBUG: event type(${{ github.event_name }})"
         ref="${{ github.sha }}"
         if [ "${{ startsWith(github.event_name, 'pull_request') }}" = "true" ] ; then
-          echo "ref=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+          ref="${{ github.event.pull_request.head.sha }}"
         fi
         echo "ref=${ref}" >> "$GITHUB_OUTPUT"
     - uses: actions/checkout@v4
