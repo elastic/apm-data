@@ -189,7 +189,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		exceptions := func(key string) bool {
 			for _, s := range []string{
 				// values not set for RUM v3
-				"Kind", "representative_count", "message", "dropped_spans_stats",
+				"Kind", "representative_count", "message", "dropped_spans_stats", "profiler_stack_trace_ids",
 				// Not set for transaction events:
 				"AggregatedDuration",
 				"AggregatedDuration.Count",
