@@ -268,6 +268,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"representative_count",
 				// Kind is tested further down
 				"Kind",
+				// profiler_stack_trace_ids are supplied as OTel-attributes
+				"profiler_stack_trace_ids",
 
 				// Not set for transaction events, tested in metricset decoding:
 				"AggregatedDuration",

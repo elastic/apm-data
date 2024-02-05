@@ -31,9 +31,9 @@ type Transaction struct {
 	DroppedSpansStats     []DroppedSpanStats            `json:"dropped_spans_stats,omitempty"`
 	DurationSummary       SummaryMetric                 `json:"duration.summary,omitempty"`
 	RepresentativeCount   float64                       `json:"representative_count,omitempty"`
+	ProfilerStackTraceIds []string                      `json:"profiler_stack_trace_ids,omitempty"`
 	Sampled               bool                          `json:"sampled,omitempty"`
 	Root                  bool                          `json:"root,omitempty"`
-	ProfilerStackTraceIds []string                      `json:"profiler_stack_trace_ids,omitempty"`
 }
 
 type SpanCount struct {
