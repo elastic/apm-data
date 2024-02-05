@@ -29,9 +29,9 @@ type Transaction struct {
 	ID                    string                        `json:"id,omitempty"`
 	DurationHistogram     Histogram                     `json:"duration.histogram,omitempty"`
 	DroppedSpansStats     []DroppedSpanStats            `json:"dropped_spans_stats,omitempty"`
+	ProfilerStackTraceIds []string                      `json:"profiler_stack_trace_ids,omitempty"`
 	DurationSummary       SummaryMetric                 `json:"duration.summary,omitempty"`
 	RepresentativeCount   float64                       `json:"representative_count,omitempty"`
-	ProfilerStackTraceIds []string                      `json:"profiler_stack_trace_ids,omitempty"`
 	Sampled               bool                          `json:"sampled,omitempty"`
 	Root                  bool                          `json:"root,omitempty"`
 }
