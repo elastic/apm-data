@@ -609,20 +609,56 @@ func TestRPCSpan(t *testing.T) {
 }
 
 func TestMessagingTransaction(t *testing.T) {
-	event := transformTransactionWithAttributes(t, map[string]interface{}{
-		"messaging.destination": "myQueue",
-	}, func(s ptrace.Span) {
-		s.SetKind(ptrace.SpanKindConsumer)
-		// Set parentID to imply this isn't the root, but
-		// kind==Consumer should still force the span to be translated
-		// as a transaction.
-		s.SetParentSpanID(pcommon.SpanID{3})
-	})
-	assert.Equal(t, "messaging", event.Transaction.Type)
-	assert.Empty(t, event.Labels)
-	assert.Equal(t, &modelpb.Message{
-		QueueName: "myQueue",
-	}, event.Transaction.Message)
+	for _, tc := range []struct {
+		attrs map[string]interface{}
+
+		expectedLabels     map[string]*modelpb.LabelValue
+		expectedTxnMessage *modelpb.Message
+	}{
+		{
+			attrs: map[string]interface{}{
+				"messaging.destination": "myQueue",
+			},
+			expectedLabels: nil,
+			expectedTxnMessage: &modelpb.Message{
+				QueueName: "myQueue",
+			},
+		},
+		{
+			attrs: map[string]interface{}{
+				"messaging.system": "kafka",
+			},
+			expectedLabels: map[string]*modelpb.LabelValue{
+				"messaging_system": {Value: "kafka"},
+			},
+			expectedTxnMessage: nil,
+		},
+		{
+			attrs: map[string]interface{}{
+				"messaging.operation": "publish",
+			},
+			expectedLabels: map[string]*modelpb.LabelValue{
+				"messaging_operation": {Value: "publish"},
+			},
+			expectedTxnMessage: nil,
+		},
+	} {
+		tcName, err := json.Marshal(tc.attrs)
+		require.NoError(t, err)
+		t.Run(string(tcName), func(t *testing.T) {
+			event := transformTransactionWithAttributes(t, tc.attrs, func(s ptrace.Span) {
+				s.SetKind(ptrace.SpanKindConsumer)
+				// Set parentID to imply this isn't the root, but
+				// kind==Consumer should still force the span to be translated
+				// as a transaction.
+				s.SetParentSpanID(pcommon.SpanID{3})
+			})
+			assert.Equal(t, "messaging", event.Transaction.Type)
+			assert.Equal(t, tc.expectedLabels, event.Labels)
+			assert.Equal(t, tc.expectedTxnMessage, event.Transaction.Message)
+		})
+	}
+
 }
 
 func TestMessagingSpan(t *testing.T) {
