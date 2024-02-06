@@ -36,6 +36,7 @@ package otlp_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -465,6 +466,99 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 	assert.Equal(t, "event", processed[0].Event.Kind)
 	assert.Equal(t, "device", processed[0].Event.Category)
 	assert.Equal(t, "MyEvent", processed[0].Event.Action)
+}
+
+func TestConsumerConsumeLogsDataStream(t *testing.T) {
+	for _, tc := range []struct {
+		resourceDataStreamDataset   string
+		resourceDataStreamNamespace string
+		scopeDataStreamDataset      string
+		scopeDataStreamNamespace    string
+		recordDataStreamDataset     string
+		recordDataStreamNamespace   string
+
+		expectedDataStreamDataset   string
+		expectedDataStreamNamespace string
+	}{
+		{
+			resourceDataStreamDataset:   "1",
+			resourceDataStreamNamespace: "2",
+			scopeDataStreamDataset:      "3",
+			scopeDataStreamNamespace:    "4",
+			recordDataStreamDataset:     "5",
+			recordDataStreamNamespace:   "6",
+			expectedDataStreamDataset:   "5",
+			expectedDataStreamNamespace: "6",
+		},
+		{
+			resourceDataStreamDataset:   "1",
+			resourceDataStreamNamespace: "2",
+			scopeDataStreamDataset:      "3",
+			scopeDataStreamNamespace:    "4",
+			expectedDataStreamDataset:   "3",
+			expectedDataStreamNamespace: "4",
+		},
+		{
+			resourceDataStreamDataset:   "1",
+			resourceDataStreamNamespace: "2",
+			expectedDataStreamDataset:   "1",
+			expectedDataStreamNamespace: "2",
+		},
+	} {
+		tcName := fmt.Sprintf("%s,%s", tc.expectedDataStreamDataset, tc.expectedDataStreamNamespace)
+		t.Run(tcName, func(t *testing.T) {
+			logs := plog.NewLogs()
+			resourceLogs := logs.ResourceLogs().AppendEmpty()
+			resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
+			if tc.resourceDataStreamDataset != "" {
+				resourceAttrs.PutStr("data_stream.dataset", tc.resourceDataStreamDataset)
+			}
+			if tc.resourceDataStreamNamespace != "" {
+				resourceAttrs.PutStr("data_stream.namespace", tc.resourceDataStreamNamespace)
+			}
+
+			scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
+			scopeAttrs := resourceLogs.ScopeLogs().At(0).Scope().Attributes()
+			if tc.scopeDataStreamDataset != "" {
+				scopeAttrs.PutStr("data_stream.dataset", tc.scopeDataStreamDataset)
+			}
+			if tc.scopeDataStreamNamespace != "" {
+				scopeAttrs.PutStr("data_stream.namespace", tc.scopeDataStreamNamespace)
+			}
+
+			record1 := newLogRecord("") // no log body
+			record1.CopyTo(scopeLogs.LogRecords().AppendEmpty())
+			recordAttrs := scopeLogs.LogRecords().At(0).Attributes()
+			if tc.recordDataStreamDataset != "" {
+				recordAttrs.PutStr("data_stream.dataset", tc.recordDataStreamDataset)
+			}
+			if tc.recordDataStreamNamespace != "" {
+				recordAttrs.PutStr("data_stream.namespace", tc.recordDataStreamNamespace)
+			}
+
+			var processed modelpb.Batch
+			var processor modelpb.ProcessBatchFunc = func(_ context.Context, batch *modelpb.Batch) error {
+				if processed != nil {
+					panic("already processes batch")
+				}
+				processed = batch.Clone()
+				assert.NotZero(t, processed[0].Timestamp)
+				processed[0].Timestamp = 0
+				return nil
+			}
+			consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+				Processor: processor,
+				Semaphore: semaphore.NewWeighted(100),
+			})
+			result, err := consumer.ConsumeLogsWithResult(context.Background(), logs)
+			assert.NoError(t, err)
+			assert.Equal(t, otlp.ConsumeLogsResult{}, result)
+
+			assert.Len(t, processed, 1)
+			assert.Equal(t, tc.expectedDataStreamDataset, processed[0].DataStream.Dataset)
+			assert.Equal(t, tc.expectedDataStreamNamespace, processed[0].DataStream.Namespace)
+		})
+	}
 }
 
 func TestConsumerConsumeOTelLogsWithTimestamp(t *testing.T) {

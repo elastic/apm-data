@@ -52,7 +52,12 @@ func (s *SetDataStream) ProcessBatch(ctx context.Context, b *modelpb.Batch) erro
 		if (*b)[i].DataStream == nil {
 			(*b)[i].DataStream = modelpb.DataStreamFromVTPool()
 		}
-		(*b)[i].DataStream.Namespace = s.Namespace
+		if (*b)[i].DataStream.Namespace == "" || isRUMAgentName((*b)[i].GetAgent().GetName()) {
+			// Only set namespace if
+			// 1. it is not already set in the input event; OR
+			// 2. it is from RUM agents, so that they cannot create arbitrarily many data streams
+			(*b)[i].DataStream.Namespace = s.Namespace
+		}
 		if (*b)[i].DataStream.Type == "" || (*b)[i].DataStream.Dataset == "" {
 			s.setDataStream((*b)[i])
 		}
@@ -64,9 +69,13 @@ func (s *SetDataStream) setDataStream(event *modelpb.APMEvent) {
 	switch event.Type() {
 	case modelpb.SpanEventType, modelpb.TransactionEventType:
 		event.DataStream.Type = tracesType
-		event.DataStream.Dataset = tracesDataset
+		if event.DataStream.Dataset == "" {
+			// Only set dataset if it is not already set in the input event
+			event.DataStream.Dataset = tracesDataset
+		}
 		// In order to maintain different ILM policies, RUM traces are sent to
 		// a different datastream.
+		// RUM agents should not be able to configure dataset.
 		if isRUMAgentName(event.GetAgent().GetName()) {
 			event.DataStream.Dataset = rumTracesDataset
 		}
@@ -75,10 +84,16 @@ func (s *SetDataStream) setDataStream(event *modelpb.APMEvent) {
 		event.DataStream.Dataset = errorsDataset
 	case modelpb.LogEventType:
 		event.DataStream.Type = logsType
-		event.DataStream.Dataset = getAppLogsDataset(event)
+		if event.DataStream.Dataset == "" || isRUMAgentName(event.GetAgent().GetName()) {
+			// Only set dataset if it is not already set in the input event
+			event.DataStream.Dataset = getAppLogsDataset(event)
+		}
 	case modelpb.MetricEventType:
 		event.DataStream.Type = metricsType
-		event.DataStream.Dataset = metricsetDataset(event)
+		if event.DataStream.Dataset == "" || isRUMAgentName(event.GetAgent().GetName()) {
+			// Only set dataset if it is not already set in the input event
+			event.DataStream.Dataset = metricsetDataset(event)
+		}
 	}
 }
 
