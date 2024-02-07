@@ -814,6 +814,90 @@ func TestSpanNetworkAttributes(t *testing.T) {
 	assert.Equal(t, &expected, spanEvent.Network)
 }
 
+func TestSpanDataStream(t *testing.T) {
+	for _, tc := range []struct {
+		resourceDataStreamDataset   string
+		resourceDataStreamNamespace string
+		scopeDataStreamDataset      string
+		scopeDataStreamNamespace    string
+		recordDataStreamDataset     string
+		recordDataStreamNamespace   string
+
+		expectedDataStreamDataset   string
+		expectedDataStreamNamespace string
+	}{
+		{
+			resourceDataStreamDataset:   "1",
+			resourceDataStreamNamespace: "2",
+			scopeDataStreamDataset:      "3",
+			scopeDataStreamNamespace:    "4",
+			recordDataStreamDataset:     "5",
+			recordDataStreamNamespace:   "6",
+			expectedDataStreamDataset:   "5",
+			expectedDataStreamNamespace: "6",
+		},
+		{
+			resourceDataStreamDataset:   "1",
+			resourceDataStreamNamespace: "2",
+			scopeDataStreamDataset:      "3",
+			scopeDataStreamNamespace:    "4",
+			expectedDataStreamDataset:   "3",
+			expectedDataStreamNamespace: "4",
+		},
+		{
+			resourceDataStreamDataset:   "1",
+			resourceDataStreamNamespace: "2",
+			expectedDataStreamDataset:   "1",
+			expectedDataStreamNamespace: "2",
+		},
+	} {
+		for _, isTxn := range []bool{false, true} {
+			tcName := fmt.Sprintf("%s,%s,txn=%v", tc.expectedDataStreamDataset, tc.expectedDataStreamNamespace, isTxn)
+			t.Run(tcName, func(t *testing.T) {
+				traces := ptrace.NewTraces()
+				resourceSpans := traces.ResourceSpans().AppendEmpty()
+				resourceAttrs := traces.ResourceSpans().At(0).Resource().Attributes()
+				if tc.resourceDataStreamDataset != "" {
+					resourceAttrs.PutStr("data_stream.dataset", tc.resourceDataStreamDataset)
+				}
+				if tc.resourceDataStreamNamespace != "" {
+					resourceAttrs.PutStr("data_stream.namespace", tc.resourceDataStreamNamespace)
+				}
+
+				scopeSpans := resourceSpans.ScopeSpans().AppendEmpty()
+				scopeAttrs := resourceSpans.ScopeSpans().At(0).Scope().Attributes()
+				if tc.scopeDataStreamDataset != "" {
+					scopeAttrs.PutStr("data_stream.dataset", tc.scopeDataStreamDataset)
+				}
+				if tc.scopeDataStreamNamespace != "" {
+					scopeAttrs.PutStr("data_stream.namespace", tc.scopeDataStreamNamespace)
+				}
+
+				otelSpan := scopeSpans.Spans().AppendEmpty()
+				otelSpan.SetTraceID(pcommon.TraceID{1})
+				otelSpan.SetSpanID(pcommon.SpanID{2})
+				if !isTxn {
+					otelSpan.SetParentSpanID(pcommon.SpanID{3})
+				}
+				if tc.recordDataStreamDataset != "" {
+					otelSpan.Attributes().PutStr("data_stream.dataset", tc.recordDataStreamDataset)
+				}
+				if tc.recordDataStreamNamespace != "" {
+					otelSpan.Attributes().PutStr("data_stream.namespace", tc.recordDataStreamNamespace)
+				}
+				events := transformTraces(t, traces)
+
+				dataStream := &modelpb.DataStream{
+					Dataset:   tc.expectedDataStreamDataset,
+					Namespace: tc.expectedDataStreamNamespace,
+				}
+
+				assert.Equal(t, dataStream, (*events)[0].DataStream)
+			})
+		}
+	}
+}
+
 func TestSessionID(t *testing.T) {
 	sessionAttributes := map[string]interface{}{
 		"session.id": "opbeans-swift",
@@ -1292,6 +1376,36 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 				},
 			}},
 		},
+		{
+			name: "jaeger_data_stream",
+			spans: []*jaegermodel.Span{{
+				StartTime: testStartTime(),
+				Tags: []jaegermodel.KeyValue{
+					jaegerKeyValue("data_stream.dataset", "1"),
+					jaegerKeyValue("data_stream.namespace", "2"),
+				},
+			}},
+		},
+		{
+			name: "jaeger_data_stream_with_error",
+			spans: []*jaegermodel.Span{{
+				TraceID: jaegermodel.NewTraceID(0, 0x46467830),
+				Tags: []jaegermodel.KeyValue{
+					jaegerKeyValue("data_stream.dataset", "1"),
+					jaegerKeyValue("data_stream.namespace", "2"),
+				},
+				Logs: []jaegermodel.Log{{
+					Timestamp: testStartTime().Add(23 * time.Nanosecond),
+					Fields: jaegerKeyValues(
+						"event", "retrying connection",
+						"level", "error",
+						"error", "no connection established",
+						"data_stream.dataset", "3",
+						"data_stream.namespace", "4",
+					),
+				}},
+			}},
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			traces, err := jaegertranslator.ProtoToTraces([]*jaegermodel.Batch{{
@@ -1401,6 +1515,34 @@ func TestConsumer_JaegerSpan(t *testing.T) {
 		{
 			name:  "jaeger_custom",
 			spans: []*jaegermodel.Span{{}},
+		},
+		{
+			name: "jaeger_data_stream",
+			spans: []*jaegermodel.Span{{
+				Tags: []jaegermodel.KeyValue{
+					jaegerKeyValue("data_stream.dataset", "1"),
+					jaegerKeyValue("data_stream.namespace", "2"),
+				},
+			}},
+		},
+		{
+			name: "jaeger_data_stream_with_error",
+			spans: []*jaegermodel.Span{{
+				Tags: []jaegermodel.KeyValue{
+					jaegerKeyValue("data_stream.dataset", "1"),
+					jaegerKeyValue("data_stream.namespace", "2"),
+				},
+				Logs: []jaegermodel.Log{{
+					Timestamp: testStartTime().Add(23 * time.Nanosecond),
+					Fields: jaegerKeyValues(
+						"event", "retrying connection",
+						"level", "error",
+						"error", "no connection established",
+						"data_stream.dataset", "3",
+						"data_stream.namespace", "4",
+					),
+				}},
+			}},
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -1667,6 +1809,43 @@ func TestSpanCodeStacktrace(t *testing.T) {
 		})
 		assert.Equal(t, "stacktrace value", event.Code.Stacktrace)
 	})
+}
+
+func TestSpanEventsDataStream(t *testing.T) {
+	for _, isException := range []bool{false, true} {
+		t.Run(fmt.Sprintf("isException=%v", isException), func(t *testing.T) {
+			timestamp := time.Unix(123, 0).UTC()
+
+			traces, spans := newTracesSpans()
+			traces.ResourceSpans().At(0).Resource().Attributes().PutStr(semconv.AttributeTelemetrySDKLanguage, "java")
+			traces.ResourceSpans().At(0).Resource().Attributes().PutStr("data_stream.dataset", "1")
+			traces.ResourceSpans().At(0).Resource().Attributes().PutStr("data_stream.namespace", "2")
+			otelSpan := spans.Spans().AppendEmpty()
+			otelSpan.SetTraceID(pcommon.TraceID{1})
+			otelSpan.SetSpanID(pcommon.SpanID{2})
+			otelSpan.Attributes().PutStr("data_stream.dataset", "3")
+			otelSpan.Attributes().PutStr("data_stream.namespace", "4")
+
+			spanEvent := ptrace.NewSpanEvent()
+			spanEvent.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
+			if isException {
+				spanEvent.SetName("exception")
+				spanEvent.Attributes().PutStr("exception.type", "java.net.ConnectException.OSError")
+				spanEvent.Attributes().PutStr("exception.message", "Division by zero")
+			}
+
+			spanEvent.Attributes().PutStr("data_stream.dataset", "5")
+			spanEvent.Attributes().PutStr("data_stream.namespace", "6")
+			spanEvent.CopyTo(otelSpan.Events().AppendEmpty())
+
+			allEvents := transformTraces(t, traces)
+			events := (*allEvents)[1:]
+			assert.Equal(t, &modelpb.DataStream{
+				Dataset:   "5",
+				Namespace: "6",
+			}, events[0].DataStream)
+		})
+	}
 }
 
 func testJaegerLogs() []jaegermodel.Log {
