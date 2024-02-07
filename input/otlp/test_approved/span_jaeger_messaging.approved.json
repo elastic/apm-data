@@ -12,7 +12,7 @@
             },
             "event": {
                 "duration": 79000000000,
-                "outcome": "unknown"
+                "outcome": "success"
             },
             "host": {
                 "hostname": "host-abc"

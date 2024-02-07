@@ -601,6 +601,12 @@ func (v *Document) MarshalFastJSON(w *fastjson.Writer) error {
 			firstErr = err
 		}
 	}
+	if v.Code != nil {
+		w.RawString(",\"code\":")
+		if err := v.Code.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
 	if v.Container != nil {
 		w.RawString(",\"container\":")
 		if err := v.Container.MarshalFastJSON(w); err != nil && firstErr == nil {
@@ -2733,6 +2739,16 @@ func (v *Span) MarshalFastJSON(w *fastjson.Writer) error {
 	return firstErr
 }
 
+func (v *Code) MarshalFastJSON(w *fastjson.Writer) error {
+	w.RawByte('{')
+	if v.Stacktrace != "" {
+		w.RawString("\"stacktrace\":")
+		w.String(v.Stacktrace)
+	}
+	w.RawByte('}')
+	return nil
+}
+
 func (v *SpanDestination) MarshalFastJSON(w *fastjson.Writer) error {
 	var firstErr error
 	w.RawByte('{')
@@ -3348,6 +3364,23 @@ func (v *Transaction) MarshalFastJSON(w *fastjson.Writer) error {
 			w.RawString(prefix)
 		}
 		w.String(v.Name)
+	}
+	if v.ProfilerStackTraceIds != nil {
+		const prefix = ",\"profiler_stack_trace_ids\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		w.RawByte('[')
+		for i, v := range v.ProfilerStackTraceIds {
+			if i != 0 {
+				w.RawByte(',')
+			}
+			w.String(v)
+		}
+		w.RawByte(']')
 	}
 	if v.RepresentativeCount != 0 {
 		const prefix = ",\"representative_count\":"

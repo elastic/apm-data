@@ -248,5 +248,11 @@ func MarshalAPMEvent(e *modelpb.APMEvent, w *fastjson.Writer) error {
 		}
 	}
 
+	if e.Code != nil {
+		doc.Code = &modeljson.Code{
+			Stacktrace: e.Code.Stacktrace,
+		}
+	}
+
 	return doc.MarshalFastJSON(w)
 }

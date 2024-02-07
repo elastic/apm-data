@@ -36,12 +36,13 @@ package otlp
 
 import (
 	"bufio"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
+	"io"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/gofrs/uuid"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -51,23 +52,39 @@ var (
 	javaStacktraceMoreRegexp = regexp.MustCompile(`\.\.\. ([0-9]+) more`)
 )
 
+const (
+	emptyExceptionMsg = "[EMPTY]"
+)
+
+// convertOpenTelemetryExceptionSpanEvent creates an otel Exception event
+// from the specified arguments.
+//
+// OpenTelemetry semantic convention require the presence of at least one
+// of the following attributes:
+// - exception.type
+// - exception.message
+// https://opentelemetry.io/docs/specs/semconv/exceptions/exceptions-spans/#attributes
+//
+// To fulfill this requirement we do not set exception.type if empty but
+// we always set exception.message defaulting to a constant value if empty.
 func convertOpenTelemetryExceptionSpanEvent(
 	exceptionType, exceptionMessage, exceptionStacktrace string,
 	exceptionEscaped bool,
 	language string,
 ) *modelpb.Error {
 	if exceptionMessage == "" {
-		exceptionMessage = "[EMPTY]"
+		exceptionMessage = emptyExceptionMsg
 	}
 	exceptionHandled := !exceptionEscaped
 	exceptionError := modelpb.ErrorFromVTPool()
 	exceptionError.Exception = modelpb.ExceptionFromVTPool()
 	exceptionError.Exception.Message = exceptionMessage
-	exceptionError.Exception.Type = exceptionType
+	if exceptionType != "" {
+		exceptionError.Exception.Type = exceptionType
+	}
 	exceptionError.Exception.Handled = &exceptionHandled
-	// TODO(axw) replace github.com/gofrs/uuid, not worth having the dependency just for this.
-	if id, err := uuid.NewV4(); err == nil {
-		exceptionError.Id = id.String()
+	if id, err := newUniqueID(); err == nil {
+		exceptionError.Id = id
 	}
 	if exceptionStacktrace != "" {
 		if err := setExceptionStacktrace(exceptionStacktrace, language, exceptionError.Exception); err != nil {
@@ -214,4 +231,17 @@ func parseJavaStacktraceFrame(s string, out *modelpb.Exception) error {
 
 func isNotTab(r rune) bool {
 	return r != '\t'
+}
+
+func newUniqueID() (string, error) {
+	var u [16]byte
+	if _, err := io.ReadFull(rand.Reader, u[:]); err != nil {
+		return "", err
+	}
+
+	// convert to string
+	buf := make([]byte, 32)
+	hex.Encode(buf, u[:])
+
+	return string(buf), nil
 }

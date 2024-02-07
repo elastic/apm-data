@@ -42,6 +42,7 @@ message Transaction {
   double representative_count = 13;
   bool sampled = 14;
   bool root = 15;
+  repeated string profiler_stack_trace_ids = 16;
 }
 
 message SpanCount {

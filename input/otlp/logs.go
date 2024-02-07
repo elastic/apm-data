@@ -47,9 +47,24 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
+// ConsumeLogsResult contains the number of rejected log records and error message for partial success response.
+type ConsumeLogsResult struct {
+	ErrorMessage       string
+	RejectedLogRecords int64
+}
+
+// ConsumeLogs calls ConsumeLogsWithResult but ignores the result.
+// It exists to satisfy the go.opentelemetry.io/collector/consumer.Logs interface.
 func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
-	if err := c.sem.Acquire(ctx, 1); err != nil {
-		return err
+	_, err := c.ConsumeLogsWithResult(ctx, logs)
+	return err
+}
+
+// ConsumeLogsWithResult consumes OpenTelemetry log data, converting into
+// the Elastic APM log model and sending to the reporter.
+func (c *Consumer) ConsumeLogsWithResult(ctx context.Context, logs plog.Logs) (ConsumeLogsResult, error) {
+	if err := semAcquire(ctx, c.sem, 1); err != nil {
+		return ConsumeLogsResult{}, err
 	}
 	defer c.sem.Release(1)
 
@@ -60,7 +75,10 @@ func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
 	for i := 0; i < resourceLogs.Len(); i++ {
 		c.convertResourceLogs(resourceLogs.At(i), receiveTimestamp, &batch)
 	}
-	return c.config.Processor.ProcessBatch(ctx, &batch)
+	if err := c.config.Processor.ProcessBatch(ctx, &batch); err != nil {
+		return ConsumeLogsResult{}, err
+	}
+	return ConsumeLogsResult{RejectedLogRecords: 0}, nil
 }
 
 func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTimestamp time.Time, out *modelpb.Batch) {
@@ -88,19 +106,27 @@ func (c *Consumer) convertInstrumentationLibraryLogs(
 ) {
 	otelLogs := in.LogRecords()
 	for i := 0; i < otelLogs.Len(); i++ {
-		event := c.convertLogRecord(otelLogs.At(i), baseEvent, timeDelta)
+		event := c.convertLogRecord(otelLogs.At(i), in.Scope(), baseEvent, timeDelta)
 		*out = append(*out, event)
 	}
 }
 
 func (c *Consumer) convertLogRecord(
 	record plog.LogRecord,
+	scope pcommon.InstrumentationScope,
 	baseEvent *modelpb.APMEvent,
 	timeDelta time.Duration,
 ) *modelpb.APMEvent {
 	event := baseEvent.CloneVT()
 	initEventLabels(event)
-	event.Timestamp = modelpb.FromTime(record.Timestamp().AsTime().Add(timeDelta))
+
+	translateScopeMetadata(scope, event)
+
+	if record.Timestamp() == 0 {
+		event.Timestamp = modelpb.FromTime(record.ObservedTimestamp().AsTime().Add(timeDelta))
+	} else {
+		event.Timestamp = modelpb.FromTime(record.Timestamp().AsTime().Add(timeDelta))
+	}
 	if event.Event == nil {
 		event.Event = modelpb.EventFromVTPool()
 	}
@@ -152,17 +178,34 @@ func (c *Consumer) convertLogRecord(
 				event.Session = modelpb.SessionFromVTPool()
 			}
 			event.Session.Id = v.Str()
+		case attributeNetworkConnectionType:
+			if event.Network == nil {
+				event.Network = modelpb.NetworkFromVTPool()
+			}
+			if event.Network.Connection == nil {
+				event.Network.Connection = modelpb.NetworkConnectionFromVTPool()
+			}
+			event.Network.Connection.Type = v.Str()
+		// data_stream.*
+		case attributeDataStreamDataset:
+			if event.DataStream == nil {
+				event.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			event.DataStream.Dataset = v.Str()
+		case attributeDataStreamNamespace:
+			if event.DataStream == nil {
+				event.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			event.DataStream.Namespace = v.Str()
 		default:
 			setLabel(replaceDots(k), event, ifaceAttributeValue(v))
 		}
 		return true
 	})
 
-	if exceptionMessage != "" && exceptionType != "" {
-		// Per OpenTelemetry semantic conventions:
-		//   `At least one of the following sets of attributes is required:
-		//   - exception.type
-		//   - exception.message`
+	// NOTE: we consider an error anything that contains an exception type
+	// or message, indipendently from the severity level.
+	if exceptionMessage != "" || exceptionType != "" {
 		event.Error = convertOpenTelemetryExceptionSpanEvent(
 			exceptionType, exceptionMessage, exceptionStacktrace,
 			exceptionEscaped, event.Service.Language.Name,

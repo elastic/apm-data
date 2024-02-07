@@ -41,6 +41,7 @@ import (
 	"math"
 	"net"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -63,12 +64,12 @@ const (
 	outcomeFailure = "failure"
 	outcomeUnknown = "unknown"
 
-	attributeNetworkConnectionType      = "net.host.connection.type"
-	attributeNetworkConnectionSubtype   = "net.host.connection.subtype"
-	attributeNetworkMCC                 = "net.host.carrier.mcc"
-	attributeNetworkMNC                 = "net.host.carrier.mnc"
-	attributeNetworkCarrierName         = "net.host.carrier.name"
-	attributeNetworkICC                 = "net.host.carrier.icc"
+	attributeNetworkConnectionType      = "network.connection.type"
+	attributeNetworkConnectionSubtype   = "network.connection.subtype"
+	attributeNetworkMCC                 = "network.carrier.mcc"
+	attributeNetworkMNC                 = "network.carrier.mnc"
+	attributeNetworkCarrierName         = "network.carrier.name"
+	attributeNetworkICC                 = "network.carrier.icc"
 	attributeHttpRequestMethod          = "http.request.method"
 	attributeHttpResponseStatusCode     = "http.response.status_code"
 	attributeServerAddress              = "server.address"
@@ -76,13 +77,29 @@ const (
 	attributeUrlFull                    = "url.full"
 	attributeUserAgentOriginal          = "user_agent.original"
 	attributeDbElasticsearchClusterName = "db.elasticsearch.cluster.name"
+	attributeStackTrace                 = "code.stacktrace" // semconv 1.24 or later
+	attributeDataStreamDataset          = "data_stream.dataset"
+	attributeDataStreamNamespace        = "data_stream.namespace"
 )
 
-// ConsumeTraces consumes OpenTelemetry trace data,
-// converting into Elastic APM events and reporting to the Elastic APM schema.
+// ConsumeTracesResult contains the number of rejected spans and error message for partial success response.
+type ConsumeTracesResult struct {
+	ErrorMessage  string
+	RejectedSpans int64
+}
+
+// ConsumeTraces calls ConsumeTracesWithResult but ignores the result.
+// It exists to satisfy the go.opentelemetry.io/collector/consumer.Traces interface.
 func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) error {
-	if err := c.sem.Acquire(ctx, 1); err != nil {
-		return err
+	_, err := c.ConsumeTracesWithResult(ctx, traces)
+	return err
+}
+
+// ConsumeTracesWithResult consumes OpenTelemetry trace data,
+// converting into Elastic APM events and reporting to the Elastic APM schema.
+func (c *Consumer) ConsumeTracesWithResult(ctx context.Context, traces ptrace.Traces) (ConsumeTracesResult, error) {
+	if err := semAcquire(ctx, c.sem, 1); err != nil {
+		return ConsumeTracesResult{}, err
 	}
 	defer c.sem.Release(1)
 
@@ -94,7 +111,10 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, traces ptrace.Traces) erro
 	for i := 0; i < resourceSpans.Len(); i++ {
 		c.convertResourceSpans(resourceSpans.At(i), receiveTimestamp, &batch)
 	}
-	return c.config.Processor.ProcessBatch(ctx, &batch)
+	if err := c.config.Processor.ProcessBatch(ctx, &batch); err != nil {
+		return ConsumeTracesResult{}, err
+	}
+	return ConsumeTracesResult{RejectedSpans: 0}, nil
 }
 
 func (c *Consumer) convertResourceSpans(
@@ -155,6 +175,9 @@ func (c *Consumer) convertSpan(
 	spanID := hexSpanID(otelSpan.SpanID())
 	representativeCount := getRepresentativeCountFromTracestateHeader(otelSpan.TraceState().AsRaw())
 	event := baseEvent.CloneVT()
+
+	translateScopeMetadata(otelLibrary, event)
+
 	initEventLabels(event)
 	event.Timestamp = modelpb.FromTime(startTime.Add(timeDelta))
 	if id := hexTraceID(otelSpan.TraceID()); id != "" {
@@ -235,7 +258,7 @@ func TranslateTransaction(
 	)
 
 	var isHTTP, isRPC, isMessaging bool
-	var message modelpb.Message
+	var messagingQueueName string
 
 	var samplerType, samplerParam pcommon.Value
 	attributes.Range(func(kDots string, v pcommon.Value) bool {
@@ -253,7 +276,19 @@ func TranslateTransaction(
 		k := replaceDots(kDots)
 		switch v.Type() {
 		case pcommon.ValueTypeSlice:
-			setLabel(k, event, ifaceAttributeValue(v))
+			switch kDots {
+			case "elastic.profiler_stack_trace_ids":
+				var vSlice = v.Slice()
+				event.Transaction.ProfilerStackTraceIds = slices.Grow(event.Transaction.ProfilerStackTraceIds, vSlice.Len())
+				for i := 0; i < vSlice.Len(); i++ {
+					var idVal = vSlice.At(i)
+					if idVal.Type() == pcommon.ValueTypeStr {
+						event.Transaction.ProfilerStackTraceIds = append(event.Transaction.ProfilerStackTraceIds, idVal.Str())
+					}
+				}
+			default:
+				setLabel(k, event, ifaceAttributeValue(v))
+			}
 		case pcommon.ValueTypeBool:
 			setLabel(k, event, ifaceAttributeValue(v))
 		case pcommon.ValueTypeDouble:
@@ -394,8 +429,14 @@ func TranslateTransaction(
 
 			// messaging.*
 			case "message_bus.destination", semconv.AttributeMessagingDestination:
-				message.QueueName = stringval
 				isMessaging = true
+				messagingQueueName = stringval
+			case semconv.AttributeMessagingSystem:
+				isMessaging = true
+				modelpb.Labels(event.Labels).Set(k, stringval)
+			case semconv.AttributeMessagingOperation:
+				isMessaging = true
+				modelpb.Labels(event.Labels).Set(k, stringval)
 
 			// rpc.*
 			//
@@ -428,6 +469,19 @@ func TranslateTransaction(
 				// should set this as a resource attribute (OTel) or tracer
 				// tag (Jaeger).
 				event.Service.Version = stringval
+
+			// data_stream.*
+			case attributeDataStreamDataset:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Dataset = stringval
+			case attributeDataStreamNamespace:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Namespace = stringval
+
 			default:
 				modelpb.Labels(event.Labels).Set(k, stringval)
 			}
@@ -478,7 +532,12 @@ func TranslateTransaction(
 		event.Url = modelpb.ParseURL(httpURL, httpHost, httpScheme)
 	}
 	if isMessaging {
-		event.Transaction.Message = &message
+		// Overwrite existing event.Transaction.Message
+		event.Transaction.Message = nil
+		if messagingQueueName != "" {
+			event.Transaction.Message = modelpb.MessageFromVTPool()
+			event.Transaction.Message.QueueName = messagingQueueName
+		}
 	}
 
 	if event.Client == nil && event.Source != nil {
@@ -503,6 +562,14 @@ func TranslateTransaction(
 		event.Service.Framework = modelpb.FrameworkFromVTPool()
 		event.Service.Framework.Name = name
 		event.Service.Framework.Version = library.Version()
+	}
+
+	// if outcome and result are still not assigned, assign success
+	if event.Event.Outcome == outcomeUnknown {
+		event.Event.Outcome = outcomeSuccess
+		if event.Transaction.Result == "" {
+			event.Transaction.Result = "Success"
+		}
 	}
 }
 
@@ -730,10 +797,30 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				httpURL = stringval
 				isHTTP = true
 
+			case attributeStackTrace:
+				if event.Code == nil {
+					event.Code = modelpb.CodeFromVTPool()
+				}
+				// stacktrace is expected to be large thus un-truncated value is needed
+				event.Code.Stacktrace = v.Str()
+
 			// miscellaneous
 			case "span.kind": // filter out
 			case semconv.AttributePeerService:
 				peerService = stringval
+
+			// data_stream.*
+			case attributeDataStreamDataset:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Dataset = stringval
+			case attributeDataStreamNamespace:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Namespace = stringval
+
 			default:
 				modelpb.Labels(event.Labels).Set(k, stringval)
 			}
@@ -929,6 +1016,11 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 		// The client has reported its sampling rate, so we can use it to extrapolate transaction metrics.
 		parseSamplerAttributes(samplerType, samplerParam, event)
 	}
+
+	// if outcome is still not assigned, assign success
+	if event.Event.Outcome == outcomeUnknown {
+		event.Event.Outcome = outcomeSuccess
+	}
 }
 
 func parseSamplerAttributes(samplerType, samplerParam pcommon.Value, event *modelpb.APMEvent) {
@@ -992,6 +1084,20 @@ func (c *Consumer) convertSpanEvent(
 				exceptionType = v.Str()
 			case "exception.escaped":
 				exceptionEscaped = v.Bool()
+
+			// data_stream.*
+			// Note: fields are parsed but dataset will be overridden by SetDataStream because it is an error
+			case attributeDataStreamDataset:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Dataset = v.Str()
+			case attributeDataStreamNamespace:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Namespace = v.Str()
+
 			default:
 				setLabel(replaceDots(k), event, ifaceAttributeValue(v))
 			}
@@ -1020,12 +1126,26 @@ func (c *Consumer) convertSpanEvent(
 		event.Message = spanEvent.Name()
 		setLogContext(event, parent)
 		spanEvent.Attributes().Range(func(k string, v pcommon.Value) bool {
-			k = replaceDots(k)
-			if isJaeger && k == "message" {
-				event.Message = truncate(v.Str())
-				return true
+			switch k {
+			// data_stream.*
+			case attributeDataStreamDataset:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Dataset = v.Str()
+			case attributeDataStreamNamespace:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Namespace = v.Str()
+			default:
+				k = replaceDots(k)
+				if isJaeger && k == "message" {
+					event.Message = truncate(v.Str())
+					return true
+				}
+				setLabel(k, event, ifaceAttributeValue(v))
 			}
-			setLabel(k, event, ifaceAttributeValue(v))
 			return true
 		})
 	}
@@ -1063,6 +1183,20 @@ func (c *Consumer) convertJaegerErrorSpanEvent(event ptrace.SpanEvent, apmEvent 
 			isError = stringval == "error"
 		case "message":
 			logMessage = stringval
+
+		// data_stream.*
+		// Note: fields are parsed but dataset will be overridden by SetDataStream because it is an error
+		case attributeDataStreamDataset:
+			if apmEvent.DataStream == nil {
+				apmEvent.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			apmEvent.DataStream.Dataset = v.Str()
+		case attributeDataStreamNamespace:
+			if apmEvent.DataStream == nil {
+				apmEvent.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			apmEvent.DataStream.Namespace = v.Str()
+
 		default:
 			setLabel(replaceDots(k), apmEvent, ifaceAttributeValue(v))
 		}
@@ -1131,13 +1265,19 @@ func translateSpanLinks(out *modelpb.APMEvent, in ptrace.SpanLinkSlice) {
 	if out.Span == nil {
 		out.Span = modelpb.SpanFromVTPool()
 	}
-	out.Span.Links = make([]*modelpb.SpanLink, n)
+	out.Span.Links = make([]*modelpb.SpanLink, 0, n)
 	for i := 0; i < n; i++ {
 		link := in.At(i)
-		sl := modelpb.SpanLinkFromVTPool()
-		sl.SpanId = hexSpanID(link.SpanID())
-		sl.TraceId = hexTraceID(link.TraceID())
-		out.Span.Links[i] = sl
+		// When a link has the elastic.is_child attribute set, it is stored in the child_ids instead
+		childAttribVal, childAttribPresent := link.Attributes().Get("elastic.is_child")
+		if childAttribPresent && childAttribVal.Bool() {
+			out.ChildIds = append(out.ChildIds, hexSpanID(link.SpanID()))
+		} else {
+			sl := modelpb.SpanLinkFromVTPool()
+			sl.SpanId = hexSpanID(link.SpanID())
+			sl.TraceId = hexTraceID(link.TraceID())
+			out.Span.Links = append(out.Span.Links, sl)
+		}
 	}
 }
 

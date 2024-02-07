@@ -174,9 +174,16 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		assert.Equal(t, "failure", out.Event.Outcome)
 		// derive from other fields - unknown
 		input.Outcome.Reset()
+		input.OTel.Reset()
 		input.Context.HTTP.StatusCode.Reset()
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, "unknown", out.Event.Outcome)
+		// outcome is success when not assigned and it's otel
+		input.Outcome.Reset()
+		input.OTel.SpanKind.Set(spanKindInternal)
+		input.Context.HTTP.StatusCode.Reset()
+		mapToSpanModel(&input, &out)
+		assert.Equal(t, "success", out.Event.Outcome)
 	})
 
 	t.Run("timestamp", func(t *testing.T) {
@@ -453,12 +460,12 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 
 		t.Run("network", func(t *testing.T) {
 			attrs := map[string]interface{}{
-				"net.host.connection.type":    "cell",
-				"net.host.connection.subtype": "LTE",
-				"net.host.carrier.name":       "Vodafone",
-				"net.host.carrier.mnc":        "01",
-				"net.host.carrier.mcc":        "101",
-				"net.host.carrier.icc":        "UK",
+				"network.connection.type":    "cell",
+				"network.connection.subtype": "LTE",
+				"network.carrier.name":       "Vodafone",
+				"network.carrier.mnc":        "01",
+				"network.carrier.mcc":        "101",
+				"network.carrier.icc":        "UK",
 			}
 			var input span
 			var event modelpb.APMEvent

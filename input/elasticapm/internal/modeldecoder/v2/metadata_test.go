@@ -55,6 +55,8 @@ func isUnmappedMetadataField(key string) bool {
 		"client.ip",
 		"client.port",
 		"cloud.origin",
+		"code",
+		"code.stacktrace",
 		"container.runtime",
 		"container.image_name",
 		"container.image_tag",

@@ -268,6 +268,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"representative_count",
 				// Kind is tested further down
 				"Kind",
+				// profiler_stack_trace_ids are supplied as OTel-attributes
+				"profiler_stack_trace_ids",
 
 				// Not set for transaction events, tested in metricset decoding:
 				"AggregatedDuration",
@@ -423,9 +425,16 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		assert.Equal(t, "failure", out.Event.Outcome)
 		// derive from other fields - unknown
 		input.Outcome.Reset()
+		input.OTel.Reset()
 		input.Context.Response.StatusCode.Reset()
 		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "unknown", out.Event.Outcome)
+		// outcome is success when not assigned and it's otel
+		input.Outcome.Reset()
+		input.OTel.SpanKind.Set(spanKindInternal)
+		input.Context.Response.StatusCode.Reset()
+		mapToTransactionModel(&input, &out)
+		assert.Equal(t, "success", out.Event.Outcome)
 	})
 
 	t.Run("session", func(t *testing.T) {
@@ -554,14 +563,32 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			}, event.Transaction.Message)
 		})
 
+		t.Run("messaging_without_destination", func(t *testing.T) {
+			var input transaction
+			var event modelpb.APMEvent
+			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+			input.Type.Reset()
+			attrs := map[string]interface{}{
+				"messaging.system":    "kafka",
+				"messaging.operation": "publish",
+			}
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Reset()
+
+			mapToTransactionModel(&input, &event)
+			assert.Equal(t, "messaging", event.Transaction.Type)
+			assert.Equal(t, "CONSUMER", event.Span.Kind)
+			assert.Nil(t, event.Transaction.Message)
+		})
+
 		t.Run("network", func(t *testing.T) {
 			attrs := map[string]interface{}{
-				"net.host.connection.type":    "cell",
-				"net.host.connection.subtype": "LTE",
-				"net.host.carrier.name":       "Vodafone",
-				"net.host.carrier.mnc":        "01",
-				"net.host.carrier.mcc":        "101",
-				"net.host.carrier.icc":        "UK",
+				"network.connection.type":    "cell",
+				"network.connection.subtype": "LTE",
+				"network.carrier.name":       "Vodafone",
+				"network.carrier.mnc":        "01",
+				"network.carrier.mcc":        "101",
+				"network.carrier.icc":        "UK",
 			}
 			var input transaction
 			var event modelpb.APMEvent
@@ -610,6 +637,19 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 
 			mapToTransactionModel(&input, &event)
 			assert.Equal(t, "CLIENT", event.Span.Kind)
+		})
+
+		t.Run("elastic-profiling-ids", func(t *testing.T) {
+			var input transaction
+			var event modelpb.APMEvent
+			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+			attrs := map[string]interface{}{
+				"elastic.profiler_stack_trace_ids": []interface{}{"id1", "id2"},
+			}
+			input.OTel.Attributes = attrs
+
+			mapToTransactionModel(&input, &event)
+			assert.Equal(t, []string{"id1", "id2"}, event.Transaction.ProfilerStackTraceIds)
 		})
 	})
 	t.Run("labels", func(t *testing.T) {

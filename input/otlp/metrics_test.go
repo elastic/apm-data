@@ -46,6 +46,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"golang.org/x/sync/semaphore"
@@ -54,6 +55,10 @@ import (
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
 )
+
+func TestConsumer_ConsumeMetrics_Interface(t *testing.T) {
+	var _ consumer.Metrics = otlp.NewConsumer(otlp.ConsumerConfig{})
+}
 
 func TestConsumeMetrics(t *testing.T) {
 	metrics := pmetric.NewMetrics()
@@ -132,8 +137,14 @@ func TestConsumeMetrics(t *testing.T) {
 	invalidHistogramDP.ExplicitBounds().Append( /* should be non-empty */ )
 	expectDropped++
 
-	events, stats := transformMetrics(t, metrics)
+	events, stats, result, err := transformMetrics(t, metrics)
+	assert.NoError(t, err)
 	assert.Equal(t, expectDropped, stats.UnsupportedMetricsDropped)
+	expectedResult := otlp.ConsumeMetricsResult{
+		RejectedDataPoints: 2,
+		ErrorMessage:       "unsupported data points",
+	}
+	assert.Equal(t, expectedResult, result)
 
 	service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
 	agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
@@ -233,19 +244,23 @@ func TestConsumeMetricsSemaphore(t *testing.T) {
 	startCh := make(chan struct{})
 	go func() {
 		close(startCh)
-		assert.NoError(t, consumer.ConsumeMetrics(context.Background(), metrics))
+		_, err := consumer.ConsumeMetricsWithResult(context.Background(), metrics)
+		assert.NoError(t, err)
 	}()
 
 	<-startCh
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
-	assert.Equal(t, consumer.ConsumeMetrics(ctx, metrics).Error(), "context deadline exceeded")
+	_, err := consumer.ConsumeMetricsWithResult(ctx, metrics)
+	assert.Equal(t, err.Error(), "context deadline exceeded")
 	close(doneCh)
 
-	assert.NoError(t, consumer.ConsumeMetrics(context.Background(), metrics))
+	_, err = consumer.ConsumeMetricsWithResult(context.Background(), metrics)
+	assert.NoError(t, err)
 }
 
 func TestConsumeMetricsNaN(t *testing.T) {
+	var dpCount int64
 	timestamp := time.Unix(123, 0).UTC()
 	metrics := pmetric.NewMetrics()
 	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
@@ -259,10 +274,13 @@ func TestConsumeMetricsNaN(t *testing.T) {
 		dp := gauge.DataPoints().AppendEmpty()
 		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 		dp.SetDoubleValue(value)
+		dpCount++
 	}
 
-	events, stats := transformMetrics(t, metrics)
+	events, stats, result, err := transformMetrics(t, metrics)
+	assert.NoError(t, err)
 	assert.Equal(t, int64(3), stats.UnsupportedMetricsDropped)
+	assert.Equal(t, otlp.ConsumeMetricsResult{RejectedDataPoints: dpCount, ErrorMessage: "unsupported data points"}, result)
 	assert.Empty(t, events)
 }
 
@@ -335,7 +353,8 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		"cpu":   "3",
 	})
 
-	events, _ := transformMetrics(t, metrics)
+	events, _, result, err := transformMetrics(t, metrics)
+	assert.NoError(t, err)
 	service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
 	agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
 	expected := []*modelpb.APMEvent{{
@@ -521,6 +540,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 	}}
 
 	eventsMatch(t, expected, events)
+	assert.Equal(t, otlp.ConsumeMetricsResult{}, result)
 }
 
 func TestConsumeMetricsHostMemory(t *testing.T) {
@@ -545,7 +565,8 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 	addInt64Sum("system.memory.usage", 3563778048, map[string]interface{}{
 		"state": "used",
 	})
-	events, _ := transformMetrics(t, metrics)
+	events, _, result, err := transformMetrics(t, metrics)
+	assert.NoError(t, err)
 	service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
 	agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
 	expected := []*modelpb.APMEvent{{
@@ -581,6 +602,7 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 	}}
 
 	eventsMatch(t, expected, events)
+	assert.Equal(t, otlp.ConsumeMetricsResult{}, result)
 }
 
 func TestConsumeMetrics_JVM(t *testing.T) {
@@ -624,7 +646,8 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		"action": "end of minor GC",
 	})
 
-	events, _ := transformMetrics(t, metrics)
+	events, _, result, err := transformMetrics(t, metrics)
+	assert.NoError(t, err)
 	service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
 	agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
 	expected := []*modelpb.APMEvent{{
@@ -663,6 +686,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	}}
 
 	eventsMatch(t, expected, events)
+	assert.Equal(t, otlp.ConsumeMetricsResult{}, result)
 }
 
 func TestConsumeMetricsExportTimestamp(t *testing.T) {
@@ -693,13 +717,137 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 	dp.SetTimestamp(pcommon.NewTimestampFromTime(exportedDataPointTimestamp))
 	dp.SetIntValue(1)
 
-	events, _ := transformMetrics(t, metrics)
+	events, _, _, err := transformMetrics(t, metrics)
+	assert.NoError(t, err)
 	require.Len(t, events, 1)
 	assert.InDelta(t, modelpb.FromTime(now.Add(dataPointOffset)), events[0].Timestamp, float64(allowedError.Nanoseconds()))
 
 	for _, e := range events {
 		// telemetry.sdk.elastic_export_timestamp should not be sent as a label.
 		assert.Empty(t, e.NumericLabels)
+	}
+}
+
+func TestConsumeMetricsDataStream(t *testing.T) {
+	for _, tc := range []struct {
+		resourceDataStreamDataset   string
+		resourceDataStreamNamespace string
+		scopeDataStreamDataset      string
+		scopeDataStreamNamespace    string
+		recordDataStreamDataset     string
+		recordDataStreamNamespace   string
+
+		expectedDataStreamDataset   string
+		expectedDataStreamNamespace string
+	}{
+		{
+			resourceDataStreamDataset:   "1",
+			resourceDataStreamNamespace: "2",
+			scopeDataStreamDataset:      "3",
+			scopeDataStreamNamespace:    "4",
+			recordDataStreamDataset:     "5",
+			recordDataStreamNamespace:   "6",
+			expectedDataStreamDataset:   "5",
+			expectedDataStreamNamespace: "6",
+		},
+		{
+			resourceDataStreamDataset:   "1",
+			resourceDataStreamNamespace: "2",
+			scopeDataStreamDataset:      "3",
+			scopeDataStreamNamespace:    "4",
+			expectedDataStreamDataset:   "3",
+			expectedDataStreamNamespace: "4",
+		},
+		{
+			resourceDataStreamDataset:   "1",
+			resourceDataStreamNamespace: "2",
+			expectedDataStreamDataset:   "1",
+			expectedDataStreamNamespace: "2",
+		},
+	} {
+		tcName := fmt.Sprintf("%s,%s", tc.expectedDataStreamDataset, tc.expectedDataStreamNamespace)
+		t.Run(tcName, func(t *testing.T) {
+			metrics := pmetric.NewMetrics()
+			resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
+			resourceAttrs := metrics.ResourceMetrics().At(0).Resource().Attributes()
+			if tc.resourceDataStreamDataset != "" {
+				resourceAttrs.PutStr("data_stream.dataset", tc.resourceDataStreamDataset)
+			}
+			if tc.resourceDataStreamNamespace != "" {
+				resourceAttrs.PutStr("data_stream.namespace", tc.resourceDataStreamNamespace)
+			}
+
+			scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
+			scopeAttrs := resourceMetrics.ScopeMetrics().At(0).Scope().Attributes()
+			if tc.scopeDataStreamDataset != "" {
+				scopeAttrs.PutStr("data_stream.dataset", tc.scopeDataStreamDataset)
+			}
+			if tc.scopeDataStreamNamespace != "" {
+				scopeAttrs.PutStr("data_stream.namespace", tc.scopeDataStreamNamespace)
+			}
+
+			metricSlice := scopeMetrics.Metrics()
+			appendMetric := func(name string) pmetric.Metric {
+				metric := metricSlice.AppendEmpty()
+				metric.SetName(name)
+				return metric
+			}
+
+			timestamp0 := time.Unix(123, 0).UTC()
+
+			gauge := appendMetric("gauge_metric").SetEmptyGauge()
+			gaugeDP0 := gauge.DataPoints().AppendEmpty()
+			gaugeDP0.SetTimestamp(pcommon.NewTimestampFromTime(timestamp0))
+			gaugeDP0.SetDoubleValue(5.6)
+			if tc.recordDataStreamDataset != "" {
+				gaugeDP0.Attributes().PutStr("data_stream.dataset", tc.recordDataStreamDataset)
+			}
+			if tc.recordDataStreamNamespace != "" {
+				gaugeDP0.Attributes().PutStr("data_stream.namespace", tc.recordDataStreamNamespace)
+			}
+			gaugeDP1 := gauge.DataPoints().AppendEmpty()
+			gaugeDP1.SetTimestamp(pcommon.NewTimestampFromTime(timestamp0))
+			gaugeDP1.SetDoubleValue(6)
+			gaugeDP1.Attributes().PutStr("data_stream.dataset", "foo")
+			gaugeDP1.Attributes().PutStr("data_stream.namespace", "bar")
+
+			events, _, result, err := transformMetrics(t, metrics)
+			assert.NoError(t, err)
+			expectedResult := otlp.ConsumeMetricsResult{}
+			assert.Equal(t, expectedResult, result)
+
+			service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
+			agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
+			dataStream := modelpb.DataStream{
+				Dataset:   tc.expectedDataStreamDataset,
+				Namespace: tc.expectedDataStreamNamespace,
+			}
+			expected := []*modelpb.APMEvent{{
+				Agent:      &agent,
+				DataStream: &dataStream,
+				Service:    &service,
+				Timestamp:  modelpb.FromTime(timestamp0),
+				Metricset: &modelpb.Metricset{
+					Name: "app",
+					Samples: []*modelpb.MetricsetSample{
+						{Name: "gauge_metric", Value: 5.6, Type: modelpb.MetricType_METRIC_TYPE_GAUGE},
+					},
+				},
+			}, {
+				Agent:      &agent,
+				DataStream: &modelpb.DataStream{Dataset: "foo", Namespace: "bar"},
+				Service:    &service,
+				Timestamp:  modelpb.FromTime(timestamp0),
+				Metricset: &modelpb.Metricset{
+					Name: "app",
+					Samples: []*modelpb.MetricsetSample{
+						{Name: "gauge_metric", Value: 6, Type: modelpb.MetricType_METRIC_TYPE_GAUGE},
+					},
+				},
+			}}
+
+			eventsMatch(t, expected, events)
+		})
 	}
 }
 
@@ -720,7 +868,7 @@ func TestMetricsLogging(t *testing.T) {
 }
 */
 
-func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEvent, otlp.ConsumerStats) {
+func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEvent, otlp.ConsumerStats, otlp.ConsumeMetricsResult, error) {
 	var batches []*modelpb.Batch
 	recorder := batchRecorderBatchProcessor(&batches)
 
@@ -728,10 +876,9 @@ func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEven
 		Processor: recorder,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	err := consumer.ConsumeMetrics(context.Background(), metrics)
-	require.NoError(t, err)
+	result, err := consumer.ConsumeMetricsWithResult(context.Background(), metrics)
 	require.Len(t, batches, 1)
-	return *batches[0], consumer.Stats()
+	return *batches[0], consumer.Stats(), result, err
 }
 
 func eventsMatch(t *testing.T, expected []*modelpb.APMEvent, actual []*modelpb.APMEvent) {

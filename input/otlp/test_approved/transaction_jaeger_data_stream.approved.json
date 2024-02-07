@@ -6,14 +6,15 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
+            "data_stream": {
+                "dataset": "1",
+                "namespace": "2"
+            },
             "event": {
                 "outcome": "success"
             },
             "host": {
                 "hostname": "host-abc"
-            },
-            "labels": {
-                "a_b": "foo"
             },
             "service": {
                 "language": {
@@ -26,8 +27,8 @@
             },
             "transaction": {
                 "representative_count": 1,
-                "sampled": true,
                 "result": "Success",
+                "sampled": true,
                 "type": "unknown"
             }
         }
