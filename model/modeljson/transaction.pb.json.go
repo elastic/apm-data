@@ -26,13 +26,14 @@ import (
 
 func TransactionModelJSON(e *modelpb.Transaction, out *modeljson.Transaction, metricset bool) {
 	*out = modeljson.Transaction{
-		ID:                  e.Id,
-		Type:                e.Type,
-		Name:                e.Name,
-		Result:              e.Result,
-		Sampled:             e.Sampled,
-		Root:                e.Root,
-		RepresentativeCount: e.RepresentativeCount,
+		ID:                    e.Id,
+		Type:                  e.Type,
+		Name:                  e.Name,
+		Result:                e.Result,
+		Sampled:               e.Sampled,
+		Root:                  e.Root,
+		RepresentativeCount:   e.RepresentativeCount,
+		ProfilerStackTraceIds: e.ProfilerStackTraceIds,
 	}
 
 	if e.Custom != nil {

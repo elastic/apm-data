@@ -77,6 +77,11 @@ func (m *Transaction) CloneVT() *Transaction {
 		}
 		r.DroppedSpansStats = tmpContainer
 	}
+	if rhs := m.ProfilerStackTraceIds; rhs != nil {
+		tmpContainer := make([]string, len(rhs))
+		copy(tmpContainer, rhs)
+		r.ProfilerStackTraceIds = tmpContainer
+	}
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -185,6 +190,17 @@ func (m *Transaction) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
+	}
+	if len(m.ProfilerStackTraceIds) > 0 {
+		for iNdEx := len(m.ProfilerStackTraceIds) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.ProfilerStackTraceIds[iNdEx])
+			copy(dAtA[i:], m.ProfilerStackTraceIds[iNdEx])
+			i = encodeVarint(dAtA, i, uint64(len(m.ProfilerStackTraceIds[iNdEx])))
+			i--
+			dAtA[i] = 0x1
+			i--
+			dAtA[i] = 0x82
+		}
 	}
 	if m.Root {
 		i--
@@ -525,9 +541,11 @@ func (m *Transaction) ResetVT() {
 		}
 		f1 := m.DroppedSpansStats[:0]
 		m.DurationSummary.ReturnToVTPool()
+		f2 := m.ProfilerStackTraceIds[:0]
 		m.Reset()
 		m.Custom = f0
 		m.DroppedSpansStats = f1
+		m.ProfilerStackTraceIds = f2
 	}
 }
 func (m *Transaction) ReturnToVTPool() {
@@ -678,6 +696,12 @@ func (m *Transaction) SizeVT() (n int) {
 	}
 	if m.Root {
 		n += 2
+	}
+	if len(m.ProfilerStackTraceIds) > 0 {
+		for _, s := range m.ProfilerStackTraceIds {
+			l = len(s)
+			n += 2 + l + sov(uint64(l))
+		}
 	}
 	n += len(m.unknownFields)
 	return n
@@ -1346,6 +1370,38 @@ func (m *Transaction) UnmarshalVT(dAtA []byte) error {
 				}
 			}
 			m.Root = bool(v != 0)
+		case 16:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProfilerStackTraceIds", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ProfilerStackTraceIds = append(m.ProfilerStackTraceIds, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skip(dAtA[iNdEx:])

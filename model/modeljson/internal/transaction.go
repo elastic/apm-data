@@ -18,21 +18,22 @@
 package modeljson
 
 type Transaction struct {
-	SpanCount           SpanCount                     `json:"span_count,omitempty"`
-	UserExperience      *UserExperience               `json:"experience,omitempty"`
-	Custom              KeyValueSlice                 `json:"custom,omitempty"`
-	Marks               map[string]map[string]float64 `json:"marks,omitempty"`
-	Message             *Message                      `json:"message,omitempty"`
-	Type                string                        `json:"type,omitempty"`
-	Name                string                        `json:"name,omitempty"`
-	Result              string                        `json:"result,omitempty"`
-	ID                  string                        `json:"id,omitempty"`
-	DurationHistogram   Histogram                     `json:"duration.histogram,omitempty"`
-	DroppedSpansStats   []DroppedSpanStats            `json:"dropped_spans_stats,omitempty"`
-	DurationSummary     SummaryMetric                 `json:"duration.summary,omitempty"`
-	RepresentativeCount float64                       `json:"representative_count,omitempty"`
-	Sampled             bool                          `json:"sampled,omitempty"`
-	Root                bool                          `json:"root,omitempty"`
+	SpanCount             SpanCount                     `json:"span_count,omitempty"`
+	UserExperience        *UserExperience               `json:"experience,omitempty"`
+	Custom                KeyValueSlice                 `json:"custom,omitempty"`
+	Marks                 map[string]map[string]float64 `json:"marks,omitempty"`
+	Message               *Message                      `json:"message,omitempty"`
+	Type                  string                        `json:"type,omitempty"`
+	Name                  string                        `json:"name,omitempty"`
+	Result                string                        `json:"result,omitempty"`
+	ID                    string                        `json:"id,omitempty"`
+	DurationHistogram     Histogram                     `json:"duration.histogram,omitempty"`
+	DroppedSpansStats     []DroppedSpanStats            `json:"dropped_spans_stats,omitempty"`
+	ProfilerStackTraceIds []string                      `json:"profiler_stack_trace_ids,omitempty"`
+	DurationSummary       SummaryMetric                 `json:"duration.summary,omitempty"`
+	RepresentativeCount   float64                       `json:"representative_count,omitempty"`
+	Sampled               bool                          `json:"sampled,omitempty"`
+	Root                  bool                          `json:"root,omitempty"`
 }
 
 type SpanCount struct {

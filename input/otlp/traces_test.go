@@ -949,6 +949,26 @@ func TestArrayLabels(t *testing.T) {
 	}, modelpb.NumericLabels(spanEvent.NumericLabels))
 }
 
+func TestProfilerStackTraceIds(t *testing.T) {
+	validIds := []interface{}{"myId1", "myId2"}
+	badValueTypes := []interface{}{42, 68, "valid"}
+
+	tx1 := transformTransactionWithAttributes(t, map[string]interface{}{
+		"elastic.profiler_stack_trace_ids": validIds,
+	})
+	assert.Equal(t, []string{"myId1", "myId2"}, tx1.Transaction.ProfilerStackTraceIds)
+
+	tx2 := transformTransactionWithAttributes(t, map[string]interface{}{
+		"elastic.profiler_stack_trace_ids": badValueTypes,
+	})
+	assert.Equal(t, []string{"valid"}, tx2.Transaction.ProfilerStackTraceIds)
+
+	tx3 := transformTransactionWithAttributes(t, map[string]interface{}{
+		"elastic.profiler_stack_trace_ids": "bad type",
+	})
+	assert.Equal(t, []string(nil), tx3.Transaction.ProfilerStackTraceIds)
+}
+
 func TestConsumeTracesExportTimestamp(t *testing.T) {
 	traces, otelSpans := newTracesSpans()
 
