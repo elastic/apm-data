@@ -19,7 +19,7 @@ package modeldecoderutil
 
 import "slices"
 
-// Reslice increases the slice's capacity, if necessary, to guarantee space for n elements.
+// Reslice increases the slice's capacity and length, if necessary, to guarantee space for a total of n elements.
 // The method returns a slice with len(slice)==n.
 func Reslice[Slice ~[]model, model any](slice Slice, n int) Slice {
 	return slices.Grow(slice, n)[:n]
