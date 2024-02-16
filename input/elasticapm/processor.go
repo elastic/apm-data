@@ -276,8 +276,19 @@ func (p *Processor) HandleStream(
 		}
 	}
 
+	var batch modelpb.Batch
+	if b, ok := batchPool.Get().(*modelpb.Batch); ok {
+		batch = (*b)[:0]
+	} else {
+		batch = make(modelpb.Batch, 0, batchSize)
+	}
+
+	defer batchPool.Put(&batch)
+
 	for {
-		err := p.handleStream(ctx, baseEvent, batchSize, sr, processor, result)
+		// reuse the batch for future iterations without pooling each time
+		batch = batch[:0]
+		err := p.handleStream(ctx, &batch, baseEvent, batchSize, sr, processor, result)
 		if err != nil {
 			if errors.Is(err, io.EOF) {
 				return nil
@@ -289,26 +300,19 @@ func (p *Processor) HandleStream(
 
 func (p *Processor) handleStream(
 	ctx context.Context,
+	batch *modelpb.Batch,
 	baseEvent *modelpb.APMEvent,
 	batchSize int,
 	sr *streamReader,
 	processor modelpb.BatchProcessor,
 	result *Result,
 ) error {
-	// The first iteration will not acquire the semaphore since it's already
-	// acquired in the caller function.
-	var batch modelpb.Batch
-	if b, ok := batchPool.Get().(*modelpb.Batch); ok {
-		batch = (*b)[:0]
-	}
-	n, readErr := p.readBatch(ctx, baseEvent, batchSize, &batch, sr, result)
+	n, readErr := p.readBatch(ctx, baseEvent, batchSize, batch, sr, result)
 	if n == 0 {
-		// No events to process, return the batch to the pool.
-		batchPool.Put(&batch)
 		return readErr
 	}
 
-	if err := p.processBatch(ctx, processor, &batch); err != nil {
+	if err := p.processBatch(ctx, processor, batch); err != nil {
 		return fmt.Errorf("cannot process batch: %w", err)
 	}
 	result.Accepted += n
