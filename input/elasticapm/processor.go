@@ -319,13 +319,12 @@ func (p *Processor) handleStream(
 	return readErr
 }
 
-// processBatch processes the batch and returns it to the pool after it's been processed.
+// processBatch processes the batch and returns the events to the pool after it's been processed.
 func (p *Processor) processBatch(ctx context.Context, processor modelpb.BatchProcessor, batch *modelpb.Batch) error {
 	defer func() {
 		for i := range *batch {
 			(*batch)[i].ReturnToVTPool()
 		}
-		batchPool.Put(batch)
 	}()
 	return processor.ProcessBatch(ctx, batch)
 }
