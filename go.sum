@@ -46,10 +46,10 @@ github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd h1:TRLaZ9cD/w
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
 github.com/modern-go/reflect2 v1.0.2 h1:xBagoLtFs94CBntxluKeaWgTMpvLxC4ur3nMaC9Gz0M=
 github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
-github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.94.0 h1:0X1r/YZR+rbQqzKzQ40LTZUw1a8mKXV/BmO+BDuhx1w=
-github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.94.0/go.mod h1:VR/KC70d5Jxfw71448BpbykhTK6+0bLjTgPobcm+7Vk=
-github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.94.0 h1:+gpgiUXzrx8YeVBfXPwxpfLrB6FQgTnfXp2HHx2LumI=
-github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.94.0/go.mod h1:73syuA2KFBpSVI9xIYXjMItqcfuR9aKbb5ffg3WgZjo=
+github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.95.0 h1:rvP/CsLCRB4YhwUonXBepCFKD1JmvJx15u6q9uohx/s=
+github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.95.0/go.mod h1:dYvTF19uK+adX9RXqVQnx3vMAuVw0K9UqSN5bIqZhKo=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.95.0 h1:gx+zEjG3dYYqeRG/tUQ2KjIMIl9cRvtzuRXj/rbJyxU=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.95.0/go.mod h1:QaMTCmd8RXl96lwYTuRVE49jotvp20rT30DZMRdb7O4=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
