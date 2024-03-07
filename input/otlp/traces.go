@@ -912,14 +912,15 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 		if event.Span.Subtype != "" {
 			serviceTarget.Type = event.Span.Subtype
 			if destinationService.Name == "" {
-				// For database requests, we currently just identify
-				// the destination service by db.system.
 				destinationService.Name = event.Span.Subtype
 				destinationService.Resource = event.Span.Subtype
 			}
 		}
 		if db.Instance != "" {
 			serviceTarget.Name = db.Instance
+			if destinationService.Resource != "" {
+				destinationService.Resource += "/" + db.Instance
+			}
 		}
 	case isMessaging:
 		event.Span.Type = "messaging"
