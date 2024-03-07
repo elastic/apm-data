@@ -918,9 +918,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 		}
 		if db.Instance != "" {
 			serviceTarget.Name = db.Instance
-			if destinationService.Resource != "" {
-				destinationService.Resource += "/" + db.Instance
-			}
+			destinationService.Resource = serviceTarget.Type + "/" + db.Instance
 		}
 	case isMessaging:
 		event.Span.Type = "messaging"
