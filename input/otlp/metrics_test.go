@@ -728,6 +728,129 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 	}
 }
 
+func TestConsumeMetricsDataStream(t *testing.T) {
+	for _, tc := range []struct {
+		resourceDataStreamDataset   string
+		resourceDataStreamNamespace string
+		scopeDataStreamDataset      string
+		scopeDataStreamNamespace    string
+		recordDataStreamDataset     string
+		recordDataStreamNamespace   string
+
+		expectedDataStreamDataset   string
+		expectedDataStreamNamespace string
+	}{
+		{
+			resourceDataStreamDataset:   "1",
+			resourceDataStreamNamespace: "2",
+			scopeDataStreamDataset:      "3",
+			scopeDataStreamNamespace:    "4",
+			recordDataStreamDataset:     "5",
+			recordDataStreamNamespace:   "6",
+			expectedDataStreamDataset:   "5",
+			expectedDataStreamNamespace: "6",
+		},
+		{
+			resourceDataStreamDataset:   "1",
+			resourceDataStreamNamespace: "2",
+			scopeDataStreamDataset:      "3",
+			scopeDataStreamNamespace:    "4",
+			expectedDataStreamDataset:   "3",
+			expectedDataStreamNamespace: "4",
+		},
+		{
+			resourceDataStreamDataset:   "1",
+			resourceDataStreamNamespace: "2",
+			expectedDataStreamDataset:   "1",
+			expectedDataStreamNamespace: "2",
+		},
+	} {
+		tcName := fmt.Sprintf("%s,%s", tc.expectedDataStreamDataset, tc.expectedDataStreamNamespace)
+		t.Run(tcName, func(t *testing.T) {
+			metrics := pmetric.NewMetrics()
+			resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
+			resourceAttrs := metrics.ResourceMetrics().At(0).Resource().Attributes()
+			if tc.resourceDataStreamDataset != "" {
+				resourceAttrs.PutStr("data_stream.dataset", tc.resourceDataStreamDataset)
+			}
+			if tc.resourceDataStreamNamespace != "" {
+				resourceAttrs.PutStr("data_stream.namespace", tc.resourceDataStreamNamespace)
+			}
+
+			scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
+			scopeAttrs := resourceMetrics.ScopeMetrics().At(0).Scope().Attributes()
+			if tc.scopeDataStreamDataset != "" {
+				scopeAttrs.PutStr("data_stream.dataset", tc.scopeDataStreamDataset)
+			}
+			if tc.scopeDataStreamNamespace != "" {
+				scopeAttrs.PutStr("data_stream.namespace", tc.scopeDataStreamNamespace)
+			}
+
+			metricSlice := scopeMetrics.Metrics()
+			appendMetric := func(name string) pmetric.Metric {
+				metric := metricSlice.AppendEmpty()
+				metric.SetName(name)
+				return metric
+			}
+
+			timestamp0 := time.Unix(123, 0).UTC()
+
+			gauge := appendMetric("gauge_metric").SetEmptyGauge()
+			gaugeDP0 := gauge.DataPoints().AppendEmpty()
+			gaugeDP0.SetTimestamp(pcommon.NewTimestampFromTime(timestamp0))
+			gaugeDP0.SetDoubleValue(5.6)
+			if tc.recordDataStreamDataset != "" {
+				gaugeDP0.Attributes().PutStr("data_stream.dataset", tc.recordDataStreamDataset)
+			}
+			if tc.recordDataStreamNamespace != "" {
+				gaugeDP0.Attributes().PutStr("data_stream.namespace", tc.recordDataStreamNamespace)
+			}
+			gaugeDP1 := gauge.DataPoints().AppendEmpty()
+			gaugeDP1.SetTimestamp(pcommon.NewTimestampFromTime(timestamp0))
+			gaugeDP1.SetDoubleValue(6)
+			gaugeDP1.Attributes().PutStr("data_stream.dataset", "foo")
+			gaugeDP1.Attributes().PutStr("data_stream.namespace", "bar")
+
+			events, _, result, err := transformMetrics(t, metrics)
+			assert.NoError(t, err)
+			expectedResult := otlp.ConsumeMetricsResult{}
+			assert.Equal(t, expectedResult, result)
+
+			service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
+			agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
+			dataStream := modelpb.DataStream{
+				Dataset:   tc.expectedDataStreamDataset,
+				Namespace: tc.expectedDataStreamNamespace,
+			}
+			expected := []*modelpb.APMEvent{{
+				Agent:      &agent,
+				DataStream: &dataStream,
+				Service:    &service,
+				Timestamp:  modelpb.FromTime(timestamp0),
+				Metricset: &modelpb.Metricset{
+					Name: "app",
+					Samples: []*modelpb.MetricsetSample{
+						{Name: "gauge_metric", Value: 5.6, Type: modelpb.MetricType_METRIC_TYPE_GAUGE},
+					},
+				},
+			}, {
+				Agent:      &agent,
+				DataStream: &modelpb.DataStream{Dataset: "foo", Namespace: "bar"},
+				Service:    &service,
+				Timestamp:  modelpb.FromTime(timestamp0),
+				Metricset: &modelpb.Metricset{
+					Name: "app",
+					Samples: []*modelpb.MetricsetSample{
+						{Name: "gauge_metric", Value: 6, Type: modelpb.MetricType_METRIC_TYPE_GAUGE},
+					},
+				},
+			}}
+
+			eventsMatch(t, expected, events)
+		})
+	}
+}
+
 /* TODO
 func TestMetricsLogging(t *testing.T) {
 	for _, level := range []logp.Level{logp.InfoLevel, logp.DebugLevel} {

@@ -293,6 +293,18 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 		case "telemetry.distro.version":
 			//distro version & name are handled below and should not end up as labels
 
+		// data_stream.*
+		case attributeDataStreamDataset:
+			if out.DataStream == nil {
+				out.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			out.DataStream.Dataset = v.Str()
+		case attributeDataStreamNamespace:
+			if out.DataStream == nil {
+				out.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			out.DataStream.Namespace = v.Str()
+
 		default:
 			if out.Labels == nil {
 				out.Labels = make(modelpb.Labels)
@@ -420,6 +432,25 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 		v.Global = true
 		out.NumericLabels[k] = v
 	}
+}
+
+func translateScopeMetadata(scope pcommon.InstrumentationScope, out *modelpb.APMEvent) {
+	scope.Attributes().Range(func(k string, v pcommon.Value) bool {
+		switch k {
+		// data_stream.*
+		case attributeDataStreamDataset:
+			if out.DataStream == nil {
+				out.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			out.DataStream.Dataset = v.Str()
+		case attributeDataStreamNamespace:
+			if out.DataStream == nil {
+				out.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			out.DataStream.Namespace = v.Str()
+		}
+		return true
+	})
 }
 
 func cleanServiceName(name string) string {

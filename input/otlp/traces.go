@@ -41,6 +41,7 @@ import (
 	"math"
 	"net"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -77,6 +78,8 @@ const (
 	attributeUserAgentOriginal          = "user_agent.original"
 	attributeDbElasticsearchClusterName = "db.elasticsearch.cluster.name"
 	attributeStackTrace                 = "code.stacktrace" // semconv 1.24 or later
+	attributeDataStreamDataset          = "data_stream.dataset"
+	attributeDataStreamNamespace        = "data_stream.namespace"
 )
 
 // ConsumeTracesResult contains the number of rejected spans and error message for partial success response.
@@ -172,6 +175,9 @@ func (c *Consumer) convertSpan(
 	spanID := hexSpanID(otelSpan.SpanID())
 	representativeCount := getRepresentativeCountFromTracestateHeader(otelSpan.TraceState().AsRaw())
 	event := baseEvent.CloneVT()
+
+	translateScopeMetadata(otelLibrary, event)
+
 	initEventLabels(event)
 	event.Timestamp = modelpb.FromTime(startTime.Add(timeDelta))
 	if id := hexTraceID(otelSpan.TraceID()); id != "" {
@@ -270,7 +276,19 @@ func TranslateTransaction(
 		k := replaceDots(kDots)
 		switch v.Type() {
 		case pcommon.ValueTypeSlice:
-			setLabel(k, event, ifaceAttributeValue(v))
+			switch kDots {
+			case "elastic.profiler_stack_trace_ids":
+				var vSlice = v.Slice()
+				event.Transaction.ProfilerStackTraceIds = slices.Grow(event.Transaction.ProfilerStackTraceIds, vSlice.Len())
+				for i := 0; i < vSlice.Len(); i++ {
+					var idVal = vSlice.At(i)
+					if idVal.Type() == pcommon.ValueTypeStr {
+						event.Transaction.ProfilerStackTraceIds = append(event.Transaction.ProfilerStackTraceIds, idVal.Str())
+					}
+				}
+			default:
+				setLabel(k, event, ifaceAttributeValue(v))
+			}
 		case pcommon.ValueTypeBool:
 			setLabel(k, event, ifaceAttributeValue(v))
 		case pcommon.ValueTypeDouble:
@@ -451,6 +469,19 @@ func TranslateTransaction(
 				// should set this as a resource attribute (OTel) or tracer
 				// tag (Jaeger).
 				event.Service.Version = stringval
+
+			// data_stream.*
+			case attributeDataStreamDataset:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Dataset = stringval
+			case attributeDataStreamNamespace:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Namespace = stringval
+
 			default:
 				modelpb.Labels(event.Labels).Set(k, stringval)
 			}
@@ -777,6 +808,19 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 			case "span.kind": // filter out
 			case semconv.AttributePeerService:
 				peerService = stringval
+
+			// data_stream.*
+			case attributeDataStreamDataset:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Dataset = stringval
+			case attributeDataStreamNamespace:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Namespace = stringval
+
 			default:
 				modelpb.Labels(event.Labels).Set(k, stringval)
 			}
@@ -1040,6 +1084,20 @@ func (c *Consumer) convertSpanEvent(
 				exceptionType = v.Str()
 			case "exception.escaped":
 				exceptionEscaped = v.Bool()
+
+			// data_stream.*
+			// Note: fields are parsed but dataset will be overridden by SetDataStream because it is an error
+			case attributeDataStreamDataset:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Dataset = v.Str()
+			case attributeDataStreamNamespace:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Namespace = v.Str()
+
 			default:
 				setLabel(replaceDots(k), event, ifaceAttributeValue(v))
 			}
@@ -1068,12 +1126,26 @@ func (c *Consumer) convertSpanEvent(
 		event.Message = spanEvent.Name()
 		setLogContext(event, parent)
 		spanEvent.Attributes().Range(func(k string, v pcommon.Value) bool {
-			k = replaceDots(k)
-			if isJaeger && k == "message" {
-				event.Message = truncate(v.Str())
-				return true
+			switch k {
+			// data_stream.*
+			case attributeDataStreamDataset:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Dataset = v.Str()
+			case attributeDataStreamNamespace:
+				if event.DataStream == nil {
+					event.DataStream = modelpb.DataStreamFromVTPool()
+				}
+				event.DataStream.Namespace = v.Str()
+			default:
+				k = replaceDots(k)
+				if isJaeger && k == "message" {
+					event.Message = truncate(v.Str())
+					return true
+				}
+				setLabel(k, event, ifaceAttributeValue(v))
 			}
-			setLabel(k, event, ifaceAttributeValue(v))
 			return true
 		})
 	}
@@ -1111,6 +1183,20 @@ func (c *Consumer) convertJaegerErrorSpanEvent(event ptrace.SpanEvent, apmEvent 
 			isError = stringval == "error"
 		case "message":
 			logMessage = stringval
+
+		// data_stream.*
+		// Note: fields are parsed but dataset will be overridden by SetDataStream because it is an error
+		case attributeDataStreamDataset:
+			if apmEvent.DataStream == nil {
+				apmEvent.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			apmEvent.DataStream.Dataset = v.Str()
+		case attributeDataStreamNamespace:
+			if apmEvent.DataStream == nil {
+				apmEvent.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			apmEvent.DataStream.Namespace = v.Str()
+
 		default:
 			setLabel(replaceDots(k), apmEvent, ifaceAttributeValue(v))
 		}

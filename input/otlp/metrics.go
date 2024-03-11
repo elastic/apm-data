@@ -144,6 +144,9 @@ func (c *Consumer) convertScopeMetrics(
 	}
 	for key, ms := range ms {
 		event := baseEvent.CloneVT()
+
+		translateScopeMetadata(in.Scope(), event)
+
 		event.Timestamp = modelpb.FromTime(key.timestamp.Add(timeDelta))
 		metrs := make([]*modelpb.MetricsetSample, 0, len(ms.samples))
 		for _, s := range ms.samples {
@@ -155,7 +158,21 @@ func (c *Consumer) convertScopeMetrics(
 		if ms.attributes.Len() > 0 {
 			initEventLabels(event)
 			ms.attributes.Range(func(k string, v pcommon.Value) bool {
-				setLabel(k, event, ifaceAttributeValue(v))
+				switch k {
+				// data_stream.*
+				case attributeDataStreamDataset:
+					if event.DataStream == nil {
+						event.DataStream = modelpb.DataStreamFromVTPool()
+					}
+					event.DataStream.Dataset = v.Str()
+				case attributeDataStreamNamespace:
+					if event.DataStream == nil {
+						event.DataStream = modelpb.DataStreamFromVTPool()
+					}
+					event.DataStream.Namespace = v.Str()
+				default:
+					setLabel(k, event, ifaceAttributeValue(v))
+				}
 				return true
 			})
 			if len(event.Labels) == 0 {
