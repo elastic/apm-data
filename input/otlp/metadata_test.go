@@ -75,6 +75,52 @@ func TestResourceConventions(t *testing.T) {
 				},
 			},
 		},
+		"agent_distro": {
+			attrs: map[string]interface{}{
+				"telemetry.sdk.name":       "sdk_name",
+				"telemetry.sdk.version":    "sdk_version",
+				"telemetry.sdk.language":   "language_name",
+				"telemetry.distro.name":    "distro_name",
+				"telemetry.distro.version": "distro_version",
+			},
+			expected: &modelpb.APMEvent{
+				Agent: &modelpb.Agent{Name: "sdk_name/language_name/distro_name", Version: "distro_version"},
+				Service: &modelpb.Service{
+					Name:     "unknown",
+					Language: &modelpb.Language{Name: "language_name"},
+				},
+			},
+		},
+		"agent_distro_no_language": {
+			attrs: map[string]interface{}{
+				"telemetry.sdk.name":       "sdk_name",
+				"telemetry.sdk.version":    "sdk_version",
+				"telemetry.distro.name":    "distro_name",
+				"telemetry.distro.version": "distro_version",
+			},
+			expected: &modelpb.APMEvent{
+				Agent: &modelpb.Agent{Name: "sdk_name/unknown/distro_name", Version: "distro_version"},
+				Service: &modelpb.Service{
+					Name:     "unknown",
+					Language: &modelpb.Language{Name: "unknown"},
+				},
+			},
+		},
+		"agent_distro_no_version": {
+			attrs: map[string]interface{}{
+				"telemetry.sdk.name":     "sdk_name",
+				"telemetry.sdk.version":  "sdk_version",
+				"telemetry.sdk.language": "language_name",
+				"telemetry.distro.name":  "distro_name",
+			},
+			expected: &modelpb.APMEvent{
+				Agent: &modelpb.Agent{Name: "sdk_name/language_name/distro_name", Version: "unknown"},
+				Service: &modelpb.Service{
+					Name:     "unknown",
+					Language: &modelpb.Language{Name: "language_name"},
+				},
+			},
+		},
 		"runtime": {
 			attrs: map[string]interface{}{
 				"process.runtime.name":    "runtime_name",
