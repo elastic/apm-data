@@ -378,10 +378,10 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 		// service.name is a required field.
 		out.Service.Name = "unknown"
 	}
+	if out.Agent == nil {
+		out.Agent = modelpb.AgentFromVTPool()
+	}
 	if out.GetAgent().GetName() == "" {
-		if out.Agent == nil {
-			out.Agent = modelpb.AgentFromVTPool()
-		}
 		// agent.name is a required field.
 		out.Agent.Name = "otlp"
 	}
