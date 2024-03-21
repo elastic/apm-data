@@ -188,7 +188,7 @@ type contextPage struct {
 
 type contextRequest struct {
 	// Cookies used by the request, parsed as key-value objects.
-	Cookies map[string]any `json:"cookies"`
+	Cookies map[string]string `json:"cookies"`
 	// Env holds environment variable information passed to the monitored service.
 	Env map[string]any `json:"env"`
 	// Body only contais the request bod, not the query string information.

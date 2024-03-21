@@ -87,7 +87,7 @@ func (m *HTTPRequest) CloneVT() *HTTPRequest {
 		r.Env = tmpContainer
 	}
 	if rhs := m.Cookies; rhs != nil {
-		tmpContainer := make([]*KeyValue, len(rhs))
+		tmpContainer := make([]*HTTPCookies, len(rhs))
 		for k, v := range rhs {
 			tmpContainer[k] = v.CloneVT()
 		}
@@ -238,6 +238,18 @@ func (m *HTTPRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if len(m.Cookies) > 0 {
+		for iNdEx := len(m.Cookies) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Cookies[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x42
+		}
+	}
 	if len(m.Referrer) > 0 {
 		i -= len(m.Referrer)
 		copy(dAtA[i:], m.Referrer)
@@ -258,18 +270,6 @@ func (m *HTTPRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i = encodeVarint(dAtA, i, uint64(len(m.Id)))
 		i--
 		dAtA[i] = 0x2a
-	}
-	if len(m.Cookies) > 0 {
-		for iNdEx := len(m.Cookies) - 1; iNdEx >= 0; iNdEx-- {
-			size, err := m.Cookies[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarint(dAtA, i, uint64(size))
-			i--
-			dAtA[i] = 0x22
-		}
 	}
 	if len(m.Env) > 0 {
 		for iNdEx := len(m.Env) - 1; iNdEx >= 0; iNdEx-- {
@@ -539,12 +539,6 @@ func (m *HTTPRequest) SizeVT() (n int) {
 			n += 1 + l + sov(uint64(l))
 		}
 	}
-	if len(m.Cookies) > 0 {
-		for _, e := range m.Cookies {
-			l = e.SizeVT()
-			n += 1 + l + sov(uint64(l))
-		}
-	}
 	l = len(m.Id)
 	if l > 0 {
 		n += 1 + l + sov(uint64(l))
@@ -556,6 +550,12 @@ func (m *HTTPRequest) SizeVT() (n int) {
 	l = len(m.Referrer)
 	if l > 0 {
 		n += 1 + l + sov(uint64(l))
+	}
+	if len(m.Cookies) > 0 {
+		for _, e := range m.Cookies {
+			l = e.SizeVT()
+			n += 1 + l + sov(uint64(l))
+		}
 	}
 	n += len(m.unknownFields)
 	return n
@@ -905,47 +905,6 @@ func (m *HTTPRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Cookies", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLength
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLength
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if len(m.Cookies) == cap(m.Cookies) {
-				m.Cookies = append(m.Cookies, &KeyValue{})
-			} else {
-				m.Cookies = m.Cookies[:len(m.Cookies)+1]
-				if m.Cookies[len(m.Cookies)-1] == nil {
-					m.Cookies[len(m.Cookies)-1] = &KeyValue{}
-				}
-			}
-			if err := m.Cookies[len(m.Cookies)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
@@ -1041,6 +1000,47 @@ func (m *HTTPRequest) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.Referrer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Cookies", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLength
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if len(m.Cookies) == cap(m.Cookies) {
+				m.Cookies = append(m.Cookies, &HTTPCookies{})
+			} else {
+				m.Cookies = m.Cookies[:len(m.Cookies)+1]
+				if m.Cookies[len(m.Cookies)-1] == nil {
+					m.Cookies[len(m.Cookies)-1] = &HTTPCookies{}
+				}
+			}
+			if err := m.Cookies[len(m.Cookies)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
