@@ -49,6 +49,15 @@ func randomHTTPHeaders(t testing.TB) []*modelpb.HTTPHeader {
 	}
 }
 
+func randomHTTPCookies(t testing.TB) []*modelpb.HTTPCookies {
+	return []*modelpb.HTTPCookies{
+		{
+			Key:   t.Name() + ".key." + randString(),
+			Value: t.Name() + ".value." + randString(),
+		},
+	}
+}
+
 func uintPtr(i uint32) *uint32 {
 	return &i
 }

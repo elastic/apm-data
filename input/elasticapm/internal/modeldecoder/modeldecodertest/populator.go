@@ -163,6 +163,8 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 			switch v := f.Interface().(type) {
 			case map[string]interface{}:
 				elemVal = reflect.ValueOf(values.Str)
+			case map[string]string:
+				elemVal = reflect.ValueOf(values.Str)
 			case map[string]float64:
 				elemVal = reflect.ValueOf(values.Float)
 			case map[string]*modelpb.LabelValue:
