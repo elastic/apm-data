@@ -28,30 +28,14 @@ func TestReslice(t *testing.T) {
 	var s []*modelpb.APMEvent
 
 	originalSize := 10
-	s = Reslice(s, originalSize, modelpb.APMEventFromVTPool)
-	validateBackingArray(t, s, originalSize)
+	s = Reslice(s, originalSize)
 	assert.Equal(t, originalSize, len(s))
 
 	downsize := 4
-	s = Reslice(s, downsize, nil)
-	validateBackingArray(t, s, downsize)
+	s = Reslice(s, downsize)
 	assert.Equal(t, downsize, len(s))
 
 	upsize := 21
-	s = Reslice(s, upsize, modelpb.APMEventFromVTPool)
-	validateBackingArray(t, s, upsize)
+	s = Reslice(s, upsize)
 	assert.Equal(t, upsize, len(s))
-}
-
-func validateBackingArray(t *testing.T, out []*modelpb.APMEvent, expectedLen int) {
-	t.Helper()
-
-	// validate length
-	assert.Equal(t, expectedLen, len(out))
-
-	// validate backing array is fully populated
-	backing := out[:cap(out)]
-	for i := 0; i < cap(backing); i++ {
-		assert.NotNil(t, backing[i])
-	}
 }
