@@ -527,7 +527,7 @@ func TestDatabaseSpan(t *testing.T) {
 	assert.Empty(t, cmp.Diff(&modelpb.DestinationService{
 		Type:     "db",
 		Name:     "mysql",
-		Resource: "mysql",
+		Resource: "mysql/ShopDb",
 	}, event.Span.DestinationService, protocmp.Transform()))
 }
 
