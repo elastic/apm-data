@@ -45,6 +45,20 @@ func HTTPHeadersToStructPb(h http.Header) *structpb.Struct {
 	return nil
 }
 
+func HTTPCookiesToModelpb(m map[string]string, out []*modelpb.HTTPCookies) []*modelpb.HTTPCookies {
+	if len(m) == 0 {
+		return nil
+	}
+	out = Reslice(out, len(m), modelpb.HTTPCookiesFromVTPool)
+	i := 0
+	for k, v := range m {
+		out[i].Key = k
+		out[i].Value = v
+		i++
+	}
+	return out
+}
+
 func HTTPHeadersToModelpb(h http.Header, out []*modelpb.HTTPHeader) []*modelpb.HTTPHeader {
 	if len(h) == 0 {
 		return nil

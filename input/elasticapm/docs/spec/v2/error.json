@@ -200,7 +200,13 @@
               "type": [
                 "null",
                 "object"
-              ]
+              ],
+              "additionalProperties": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
             },
             "env": {
               "description": "Env holds environment variable information passed to the monitored service.",

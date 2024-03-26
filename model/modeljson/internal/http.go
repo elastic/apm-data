@@ -30,7 +30,7 @@ type HTTPRequest struct {
 	Method   string           `json:"method,omitempty"`
 	Referrer string           `json:"referrer,omitempty"`
 	Env      KeyValueSlice    `json:"env,omitempty"`     // Non-ECS field.
-	Cookies  KeyValueSlice    `json:"cookies,omitempty"` // Non-ECS field.
+	Cookies  HTTPCookies      `json:"cookies,omitempty"` // Non-ECS field.
 }
 
 type HTTPRequestBody struct {

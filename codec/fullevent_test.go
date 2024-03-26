@@ -356,7 +356,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			Request: &modelpb.HTTPRequest{
 				Headers:  randomHTTPHeaders(t),
 				Env:      randomKv(t),
-				Cookies:  randomKv(t),
+				Cookies:  randomHTTPCookies(t),
 				Id:       "id",
 				Method:   "method",
 				Referrer: "referrer",
