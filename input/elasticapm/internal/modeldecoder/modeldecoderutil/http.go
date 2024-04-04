@@ -19,6 +19,7 @@ package modeldecoderutil
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -45,7 +46,7 @@ func HTTPHeadersToStructPb(h http.Header) *structpb.Struct {
 	return nil
 }
 
-func HTTPCookiesToModelpb(m map[string]string, out []*modelpb.HTTPCookies) []*modelpb.HTTPCookies {
+func HTTPCookiesToModelpb(m map[string]any, out []*modelpb.HTTPCookies) []*modelpb.HTTPCookies {
 	if len(m) == 0 {
 		return nil
 	}
@@ -53,7 +54,7 @@ func HTTPCookiesToModelpb(m map[string]string, out []*modelpb.HTTPCookies) []*mo
 	i := 0
 	for k, v := range m {
 		out[i].Key = k
-		out[i].Value = v
+		out[i].Value = fmt.Sprint(v)
 		i++
 	}
 	return out
