@@ -59,11 +59,11 @@ func HTTPCookiesToModelpb(m map[string]string, out []*modelpb.HTTPCookies) []*mo
 	return out
 }
 
-func HTTPHeadersToModelpb(h http.Header, out []*modelpb.HTTPHeader) []*modelpb.HTTPHeader {
+func HTTPHeadersToModelpb(h http.Header, out []*modelpb.Header) []*modelpb.Header {
 	if len(h) == 0 {
 		return nil
 	}
-	out = Reslice(out, len(h), modelpb.HTTPHeaderFromVTPool)
+	out = Reslice(out, len(h), modelpb.HeaderFromVTPool)
 	i := 0
 	for k, v := range h {
 		out[i].Key = k

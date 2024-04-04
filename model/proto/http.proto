@@ -22,7 +22,7 @@ package elastic.apm.v1;
 import "google/protobuf/struct.proto";
 import "cookies.proto";
 import "headers.proto";
-import "keyvalue.proto";
+import "keyvaluestring.proto";
 
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
@@ -33,22 +33,23 @@ message HTTP {
 }
 
 message HTTPRequest {
-  reserved 4;
+  reserved 2, 3, 4;
   google.protobuf.Value body = 1;
-  repeated HTTPHeader headers = 2;
-  repeated KeyValue env = 3;
   string id = 5;
   string method = 6;
   string referrer = 7;
   repeated HTTPCookies cookies = 8;
+  repeated Header headers = 9;
+  repeated KeyValueString env = 10;
 }
 
 message HTTPResponse {
-  repeated HTTPHeader headers = 1;
+  reserved 1;
   optional bool finished = 2;
   optional bool headers_sent = 3;
   optional uint64 transfer_size = 4;
   optional uint64 encoded_body_size = 5;
   optional uint64 decoded_body_size = 6;
   uint32 status_code = 7;
+  repeated Header headers = 8;
 }

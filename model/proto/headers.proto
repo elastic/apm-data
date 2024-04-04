@@ -21,7 +21,7 @@ package elastic.apm.v1;
 
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
-message HTTPHeader {
+message Header {
   string key = 1;
   repeated string value = 2;
 }

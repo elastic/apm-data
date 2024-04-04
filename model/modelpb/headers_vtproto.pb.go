@@ -37,11 +37,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-func (m *HTTPHeader) CloneVT() *HTTPHeader {
+func (m *Header) CloneVT() *Header {
 	if m == nil {
-		return (*HTTPHeader)(nil)
+		return (*Header)(nil)
 	}
-	r := HTTPHeaderFromVTPool()
+	r := HeaderFromVTPool()
 	r.Key = m.Key
 	if rhs := m.Value; rhs != nil {
 		tmpContainer := make([]string, len(rhs))
@@ -55,11 +55,11 @@ func (m *HTTPHeader) CloneVT() *HTTPHeader {
 	return r
 }
 
-func (m *HTTPHeader) CloneMessageVT() proto.Message {
+func (m *Header) CloneMessageVT() proto.Message {
 	return m.CloneVT()
 }
 
-func (m *HTTPHeader) MarshalVT() (dAtA []byte, err error) {
+func (m *Header) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -72,12 +72,12 @@ func (m *HTTPHeader) MarshalVT() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *HTTPHeader) MarshalToVT(dAtA []byte) (int, error) {
+func (m *Header) MarshalToVT(dAtA []byte) (int, error) {
 	size := m.SizeVT()
 	return m.MarshalToSizedBufferVT(dAtA[:size])
 }
 
-func (m *HTTPHeader) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+func (m *Header) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -108,29 +108,29 @@ func (m *HTTPHeader) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_HTTPHeader = sync.Pool{
+var vtprotoPool_Header = sync.Pool{
 	New: func() interface{} {
-		return &HTTPHeader{}
+		return &Header{}
 	},
 }
 
-func (m *HTTPHeader) ResetVT() {
+func (m *Header) ResetVT() {
 	if m != nil {
 		f0 := m.Value[:0]
 		m.Reset()
 		m.Value = f0
 	}
 }
-func (m *HTTPHeader) ReturnToVTPool() {
+func (m *Header) ReturnToVTPool() {
 	if m != nil {
 		m.ResetVT()
-		vtprotoPool_HTTPHeader.Put(m)
+		vtprotoPool_Header.Put(m)
 	}
 }
-func HTTPHeaderFromVTPool() *HTTPHeader {
-	return vtprotoPool_HTTPHeader.Get().(*HTTPHeader)
+func HeaderFromVTPool() *Header {
+	return vtprotoPool_Header.Get().(*Header)
 }
-func (m *HTTPHeader) SizeVT() (n int) {
+func (m *Header) SizeVT() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -150,7 +150,7 @@ func (m *HTTPHeader) SizeVT() (n int) {
 	return n
 }
 
-func (m *HTTPHeader) UnmarshalVT(dAtA []byte) error {
+func (m *Header) UnmarshalVT(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -173,10 +173,10 @@ func (m *HTTPHeader) UnmarshalVT(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: HTTPHeader: wiretype end group for non-group")
+			return fmt.Errorf("proto: Header: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: HTTPHeader: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: Header: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

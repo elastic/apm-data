@@ -45,16 +45,16 @@ func (m *Message) CloneVT() *Message {
 	r.Body = m.Body
 	r.QueueName = m.QueueName
 	r.RoutingKey = m.RoutingKey
+	if rhs := m.AgeMillis; rhs != nil {
+		tmpVal := *rhs
+		r.AgeMillis = &tmpVal
+	}
 	if rhs := m.Headers; rhs != nil {
-		tmpContainer := make([]*HTTPHeader, len(rhs))
+		tmpContainer := make([]*Header, len(rhs))
 		for k, v := range rhs {
 			tmpContainer[k] = v.CloneVT()
 		}
 		r.Headers = tmpContainer
-	}
-	if rhs := m.AgeMillis; rhs != nil {
-		tmpVal := *rhs
-		r.AgeMillis = &tmpVal
 	}
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -97,6 +97,18 @@ func (m *Message) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if len(m.Headers) > 0 {
+		for iNdEx := len(m.Headers) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Headers[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x32
+		}
+	}
 	if len(m.RoutingKey) > 0 {
 		i -= len(m.RoutingKey)
 		copy(dAtA[i:], m.RoutingKey)
@@ -115,18 +127,6 @@ func (m *Message) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i = encodeVarint(dAtA, i, uint64(*m.AgeMillis))
 		i--
 		dAtA[i] = 0x18
-	}
-	if len(m.Headers) > 0 {
-		for iNdEx := len(m.Headers) - 1; iNdEx >= 0; iNdEx-- {
-			size, err := m.Headers[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarint(dAtA, i, uint64(size))
-			i--
-			dAtA[i] = 0x12
-		}
 	}
 	if len(m.Body) > 0 {
 		i -= len(m.Body)
@@ -173,12 +173,6 @@ func (m *Message) SizeVT() (n int) {
 	if l > 0 {
 		n += 1 + l + sov(uint64(l))
 	}
-	if len(m.Headers) > 0 {
-		for _, e := range m.Headers {
-			l = e.SizeVT()
-			n += 1 + l + sov(uint64(l))
-		}
-	}
 	if m.AgeMillis != nil {
 		n += 1 + sov(uint64(*m.AgeMillis))
 	}
@@ -189,6 +183,12 @@ func (m *Message) SizeVT() (n int) {
 	l = len(m.RoutingKey)
 	if l > 0 {
 		n += 1 + l + sov(uint64(l))
+	}
+	if len(m.Headers) > 0 {
+		for _, e := range m.Headers {
+			l = e.SizeVT()
+			n += 1 + l + sov(uint64(l))
+		}
 	}
 	n += len(m.unknownFields)
 	return n
@@ -254,47 +254,6 @@ func (m *Message) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.Body = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Headers", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLength
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLength
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if len(m.Headers) == cap(m.Headers) {
-				m.Headers = append(m.Headers, &HTTPHeader{})
-			} else {
-				m.Headers = m.Headers[:len(m.Headers)+1]
-				if m.Headers[len(m.Headers)-1] == nil {
-					m.Headers[len(m.Headers)-1] = &HTTPHeader{}
-				}
-			}
-			if err := m.Headers[len(m.Headers)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
 			iNdEx = postIndex
 		case 3:
 			if wireType != 0 {
@@ -379,6 +338,47 @@ func (m *Message) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.RoutingKey = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Headers", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLength
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if len(m.Headers) == cap(m.Headers) {
+				m.Headers = append(m.Headers, &Header{})
+			} else {
+				m.Headers = m.Headers[:len(m.Headers)+1]
+				if m.Headers[len(m.Headers)-1] == nil {
+					m.Headers[len(m.Headers)-1] = &Header{}
+				}
+			}
+			if err := m.Headers[len(m.Headers)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

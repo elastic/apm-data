@@ -280,7 +280,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		input.Context.HTTP.Response.Headers.Set(http.Header{"a": []string{"b", "c"}})
 		var out modelpb.APMEvent
 		mapToSpanModel(&input, &out)
-		assert.Equal(t, []*modelpb.HTTPHeader{
+		assert.Equal(t, []*modelpb.Header{
 			{
 				Key:   "a",
 				Value: []string{"b", "c"},

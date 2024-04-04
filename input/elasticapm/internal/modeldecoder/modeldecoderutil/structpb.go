@@ -19,21 +19,10 @@ package modeldecoderutil
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"google.golang.org/protobuf/types/known/structpb"
 )
-
-func ToStruct(m map[string]any) *structpb.Struct {
-	nm := normalizeMap(m)
-	if len(nm) == 0 {
-		return nil
-	}
-
-	if str, err := structpb.NewStruct(nm); err == nil {
-		return str
-	}
-	return nil
-}
 
 func ToValue(a any) *structpb.Value {
 	nv := normalizeValue(a)
@@ -48,10 +37,14 @@ func ToValue(a any) *structpb.Value {
 }
 
 func normalizeMap(m map[string]any) map[string]any {
-	if v := normalizeValue(m); v != nil {
-		return v.(map[string]any)
+	for k, v := range m {
+		switch v := v.(type) {
+		case string:
+		default:
+			m[k] = fmt.Sprint(v)
+		}
 	}
-	return nil
+	return m
 }
 
 func normalizeValue(v interface{}) interface{} {

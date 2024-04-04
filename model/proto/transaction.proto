@@ -22,14 +22,14 @@ package elastic.apm.v1;
 import "experience.proto";
 import "message.proto";
 import "metricset.proto";
-import "keyvalue.proto";
+import "keyvaluestring.proto";
 
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
 message Transaction {
+  reserved 3;
   SpanCount span_count = 1;
   UserExperience user_experience = 2;
-  repeated KeyValue custom = 3;
   map<string, TransactionMark> marks = 4;
   Message message = 5;
   string type = 6;
@@ -43,6 +43,7 @@ message Transaction {
   bool sampled = 14;
   bool root = 15;
   repeated string profiler_stack_trace_ids = 16;
+  repeated KeyValueString custom = 17;
 }
 
 message SpanCount {

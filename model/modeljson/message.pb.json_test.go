@@ -41,7 +41,7 @@ func TestMessageToModelJSON(t *testing.T) {
 		"full": {
 			proto: &modelpb.Message{
 				Body: "body",
-				Headers: []*modelpb.HTTPHeader{
+				Headers: []*modelpb.Header{
 					{
 						Key:   "foo",
 						Value: []string{"bar"},
@@ -53,7 +53,7 @@ func TestMessageToModelJSON(t *testing.T) {
 			},
 			expected: &modeljson.Message{
 				Body: "body",
-				Headers: []*modelpb.HTTPHeader{
+				Headers: []*modelpb.Header{
 					{
 						Key:   "foo",
 						Value: []string{"bar"},
