@@ -715,11 +715,11 @@ func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 		}
 		out.Host.Hostname = from.System.DetectedHostname.Val
 	}
-	if from.System.HostId.IsSet() {
+	if from.System.HostID.IsSet() {
 		if out.Host == nil {
 			out.Host = modelpb.HostFromVTPool()
 		}
-		out.Host.Id = from.System.HostId.Val
+		out.Host.Id = from.System.HostID.Val
 	}
 	if !from.System.ConfiguredHostname.IsSet() && !from.System.DetectedHostname.IsSet() &&
 		from.System.DeprecatedHostname.IsSet() {

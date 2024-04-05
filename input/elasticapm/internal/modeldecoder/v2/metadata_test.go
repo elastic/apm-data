@@ -319,7 +319,7 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		input.System.ConfiguredHostname.Set("configured-host")
 		input.System.DetectedHostname.Set("detected-host")
 		input.System.DeprecatedHostname.Set("deprecated-host")
-		input.System.HostId.Set("host-id")
+		input.System.HostID.Set("host-id")
 		mapToMetadataModel(&input, &out)
 		assert.Equal(t, "configured-host", out.Host.Name)
 		assert.Equal(t, "detected-host", out.Host.Hostname)
