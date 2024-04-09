@@ -554,7 +554,7 @@ func (val *metadataCloudService) processNestedSource() error {
 }
 
 func (val *metadataSystem) IsSet() bool {
-	return val.Architecture.IsSet() || val.ConfiguredHostname.IsSet() || val.Container.IsSet() || val.DetectedHostname.IsSet() || val.DeprecatedHostname.IsSet() || val.Kubernetes.IsSet() || val.Platform.IsSet()
+	return val.Architecture.IsSet() || val.ConfiguredHostname.IsSet() || val.Container.IsSet() || val.DetectedHostname.IsSet() || val.DeprecatedHostname.IsSet() || val.Kubernetes.IsSet() || val.Platform.IsSet() || val.HostID.IsSet()
 }
 
 func (val *metadataSystem) Reset() {
@@ -565,6 +565,7 @@ func (val *metadataSystem) Reset() {
 	val.DeprecatedHostname.Reset()
 	val.Kubernetes.Reset()
 	val.Platform.Reset()
+	val.HostID.Reset()
 }
 
 func (val *metadataSystem) validate() error {
@@ -592,6 +593,9 @@ func (val *metadataSystem) validate() error {
 	}
 	if val.Platform.IsSet() && utf8.RuneCountInString(val.Platform.Val) > 1024 {
 		return fmt.Errorf("'platform': validation rule 'maxLength(1024)' violated")
+	}
+	if val.HostID.IsSet() && utf8.RuneCountInString(val.HostID.Val) > 1024 {
+		return fmt.Errorf("'host_id': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
 }
