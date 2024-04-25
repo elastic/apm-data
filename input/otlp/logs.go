@@ -37,6 +37,7 @@ package otlp
 import (
 	"context"
 	"encoding/hex"
+	"strings"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -212,7 +213,7 @@ func (c *Consumer) convertLogRecord(
 		)
 	}
 
-	if eventDomain == "device" && eventName != "" {
+	if (eventDomain == "device" && eventName != "") || strings.HasPrefix(eventName, "device.") {
 		event.Event.Category = "device"
 		if eventName == "crash" {
 			if event.Error == nil {
@@ -221,7 +222,7 @@ func (c *Consumer) convertLogRecord(
 			event.Error.Type = "crash"
 		} else {
 			event.Event.Kind = "event"
-			event.Event.Action = eventName
+			event.Event.Action = strings.TrimPrefix(eventName, "device.")
 		}
 	}
 
