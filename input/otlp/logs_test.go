@@ -441,8 +441,11 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 	record1 := newLogRecord("") // no log body
 	record1.Attributes().PutStr("event.domain", "device")
 	record1.Attributes().PutStr("event.name", "MyEvent")
-
 	record1.CopyTo(scopeLogs.LogRecords().AppendEmpty())
+
+	record2 := newLogRecord("") // no log body
+	record2.Attributes().PutStr("event.name", "device.MyEvent2")
+	record2.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
 	var processed modelpb.Batch
 	var processor modelpb.ProcessBatchFunc = func(_ context.Context, batch *modelpb.Batch) error {
@@ -462,10 +465,21 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, otlp.ConsumeLogsResult{}, result)
 
-	assert.Len(t, processed, 1)
-	assert.Equal(t, "event", processed[0].Event.Kind)
-	assert.Equal(t, "device", processed[0].Event.Category)
-	assert.Equal(t, "MyEvent", processed[0].Event.Action)
+	assert.Len(t, processed, 2)
+	expected := []struct {
+		kind     string
+		category string
+		action   string
+	}{
+		{kind: "event", category: "device", action: "MyEvent"},
+		{kind: "event", category: "device", action: "MyEvent2"},
+	}
+	for i, item := range processed {
+		expectedValues := expected[i]
+		assert.Equal(t, expectedValues.kind, item.Event.Kind)
+		assert.Equal(t, expectedValues.category, item.Event.Category)
+		assert.Equal(t, expectedValues.action, item.Event.Action)
+	}
 }
 
 func TestConsumerConsumeLogsDataStream(t *testing.T) {
