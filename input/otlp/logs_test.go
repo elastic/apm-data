@@ -447,23 +447,7 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 	record2.Attributes().PutStr("event.name", "device.MyEvent2")
 	record2.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
-	var processed modelpb.Batch
-	var processor modelpb.ProcessBatchFunc = func(_ context.Context, batch *modelpb.Batch) error {
-		if processed != nil {
-			panic("already processes batch")
-		}
-		processed = batch.Clone()
-		assert.NotZero(t, processed[0].Timestamp)
-		processed[0].Timestamp = 0
-		return nil
-	}
-	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
-		Processor: processor,
-		Semaphore: semaphore.NewWeighted(100),
-	})
-	result, err := consumer.ConsumeLogsWithResult(context.Background(), logs)
-	assert.NoError(t, err)
-	assert.Equal(t, otlp.ConsumeLogsResult{}, result)
+	processed := processLogEvents(t, logs)
 
 	assert.Len(t, processed, 2)
 	expected := []struct {
@@ -480,6 +464,71 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 		assert.Equal(t, expectedValues.category, item.Event.Category)
 		assert.Equal(t, expectedValues.action, item.Event.Action)
 	}
+}
+
+func TestConsumerConsumeLogsExceptionAsEvents(t *testing.T) {
+	logs := plog.NewLogs()
+	resourceLogs := logs.ResourceLogs().AppendEmpty()
+	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
+	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKLanguage, "java")
+	resourceAttrs.PutStr("key0", "zero")
+	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
+
+	record1 := newLogRecord("bar")
+	record1.Attributes().PutStr("event.name", "crash")
+	record1.Attributes().PutStr("event.domain", "device")
+	record1.Attributes().PutStr("exception.type", "HighLevelException")
+	record1.Attributes().PutStr("exception.message", "MidLevelException: LowLevelException")
+	record1.Attributes().PutStr("exception.stacktrace", "HighLevelException: MidLevelException: LowLevelException")
+	record1.CopyTo(scopeLogs.LogRecords().AppendEmpty())
+
+	record2 := newLogRecord("bar")
+	record2.Attributes().PutStr("event.name", "device.crash")
+	record2.Attributes().PutStr("exception.type", "HighLevelException")
+	record2.Attributes().PutStr("exception.message", "MidLevelException: LowLevelException2")
+	record2.Attributes().PutStr("exception.stacktrace", "HighLevelException: MidLevelException: LowLevelException")
+	record2.CopyTo(scopeLogs.LogRecords().AppendEmpty())
+
+	processed := processLogEvents(t, logs)
+
+	assert.Len(t, processed, 2)
+	expected := []struct {
+		kind      string
+		category  string
+		eventType string
+		errorType string
+	}{
+		{kind: "event", category: "device", eventType: "error", errorType: "crash"},
+		{kind: "event", category: "device", eventType: "error", errorType: "crash"},
+	}
+	for i, item := range processed {
+		expectedValues := expected[i]
+		assert.Equal(t, expectedValues.kind, item.Event.Kind)
+		assert.Equal(t, expectedValues.category, item.Event.Category)
+		assert.Equal(t, expectedValues.eventType, item.Event.Type)
+		assert.Equal(t, expectedValues.errorType, item.Error.Type)
+	}
+}
+
+func processLogEvents(t *testing.T, logs plog.Logs) modelpb.Batch {
+	var processed modelpb.Batch
+	var processor modelpb.ProcessBatchFunc = func(_ context.Context, batch *modelpb.Batch) error {
+		if processed != nil {
+			panic("already processed batch")
+		}
+		processed = batch.Clone()
+		assert.NotZero(t, processed[0].Timestamp)
+		processed[0].Timestamp = 0
+		return nil
+	}
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor: processor,
+		Semaphore: semaphore.NewWeighted(100),
+	})
+	result, err := consumer.ConsumeLogsWithResult(context.Background(), logs)
+	assert.NoError(t, err)
+	assert.Equal(t, otlp.ConsumeLogsResult{}, result)
+	return processed
 }
 
 func TestConsumerConsumeLogsDataStream(t *testing.T) {

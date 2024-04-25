@@ -215,14 +215,15 @@ func (c *Consumer) convertLogRecord(
 
 	if (eventDomain == "device" && eventName != "") || strings.HasPrefix(eventName, "device.") {
 		event.Event.Category = "device"
-		if eventName == "crash" {
+		action := strings.TrimPrefix(eventName, "device.")
+		if action == "crash" {
 			if event.Error == nil {
 				event.Error = modelpb.ErrorFromVTPool()
 			}
 			event.Error.Type = "crash"
 		} else {
 			event.Event.Kind = "event"
-			event.Event.Action = strings.TrimPrefix(eventName, "device.")
+			event.Event.Action = action
 		}
 	}
 
