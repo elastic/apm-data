@@ -51,7 +51,7 @@ func (m *Error) CloneVT() *Error {
 	r.Message = m.Message
 	r.Type = m.Type
 	if rhs := m.Custom; rhs != nil {
-		tmpContainer := make([]*KeyValue, len(rhs))
+		tmpContainer := make([]*KeyValueString, len(rhs))
 		for k, v := range rhs {
 			tmpContainer[k] = v.CloneVT()
 		}
@@ -77,13 +77,6 @@ func (m *Exception) CloneVT() *Exception {
 	r.Module = m.Module
 	r.Code = m.Code
 	r.Type = m.Type
-	if rhs := m.Attributes; rhs != nil {
-		tmpContainer := make([]*KeyValue, len(rhs))
-		for k, v := range rhs {
-			tmpContainer[k] = v.CloneVT()
-		}
-		r.Attributes = tmpContainer
-	}
 	if rhs := m.Stacktrace; rhs != nil {
 		tmpContainer := make([]*StacktraceFrame, len(rhs))
 		for k, v := range rhs {
@@ -101,6 +94,13 @@ func (m *Exception) CloneVT() *Exception {
 			tmpContainer[k] = v.CloneVT()
 		}
 		r.Cause = tmpContainer
+	}
+	if rhs := m.Attributes; rhs != nil {
+		tmpContainer := make([]*KeyValueString, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
+		}
+		r.Attributes = tmpContainer
 	}
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -170,6 +170,18 @@ func (m *Error) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if len(m.Custom) > 0 {
+		for iNdEx := len(m.Custom) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Custom[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x52
+		}
+	}
 	if len(m.Type) > 0 {
 		i -= len(m.Type)
 		copy(dAtA[i:], m.Type)
@@ -232,18 +244,6 @@ func (m *Error) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Custom) > 0 {
-		for iNdEx := len(m.Custom) - 1; iNdEx >= 0; iNdEx-- {
-			size, err := m.Custom[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarint(dAtA, i, uint64(size))
-			i--
-			dAtA[i] = 0xa
-		}
-	}
 	return len(dAtA) - i, nil
 }
 
@@ -276,6 +276,18 @@ func (m *Exception) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
+	}
+	if len(m.Attributes) > 0 {
+		for iNdEx := len(m.Attributes) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Attributes[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x4a
+		}
 	}
 	if len(m.Cause) > 0 {
 		for iNdEx := len(m.Cause) - 1; iNdEx >= 0; iNdEx-- {
@@ -316,18 +328,6 @@ func (m *Exception) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			i = encodeVarint(dAtA, i, uint64(size))
 			i--
 			dAtA[i] = 0x2a
-		}
-	}
-	if len(m.Attributes) > 0 {
-		for iNdEx := len(m.Attributes) - 1; iNdEx >= 0; iNdEx-- {
-			size, err := m.Attributes[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarint(dAtA, i, uint64(size))
-			i--
-			dAtA[i] = 0x22
 		}
 	}
 	if len(m.Code) > 0 {
@@ -435,12 +435,12 @@ var vtprotoPool_Error = sync.Pool{
 
 func (m *Error) ResetVT() {
 	if m != nil {
+		m.Exception.ReturnToVTPool()
+		m.Log.ReturnToVTPool()
 		for _, mm := range m.Custom {
 			mm.ResetVT()
 		}
 		f0 := m.Custom[:0]
-		m.Exception.ReturnToVTPool()
-		m.Log.ReturnToVTPool()
 		m.Reset()
 		m.Custom = f0
 	}
@@ -463,22 +463,22 @@ var vtprotoPool_Exception = sync.Pool{
 
 func (m *Exception) ResetVT() {
 	if m != nil {
-		for _, mm := range m.Attributes {
-			mm.ResetVT()
-		}
-		f0 := m.Attributes[:0]
 		for _, mm := range m.Stacktrace {
 			mm.ResetVT()
 		}
-		f1 := m.Stacktrace[:0]
+		f0 := m.Stacktrace[:0]
 		for _, mm := range m.Cause {
 			mm.ResetVT()
 		}
-		f2 := m.Cause[:0]
+		f1 := m.Cause[:0]
+		for _, mm := range m.Attributes {
+			mm.ResetVT()
+		}
+		f2 := m.Attributes[:0]
 		m.Reset()
-		m.Attributes = f0
-		m.Stacktrace = f1
-		m.Cause = f2
+		m.Stacktrace = f0
+		m.Cause = f1
+		m.Attributes = f2
 	}
 }
 func (m *Exception) ReturnToVTPool() {
@@ -522,12 +522,6 @@ func (m *Error) SizeVT() (n int) {
 	}
 	var l int
 	_ = l
-	if len(m.Custom) > 0 {
-		for _, e := range m.Custom {
-			l = e.SizeVT()
-			n += 1 + l + sov(uint64(l))
-		}
-	}
 	if m.Exception != nil {
 		l = m.Exception.SizeVT()
 		n += 1 + l + sov(uint64(l))
@@ -560,6 +554,12 @@ func (m *Error) SizeVT() (n int) {
 	if l > 0 {
 		n += 1 + l + sov(uint64(l))
 	}
+	if len(m.Custom) > 0 {
+		for _, e := range m.Custom {
+			l = e.SizeVT()
+			n += 1 + l + sov(uint64(l))
+		}
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -582,12 +582,6 @@ func (m *Exception) SizeVT() (n int) {
 	if l > 0 {
 		n += 1 + l + sov(uint64(l))
 	}
-	if len(m.Attributes) > 0 {
-		for _, e := range m.Attributes {
-			l = e.SizeVT()
-			n += 1 + l + sov(uint64(l))
-		}
-	}
 	if len(m.Stacktrace) > 0 {
 		for _, e := range m.Stacktrace {
 			l = e.SizeVT()
@@ -603,6 +597,12 @@ func (m *Exception) SizeVT() (n int) {
 	}
 	if len(m.Cause) > 0 {
 		for _, e := range m.Cause {
+			l = e.SizeVT()
+			n += 1 + l + sov(uint64(l))
+		}
+	}
+	if len(m.Attributes) > 0 {
+		for _, e := range m.Attributes {
 			l = e.SizeVT()
 			n += 1 + l + sov(uint64(l))
 		}
@@ -672,47 +672,6 @@ func (m *Error) UnmarshalVT(dAtA []byte) error {
 			return fmt.Errorf("proto: Error: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Custom", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLength
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLength
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if len(m.Custom) == cap(m.Custom) {
-				m.Custom = append(m.Custom, &KeyValue{})
-			} else {
-				m.Custom = m.Custom[:len(m.Custom)+1]
-				if m.Custom[len(m.Custom)-1] == nil {
-					m.Custom[len(m.Custom)-1] = &KeyValue{}
-				}
-			}
-			if err := m.Custom[len(m.Custom)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Exception", wireType)
@@ -977,6 +936,47 @@ func (m *Error) UnmarshalVT(dAtA []byte) error {
 			}
 			m.Type = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 10:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Custom", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLength
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if len(m.Custom) == cap(m.Custom) {
+				m.Custom = append(m.Custom, &KeyValueString{})
+			} else {
+				m.Custom = m.Custom[:len(m.Custom)+1]
+				if m.Custom[len(m.Custom)-1] == nil {
+					m.Custom[len(m.Custom)-1] = &KeyValueString{}
+				}
+			}
+			if err := m.Custom[len(m.Custom)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skip(dAtA[iNdEx:])
@@ -1124,47 +1124,6 @@ func (m *Exception) UnmarshalVT(dAtA []byte) error {
 			}
 			m.Code = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Attributes", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLength
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLength
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if len(m.Attributes) == cap(m.Attributes) {
-				m.Attributes = append(m.Attributes, &KeyValue{})
-			} else {
-				m.Attributes = m.Attributes[:len(m.Attributes)+1]
-				if m.Attributes[len(m.Attributes)-1] == nil {
-					m.Attributes[len(m.Attributes)-1] = &KeyValue{}
-				}
-			}
-			if err := m.Attributes[len(m.Attributes)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Stacktrace", wireType)
@@ -1297,6 +1256,47 @@ func (m *Exception) UnmarshalVT(dAtA []byte) error {
 				}
 			}
 			if err := m.Cause[len(m.Cause)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Attributes", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLength
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if len(m.Attributes) == cap(m.Attributes) {
+				m.Attributes = append(m.Attributes, &KeyValueString{})
+			} else {
+				m.Attributes = m.Attributes[:len(m.Attributes)+1]
+				if m.Attributes[len(m.Attributes)-1] == nil {
+					m.Attributes[len(m.Attributes)-1] = &KeyValueString{}
+				}
+			}
+			if err := m.Attributes[len(m.Attributes)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

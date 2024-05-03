@@ -53,13 +53,6 @@ func (m *StacktraceFrame) CloneVT() *StacktraceFrame {
 	r.LibraryFrame = m.LibraryFrame
 	r.SourcemapUpdated = m.SourcemapUpdated
 	r.ExcludeFromGrouping = m.ExcludeFromGrouping
-	if rhs := m.Vars; rhs != nil {
-		tmpContainer := make([]*KeyValue, len(rhs))
-		for k, v := range rhs {
-			tmpContainer[k] = v.CloneVT()
-		}
-		r.Vars = tmpContainer
-	}
 	if rhs := m.Lineno; rhs != nil {
 		tmpVal := *rhs
 		r.Lineno = &tmpVal
@@ -77,6 +70,13 @@ func (m *StacktraceFrame) CloneVT() *StacktraceFrame {
 		tmpContainer := make([]string, len(rhs))
 		copy(tmpContainer, rhs)
 		r.PostContext = tmpContainer
+	}
+	if rhs := m.Vars; rhs != nil {
+		tmpContainer := make([]*KeyValueString, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
+		}
+		r.Vars = tmpContainer
 	}
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -147,6 +147,20 @@ func (m *StacktraceFrame) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
+	}
+	if len(m.Vars) > 0 {
+		for iNdEx := len(m.Vars) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Vars[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x1
+			i--
+			dAtA[i] = 0x8a
+		}
 	}
 	if m.ExcludeFromGrouping {
 		i--
@@ -267,18 +281,6 @@ func (m *StacktraceFrame) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x10
 	}
-	if len(m.Vars) > 0 {
-		for iNdEx := len(m.Vars) - 1; iNdEx >= 0; iNdEx-- {
-			size, err := m.Vars[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarint(dAtA, i, uint64(size))
-			i--
-			dAtA[i] = 0xa
-		}
-	}
 	return len(dAtA) - i, nil
 }
 
@@ -371,17 +373,17 @@ var vtprotoPool_StacktraceFrame = sync.Pool{
 
 func (m *StacktraceFrame) ResetVT() {
 	if m != nil {
+		m.Original.ReturnToVTPool()
+		f0 := m.PreContext[:0]
+		f1 := m.PostContext[:0]
 		for _, mm := range m.Vars {
 			mm.ResetVT()
 		}
-		f0 := m.Vars[:0]
-		m.Original.ReturnToVTPool()
-		f1 := m.PreContext[:0]
-		f2 := m.PostContext[:0]
+		f2 := m.Vars[:0]
 		m.Reset()
-		m.Vars = f0
-		m.PreContext = f1
-		m.PostContext = f2
+		m.PreContext = f0
+		m.PostContext = f1
+		m.Vars = f2
 	}
 }
 func (m *StacktraceFrame) ReturnToVTPool() {
@@ -420,12 +422,6 @@ func (m *StacktraceFrame) SizeVT() (n int) {
 	}
 	var l int
 	_ = l
-	if len(m.Vars) > 0 {
-		for _, e := range m.Vars {
-			l = e.SizeVT()
-			n += 1 + l + sov(uint64(l))
-		}
-	}
 	if m.Lineno != nil {
 		n += 1 + sov(uint64(*m.Lineno))
 	}
@@ -484,6 +480,12 @@ func (m *StacktraceFrame) SizeVT() (n int) {
 	}
 	if m.ExcludeFromGrouping {
 		n += 3
+	}
+	if len(m.Vars) > 0 {
+		for _, e := range m.Vars {
+			l = e.SizeVT()
+			n += 2 + l + sov(uint64(l))
+		}
 	}
 	n += len(m.unknownFields)
 	return n
@@ -553,47 +555,6 @@ func (m *StacktraceFrame) UnmarshalVT(dAtA []byte) error {
 			return fmt.Errorf("proto: StacktraceFrame: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Vars", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLength
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLength
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if len(m.Vars) == cap(m.Vars) {
-				m.Vars = append(m.Vars, &KeyValue{})
-			} else {
-				m.Vars = m.Vars[:len(m.Vars)+1]
-				if m.Vars[len(m.Vars)-1] == nil {
-					m.Vars[len(m.Vars)-1] = &KeyValue{}
-				}
-			}
-			if err := m.Vars[len(m.Vars)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Lineno", wireType)
@@ -1018,6 +979,47 @@ func (m *StacktraceFrame) UnmarshalVT(dAtA []byte) error {
 				}
 			}
 			m.ExcludeFromGrouping = bool(v != 0)
+		case 17:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Vars", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLength
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if len(m.Vars) == cap(m.Vars) {
+				m.Vars = append(m.Vars, &KeyValueString{})
+			} else {
+				m.Vars = m.Vars[:len(m.Vars)+1]
+				if m.Vars[len(m.Vars)-1] == nil {
+					m.Vars[len(m.Vars)-1] = &KeyValueString{}
+				}
+			}
+			if err := m.Vars[len(m.Vars)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skip(dAtA[iNdEx:])

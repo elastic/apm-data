@@ -19,12 +19,12 @@ syntax = "proto3";
 
 package elastic.apm.v1;
 
-import "keyvalue.proto";
+import "keyvaluestring.proto";
 
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
 message StacktraceFrame {
-  repeated KeyValue vars = 1;
+  reserved 1;
   optional uint32 lineno = 2;
   optional uint32 colno = 3;
   string filename = 4;
@@ -40,6 +40,7 @@ message StacktraceFrame {
   bool library_frame = 14;
   bool sourcemap_updated = 15;
   bool exclude_from_grouping = 16;
+  repeated KeyValueString vars = 17;
 }
 
 message Original {

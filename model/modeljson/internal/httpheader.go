@@ -22,7 +22,7 @@ import (
 	"go.elastic.co/fastjson"
 )
 
-type HTTPHeaders []*modelpb.HTTPHeader
+type HTTPHeaders []*modelpb.Header
 
 func (s *HTTPHeaders) MarshalFastJSON(w *fastjson.Writer) error {
 	w.RawByte('{')

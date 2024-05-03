@@ -330,7 +330,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
 		var out modelpb.APMEvent
 		mapToTransactionModel(&input, &out)
-		assert.Empty(t, cmp.Diff([]*modelpb.HTTPHeader{
+		assert.Empty(t, cmp.Diff([]*modelpb.Header{
 			{
 				Key:   "a",
 				Value: []string{"b"},
@@ -340,12 +340,12 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				Value: []string{"d", "e"},
 			},
 		}, out.Http.Request.Headers,
-			cmpopts.SortSlices(func(x, y *modelpb.HTTPHeader) bool {
+			cmpopts.SortSlices(func(x, y *modelpb.Header) bool {
 				return x.Key < y.Key
 			}),
 			protocmp.Transform(),
 		))
-		assert.Empty(t, cmp.Diff([]*modelpb.HTTPHeader{
+		assert.Empty(t, cmp.Diff([]*modelpb.Header{
 			{
 				Key:   "f",
 				Value: []string{"g"},

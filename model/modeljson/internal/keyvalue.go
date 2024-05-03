@@ -22,10 +22,9 @@ import (
 	"go.elastic.co/fastjson"
 )
 
-type KeyValueSlice []*modelpb.KeyValue
+type KeyValueSlice []*modelpb.KeyValueString
 
 func (s *KeyValueSlice) MarshalFastJSON(w *fastjson.Writer) error {
-	var firstErr error
 	w.RawByte('{')
 	{
 		for i, kv := range *s {
@@ -34,11 +33,9 @@ func (s *KeyValueSlice) MarshalFastJSON(w *fastjson.Writer) error {
 			}
 			w.String(kv.Key)
 			w.RawByte(':')
-			if err := fastjson.Marshal(w, kv.Value.AsInterface()); err != nil && firstErr == nil {
-				firstErr = err
-			}
+			w.String(kv.Value)
 		}
 	}
 	w.RawByte('}')
-	return firstErr
+	return nil
 }

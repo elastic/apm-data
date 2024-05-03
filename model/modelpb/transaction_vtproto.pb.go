@@ -56,13 +56,6 @@ func (m *Transaction) CloneVT() *Transaction {
 	r.RepresentativeCount = m.RepresentativeCount
 	r.Sampled = m.Sampled
 	r.Root = m.Root
-	if rhs := m.Custom; rhs != nil {
-		tmpContainer := make([]*KeyValue, len(rhs))
-		for k, v := range rhs {
-			tmpContainer[k] = v.CloneVT()
-		}
-		r.Custom = tmpContainer
-	}
 	if rhs := m.Marks; rhs != nil {
 		tmpContainer := make(map[string]*TransactionMark, len(rhs))
 		for k, v := range rhs {
@@ -81,6 +74,13 @@ func (m *Transaction) CloneVT() *Transaction {
 		tmpContainer := make([]string, len(rhs))
 		copy(tmpContainer, rhs)
 		r.ProfilerStackTraceIds = tmpContainer
+	}
+	if rhs := m.Custom; rhs != nil {
+		tmpContainer := make([]*KeyValueString, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
+		}
+		r.Custom = tmpContainer
 	}
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -190,6 +190,20 @@ func (m *Transaction) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
+	}
+	if len(m.Custom) > 0 {
+		for iNdEx := len(m.Custom) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Custom[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x1
+			i--
+			dAtA[i] = 0x8a
+		}
 	}
 	if len(m.ProfilerStackTraceIds) > 0 {
 		for iNdEx := len(m.ProfilerStackTraceIds) - 1; iNdEx >= 0; iNdEx-- {
@@ -318,18 +332,6 @@ func (m *Transaction) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			i = encodeVarint(dAtA, i, uint64(baseI-i))
 			i--
 			dAtA[i] = 0x22
-		}
-	}
-	if len(m.Custom) > 0 {
-		for iNdEx := len(m.Custom) - 1; iNdEx >= 0; iNdEx-- {
-			size, err := m.Custom[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarint(dAtA, i, uint64(size))
-			i--
-			dAtA[i] = 0x1a
 		}
 	}
 	if m.UserExperience != nil {
@@ -530,22 +532,22 @@ func (m *Transaction) ResetVT() {
 	if m != nil {
 		m.SpanCount.ReturnToVTPool()
 		m.UserExperience.ReturnToVTPool()
-		for _, mm := range m.Custom {
-			mm.ResetVT()
-		}
-		f0 := m.Custom[:0]
 		m.Message.ReturnToVTPool()
 		m.DurationHistogram.ReturnToVTPool()
 		for _, mm := range m.DroppedSpansStats {
 			mm.ResetVT()
 		}
-		f1 := m.DroppedSpansStats[:0]
+		f0 := m.DroppedSpansStats[:0]
 		m.DurationSummary.ReturnToVTPool()
-		f2 := m.ProfilerStackTraceIds[:0]
+		f1 := m.ProfilerStackTraceIds[:0]
+		for _, mm := range m.Custom {
+			mm.ResetVT()
+		}
+		f2 := m.Custom[:0]
 		m.Reset()
-		m.Custom = f0
-		m.DroppedSpansStats = f1
-		m.ProfilerStackTraceIds = f2
+		m.DroppedSpansStats = f0
+		m.ProfilerStackTraceIds = f1
+		m.Custom = f2
 	}
 }
 func (m *Transaction) ReturnToVTPool() {
@@ -635,12 +637,6 @@ func (m *Transaction) SizeVT() (n int) {
 		l = m.UserExperience.SizeVT()
 		n += 1 + l + sov(uint64(l))
 	}
-	if len(m.Custom) > 0 {
-		for _, e := range m.Custom {
-			l = e.SizeVT()
-			n += 1 + l + sov(uint64(l))
-		}
-	}
 	if len(m.Marks) > 0 {
 		for k, v := range m.Marks {
 			_ = k
@@ -700,6 +696,12 @@ func (m *Transaction) SizeVT() (n int) {
 	if len(m.ProfilerStackTraceIds) > 0 {
 		for _, s := range m.ProfilerStackTraceIds {
 			l = len(s)
+			n += 2 + l + sov(uint64(l))
+		}
+	}
+	if len(m.Custom) > 0 {
+		for _, e := range m.Custom {
+			l = e.SizeVT()
 			n += 2 + l + sov(uint64(l))
 		}
 	}
@@ -869,47 +871,6 @@ func (m *Transaction) UnmarshalVT(dAtA []byte) error {
 				m.UserExperience = UserExperienceFromVTPool()
 			}
 			if err := m.UserExperience.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Custom", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLength
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLength
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if len(m.Custom) == cap(m.Custom) {
-				m.Custom = append(m.Custom, &KeyValue{})
-			} else {
-				m.Custom = m.Custom[:len(m.Custom)+1]
-				if m.Custom[len(m.Custom)-1] == nil {
-					m.Custom[len(m.Custom)-1] = &KeyValue{}
-				}
-			}
-			if err := m.Custom[len(m.Custom)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -1401,6 +1362,47 @@ func (m *Transaction) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.ProfilerStackTraceIds = append(m.ProfilerStackTraceIds, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 17:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Custom", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLength
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if len(m.Custom) == cap(m.Custom) {
+				m.Custom = append(m.Custom, &KeyValueString{})
+			} else {
+				m.Custom = m.Custom[:len(m.Custom)+1]
+				if m.Custom[len(m.Custom)-1] == nil {
+					m.Custom[len(m.Custom)-1] = &KeyValueString{}
+				}
+			}
+			if err := m.Custom[len(m.Custom)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

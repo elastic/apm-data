@@ -15,19 +15,27 @@
 // specific language governing permissions and limitations
 // under the License.
 
-syntax = "proto3";
+package modeljson
 
-package elastic.apm.v1;
+import (
+	"github.com/elastic/apm-data/model/modelpb"
+	"go.elastic.co/fastjson"
+)
 
-import "headers.proto";
+type HTTPCookies []*modelpb.HTTPCookies
 
-option go_package = "github.com/elastic/apm-data/model/modelpb";
-
-message Message {
-  reserved 2;
-  string body = 1;
-  optional uint64 age_millis = 3;
-  string queue_name = 4;
-  string routing_key = 5;
-  repeated Header headers = 6;
+func (s *HTTPCookies) MarshalFastJSON(w *fastjson.Writer) error {
+	w.RawByte('{')
+	{
+		for i, kv := range *s {
+			if i != 0 {
+				w.RawByte(',')
+			}
+			w.String(kv.Key)
+			w.RawByte(':')
+			w.String(kv.Value)
+		}
+	}
+	w.RawByte('}')
+	return nil
 }

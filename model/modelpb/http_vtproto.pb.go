@@ -72,26 +72,26 @@ func (m *HTTPRequest) CloneVT() *HTTPRequest {
 			r.Body = proto.Clone(rhs).(*structpb.Value)
 		}
 	}
+	if rhs := m.Cookies; rhs != nil {
+		tmpContainer := make([]*HTTPCookies, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
+		}
+		r.Cookies = tmpContainer
+	}
 	if rhs := m.Headers; rhs != nil {
-		tmpContainer := make([]*HTTPHeader, len(rhs))
+		tmpContainer := make([]*Header, len(rhs))
 		for k, v := range rhs {
 			tmpContainer[k] = v.CloneVT()
 		}
 		r.Headers = tmpContainer
 	}
 	if rhs := m.Env; rhs != nil {
-		tmpContainer := make([]*KeyValue, len(rhs))
+		tmpContainer := make([]*KeyValueString, len(rhs))
 		for k, v := range rhs {
 			tmpContainer[k] = v.CloneVT()
 		}
 		r.Env = tmpContainer
-	}
-	if rhs := m.Cookies; rhs != nil {
-		tmpContainer := make([]*KeyValue, len(rhs))
-		for k, v := range rhs {
-			tmpContainer[k] = v.CloneVT()
-		}
-		r.Cookies = tmpContainer
 	}
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -110,13 +110,6 @@ func (m *HTTPResponse) CloneVT() *HTTPResponse {
 	}
 	r := HTTPResponseFromVTPool()
 	r.StatusCode = m.StatusCode
-	if rhs := m.Headers; rhs != nil {
-		tmpContainer := make([]*HTTPHeader, len(rhs))
-		for k, v := range rhs {
-			tmpContainer[k] = v.CloneVT()
-		}
-		r.Headers = tmpContainer
-	}
 	if rhs := m.Finished; rhs != nil {
 		tmpVal := *rhs
 		r.Finished = &tmpVal
@@ -136,6 +129,13 @@ func (m *HTTPResponse) CloneVT() *HTTPResponse {
 	if rhs := m.DecodedBodySize; rhs != nil {
 		tmpVal := *rhs
 		r.DecodedBodySize = &tmpVal
+	}
+	if rhs := m.Headers; rhs != nil {
+		tmpContainer := make([]*Header, len(rhs))
+		for k, v := range rhs {
+			tmpContainer[k] = v.CloneVT()
+		}
+		r.Headers = tmpContainer
 	}
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -238,6 +238,42 @@ func (m *HTTPRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if len(m.Env) > 0 {
+		for iNdEx := len(m.Env) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Env[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x52
+		}
+	}
+	if len(m.Headers) > 0 {
+		for iNdEx := len(m.Headers) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Headers[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x4a
+		}
+	}
+	if len(m.Cookies) > 0 {
+		for iNdEx := len(m.Cookies) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Cookies[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x42
+		}
+	}
 	if len(m.Referrer) > 0 {
 		i -= len(m.Referrer)
 		copy(dAtA[i:], m.Referrer)
@@ -258,42 +294,6 @@ func (m *HTTPRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i = encodeVarint(dAtA, i, uint64(len(m.Id)))
 		i--
 		dAtA[i] = 0x2a
-	}
-	if len(m.Cookies) > 0 {
-		for iNdEx := len(m.Cookies) - 1; iNdEx >= 0; iNdEx-- {
-			size, err := m.Cookies[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarint(dAtA, i, uint64(size))
-			i--
-			dAtA[i] = 0x22
-		}
-	}
-	if len(m.Env) > 0 {
-		for iNdEx := len(m.Env) - 1; iNdEx >= 0; iNdEx-- {
-			size, err := m.Env[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarint(dAtA, i, uint64(size))
-			i--
-			dAtA[i] = 0x1a
-		}
-	}
-	if len(m.Headers) > 0 {
-		for iNdEx := len(m.Headers) - 1; iNdEx >= 0; iNdEx-- {
-			size, err := m.Headers[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarint(dAtA, i, uint64(size))
-			i--
-			dAtA[i] = 0x12
-		}
 	}
 	if m.Body != nil {
 		if vtmsg, ok := interface{}(m.Body).(interface {
@@ -350,6 +350,18 @@ func (m *HTTPResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if len(m.Headers) > 0 {
+		for iNdEx := len(m.Headers) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Headers[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x42
+		}
+	}
 	if m.StatusCode != 0 {
 		i = encodeVarint(dAtA, i, uint64(m.StatusCode))
 		i--
@@ -390,18 +402,6 @@ func (m *HTTPResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x10
 	}
-	if len(m.Headers) > 0 {
-		for iNdEx := len(m.Headers) - 1; iNdEx >= 0; iNdEx-- {
-			size, err := m.Headers[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarint(dAtA, i, uint64(size))
-			i--
-			dAtA[i] = 0xa
-		}
-	}
 	return len(dAtA) - i, nil
 }
 
@@ -436,22 +436,22 @@ var vtprotoPool_HTTPRequest = sync.Pool{
 
 func (m *HTTPRequest) ResetVT() {
 	if m != nil {
-		for _, mm := range m.Headers {
-			mm.ResetVT()
-		}
-		f0 := m.Headers[:0]
-		for _, mm := range m.Env {
-			mm.ResetVT()
-		}
-		f1 := m.Env[:0]
 		for _, mm := range m.Cookies {
 			mm.ResetVT()
 		}
-		f2 := m.Cookies[:0]
+		f0 := m.Cookies[:0]
+		for _, mm := range m.Headers {
+			mm.ResetVT()
+		}
+		f1 := m.Headers[:0]
+		for _, mm := range m.Env {
+			mm.ResetVT()
+		}
+		f2 := m.Env[:0]
 		m.Reset()
-		m.Headers = f0
-		m.Env = f1
-		m.Cookies = f2
+		m.Cookies = f0
+		m.Headers = f1
+		m.Env = f2
 	}
 }
 func (m *HTTPRequest) ReturnToVTPool() {
@@ -527,24 +527,6 @@ func (m *HTTPRequest) SizeVT() (n int) {
 		}
 		n += 1 + l + sov(uint64(l))
 	}
-	if len(m.Headers) > 0 {
-		for _, e := range m.Headers {
-			l = e.SizeVT()
-			n += 1 + l + sov(uint64(l))
-		}
-	}
-	if len(m.Env) > 0 {
-		for _, e := range m.Env {
-			l = e.SizeVT()
-			n += 1 + l + sov(uint64(l))
-		}
-	}
-	if len(m.Cookies) > 0 {
-		for _, e := range m.Cookies {
-			l = e.SizeVT()
-			n += 1 + l + sov(uint64(l))
-		}
-	}
 	l = len(m.Id)
 	if l > 0 {
 		n += 1 + l + sov(uint64(l))
@@ -557,6 +539,24 @@ func (m *HTTPRequest) SizeVT() (n int) {
 	if l > 0 {
 		n += 1 + l + sov(uint64(l))
 	}
+	if len(m.Cookies) > 0 {
+		for _, e := range m.Cookies {
+			l = e.SizeVT()
+			n += 1 + l + sov(uint64(l))
+		}
+	}
+	if len(m.Headers) > 0 {
+		for _, e := range m.Headers {
+			l = e.SizeVT()
+			n += 1 + l + sov(uint64(l))
+		}
+	}
+	if len(m.Env) > 0 {
+		for _, e := range m.Env {
+			l = e.SizeVT()
+			n += 1 + l + sov(uint64(l))
+		}
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -567,12 +567,6 @@ func (m *HTTPResponse) SizeVT() (n int) {
 	}
 	var l int
 	_ = l
-	if len(m.Headers) > 0 {
-		for _, e := range m.Headers {
-			l = e.SizeVT()
-			n += 1 + l + sov(uint64(l))
-		}
-	}
 	if m.Finished != nil {
 		n += 2
 	}
@@ -590,6 +584,12 @@ func (m *HTTPResponse) SizeVT() (n int) {
 	}
 	if m.StatusCode != 0 {
 		n += 1 + sov(uint64(m.StatusCode))
+	}
+	if len(m.Headers) > 0 {
+		for _, e := range m.Headers {
+			l = e.SizeVT()
+			n += 1 + l + sov(uint64(l))
+		}
 	}
 	n += len(m.unknownFields)
 	return n
@@ -823,129 +823,6 @@ func (m *HTTPRequest) UnmarshalVT(dAtA []byte) error {
 				}
 			}
 			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Headers", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLength
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLength
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if len(m.Headers) == cap(m.Headers) {
-				m.Headers = append(m.Headers, &HTTPHeader{})
-			} else {
-				m.Headers = m.Headers[:len(m.Headers)+1]
-				if m.Headers[len(m.Headers)-1] == nil {
-					m.Headers[len(m.Headers)-1] = &HTTPHeader{}
-				}
-			}
-			if err := m.Headers[len(m.Headers)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Env", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLength
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLength
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if len(m.Env) == cap(m.Env) {
-				m.Env = append(m.Env, &KeyValue{})
-			} else {
-				m.Env = m.Env[:len(m.Env)+1]
-				if m.Env[len(m.Env)-1] == nil {
-					m.Env[len(m.Env)-1] = &KeyValue{}
-				}
-			}
-			if err := m.Env[len(m.Env)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Cookies", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLength
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLength
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if len(m.Cookies) == cap(m.Cookies) {
-				m.Cookies = append(m.Cookies, &KeyValue{})
-			} else {
-				m.Cookies = m.Cookies[:len(m.Cookies)+1]
-				if m.Cookies[len(m.Cookies)-1] == nil {
-					m.Cookies[len(m.Cookies)-1] = &KeyValue{}
-				}
-			}
-			if err := m.Cookies[len(m.Cookies)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
@@ -1042,6 +919,129 @@ func (m *HTTPRequest) UnmarshalVT(dAtA []byte) error {
 			}
 			m.Referrer = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Cookies", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLength
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if len(m.Cookies) == cap(m.Cookies) {
+				m.Cookies = append(m.Cookies, &HTTPCookies{})
+			} else {
+				m.Cookies = m.Cookies[:len(m.Cookies)+1]
+				if m.Cookies[len(m.Cookies)-1] == nil {
+					m.Cookies[len(m.Cookies)-1] = &HTTPCookies{}
+				}
+			}
+			if err := m.Cookies[len(m.Cookies)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Headers", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLength
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if len(m.Headers) == cap(m.Headers) {
+				m.Headers = append(m.Headers, &Header{})
+			} else {
+				m.Headers = m.Headers[:len(m.Headers)+1]
+				if m.Headers[len(m.Headers)-1] == nil {
+					m.Headers[len(m.Headers)-1] = &Header{}
+				}
+			}
+			if err := m.Headers[len(m.Headers)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 10:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Env", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLength
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if len(m.Env) == cap(m.Env) {
+				m.Env = append(m.Env, &KeyValueString{})
+			} else {
+				m.Env = m.Env[:len(m.Env)+1]
+				if m.Env[len(m.Env)-1] == nil {
+					m.Env[len(m.Env)-1] = &KeyValueString{}
+				}
+			}
+			if err := m.Env[len(m.Env)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skip(dAtA[iNdEx:])
@@ -1093,47 +1093,6 @@ func (m *HTTPResponse) UnmarshalVT(dAtA []byte) error {
 			return fmt.Errorf("proto: HTTPResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Headers", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLength
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLength
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if len(m.Headers) == cap(m.Headers) {
-				m.Headers = append(m.Headers, &HTTPHeader{})
-			} else {
-				m.Headers = m.Headers[:len(m.Headers)+1]
-				if m.Headers[len(m.Headers)-1] == nil {
-					m.Headers[len(m.Headers)-1] = &HTTPHeader{}
-				}
-			}
-			if err := m.Headers[len(m.Headers)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Finished", wireType)
@@ -1255,6 +1214,47 @@ func (m *HTTPResponse) UnmarshalVT(dAtA []byte) error {
 					break
 				}
 			}
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Headers", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLength
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if len(m.Headers) == cap(m.Headers) {
+				m.Headers = append(m.Headers, &Header{})
+			} else {
+				m.Headers = m.Headers[:len(m.Headers)+1]
+				if m.Headers[len(m.Headers)-1] == nil {
+					m.Headers[len(m.Headers)-1] = &Header{}
+				}
+			}
+			if err := m.Headers[len(m.Headers)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skip(dAtA[iNdEx:])

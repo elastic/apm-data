@@ -26,7 +26,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -163,6 +162,8 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 			switch v := f.Interface().(type) {
 			case map[string]interface{}:
 				elemVal = reflect.ValueOf(values.Str)
+			case map[string]string:
+				elemVal = reflect.ValueOf(values.Str)
 			case map[string]float64:
 				elemVal = reflect.ValueOf(values.Float)
 			case map[string]*modelpb.LabelValue:
@@ -282,13 +283,12 @@ func AssertStructValues(t *testing.T, i interface{}, isException func(string) bo
 				m[fmt.Sprintf("%s%v", values.Str, i)] = &modelpb.LabelValue{Value: values.Str}
 			}
 			newVal = m
-		case []*modelpb.KeyValue:
-			m := []*modelpb.KeyValue{}
+		case []*modelpb.KeyValueString:
+			m := []*modelpb.KeyValueString{}
 			for i := 0; i < values.N; i++ {
-				value, _ := structpb.NewValue(values.Str)
-				m = append(m, &modelpb.KeyValue{
+				m = append(m, &modelpb.KeyValueString{
 					Key:   fmt.Sprintf("%s%v", values.Str, i),
-					Value: value,
+					Value: values.Str,
 				})
 			}
 			newVal = m
@@ -440,7 +440,7 @@ func iterateStruct(v reflect.Value, key string, fn func(f reflect.Value, fKey st
 			}
 
 			switch f.Interface().(type) {
-			case []*modelpb.KeyValue:
+			case []*modelpb.KeyValueString:
 				continue
 			}
 

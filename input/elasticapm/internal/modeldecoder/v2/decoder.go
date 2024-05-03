@@ -890,7 +890,7 @@ func mapToRequestModel(from contextRequest, out *modelpb.HTTPRequest) {
 		out.Body = modeldecoderutil.ToValue(modeldecoderutil.NormalizeHTTPRequestBody(from.Body.Val))
 	}
 	if len(from.Cookies) > 0 {
-		out.Cookies = modeldecoderutil.ToKv(from.Cookies, out.Cookies)
+		out.Cookies = modeldecoderutil.HTTPCookiesToModelpb(from.Cookies, out.Cookies)
 	}
 	if from.Headers.IsSet() {
 		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val, out.Headers)

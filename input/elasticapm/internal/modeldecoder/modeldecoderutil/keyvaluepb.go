@@ -19,23 +19,23 @@ package modeldecoderutil
 
 import (
 	"github.com/elastic/apm-data/model/modelpb"
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
-func ToKv(m map[string]any, out []*modelpb.KeyValue) []*modelpb.KeyValue {
+func ToKv(m map[string]any, out []*modelpb.KeyValueString) []*modelpb.KeyValueString {
 	m = normalizeMap(m)
 	if len(m) == 0 {
 		return nil
 	}
 
-	out = Reslice(out, len(m), modelpb.KeyValueFromVTPool)
+	out = Reslice(out, len(m), modelpb.KeyValueStringFromVTPool)
 
 	i := 0
 	for k, v := range m {
-		value, _ := structpb.NewValue(v)
-		out[i].Key = k
-		out[i].Value = value
-		i++
+		if s, ok := v.(string); ok {
+			out[i].Key = k
+			out[i].Value = s
+			i++
+		}
 	}
 
 	return out

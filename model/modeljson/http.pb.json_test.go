@@ -30,7 +30,7 @@ import (
 func TestHTTPToModelJSON(t *testing.T) {
 	headers := randomHTTPHeaders(t)
 	headers2 := randomHTTPHeaders(t)
-	cookies := randomKv(t)
+	cookies := randomHTTPCookies(t)
 	envs := randomKv(t)
 	tru := true
 

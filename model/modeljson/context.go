@@ -21,7 +21,7 @@ import "github.com/elastic/apm-data/model/modelpb"
 
 // updateFields transforms in, returning a copy with sanitized keys,
 // suitable for storing as "custom" in transaction and error documents.
-func updateFields(in []*modelpb.KeyValue) {
+func updateFields(in []*modelpb.KeyValueString) {
 	for _, kv := range in {
 		kv.Key = sanitizeLabelKey(kv.Key)
 	}

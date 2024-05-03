@@ -30,7 +30,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 		Span: &modelpb.Span{
 			Message: &modelpb.Message{
 				Body: "body",
-				Headers: []*modelpb.HTTPHeader{
+				Headers: []*modelpb.Header{
 					{
 						Key:   "foo",
 						Value: []string{"bar"},
@@ -150,7 +150,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			},
 			Message: &modelpb.Message{
 				Body: "body",
-				Headers: []*modelpb.HTTPHeader{
+				Headers: []*modelpb.Header{
 					{
 						Key:   "foo",
 						Value: []string{"bar"},
@@ -356,7 +356,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			Request: &modelpb.HTTPRequest{
 				Headers:  randomHTTPHeaders(t),
 				Env:      randomKv(t),
-				Cookies:  randomKv(t),
+				Cookies:  randomHTTPCookies(t),
 				Id:       "id",
 				Method:   "method",
 				Referrer: "referrer",
