@@ -196,6 +196,34 @@ func TestSetDataStream(t *testing.T) {
 			},
 		},
 		output: &modelpb.DataStream{Type: "metrics", Dataset: "apm.internal", Namespace: "custom"},
+	}, {
+		input: &modelpb.APMEvent{
+			Agent:   &modelpb.Agent{Name: "otel"},
+			Service: &modelpb.Service{Name: "service-name"},
+			Metricset: &modelpb.Metricset{
+				Samples: []*modelpb.MetricsetSample{
+					{Name: "system.memory.total"},
+				},
+			},
+			Labels: map[string]*modelpb.LabelValue{
+				"event.provider": &modelpb.LabelValue{Value: "hostmetrics"}, // otel translated hostmetrics
+			},
+		},
+		output: &modelpb.DataStream{Type: "metrics", Dataset: "apm.app.service_name", Namespace: "custom"},
+	}, {
+		input: &modelpb.APMEvent{
+			Agent:   &modelpb.Agent{Name: "otel"},
+			Service: &modelpb.Service{Name: "service-name"},
+			Metricset: &modelpb.Metricset{
+				Samples: []*modelpb.MetricsetSample{
+					{Name: "system.memory.total"},
+				},
+			},
+			Labels: map[string]*modelpb.LabelValue{
+				"event.provider": &modelpb.LabelValue{Value: "kernel"},
+			},
+		},
+		output: &modelpb.DataStream{Type: "metrics", Dataset: "apm.internal", Namespace: "custom"},
 	}}
 
 	for _, test := range tests {

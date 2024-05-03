@@ -22,9 +22,16 @@ import (
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/opentelemetry-lib/remappers/hostmetrics"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
 )
+
+type remapper interface {
+	Remap(pmetric.ScopeMetrics, pmetric.MetricSlice, pcommon.Resource)
+}
 
 // ConsumerConfig holds configuration for Consumer.
 type ConsumerConfig struct {
@@ -39,14 +46,19 @@ type ConsumerConfig struct {
 	// Semaphore holds a semaphore on which Processor.HandleStream will acquire a
 	// token before proceeding, to limit concurrency.
 	Semaphore input.Semaphore
+
+	// RemapOTelMetrics remaps certain OpenTelemetry metrics to elastic metrics.
+	// Note that both, OTel and Elastic, metrics would be published.
+	RemapOTelMetrics bool
 }
 
 // Consumer transforms OpenTelemetry data to the Elastic APM data model,
 // sending each payload as a batch to the configured BatchProcessor.
 type Consumer struct {
-	sem    input.Semaphore
-	config ConsumerConfig
-	stats  consumerStats
+	config    ConsumerConfig
+	sem       input.Semaphore
+	remappers []remapper
+	stats     consumerStats
 }
 
 // NewConsumer returns a new Consumer with the given configuration.
@@ -56,9 +68,16 @@ func NewConsumer(config ConsumerConfig) *Consumer {
 	} else {
 		config.Logger = config.Logger.Named("otel")
 	}
+	var remappers []remapper
+	if config.RemapOTelMetrics {
+		remappers = []remapper{
+			hostmetrics.NewRemapper(config.Logger),
+		}
+	}
 	return &Consumer{
-		config: config,
-		sem:    config.Semaphore,
+		config:    config,
+		sem:       config.Semaphore,
+		remappers: remappers,
 	}
 }
 

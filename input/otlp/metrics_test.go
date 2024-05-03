@@ -851,6 +851,83 @@ func TestConsumeMetricsDataStream(t *testing.T) {
 	}
 }
 
+// The below test asserts that remapped metrics are correctly processed by the
+// code but does not test the correctness of the remapping libarary or if all
+// the metrics are remapped as it is within the scope of the remapping library.
+func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
+	metrics := pmetric.NewMetrics()
+	rm := metrics.ResourceMetrics().AppendEmpty()
+	sm := rm.ScopeMetrics().AppendEmpty()
+	ms := sm.Metrics()
+
+	// Configure scope for hostmetrics receiver
+	sm.Scope().SetName("otelcol/hostmetricsreceiver/load")
+
+	// Add a datapoint for a metric produced by hostmetrics receiver
+	ts := time.Now().UTC()
+	metric := ms.AppendEmpty()
+	metric.SetName("system.cpu.load_average.1m")
+	dp := metric.SetEmptyGauge().DataPoints().AppendEmpty()
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(ts))
+	dp.SetDoubleValue(0.7)
+
+	events, stats, results, err := transformMetrics(t, metrics)
+	assert.NoError(t, err)
+
+	expected := []*modelpb.APMEvent{
+		{
+			Service: &modelpb.Service{
+				Name:     "unknown",
+				Language: &modelpb.Language{Name: "unknown"},
+			},
+			Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
+			Timestamp: modelpb.FromTime(ts),
+			Metricset: &modelpb.Metricset{
+				Name: "app",
+				Samples: []*modelpb.MetricsetSample{
+					{
+						Name:  "system.cpu.load_average.1m",
+						Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
+						Value: 0.7,
+					},
+				},
+			},
+		},
+		{
+			Service: &modelpb.Service{
+				Name:     "unknown",
+				Language: &modelpb.Language{Name: "unknown"},
+			},
+			Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
+			Timestamp: modelpb.FromTime(ts),
+			Metricset: &modelpb.Metricset{
+				Name: "app",
+				Samples: []*modelpb.MetricsetSample{
+					{
+						Name:  "system.load.1",
+						Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
+						Value: 0.7,
+					},
+					{
+						Name: "system.load.5",
+						Type: modelpb.MetricType_METRIC_TYPE_GAUGE,
+					},
+					{
+						Name: "system.load.15",
+						Type: modelpb.MetricType_METRIC_TYPE_GAUGE,
+					},
+				},
+			},
+			Labels: map[string]*modelpb.LabelValue{
+				"event.provider": &modelpb.LabelValue{Value: "hostmetrics"},
+			},
+		},
+	}
+	eventsMatch(t, expected, events)
+	assert.Equal(t, otlp.ConsumerStats{}, stats)
+	assert.Equal(t, otlp.ConsumeMetricsResult{}, results)
+}
+
 /* TODO
 func TestMetricsLogging(t *testing.T) {
 	for _, level := range []logp.Level{logp.InfoLevel, logp.DebugLevel} {
@@ -873,8 +950,9 @@ func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEven
 	recorder := batchRecorderBatchProcessor(&batches)
 
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
-		Processor: recorder,
-		Semaphore: semaphore.NewWeighted(100),
+		Processor:        recorder,
+		Semaphore:        semaphore.NewWeighted(100),
+		RemapOTelMetrics: true,
 	})
 	result, err := consumer.ConsumeMetricsWithResult(context.Background(), metrics)
 	require.Len(t, batches, 1)
