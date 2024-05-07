@@ -1960,6 +1960,12 @@ func approveEventDocs(t testing.TB, name string, docs [][]byte) {
 			delete(m, "event")
 		}
 
+		if e, ok := m["error"].(map[string]any); ok {
+			if _, ok := e["id"]; ok {
+				e["id"] = "dynamic"
+			}
+		}
+
 		events[i] = m
 	}
 	received := map[string]any{"events": events}

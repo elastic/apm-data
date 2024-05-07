@@ -1221,6 +1221,9 @@ func (c *Consumer) convertJaegerErrorSpanEvent(event ptrace.SpanEvent, apmEvent 
 		e.Exception = modelpb.ExceptionFromVTPool()
 		e.Exception.Message = exMessage
 		e.Exception.Type = exType
+		if id, err := newUniqueID(); err == nil {
+			e.Id = id
+		}
 	}
 	return e
 }
