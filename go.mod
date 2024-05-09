@@ -8,6 +8,7 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.98.0
 	github.com/pkg/errors v0.9.1
+	github.com/planetscale/vtprotobuf v0.6.0
 	github.com/stretchr/testify v1.9.0
 	github.com/xeipuuv/gojsonschema v1.2.0
 	go.elastic.co/apm/v2 v2.6.0
