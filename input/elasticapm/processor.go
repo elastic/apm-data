@@ -251,7 +251,7 @@ func (p *Processor) HandleStream(
 	// The semaphore defaults to 200 (N), only allowing N requests to read
 	// an cache Y events (determined by batchSize) from the batch.
 	if err := p.semAcquire(ctx); err != nil {
-		return fmt.Errorf("cannot acquire semaphore: %w", err)
+		return fmt.Errorf("unable to service request: %w", err)
 	}
 	sr := p.getStreamReader(reader)
 
