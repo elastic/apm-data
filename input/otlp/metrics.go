@@ -152,9 +152,7 @@ func (c *Consumer) handleScopeMetrics(
 		for _, r := range c.remappers {
 			r.Remap(in, remappedMetrics, resource)
 		}
-		// Add each remapped metric to the metricset. Code assumes that
-		// a single datapoint is added for each metric by the library.
-		*remainingDataPoints += int64(remappedMetrics.Len())
+		*remainingDataPoints += int64(dataPointsCount(remappedMetrics))
 		*remainingMetrics += int64(remappedMetrics.Len())
 		for i := 0; i < remappedMetrics.Len(); i++ {
 			c.addMetric(remappedMetrics.At(i), ms, remainingDataPoints, remainingMetrics)
@@ -396,4 +394,23 @@ func (ms metricsets) upsertOne(timestamp time.Time, attributes pcommon.Map, samp
 		ms[key] = m
 	}
 	m.samples[sample.Name] = sample
+}
+
+func dataPointsCount(ms pmetric.MetricSlice) (count int) {
+	for i := 0; i < ms.Len(); i++ {
+		m := ms.At(i)
+		switch m.Type() {
+		case pmetric.MetricTypeGauge:
+			count += m.Gauge().DataPoints().Len()
+		case pmetric.MetricTypeSum:
+			count += m.Sum().DataPoints().Len()
+		case pmetric.MetricTypeHistogram:
+			count += m.Histogram().DataPoints().Len()
+		case pmetric.MetricTypeExponentialHistogram:
+			count += m.ExponentialHistogram().DataPoints().Len()
+		case pmetric.MetricTypeSummary:
+			count += m.Summary().DataPoints().Len()
+		}
+	}
+	return
 }
