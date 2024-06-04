@@ -25,6 +25,7 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
+	"github.com/elastic/opentelemetry-lib/remappers/common"
 )
 
 func TestSetDataStream(t *testing.T) {
@@ -206,7 +207,7 @@ func TestSetDataStream(t *testing.T) {
 				},
 			},
 			Labels: map[string]*modelpb.LabelValue{
-				"event.provider": &modelpb.LabelValue{Value: "hostmetrics"}, // otel translated hostmetrics
+				"event.module": &modelpb.LabelValue{Value: common.RemapperEventModule}, // otel translated hostmetrics
 			},
 		},
 		output: &modelpb.DataStream{Type: "metrics", Dataset: "apm.app.service_name", Namespace: "custom"},

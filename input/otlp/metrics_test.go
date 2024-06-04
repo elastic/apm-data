@@ -54,6 +54,7 @@ import (
 
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/opentelemetry-lib/remappers/common"
 )
 
 func TestConsumer_ConsumeMetrics_Interface(t *testing.T) {
@@ -919,7 +920,7 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 				},
 			},
 			Labels: map[string]*modelpb.LabelValue{
-				"event.provider": &modelpb.LabelValue{Value: "hostmetrics"},
+				"event.module": &modelpb.LabelValue{Value: common.RemapperEventModule},
 			},
 		},
 	}

@@ -3,7 +3,7 @@ module github.com/elastic/apm-data
 go 1.21.1
 
 require (
-	github.com/elastic/opentelemetry-lib v0.0.0-20240520143123-3234f90c8fca
+	github.com/elastic/opentelemetry-lib v0.0.0-20240604140721-08863a456d6c
 	github.com/google/go-cmp v0.6.0
 	github.com/jaegertracing/jaeger v1.56.0
 	github.com/json-iterator/go v1.1.12
