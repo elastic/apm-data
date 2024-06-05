@@ -75,7 +75,7 @@ func (c *Consumer) ConsumeMetricsWithResult(ctx context.Context, metrics pmetric
 	remainingMetrics := totalMetrics
 	receiveTimestamp := time.Now()
 	c.config.Logger.Debug("consuming metrics", zap.Stringer("metrics", metricsStringer(metrics)))
-	batch := c.convertMetrics(metrics, receiveTimestamp, &remainingDataPoints, &remainingMetrics)
+	batch := c.handleMetrics(metrics, receiveTimestamp, &remainingDataPoints, &remainingMetrics)
 	if remainingMetrics > 0 {
 		// Some metrics remained after conversion, meaning that they were dropped.
 		atomic.AddInt64(&c.stats.unsupportedMetricsDropped, remainingMetrics)
@@ -93,7 +93,7 @@ func (c *Consumer) ConsumeMetricsWithResult(ctx context.Context, metrics pmetric
 	}, nil
 }
 
-func (c *Consumer) convertMetrics(
+func (c *Consumer) handleMetrics(
 	metrics pmetric.Metrics,
 	receiveTimestamp time.Time,
 	remainingDataPoints, remainingMetrics *int64,
@@ -101,12 +101,12 @@ func (c *Consumer) convertMetrics(
 	batch = &modelpb.Batch{}
 	resourceMetrics := metrics.ResourceMetrics()
 	for i := 0; i < resourceMetrics.Len(); i++ {
-		c.convertResourceMetrics(resourceMetrics.At(i), receiveTimestamp, batch, remainingDataPoints, remainingMetrics)
+		c.handleResourceMetrics(resourceMetrics.At(i), receiveTimestamp, batch, remainingDataPoints, remainingMetrics)
 	}
 	return
 }
 
-func (c *Consumer) convertResourceMetrics(
+func (c *Consumer) handleResourceMetrics(
 	resourceMetrics pmetric.ResourceMetrics,
 	receiveTimestamp time.Time,
 	out *modelpb.Batch,
@@ -125,23 +125,39 @@ func (c *Consumer) convertResourceMetrics(
 	}
 	scopeMetrics := resourceMetrics.ScopeMetrics()
 	for i := 0; i < scopeMetrics.Len(); i++ {
-		c.convertScopeMetrics(scopeMetrics.At(i), baseEvent, timeDelta, out, remainingDataPoints, remainingMetrics)
+		c.handleScopeMetrics(scopeMetrics.At(i), resource, baseEvent, timeDelta, out, remainingDataPoints, remainingMetrics)
 	}
 	return
 }
 
-func (c *Consumer) convertScopeMetrics(
+func (c *Consumer) handleScopeMetrics(
 	in pmetric.ScopeMetrics,
+	resource pcommon.Resource,
 	baseEvent *modelpb.APMEvent,
 	timeDelta time.Duration,
 	out *modelpb.Batch,
 	remainingDataPoints, remainingMetrics *int64,
 ) {
 	ms := make(metricsets)
+	// Add the original otel metrics to the metricset.
 	otelMetrics := in.Metrics()
 	for i := 0; i < otelMetrics.Len(); i++ {
 		c.addMetric(otelMetrics.At(i), ms, remainingDataPoints, remainingMetrics)
 	}
+	// Handle remapping if any. Remapped metrics will be added to a new
+	// metric slice and then processed as any other metric in the scope.
+	if len(c.remappers) > 0 {
+		remappedMetrics := pmetric.NewMetricSlice()
+		for _, r := range c.remappers {
+			r.Remap(in, remappedMetrics, resource)
+		}
+		*remainingDataPoints += int64(dataPointsCount(remappedMetrics))
+		*remainingMetrics += int64(remappedMetrics.Len())
+		for i := 0; i < remappedMetrics.Len(); i++ {
+			c.addMetric(remappedMetrics.At(i), ms, remainingDataPoints, remainingMetrics)
+		}
+	}
+	// Process all the metrics added to the metricset.
 	for key, ms := range ms {
 		event := baseEvent.CloneVT()
 
@@ -377,4 +393,23 @@ func (ms metricsets) upsertOne(timestamp time.Time, attributes pcommon.Map, samp
 		ms[key] = m
 	}
 	m.samples[sample.Name] = sample
+}
+
+func dataPointsCount(ms pmetric.MetricSlice) (count int) {
+	for i := 0; i < ms.Len(); i++ {
+		m := ms.At(i)
+		switch m.Type() {
+		case pmetric.MetricTypeGauge:
+			count += m.Gauge().DataPoints().Len()
+		case pmetric.MetricTypeSum:
+			count += m.Sum().DataPoints().Len()
+		case pmetric.MetricTypeHistogram:
+			count += m.Histogram().DataPoints().Len()
+		case pmetric.MetricTypeExponentialHistogram:
+			count += m.ExponentialHistogram().DataPoints().Len()
+		case pmetric.MetricTypeSummary:
+			count += m.Summary().DataPoints().Len()
+		}
+	}
+	return
 }

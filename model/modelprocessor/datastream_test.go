@@ -25,6 +25,7 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
+	"github.com/elastic/opentelemetry-lib/remappers/common"
 )
 
 func TestSetDataStream(t *testing.T) {
@@ -193,6 +194,34 @@ func TestSetDataStream(t *testing.T) {
 				Samples: []*modelpb.MetricsetSample{
 					{Name: "agent_config_applied", Value: 1},
 				},
+			},
+		},
+		output: &modelpb.DataStream{Type: "metrics", Dataset: "apm.internal", Namespace: "custom"},
+	}, {
+		input: &modelpb.APMEvent{
+			Agent:   &modelpb.Agent{Name: "otel"},
+			Service: &modelpb.Service{Name: "service-name"},
+			Metricset: &modelpb.Metricset{
+				Samples: []*modelpb.MetricsetSample{
+					{Name: "system.memory.total"},
+				},
+			},
+			Labels: map[string]*modelpb.LabelValue{
+				"event.module": &modelpb.LabelValue{Value: common.RemapperEventModule}, // otel translated hostmetrics
+			},
+		},
+		output: &modelpb.DataStream{Type: "metrics", Dataset: "apm.app.service_name", Namespace: "custom"},
+	}, {
+		input: &modelpb.APMEvent{
+			Agent:   &modelpb.Agent{Name: "otel"},
+			Service: &modelpb.Service{Name: "service-name"},
+			Metricset: &modelpb.Metricset{
+				Samples: []*modelpb.MetricsetSample{
+					{Name: "system.memory.total"},
+				},
+			},
+			Labels: map[string]*modelpb.LabelValue{
+				"event.provider": &modelpb.LabelValue{Value: "kernel"},
 			},
 		},
 		output: &modelpb.DataStream{Type: "metrics", Dataset: "apm.internal", Namespace: "custom"},

@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/opentelemetry-lib/remappers/common"
 )
 
 const (
@@ -141,10 +142,18 @@ func metricsetDataset(event *modelpb.APMEvent) string {
 		// metrics that we don't already know about; otherwise they will end
 		// up creating service-specific data streams.
 		internal := true
-		for _, s := range event.Metricset.Samples {
-			if !IsInternalMetricName(s.Name) {
-				internal = false
-				break
+
+		// set internal to false for metrics translated using OTel remappers.
+		if label, ok := event.Labels["event.module"]; ok && label != nil {
+			internal = !(label.Value == common.RemapperEventModule)
+		}
+
+		if internal {
+			for _, s := range event.Metricset.Samples {
+				if !IsInternalMetricName(s.Name) {
+					internal = false
+					break
+				}
 			}
 		}
 		if internal {
