@@ -146,7 +146,6 @@ func (c *Consumer) handleScopeMetrics(
 	}
 	// Handle remapping if any. Remapped metrics will be added to a new
 	// metric slice and then processed as any other metric in the scope.
-	// TODO (lahsivjar): Possible to approximate capacity of the slice?
 	if len(c.remappers) > 0 {
 		remappedMetrics := pmetric.NewMetricSlice()
 		for _, r := range c.remappers {
