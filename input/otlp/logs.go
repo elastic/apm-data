@@ -213,6 +213,8 @@ func (c *Consumer) convertLogRecord(
 		)
 	}
 
+	// We need to check if the "event.name" has the "device" prefix based on the removal of the "event.domain" attribute
+	// done in the OTel semantic conventions version 1.24.0.
 	if (eventDomain == "device" && eventName != "") || strings.HasPrefix(eventName, "device.") {
 		event.Event.Category = "device"
 		action := strings.TrimPrefix(eventName, "device.")
