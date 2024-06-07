@@ -70,6 +70,7 @@
                 "version": "unknown"
             },
             "error": {
+                "id": "dynamic",
                 "exception": [
                     {
                         "message": "no connection established"
@@ -185,6 +186,7 @@
                 "version": "unknown"
             },
             "error": {
+                "id": "dynamic",
                 "exception": [
                     {
                         "message": "no connection established"
@@ -242,6 +244,7 @@
                 "version": "unknown"
             },
             "error": {
+                "id": "dynamic",
                 "exception": [
                     {
                         "message": "no connection established"
@@ -299,6 +302,7 @@
                 "version": "unknown"
             },
             "error": {
+                "id": "dynamic",
                 "exception": [
                     {
                         "type": "DBClosedException"

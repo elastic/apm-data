@@ -253,17 +253,32 @@ func TestHTTPTransactionURL(t *testing.T) {
 			"http.target": "/foo",
 		})
 	})
-	t.Run("url.full", func(t *testing.T) {
+	t.Run("url_attributes", func(t *testing.T) {
 		test(t, &modelpb.URL{
 			Scheme:   "https",
-			Original: "https://testing.invalid:80/foo?bar",
-			Full:     "https://testing.invalid:80/foo?bar",
+			Original: "/foo",
+			Full:     "https://test.domain/foo",
+			Path:     "/foo",
+			Domain:   "test.domain",
+		}, map[string]interface{}{
+			"url.scheme":     "https",
+			"server.address": "test.domain",
+			"url.path":       "/foo",
+		})
+	})
+	t.Run("url_attributes_with_query", func(t *testing.T) {
+		test(t, &modelpb.URL{
+			Scheme:   "https",
+			Original: "/foo?bar",
+			Full:     "https://test.domain/foo?bar",
 			Path:     "/foo",
 			Query:    "bar",
-			Domain:   "testing.invalid",
-			Port:     80,
+			Domain:   "test.domain",
 		}, map[string]interface{}{
-			"url.full": "https://testing.invalid:80/foo?bar",
+			"url.scheme":     "https",
+			"server.address": "test.domain",
+			"url.path":       "/foo",
+			"url.query":      "bar",
 		})
 	})
 }
@@ -1958,6 +1973,12 @@ func approveEventDocs(t testing.TB, name string, docs [][]byte) {
 		delete(event, "received")
 		if len(event) == 0 {
 			delete(m, "event")
+		}
+
+		if e, ok := m["error"].(map[string]any); ok {
+			if _, ok := e["id"]; ok {
+				e["id"] = "dynamic"
+			}
 		}
 
 		events[i] = m
