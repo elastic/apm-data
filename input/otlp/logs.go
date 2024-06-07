@@ -37,6 +37,7 @@ package otlp
 import (
 	"context"
 	"encoding/hex"
+	"strings"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -212,16 +213,19 @@ func (c *Consumer) convertLogRecord(
 		)
 	}
 
-	if eventDomain == "device" && eventName != "" {
+	// We need to check if the "event.name" has the "device" prefix based on the removal of the "event.domain" attribute
+	// done in the OTel semantic conventions version 1.24.0.
+	if (eventDomain == "device" && eventName != "") || strings.HasPrefix(eventName, "device.") {
 		event.Event.Category = "device"
-		if eventName == "crash" {
+		action := strings.TrimPrefix(eventName, "device.")
+		if action == "crash" {
 			if event.Error == nil {
 				event.Error = modelpb.ErrorFromVTPool()
 			}
 			event.Error.Type = "crash"
 		} else {
 			event.Event.Kind = "event"
-			event.Event.Action = eventName
+			event.Event.Action = action
 		}
 	}
 
