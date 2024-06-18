@@ -23,6 +23,7 @@ import (
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/opentelemetry-lib/remappers/hostmetrics"
+	"github.com/elastic/opentelemetry-lib/remappers/kubernetesmetrics"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -72,6 +73,7 @@ func NewConsumer(config ConsumerConfig) *Consumer {
 	if config.RemapOTelMetrics {
 		remappers = []remapper{
 			hostmetrics.NewRemapper(config.Logger),
+			kubernetesmetrics.NewRemapper(config.Logger),
 		}
 	}
 	return &Consumer{
