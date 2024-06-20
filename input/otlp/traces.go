@@ -439,7 +439,11 @@ func TranslateTransaction(
 				event.Network.Carrier.Icc = stringval
 
 			// messaging.*
-			case "message_bus.destination", semconv.AttributeMessagingDestination:
+			//
+			// messaging.destination is now called messaging.destination.name in the latest semconv
+			// https://opentelemetry.io/docs/specs/semconv/attributes-registry/messaging
+			// keep both of them for the backward compatibility
+			case "message_bus.destination", semconv.AttributeMessagingDestination, "messaging.destination.name":
 				isMessaging = true
 				messagingQueueName = stringval
 			case semconv.AttributeMessagingSystem:
@@ -784,7 +788,11 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				event.Session.Id = stringval
 
 			// messaging.*
-			case "message_bus.destination", semconv.AttributeMessagingDestination:
+			//
+			// messaging.destination is now called messaging.destination.name in the latest semconv
+			// https://opentelemetry.io/docs/specs/semconv/attributes-registry/messaging
+			// keep both of them for the backward compatibility
+			case "message_bus.destination", semconv.AttributeMessagingDestination, "messaging.destination.name":
 				message.QueueName = stringval
 				isMessaging = true
 			case semconv.AttributeMessagingOperation:
