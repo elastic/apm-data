@@ -20,10 +20,10 @@ package modelprocessor
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/opentelemetry-lib/remappers/common"
 )
 
 const (
@@ -144,8 +144,9 @@ func metricsetDataset(event *modelpb.APMEvent) string {
 		internal := true
 
 		// set internal to false for metrics translated using OTel remappers.
-		if label, ok := event.Labels["event.module"]; ok && label != nil {
-			internal = !(label.Value == common.RemapperEventModule)
+		if label, ok := event.Labels["otel_remapped"]; ok && label != nil {
+			remapped, _ := strconv.ParseBool(label.Value)
+			internal = !remapped
 		}
 
 		if internal {
