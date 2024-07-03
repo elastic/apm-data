@@ -219,6 +219,11 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 				out.Service.Runtime = modelpb.RuntimeFromVTPool()
 			}
 			out.Service.Runtime.Version = truncate(v.Str())
+		case semconv.AttributeProcessOwner:
+			if out.User == nil {
+				out.User = modelpb.UserFromVTPool()
+			}
+			out.User.Name = truncate(v.Str())
 
 		// os.*
 		case semconv.AttributeOSType:
