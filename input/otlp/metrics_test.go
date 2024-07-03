@@ -858,18 +858,26 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 	metrics := pmetric.NewMetrics()
 	rm := metrics.ResourceMetrics().AppendEmpty()
 	sm := rm.ScopeMetrics().AppendEmpty()
-	ms := sm.Metrics()
 
 	// Configure scope for hostmetrics receiver
 	sm.Scope().SetName("otelcol/hostmetricsreceiver/load")
 
 	// Add a datapoint for a metric produced by hostmetrics receiver
 	ts := time.Now().UTC()
-	metric := ms.AppendEmpty()
+	metric := sm.Metrics().AppendEmpty()
 	metric.SetName("system.cpu.load_average.1m")
 	dp := metric.SetEmptyGauge().DataPoints().AppendEmpty()
 	dp.SetTimestamp(pcommon.NewTimestampFromTime(ts))
 	dp.SetDoubleValue(0.7)
+
+	// process metric
+	sm = rm.ScopeMetrics().AppendEmpty()
+	sm.Scope().SetName("otelcol/hostmetricsreceiver/process")
+	metric = sm.Metrics().AppendEmpty()
+	metric.SetName("process.memory.usage")
+	dp = metric.SetEmptySum().DataPoints().AppendEmpty()
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(ts))
+	dp.SetIntValue(1024)
 
 	events, stats, results, err := transformMetrics(t, metrics)
 	assert.NoError(t, err)
@@ -891,6 +899,118 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 						Value: 0.7,
 					},
 				},
+			},
+		},
+		{
+			Service: &modelpb.Service{
+				Name:     "unknown",
+				Language: &modelpb.Language{Name: "unknown"},
+			},
+			Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
+			Timestamp: modelpb.FromTime(ts),
+			Metricset: &modelpb.Metricset{
+				Name: "app",
+				Samples: []*modelpb.MetricsetSample{
+					{
+						Name:  "process.memory.usage",
+						Type:  modelpb.MetricType_METRIC_TYPE_COUNTER,
+						Value: 1024,
+					},
+				},
+			},
+		},
+		{
+			Service: &modelpb.Service{
+				Name:     "unknown",
+				Language: &modelpb.Language{Name: "unknown"},
+			},
+			Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
+			Timestamp: modelpb.FromTime(ts),
+			Metricset: &modelpb.Metricset{
+				Name: "app",
+				// TODO (lahsivjar): Opentelemetry lib currently adds all metrics, even
+				// though the source metrics is not present. Due to this all the metrics
+				// need to be asserted making the tests brittle. This should be fixed by
+				// https://github.com/elastic/opentelemetry-lib/issues/6
+				Samples: []*modelpb.MetricsetSample{
+					{
+						Name: "process.cpu.start_time",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.cpu.start_time",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.num_threads",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.memory.rss.pct",
+						Type: modelpb.MetricType_METRIC_TYPE_GAUGE,
+					},
+					{
+						Name:  "system.process.memory.rss.bytes",
+						Type:  modelpb.MetricType_METRIC_TYPE_COUNTER,
+						Value: 1024,
+					},
+					{
+						Name: "system.process.memory.size",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.fd.open",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "process.memory.pct",
+						Type: modelpb.MetricType_METRIC_TYPE_GAUGE,
+					},
+					{
+						Name: "system.process.cpu.total.value",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.cpu.system.ticks",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.cpu.user.ticks",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.cpu.total.ticks",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.io.read_bytes",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.io.write_bytes",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.io.read_ops",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.io.write_ops",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.cpu.total.pct",
+						Type: modelpb.MetricType_METRIC_TYPE_GAUGE,
+					},
+				},
+			},
+			System: &modelpb.System{
+				Process: &modelpb.SystemProcess{
+					State: "undefined",
+				},
+			},
+			Labels: map[string]*modelpb.LabelValue{
+				"otel_remapped": &modelpb.LabelValue{Value: "true"},
 			},
 		},
 		{

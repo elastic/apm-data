@@ -68,6 +68,7 @@ type Document struct {
 	Process     *Process     `json:"process,omitempty"`
 	Event       *Event       `json:"event,omitempty"`
 	Code        *Code        `json:"code,omitempty"`
+	System      *System      `json:"system,omitempty"`
 
 	Timestamp  Time        `json:"@timestamp"`
 	DataStream *DataStream `json:"data_stream,omitempty"`

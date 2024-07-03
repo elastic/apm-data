@@ -43,6 +43,7 @@ import "service.proto";
 import "session.proto";
 import "source.proto";
 import "span.proto";
+import "system.proto";
 import "trace.proto";
 import "transaction.proto";
 import "url.proto";
@@ -91,4 +92,5 @@ message APMEvent {
   Process process = 32;
   Event event = 33;
   Code code = 34;
+  System system = 35;
 }

@@ -186,6 +186,18 @@ func (c *Consumer) handleScopeMetrics(
 						event.DataStream = modelpb.DataStreamFromVTPool()
 					}
 					event.DataStream.Namespace = v.Str()
+				// system.process.state is a field used in the Processes tab
+				// of the curated Kibana's hostmetrics UI. This metric will
+				// be produced by the remapping the original OTel metrics to
+				// Elastic OTel metrics.
+				case "system.process.state":
+					if event.System == nil {
+						event.System = modelpb.SystemFromVTPool()
+					}
+					if event.System.Process == nil {
+						event.System.Process = modelpb.SystemProcessFromVTPool()
+					}
+					event.System.Process.State = v.Str()
 				default:
 					setLabel(k, event, ifaceAttributeValue(v))
 				}

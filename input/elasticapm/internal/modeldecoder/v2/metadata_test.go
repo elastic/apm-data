@@ -170,7 +170,10 @@ func isUnmappedMetadataField(key string) bool {
 		"url.port",
 		"url.path",
 		"url.query",
-		"url.fragment":
+		"url.fragment",
+		"system",
+		"system.process",
+		"system.process.state":
 		return true
 	}
 	return false

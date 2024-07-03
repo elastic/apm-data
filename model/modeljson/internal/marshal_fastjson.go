@@ -771,6 +771,12 @@ func (v *Document) MarshalFastJSON(w *fastjson.Writer) error {
 			firstErr = err
 		}
 	}
+	if v.System != nil {
+		w.RawString(",\"system\":")
+		if err := v.System.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
 	if v.TimestampStruct != nil {
 		w.RawString(",\"timestamp\":")
 		if err := v.TimestampStruct.MarshalFastJSON(w); err != nil && firstErr == nil {
@@ -3201,6 +3207,29 @@ func (v *StacktraceFrameOriginal) MarshalFastJSON(w *fastjson.Writer) error {
 			w.RawString(prefix)
 		}
 		w.Uint64(uint64(*v.Lineno))
+	}
+	w.RawByte('}')
+	return nil
+}
+
+func (v *System) MarshalFastJSON(w *fastjson.Writer) error {
+	var firstErr error
+	w.RawByte('{')
+	if !v.Process.isZero() {
+		w.RawString("\"process\":")
+		if err := v.Process.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+	w.RawByte('}')
+	return firstErr
+}
+
+func (v *SystemProcess) MarshalFastJSON(w *fastjson.Writer) error {
+	w.RawByte('{')
+	if v.State != "" {
+		w.RawString("\"state\":")
+		w.String(v.State)
 	}
 	w.RawByte('}')
 	return nil
