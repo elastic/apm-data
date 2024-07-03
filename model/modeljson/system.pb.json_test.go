@@ -19,6 +19,7 @@ package modeljson
 
 import (
 	"testing"
+	"time"
 
 	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -27,6 +28,7 @@ import (
 )
 
 func TestSystemToModelJSON(t *testing.T) {
+	ts := time.Now()
 	testCases := map[string]struct {
 		proto    *modelpb.System
 		expected *modeljson.System
@@ -38,12 +40,20 @@ func TestSystemToModelJSON(t *testing.T) {
 		"full": {
 			proto: &modelpb.System{
 				Process: &modelpb.SystemProcess{
-					State: "processstate",
+					State:   "processstate",
+					Cmdline: "processcmdline",
+					Cpu: &modelpb.SystemProcessCPU{
+						StartTime: ts.Format(time.RFC3339),
+					},
 				},
 			},
 			expected: &modeljson.System{
 				Process: modeljson.SystemProcess{
-					State: "processstate",
+					State:   "processstate",
+					Cmdline: "processcmdline",
+					CPU: modeljson.SystemProcessCPU{
+						StartTime: ts.Format(time.RFC3339),
+					},
 				},
 			},
 		},

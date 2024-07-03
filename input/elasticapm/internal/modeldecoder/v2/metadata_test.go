@@ -173,7 +173,9 @@ func isUnmappedMetadataField(key string) bool {
 		"url.fragment",
 		"system",
 		"system.process",
-		"system.process.state":
+		"system.process.state",
+		"system.process.cmdline",
+		"system.process.cpu.start_time":
 		return true
 	}
 	return false

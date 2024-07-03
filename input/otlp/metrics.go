@@ -186,10 +186,42 @@ func (c *Consumer) handleScopeMetrics(
 						event.DataStream = modelpb.DataStreamFromVTPool()
 					}
 					event.DataStream.Namespace = v.Str()
-				// system.process.state is a field used in the Processes tab
-				// of the curated Kibana's hostmetrics UI. This metric will
-				// be produced by the remapping the original OTel metrics to
-				// Elastic OTel metrics.
+
+				// The below fields are required by the Processes tab of the
+				// curated Kibana's hostmetrics UI. These fields are
+				// produced by opentelemetry-lib. The below fields are
+				// added to the remapped OTel metrics datapoints as attributes
+				// and are not OTel semconv fields.
+				case "system.process.cpu.start_time":
+					if event.System == nil {
+						event.System = modelpb.SystemFromVTPool()
+					}
+					if event.System.Process == nil {
+						event.System.Process = modelpb.SystemProcessFromVTPool()
+					}
+					if event.System.Process.Cpu == nil {
+						event.System.Process.Cpu = modelpb.SystemProcessCPUFromVTPool()
+					}
+					event.System.Process.Cpu.StartTime = v.Str()
+
+				// `system.process.cmdline` is same as the ECS field `process.command_line`
+				// however, Kibana curated UIs requires this field to work. In addition,
+				// the current Kibana code will not work if this field is added to documents
+				// with `system.process.memory.rss.pct` and other metrics required in the
+				// Processes tab of the Kibana hostmetrics UI. Due to this, we have to process
+				// the datapoint field added by the opentelemetry-lib instead of directly
+				// processing the OTel semconv resource attribute `process.command_line`.
+				case "system.process.cmdline":
+					if event.System == nil {
+						event.System = modelpb.SystemFromVTPool()
+					}
+					if event.System.Process == nil {
+						event.System.Process = modelpb.SystemProcessFromVTPool()
+					}
+					event.System.Process.Cmdline = v.Str()
+					if event.User == nil {
+						event.User = modelpb.UserFromVTPool()
+					}
 				case "system.process.state":
 					if event.System == nil {
 						event.System = modelpb.SystemFromVTPool()
@@ -198,6 +230,11 @@ func (c *Consumer) handleScopeMetrics(
 						event.System.Process = modelpb.SystemProcessFromVTPool()
 					}
 					event.System.Process.State = v.Str()
+				case "event.dataset":
+					if event.Event == nil {
+						event.Event = modelpb.EventFromVTPool()
+					}
+					event.Event.Dataset = v.Str()
 				default:
 					setLabel(k, event, ifaceAttributeValue(v))
 				}

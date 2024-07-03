@@ -3226,10 +3226,50 @@ func (v *System) MarshalFastJSON(w *fastjson.Writer) error {
 }
 
 func (v *SystemProcess) MarshalFastJSON(w *fastjson.Writer) error {
+	var firstErr error
 	w.RawByte('{')
+	first := true
+	if v.Cmdline != "" {
+		const prefix = ",\"cmdline\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		w.String(v.Cmdline)
+	}
+	if !v.CPU.isZero() {
+		const prefix = ",\"cpu\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		if err := v.CPU.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
 	if v.State != "" {
-		w.RawString("\"state\":")
+		const prefix = ",\"state\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
 		w.String(v.State)
+	}
+	w.RawByte('}')
+	return firstErr
+}
+
+func (v *SystemProcessCPU) MarshalFastJSON(w *fastjson.Writer) error {
+	w.RawByte('{')
+	if v.StartTime != "" {
+		w.RawString("\"start_time\":")
+		w.String(v.StartTime)
 	}
 	w.RawByte('}')
 	return nil

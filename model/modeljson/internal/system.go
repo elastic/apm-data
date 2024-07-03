@@ -22,9 +22,19 @@ type System struct {
 }
 
 type SystemProcess struct {
-	State string `json:"state,omitempty"`
+	CPU     SystemProcessCPU `json:"cpu,omitempty"`
+	State   string           `json:"state,omitempty"`
+	Cmdline string           `json:"cmdline,omitempty"`
 }
 
 func (p *SystemProcess) isZero() bool {
-	return p.State == ""
+	return p.CPU.isZero() && p.State == "" && p.Cmdline == ""
+}
+
+type SystemProcessCPU struct {
+	StartTime string `json:"start_time,omitempty"`
+}
+
+func (p *SystemProcessCPU) isZero() bool {
+	return p == nil || p.StartTime == ""
 }

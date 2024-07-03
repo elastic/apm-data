@@ -26,7 +26,13 @@ func SystemModelJSON(s *modelpb.System, out *modeljson.System) {
 	*out = modeljson.System{}
 	if s.Process != nil {
 		out.Process = modeljson.SystemProcess{
-			State: s.Process.State,
+			State:   s.Process.State,
+			Cmdline: s.Process.Cmdline,
+		}
+		if s.Process.Cpu != nil {
+			out.Process.CPU = modeljson.SystemProcessCPU{
+				StartTime: s.Process.Cpu.StartTime,
+			}
 		}
 	}
 }

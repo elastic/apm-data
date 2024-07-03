@@ -859,11 +859,13 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 	rm := metrics.ResourceMetrics().AppendEmpty()
 	sm := rm.ScopeMetrics().AppendEmpty()
 
+	ts := time.Now().UTC()
+	startTs := ts.Add(-time.Hour)
+
 	// Configure scope for hostmetrics receiver
 	sm.Scope().SetName("otelcol/hostmetricsreceiver/load")
 
 	// Add a datapoint for a metric produced by hostmetrics receiver
-	ts := time.Now().UTC()
 	metric := sm.Metrics().AppendEmpty()
 	metric.SetName("system.cpu.load_average.1m")
 	dp := metric.SetEmptyGauge().DataPoints().AppendEmpty()
@@ -877,6 +879,7 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 	metric.SetName("process.memory.usage")
 	dp = metric.SetEmptySum().DataPoints().AppendEmpty()
 	dp.SetTimestamp(pcommon.NewTimestampFromTime(ts))
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(startTs))
 	dp.SetIntValue(1024)
 
 	events, stats, results, err := transformMetrics(t, metrics)
@@ -934,12 +937,9 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 				// https://github.com/elastic/opentelemetry-lib/issues/6
 				Samples: []*modelpb.MetricsetSample{
 					{
-						Name: "process.cpu.start_time",
-						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
-					},
-					{
-						Name: "system.process.cpu.start_time",
-						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+						Name:  "process.cpu.start_time",
+						Type:  modelpb.MetricType_METRIC_TYPE_COUNTER,
+						Value: float64(startTs.UnixMilli()),
 					},
 					{
 						Name: "system.process.num_threads",
@@ -1007,6 +1007,9 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 			System: &modelpb.System{
 				Process: &modelpb.SystemProcess{
 					State: "undefined",
+					Cpu: &modelpb.SystemProcessCPU{
+						StartTime: startTs.Format(time.RFC3339),
+					},
 				},
 			},
 			Labels: map[string]*modelpb.LabelValue{

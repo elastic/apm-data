@@ -26,5 +26,11 @@ message System {
 }
 
 message SystemProcess {
-  string state = 1;
+  SystemProcessCPU cpu = 1;
+  string state = 2;
+  string cmdline = 3;
+}
+
+message SystemProcessCPU {
+  string start_time = 1;
 }
