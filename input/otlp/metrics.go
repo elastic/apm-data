@@ -218,10 +218,7 @@ func (c *Consumer) handleScopeMetrics(
 					if event.System.Process == nil {
 						event.System.Process = modelpb.SystemProcessFromVTPool()
 					}
-					event.System.Process.Cmdline = v.Str()
-					if event.User == nil {
-						event.User = modelpb.UserFromVTPool()
-					}
+					event.System.Process.Cmdline = truncate(v.Str())
 				case "system.process.state":
 					if event.System == nil {
 						event.System = modelpb.SystemFromVTPool()

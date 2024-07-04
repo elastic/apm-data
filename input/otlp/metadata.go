@@ -193,11 +193,10 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			}
 			out.Process.Pid = uint32(v.Int())
 		case semconv.AttributeProcessCommandLine:
-			cmdline := truncate(v.Str())
 			if out.Process == nil {
 				out.Process = modelpb.ProcessFromVTPool()
 			}
-			out.Process.CommandLine = cmdline
+			out.Process.CommandLine = truncate(v.Str())
 		case semconv.AttributeProcessExecutablePath:
 			if out.Process == nil {
 				out.Process = modelpb.ProcessFromVTPool()
