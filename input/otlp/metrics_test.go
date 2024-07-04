@@ -931,6 +931,10 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 			Timestamp: modelpb.FromTime(ts),
 			Metricset: &modelpb.Metricset{
 				Name: "app",
+				// TODO (lahsivjar): Opentelemetry lib currently adds all metrics, even
+				// though the source metrics is not present. Due to this all the metrics
+				// need to be asserted making the tests brittle. This should be fixed by
+				// https://github.com/elastic/opentelemetry-lib/issues/6
 				Samples: []*modelpb.MetricsetSample{
 					{
 						Name:  "process.cpu.start_time",
@@ -938,9 +942,65 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 						Value: float64(startTs.UnixMilli()),
 					},
 					{
+						Name: "system.process.num_threads",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.memory.rss.pct",
+						Type: modelpb.MetricType_METRIC_TYPE_GAUGE,
+					},
+					{
 						Name:  "system.process.memory.rss.bytes",
 						Type:  modelpb.MetricType_METRIC_TYPE_COUNTER,
 						Value: 1024,
+					},
+					{
+						Name: "system.process.memory.size",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.fd.open",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "process.memory.pct",
+						Type: modelpb.MetricType_METRIC_TYPE_GAUGE,
+					},
+					{
+						Name: "system.process.cpu.total.value",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.cpu.system.ticks",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.cpu.user.ticks",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.cpu.total.ticks",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.io.read_bytes",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.io.write_bytes",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.io.read_ops",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.io.write_ops",
+						Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+					},
+					{
+						Name: "system.process.cpu.total.pct",
+						Type: modelpb.MetricType_METRIC_TYPE_GAUGE,
 					},
 				},
 			},
@@ -970,6 +1030,14 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 						Name:  "system.load.1",
 						Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
 						Value: 0.7,
+					},
+					{
+						Name: "system.load.5",
+						Type: modelpb.MetricType_METRIC_TYPE_GAUGE,
+					},
+					{
+						Name: "system.load.15",
+						Type: modelpb.MetricType_METRIC_TYPE_GAUGE,
 					},
 				},
 			},
