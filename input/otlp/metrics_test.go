@@ -1104,14 +1104,25 @@ func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEven
 	return *batches[0], consumer.Stats(), result, err
 }
 
+// eventsMatch aims to compare the expected and actual APMEvents however, it will
+// be indeterministic for more than one samples and more than one APMEvents
 func eventsMatch(t *testing.T, expected []*modelpb.APMEvent, actual []*modelpb.APMEvent) {
 	t.Helper()
-	sort.Slice(expected, func(i, j int) bool {
-		return strings.Compare(expected[i].String(), expected[j].String()) == -1
-	})
-	sort.Slice(actual, func(i, j int) bool {
-		return strings.Compare(actual[i].String(), actual[j].String()) == -1
-	})
+
+	sortEvents := func(events []*modelpb.APMEvent) {
+		for _, event := range events {
+			samples := event.Metricset.Samples
+			sort.Slice(samples, func(i, j int) bool {
+				return strings.Compare(samples[i].String(), samples[j].String()) == -1
+			})
+		}
+		sort.Slice(events, func(i, j int) bool {
+			return strings.Compare(events[i].String(), events[j].String()) == -1
+		})
+	}
+
+	sortEvents(expected)
+	sortEvents(actual)
 
 	now := modelpb.FromTime(time.Now())
 	for i, e := range actual {
