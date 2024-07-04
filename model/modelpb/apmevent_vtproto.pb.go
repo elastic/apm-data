@@ -74,6 +74,7 @@ func (m *APMEvent) CloneVT() *APMEvent {
 	r.Process = m.Process.CloneVT()
 	r.Event = m.Event.CloneVT()
 	r.Code = m.Code.CloneVT()
+	r.System = m.System.CloneVT()
 	if rhs := m.NumericLabels; rhs != nil {
 		tmpContainer := make(map[string]*NumericLabelValue, len(rhs))
 		for k, v := range rhs {
@@ -133,6 +134,18 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
+	}
+	if m.System != nil {
+		size, err := m.System.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0x9a
 	}
 	if m.Code != nil {
 		size, err := m.Code.MarshalToSizedBufferVT(dAtA[:i])
@@ -564,6 +577,7 @@ func (m *APMEvent) ResetVT() {
 		m.Process.ReturnToVTPool()
 		m.Event.ReturnToVTPool()
 		m.Code.ReturnToVTPool()
+		m.System.ReturnToVTPool()
 		m.Reset()
 		m.ChildIds = f0
 	}
@@ -736,6 +750,10 @@ func (m *APMEvent) SizeVT() (n int) {
 	}
 	if m.Code != nil {
 		l = m.Code.SizeVT()
+		n += 2 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	if m.System != nil {
+		l = m.System.SizeVT()
 		n += 2 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
 	n += len(m.unknownFields)
@@ -2149,6 +2167,42 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				m.Code = CodeFromVTPool()
 			}
 			if err := m.Code.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 35:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field System", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.System == nil {
+				m.System = SystemFromVTPool()
+			}
+			if err := m.System.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

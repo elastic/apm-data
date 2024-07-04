@@ -254,5 +254,11 @@ func MarshalAPMEvent(e *modelpb.APMEvent, w *fastjson.Writer) error {
 		}
 	}
 
+	var system modeljson.System
+	if e.System != nil {
+		SystemModelJSON(e.System, &system)
+		doc.System = &system
+	}
+
 	return doc.MarshalFastJSON(w)
 }

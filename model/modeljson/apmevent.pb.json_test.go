@@ -490,5 +490,10 @@ func fullEvent(t testing.TB) *modelpb.APMEvent {
 		Code: &modelpb.Code{
 			Stacktrace: "stacktrace",
 		},
+		System: &modelpb.System{
+			Process: &modelpb.SystemProcess{
+				State: "processstate",
+			},
+		},
 	}
 }
