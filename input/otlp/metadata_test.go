@@ -202,6 +202,7 @@ func TestResourceConventions(t *testing.T) {
 				"host.id":   "host_id",
 				"host.type": "host_type",
 				"host.arch": "host_arch",
+				"host.ip":   []interface{}{"10.244.0.1", "172.19.0.2", "fc00:f853:ccd:e793::2"},
 			},
 			expected: &modelpb.APMEvent{
 				Agent:   &defaultAgent,
@@ -211,6 +212,13 @@ func TestResourceConventions(t *testing.T) {
 					Id:           "host_id",
 					Type:         "host_type",
 					Architecture: "host_arch",
+					Ip: func() []*modelpb.IP {
+						ips := make([]*modelpb.IP, 3)
+						ips[0] = modelpb.MustParseIP("10.244.0.1")
+						ips[1] = modelpb.MustParseIP("172.19.0.2")
+						ips[2] = modelpb.MustParseIP("fc00:f853:ccd:e793::2")
+						return ips
+					}(),
 				},
 			},
 		},
