@@ -35,4 +35,9 @@ func SystemModelJSON(s *modelpb.System, out *modeljson.System) {
 			}
 		}
 	}
+	if s.Filesystem != nil {
+		out.Filesystem = modeljson.SystemFilesystem{
+			MountPoint: s.Filesystem.MountPoint,
+		}
+	}
 }

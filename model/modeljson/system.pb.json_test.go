@@ -46,6 +46,9 @@ func TestSystemToModelJSON(t *testing.T) {
 						StartTime: ts.Format(time.RFC3339),
 					},
 				},
+				Filesystem: &modelpb.SystemFilesystem{
+					MountPoint: "fsmountpoint",
+				},
 			},
 			expected: &modeljson.System{
 				Process: modeljson.SystemProcess{
@@ -54,6 +57,9 @@ func TestSystemToModelJSON(t *testing.T) {
 					CPU: modeljson.SystemProcessCPU{
 						StartTime: ts.Format(time.RFC3339),
 					},
+				},
+				Filesystem: modeljson.SystemFilesystem{
+					MountPoint: "fsmountpoint",
 				},
 			},
 		},

@@ -18,7 +18,8 @@
 package modeljson
 
 type System struct {
-	Process SystemProcess `json:"process,omitempty"`
+	Process    SystemProcess    `json:"process,omitempty"`
+	Filesystem SystemFilesystem `json:"filesystem,omitempty"`
 }
 
 type SystemProcess struct {
@@ -37,4 +38,12 @@ type SystemProcessCPU struct {
 
 func (p *SystemProcessCPU) isZero() bool {
 	return p == nil || p.StartTime == ""
+}
+
+type SystemFilesystem struct {
+	MountPoint string `json:"mount_point,omitempty"`
+}
+
+func (f *SystemFilesystem) isZero() bool {
+	return f == nil || f.MountPoint == ""
 }

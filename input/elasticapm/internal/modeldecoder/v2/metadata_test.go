@@ -175,7 +175,9 @@ func isUnmappedMetadataField(key string) bool {
 		"system.process",
 		"system.process.state",
 		"system.process.cmdline",
-		"system.process.cpu.start_time":
+		"system.process.cpu.start_time",
+		"system.filesystem",
+		"system.filesystem.mount_point":
 		return true
 	}
 	return false

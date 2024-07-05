@@ -3215,8 +3215,27 @@ func (v *StacktraceFrameOriginal) MarshalFastJSON(w *fastjson.Writer) error {
 func (v *System) MarshalFastJSON(w *fastjson.Writer) error {
 	var firstErr error
 	w.RawByte('{')
+	first := true
+	if !v.Filesystem.isZero() {
+		const prefix = ",\"filesystem\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		if err := v.Filesystem.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
 	if !v.Process.isZero() {
-		w.RawString("\"process\":")
+		const prefix = ",\"process\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
 		if err := v.Process.MarshalFastJSON(w); err != nil && firstErr == nil {
 			firstErr = err
 		}
@@ -3270,6 +3289,16 @@ func (v *SystemProcessCPU) MarshalFastJSON(w *fastjson.Writer) error {
 	if v.StartTime != "" {
 		w.RawString("\"start_time\":")
 		w.String(v.StartTime)
+	}
+	w.RawByte('}')
+	return nil
+}
+
+func (v *SystemFilesystem) MarshalFastJSON(w *fastjson.Writer) error {
+	w.RawByte('{')
+	if v.MountPoint != "" {
+		w.RawString("\"mount_point\":")
+		w.String(v.MountPoint)
 	}
 	w.RawByte('}')
 	return nil
