@@ -23,6 +23,7 @@ option go_package = "github.com/elastic/apm-data/model/modelpb";
 
 message System {
   SystemProcess process = 1;
+  SystemFilesystem filesystem = 2;
 }
 
 message SystemProcess {
@@ -33,4 +34,8 @@ message SystemProcess {
 
 message SystemProcessCPU {
   string start_time = 1;
+}
+
+message SystemFilesystem {
+  string mount_point = 1;
 }

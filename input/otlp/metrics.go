@@ -227,6 +227,14 @@ func (c *Consumer) handleScopeMetrics(
 						event.System.Process = modelpb.SystemProcessFromVTPool()
 					}
 					event.System.Process.State = v.Str()
+				case "system.filesystem.mount_point":
+					if event.System == nil {
+						event.System = modelpb.SystemFromVTPool()
+					}
+					if event.System.Filesystem == nil {
+						event.System.Filesystem = modelpb.SystemFilesystemFromVTPool()
+					}
+					event.System.Filesystem.MountPoint = truncate(v.Str())
 				case "event.dataset":
 					if event.Event == nil {
 						event.Event = modelpb.EventFromVTPool()
