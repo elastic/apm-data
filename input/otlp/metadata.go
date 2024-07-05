@@ -24,7 +24,7 @@ import (
 	"strings"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
-	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
+	semconv "go.opentelemetry.io/collector/semconv/v1.25.0"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -131,7 +131,7 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 				out.Container = modelpb.ContainerFromVTPool()
 			}
 			out.Container.ImageName = truncate(v.Str())
-		case semconv.AttributeContainerImageTag:
+		case "container.image.tag":
 			if out.Container == nil {
 				out.Container = modelpb.ContainerFromVTPool()
 			}
@@ -185,6 +185,17 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 				out.Host = modelpb.HostFromVTPool()
 			}
 			out.Host.Architecture = truncate(v.Str())
+		case semconv.AttributeHostIP:
+			if out.Host == nil {
+				out.Host = modelpb.HostFromVTPool()
+			}
+			out.Host.Ip = pSliceToType[*modelpb.IP](v.Slice(), func(v pcommon.Value) (*modelpb.IP, bool) {
+				ip, err := modelpb.ParseIP(v.Str())
+				if err != nil {
+					return nil, false
+				}
+				return ip, true
+			})
 
 		// process.*
 		case semconv.AttributeProcessPID:
@@ -479,11 +490,19 @@ func ifaceAttributeValue(v pcommon.Value) interface{} {
 }
 
 func ifaceAttributeValueSlice(slice pcommon.Slice) []interface{} {
-	values := make([]interface{}, slice.Len())
-	for i := range values {
-		values[i] = ifaceAttributeValue(slice.At(i))
+	return pSliceToType[interface{}](slice, func(v pcommon.Value) (interface{}, bool) {
+		return ifaceAttributeValue(v), true
+	})
+}
+
+func pSliceToType[T any](slice pcommon.Slice, f func(pcommon.Value) (T, bool)) []T {
+	result := make([]T, 0, slice.Len())
+	for i := 0; i < slice.Len(); i++ {
+		if v, ok := f(slice.At(i)); ok {
+			result = append(result, v)
+		}
 	}
-	return values
+	return result
 }
 
 // initEventLabels initializes an event-specific labels from an event.
