@@ -1077,7 +1077,7 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 						"otel_remapped": &modelpb.LabelValue{Value: "true"},
 						// This is set as labels too since the opentelemetry-lib
 						// adds `user.name` label to datapoints causing duplicates.
-						"user.name": &modelpb.LabelValue{Value: "true"},
+						"user.name": &modelpb.LabelValue{Value: "testowner"},
 					},
 					Event: &modelpb.Event{
 						Dataset: "system.process",
