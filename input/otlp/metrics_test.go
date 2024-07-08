@@ -936,8 +936,10 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 			name: "process",
 			input: func() pmetric.Metrics {
 				metrics := pmetric.NewMetrics()
-				sm := metrics.ResourceMetrics().AppendEmpty().
-					ScopeMetrics().AppendEmpty()
+				rm := metrics.ResourceMetrics().AppendEmpty()
+				rm.Resource().Attributes().PutStr("process.owner", "testowner")
+				rm.Resource().Attributes().PutStr("process.command_line", "testcmdline")
+				sm := rm.ScopeMetrics().AppendEmpty()
 				sm.Scope().SetName("otelcol/hostmetricsreceiver/process")
 
 				metric := sm.Metrics().AppendEmpty()
@@ -957,6 +959,12 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 					},
 					Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
 					Timestamp: modelpb.FromTime(ts),
+					Process: &modelpb.Process{
+						CommandLine: "testcmdline",
+					},
+					User: &modelpb.User{
+						Name: "testowner",
+					},
 					Metricset: &modelpb.Metricset{
 						Name: "app",
 						Samples: []*modelpb.MetricsetSample{
@@ -1050,9 +1058,16 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 							},
 						},
 					},
+					Process: &modelpb.Process{
+						CommandLine: "testcmdline",
+					},
+					User: &modelpb.User{
+						Name: "testowner",
+					},
 					System: &modelpb.System{
 						Process: &modelpb.SystemProcess{
-							State: "undefined",
+							State:   "undefined",
+							Cmdline: "testcmdline",
 							Cpu: &modelpb.SystemProcessCPU{
 								StartTime: startTs.Format(time.RFC3339),
 							},
@@ -1060,6 +1075,9 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 					},
 					Labels: map[string]*modelpb.LabelValue{
 						"otel_remapped": &modelpb.LabelValue{Value: "true"},
+						// This is set as labels too since the opentelemetry-lib
+						// adds `user.name` label to datapoints causing duplicates.
+						"user.name": &modelpb.LabelValue{Value: "testowner"},
 					},
 					Event: &modelpb.Event{
 						Dataset: "system.process",
