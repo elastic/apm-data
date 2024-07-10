@@ -925,6 +925,7 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 					},
 					Event: &modelpb.Event{
 						Dataset: "system.load",
+						Module:  "system",
 					},
 					Labels: map[string]*modelpb.LabelValue{
 						"otel_remapped": &modelpb.LabelValue{Value: "true"},
@@ -1078,6 +1079,7 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 					},
 					Event: &modelpb.Event{
 						Dataset: "system.process",
+						Module:  "system",
 					},
 				},
 			},

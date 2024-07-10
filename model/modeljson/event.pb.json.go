@@ -29,6 +29,7 @@ func EventModelJSON(e *modelpb.Event, out *modeljson.Event) {
 		Dataset:  e.Dataset,
 		Kind:     e.Kind,
 		Category: e.Category,
+		Module:   e.Module,
 		Type:     e.Type,
 		Duration: e.Duration,
 		Severity: e.Severity,

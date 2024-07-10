@@ -240,6 +240,11 @@ func (c *Consumer) handleScopeMetrics(
 						event.Event = modelpb.EventFromVTPool()
 					}
 					event.Event.Dataset = v.Str()
+				case "event.module":
+					if event.Event == nil {
+						event.Event = modelpb.EventFromVTPool()
+					}
+					event.Event.Module = v.Str()
 				case "user.name":
 					if event.User == nil {
 						event.User = modelpb.UserFromVTPool()
