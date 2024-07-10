@@ -41,4 +41,6 @@ message Event {
 
   // nanoseconds since epoch
   uint64 received = 10;
+
+  string module = 11;
 }

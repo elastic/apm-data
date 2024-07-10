@@ -1079,6 +1079,16 @@ func (v *Event) MarshalFastJSON(w *fastjson.Writer) error {
 		}
 		w.String(v.Kind)
 	}
+	if v.Module != "" {
+		const prefix = ",\"module\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		w.String(v.Module)
+	}
 	if v.Outcome != "" {
 		const prefix = ",\"outcome\":"
 		if first {

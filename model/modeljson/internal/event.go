@@ -23,6 +23,7 @@ type Event struct {
 	Dataset      string        `json:"dataset,omitempty"`
 	Kind         string        `json:"kind,omitempty"`
 	Category     string        `json:"category,omitempty"`
+	Module       string        `json:"module,omitempty"`
 	Received     Time          `json:"received,omitempty"`
 	Type         string        `json:"type,omitempty"`
 	SuccessCount SummaryMetric `json:"success_count,omitempty"`
