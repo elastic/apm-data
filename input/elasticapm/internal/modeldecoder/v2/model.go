@@ -594,6 +594,8 @@ type metadataSystem struct {
 	Kubernetes metadataSystemKubernetes `json:"kubernetes"`
 	// Platform name of the system platform the monitored service is running on.
 	Platform nullable.String `json:"platform" validate:"maxLength=1024"`
+	// The OpenTelemetry semantic conventions compliant "host.id" attribute, if available.
+	HostID nullable.String `json:"host_id" validate:"maxLength=1024"`
 }
 
 type metadataSystemContainer struct {

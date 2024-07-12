@@ -851,6 +851,251 @@ func TestConsumeMetricsDataStream(t *testing.T) {
 	}
 }
 
+// The below test asserts that remapped metrics are correctly processed by the
+// code but does not test the correctness of the remapping libarary or if all
+// the metrics are remapped as it is within the scope of the remapping library.
+func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
+	ts := time.Now().UTC()
+	startTs := ts.Add(-time.Hour)
+
+	for _, tc := range []struct {
+		name     string
+		input    pmetric.Metrics
+		expected []*modelpb.APMEvent
+	}{
+		{
+			name: "load",
+			input: func() pmetric.Metrics {
+				metrics := pmetric.NewMetrics()
+				sm := metrics.ResourceMetrics().AppendEmpty().
+					ScopeMetrics().AppendEmpty()
+				sm.Scope().SetName("otelcol/hostmetricsreceiver/load")
+
+				metric := sm.Metrics().AppendEmpty()
+				metric.SetName("system.cpu.load_average.1m")
+				dp := metric.SetEmptyGauge().DataPoints().AppendEmpty()
+				dp.SetTimestamp(pcommon.NewTimestampFromTime(ts))
+				dp.SetDoubleValue(0.7)
+
+				return metrics
+			}(),
+			expected: []*modelpb.APMEvent{
+				{
+					Service: &modelpb.Service{
+						Name:     "unknown",
+						Language: &modelpb.Language{Name: "unknown"},
+					},
+					Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
+					Timestamp: modelpb.FromTime(ts),
+					Metricset: &modelpb.Metricset{
+						Name: "app",
+						Samples: []*modelpb.MetricsetSample{
+							{
+								Name:  "system.cpu.load_average.1m",
+								Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
+								Value: 0.7,
+							},
+						},
+					},
+				},
+				{
+					Service: &modelpb.Service{
+						Name:     "unknown",
+						Language: &modelpb.Language{Name: "unknown"},
+					},
+					Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
+					Timestamp: modelpb.FromTime(ts),
+					Metricset: &modelpb.Metricset{
+						Name: "app",
+						Samples: []*modelpb.MetricsetSample{
+							{
+								Name:  "system.load.1",
+								Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
+								Value: 0.7,
+							},
+							{
+								Name: "system.load.5",
+								Type: modelpb.MetricType_METRIC_TYPE_GAUGE,
+							},
+							{
+								Name: "system.load.15",
+								Type: modelpb.MetricType_METRIC_TYPE_GAUGE,
+							},
+						},
+					},
+					Event: &modelpb.Event{
+						Dataset: "system.load",
+						Module:  "system",
+					},
+					Labels: map[string]*modelpb.LabelValue{
+						"otel_remapped": &modelpb.LabelValue{Value: "true"},
+					},
+				},
+			},
+		},
+		{
+			name: "process",
+			input: func() pmetric.Metrics {
+				metrics := pmetric.NewMetrics()
+				rm := metrics.ResourceMetrics().AppendEmpty()
+				rm.Resource().Attributes().PutStr("process.owner", "testowner")
+				rm.Resource().Attributes().PutStr("process.command_line", "testcmdline")
+				sm := rm.ScopeMetrics().AppendEmpty()
+				sm.Scope().SetName("otelcol/hostmetricsreceiver/process")
+
+				metric := sm.Metrics().AppendEmpty()
+				metric.SetName("process.memory.usage")
+				dp := metric.SetEmptySum().DataPoints().AppendEmpty()
+				dp.SetTimestamp(pcommon.NewTimestampFromTime(ts))
+				dp.SetStartTimestamp(pcommon.NewTimestampFromTime(startTs))
+				dp.SetIntValue(1024)
+
+				return metrics
+			}(),
+			expected: []*modelpb.APMEvent{
+				{
+					Service: &modelpb.Service{
+						Name:     "unknown",
+						Language: &modelpb.Language{Name: "unknown"},
+					},
+					Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
+					Timestamp: modelpb.FromTime(ts),
+					Process: &modelpb.Process{
+						CommandLine: "testcmdline",
+					},
+					User: &modelpb.User{
+						Name: "testowner",
+					},
+					Metricset: &modelpb.Metricset{
+						Name: "app",
+						Samples: []*modelpb.MetricsetSample{
+							{
+								Name:  "process.memory.usage",
+								Type:  modelpb.MetricType_METRIC_TYPE_COUNTER,
+								Value: 1024,
+							},
+						},
+					},
+				},
+				{
+					Service: &modelpb.Service{
+						Name:     "unknown",
+						Language: &modelpb.Language{Name: "unknown"},
+					},
+					Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
+					Timestamp: modelpb.FromTime(ts),
+					Metricset: &modelpb.Metricset{
+						Name: "app",
+						// TODO (lahsivjar): Opentelemetry lib currently adds all metrics, even
+						// though the source metrics is not present. Due to this all the metrics
+						// need to be asserted making the tests brittle. This should be fixed by
+						// https://github.com/elastic/opentelemetry-lib/issues/6
+						Samples: []*modelpb.MetricsetSample{
+							{
+								Name:  "process.cpu.start_time",
+								Type:  modelpb.MetricType_METRIC_TYPE_COUNTER,
+								Value: float64(startTs.UnixMilli()),
+							},
+							{
+								Name: "system.process.num_threads",
+								Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+							},
+							{
+								Name: "system.process.memory.rss.pct",
+								Type: modelpb.MetricType_METRIC_TYPE_GAUGE,
+							},
+							{
+								Name:  "system.process.memory.rss.bytes",
+								Type:  modelpb.MetricType_METRIC_TYPE_COUNTER,
+								Value: 1024,
+							},
+							{
+								Name: "system.process.memory.size",
+								Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+							},
+							{
+								Name: "system.process.fd.open",
+								Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+							},
+							{
+								Name: "process.memory.pct",
+								Type: modelpb.MetricType_METRIC_TYPE_GAUGE,
+							},
+							{
+								Name: "system.process.cpu.total.value",
+								Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+							},
+							{
+								Name: "system.process.cpu.system.ticks",
+								Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+							},
+							{
+								Name: "system.process.cpu.user.ticks",
+								Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+							},
+							{
+								Name: "system.process.cpu.total.ticks",
+								Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+							},
+							{
+								Name: "system.process.io.read_bytes",
+								Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+							},
+							{
+								Name: "system.process.io.write_bytes",
+								Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+							},
+							{
+								Name: "system.process.io.read_ops",
+								Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+							},
+							{
+								Name: "system.process.io.write_ops",
+								Type: modelpb.MetricType_METRIC_TYPE_COUNTER,
+							},
+							{
+								Name: "system.process.cpu.total.pct",
+								Type: modelpb.MetricType_METRIC_TYPE_GAUGE,
+							},
+						},
+					},
+					Process: &modelpb.Process{
+						CommandLine: "testcmdline",
+					},
+					User: &modelpb.User{
+						Name: "testowner",
+					},
+					System: &modelpb.System{
+						Process: &modelpb.SystemProcess{
+							State:   "undefined",
+							Cmdline: "testcmdline",
+							Cpu: &modelpb.SystemProcessCPU{
+								StartTime: startTs.Format(time.RFC3339),
+							},
+						},
+					},
+					Labels: map[string]*modelpb.LabelValue{
+						"otel_remapped": &modelpb.LabelValue{Value: "true"},
+					},
+					Event: &modelpb.Event{
+						Dataset: "system.process",
+						Module:  "system",
+					},
+				},
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			events, stats, results, err := transformMetrics(t, tc.input)
+			assert.NoError(t, err)
+
+			eventsMatch(t, tc.expected, events)
+			assert.Equal(t, otlp.ConsumerStats{}, stats)
+			assert.Equal(t, otlp.ConsumeMetricsResult{}, results)
+		})
+	}
+}
+
 /* TODO
 func TestMetricsLogging(t *testing.T) {
 	for _, level := range []logp.Level{logp.InfoLevel, logp.DebugLevel} {
@@ -873,22 +1118,34 @@ func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEven
 	recorder := batchRecorderBatchProcessor(&batches)
 
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
-		Processor: recorder,
-		Semaphore: semaphore.NewWeighted(100),
+		Processor:        recorder,
+		Semaphore:        semaphore.NewWeighted(100),
+		RemapOTelMetrics: true,
 	})
 	result, err := consumer.ConsumeMetricsWithResult(context.Background(), metrics)
 	require.Len(t, batches, 1)
 	return *batches[0], consumer.Stats(), result, err
 }
 
+// eventsMatch aims to compare the expected and actual APMEvents however, it will
+// be indeterministic for more than one samples and more than one APMEvents
 func eventsMatch(t *testing.T, expected []*modelpb.APMEvent, actual []*modelpb.APMEvent) {
 	t.Helper()
-	sort.Slice(expected, func(i, j int) bool {
-		return strings.Compare(expected[i].String(), expected[j].String()) == -1
-	})
-	sort.Slice(actual, func(i, j int) bool {
-		return strings.Compare(actual[i].String(), actual[j].String()) == -1
-	})
+
+	sortEvents := func(events []*modelpb.APMEvent) {
+		for _, event := range events {
+			samples := event.Metricset.Samples
+			sort.Slice(samples, func(i, j int) bool {
+				return strings.Compare(samples[i].String(), samples[j].String()) == -1
+			})
+		}
+		sort.Slice(events, func(i, j int) bool {
+			return strings.Compare(events[i].String(), events[j].String()) == -1
+		})
+	}
+
+	sortEvents(expected)
+	sortEvents(actual)
 
 	now := modelpb.FromTime(time.Now())
 	for i, e := range actual {

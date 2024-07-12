@@ -19,28 +19,23 @@ syntax = "proto3";
 
 package elastic.apm.v1;
 
-import "metricset.proto";
-
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
-message Event {
-  string outcome = 1;
-  string action = 2;
-  string dataset = 3;
+message System {
+  SystemProcess process = 1;
+  SystemFilesystem filesystem = 2;
+}
 
-  string kind = 4;
-  string category = 5;
-  string type = 6;
+message SystemProcess {
+  SystemProcessCPU cpu = 1;
+  string state = 2;
+  string cmdline = 3;
+}
 
-  SummaryMetric success_count = 7;
+message SystemProcessCPU {
+  string start_time = 1;
+}
 
-  // nanoseconds
-  uint64 duration = 8;
-
-  uint64 severity = 9;
-
-  // nanoseconds since epoch
-  uint64 received = 10;
-
-  string module = 11;
+message SystemFilesystem {
+  string mount_point = 1;
 }

@@ -15,32 +15,35 @@
 // specific language governing permissions and limitations
 // under the License.
 
-syntax = "proto3";
+package modeljson
 
-package elastic.apm.v1;
+type System struct {
+	Process    SystemProcess    `json:"process,omitempty"`
+	Filesystem SystemFilesystem `json:"filesystem,omitempty"`
+}
 
-import "metricset.proto";
+type SystemProcess struct {
+	CPU     SystemProcessCPU `json:"cpu,omitempty"`
+	State   string           `json:"state,omitempty"`
+	Cmdline string           `json:"cmdline,omitempty"`
+}
 
-option go_package = "github.com/elastic/apm-data/model/modelpb";
+func (p *SystemProcess) isZero() bool {
+	return p.CPU.isZero() && p.State == "" && p.Cmdline == ""
+}
 
-message Event {
-  string outcome = 1;
-  string action = 2;
-  string dataset = 3;
+type SystemProcessCPU struct {
+	StartTime string `json:"start_time,omitempty"`
+}
 
-  string kind = 4;
-  string category = 5;
-  string type = 6;
+func (p *SystemProcessCPU) isZero() bool {
+	return p == nil || p.StartTime == ""
+}
 
-  SummaryMetric success_count = 7;
+type SystemFilesystem struct {
+	MountPoint string `json:"mount_point,omitempty"`
+}
 
-  // nanoseconds
-  uint64 duration = 8;
-
-  uint64 severity = 9;
-
-  // nanoseconds since epoch
-  uint64 received = 10;
-
-  string module = 11;
+func (f *SystemFilesystem) isZero() bool {
+	return f == nil || f.MountPoint == ""
 }

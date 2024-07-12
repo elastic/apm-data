@@ -253,17 +253,32 @@ func TestHTTPTransactionURL(t *testing.T) {
 			"http.target": "/foo",
 		})
 	})
-	t.Run("url.full", func(t *testing.T) {
+	t.Run("url_attributes", func(t *testing.T) {
 		test(t, &modelpb.URL{
 			Scheme:   "https",
-			Original: "https://testing.invalid:80/foo?bar",
-			Full:     "https://testing.invalid:80/foo?bar",
+			Original: "/foo",
+			Full:     "https://test.domain/foo",
+			Path:     "/foo",
+			Domain:   "test.domain",
+		}, map[string]interface{}{
+			"url.scheme":     "https",
+			"server.address": "test.domain",
+			"url.path":       "/foo",
+		})
+	})
+	t.Run("url_attributes_with_query", func(t *testing.T) {
+		test(t, &modelpb.URL{
+			Scheme:   "https",
+			Original: "/foo?bar",
+			Full:     "https://test.domain/foo?bar",
 			Path:     "/foo",
 			Query:    "bar",
-			Domain:   "testing.invalid",
-			Port:     80,
+			Domain:   "test.domain",
 		}, map[string]interface{}{
-			"url.full": "https://testing.invalid:80/foo?bar",
+			"url.scheme":     "https",
+			"server.address": "test.domain",
+			"url.path":       "/foo",
+			"url.query":      "bar",
 		})
 	})
 }
@@ -662,27 +677,37 @@ func TestMessagingTransaction(t *testing.T) {
 }
 
 func TestMessagingSpan(t *testing.T) {
-	event := transformSpanWithAttributes(t, map[string]interface{}{
-		"messaging.system":      "kafka",
-		"messaging.destination": "myTopic",
-		"net.peer.ip":           "10.20.30.40",
-		"net.peer.port":         123,
-	}, func(s ptrace.Span) {
-		s.SetKind(ptrace.SpanKindProducer)
-	})
-	assert.Equal(t, "messaging", event.Span.Type)
-	assert.Equal(t, "kafka", event.Span.Subtype)
-	assert.Equal(t, "send", event.Span.Action)
-	assert.Empty(t, event.Labels)
-	assert.Equal(t, &modelpb.Destination{
-		Address: "10.20.30.40",
-		Port:    123,
-	}, event.Destination)
-	assert.Empty(t, cmp.Diff(&modelpb.DestinationService{
-		Type:     "messaging",
-		Name:     "kafka",
-		Resource: "kafka/myTopic",
-	}, event.Span.DestinationService, protocmp.Transform()))
+	for _, attr := range []map[string]any{
+		{
+			"messaging.system":      "kafka",
+			"messaging.destination": "myTopic",
+			"net.peer.ip":           "10.20.30.40",
+			"net.peer.port":         123,
+		},
+		{
+			"messaging.system":           "kafka",
+			"messaging.destination.name": "myTopic",
+			"net.peer.ip":                "10.20.30.40",
+			"net.peer.port":              123,
+		},
+	} {
+		event := transformSpanWithAttributes(t, attr, func(s ptrace.Span) {
+			s.SetKind(ptrace.SpanKindProducer)
+		})
+		assert.Equal(t, "messaging", event.Span.Type)
+		assert.Equal(t, "kafka", event.Span.Subtype)
+		assert.Equal(t, "send", event.Span.Action)
+		assert.Empty(t, event.Labels)
+		assert.Equal(t, &modelpb.Destination{
+			Address: "10.20.30.40",
+			Port:    123,
+		}, event.Destination)
+		assert.Empty(t, cmp.Diff(&modelpb.DestinationService{
+			Type:     "messaging",
+			Name:     "kafka",
+			Resource: "kafka/myTopic",
+		}, event.Span.DestinationService, protocmp.Transform()))
+	}
 }
 
 func TestMessagingSpan_DestinationResource(t *testing.T) {
@@ -693,40 +718,66 @@ func TestMessagingSpan_DestinationResource(t *testing.T) {
 		assert.Empty(t, cmp.Diff(expectedDestinationService, event.Span.DestinationService, protocmp.Transform()))
 	}
 
+	setAttr := func(t *testing.T, baseAttr map[string]any, key string, val any) map[string]any {
+		t.Helper()
+		newAttr := make(map[string]any)
+		// Copy from the original map to the target map
+		for key, value := range baseAttr {
+			newAttr[key] = value
+		}
+		newAttr[key] = val
+		return newAttr
+	}
+
 	t.Run("system_destination_peerservice_peeraddress", func(t *testing.T) {
-		test(t, &modelpb.Destination{
-			Address: "127.0.0.1",
-		}, &modelpb.DestinationService{
-			Type:     "messaging",
-			Name:     "testsvc",
-			Resource: "127.0.0.1/testtopic",
-		}, map[string]interface{}{
-			"messaging.system":      "kafka",
-			"messaging.destination": "testtopic",
-			"peer.service":          "testsvc",
-			"peer.address":          "127.0.0.1",
-		})
+		baseAttr := map[string]any{
+			"messaging.system": "kafka",
+			"peer.service":     "testsvc",
+			"peer.address":     "127.0.0.1",
+		}
+		for _, attr := range []map[string]any{
+			setAttr(t, baseAttr, "messaging.destination", "testtopic"),
+			setAttr(t, baseAttr, "messaging.destination.name", "testtopic"),
+		} {
+			test(t, &modelpb.Destination{
+				Address: "127.0.0.1",
+			}, &modelpb.DestinationService{
+				Type:     "messaging",
+				Name:     "testsvc",
+				Resource: "127.0.0.1/testtopic",
+			}, attr)
+		}
 	})
 	t.Run("system_destination_peerservice", func(t *testing.T) {
-		test(t, nil, &modelpb.DestinationService{
-			Type:     "messaging",
-			Name:     "testsvc",
-			Resource: "testsvc/testtopic",
-		}, map[string]interface{}{
-			"messaging.system":      "kafka",
-			"messaging.destination": "testtopic",
-			"peer.service":          "testsvc",
-		})
+		baseAttr := map[string]any{
+			"messaging.system": "kafka",
+			"peer.service":     "testsvc",
+		}
+		for _, attr := range []map[string]any{
+			setAttr(t, baseAttr, "messaging.destination", "testtopic"),
+			setAttr(t, baseAttr, "messaging.destination.name", "testtopic"),
+		} {
+			test(t, nil, &modelpb.DestinationService{
+				Type:     "messaging",
+				Name:     "testsvc",
+				Resource: "testsvc/testtopic",
+			}, attr)
+		}
 	})
 	t.Run("system_destination", func(t *testing.T) {
-		test(t, nil, &modelpb.DestinationService{
-			Type:     "messaging",
-			Name:     "kafka",
-			Resource: "kafka/testtopic",
-		}, map[string]interface{}{
-			"messaging.system":      "kafka",
-			"messaging.destination": "testtopic",
-		})
+		baseAttr := map[string]any{
+			"messaging.system": "kafka",
+		}
+		for _, attr := range []map[string]any{
+			setAttr(t, baseAttr, "messaging.destination", "testtopic"),
+			setAttr(t, baseAttr, "messaging.destination.name", "testtopic"),
+		} {
+			test(t, nil, &modelpb.DestinationService{
+				Type:     "messaging",
+				Name:     "kafka",
+				Resource: "kafka/testtopic",
+			}, attr)
+		}
 	})
 }
 
@@ -761,6 +812,9 @@ func TestTransactionTypePriorities(t *testing.T) {
 
 	attribs["messaging.destination"] = "foobar"
 	assert.Equal(t, "messaging", transactionWithAttribs(attribs).Transaction.Type)
+	delete(attribs, "messaging.destination")
+	attribs["messaging.destination.name"] = "foobar"
+	assert.Equal(t, "messaging", transactionWithAttribs(attribs).Transaction.Type)
 }
 
 func TestSpanTypePriorities(t *testing.T) {
@@ -780,6 +834,10 @@ func TestSpanTypePriorities(t *testing.T) {
 	assert.Equal(t, "grpc", spanWithAttribs(attribs).Span.Subtype)
 
 	attribs["messaging.destination"] = "foobar"
+	assert.Equal(t, "messaging", spanWithAttribs(attribs).Span.Type)
+
+	delete(attribs, "messaging.destination")
+	attribs["messaging.destination.name"] = "foobar"
 	assert.Equal(t, "messaging", spanWithAttribs(attribs).Span.Type)
 
 	attribs["db.statement"] = "SELECT * FROM FOO"
@@ -1647,6 +1705,17 @@ func TestServiceTarget(t *testing.T) {
 		event := transformSpanWithAttributes(t, input)
 		assert.Empty(t, cmp.Diff(expected, event.Service.Target, protocmp.Transform()))
 	}
+
+	setAttr := func(t *testing.T, baseAttr map[string]any, key string, val any) map[string]any {
+		t.Helper()
+		newAttr := make(map[string]any)
+		// Copy from the original map to the target map
+		for key, value := range baseAttr {
+			newAttr[key] = value
+		}
+		newAttr[key] = val
+		return newAttr
+	}
 	t.Run("db_spans_with_peerservice_system", func(t *testing.T) {
 		test(t, &modelpb.ServiceTarget{
 			Type: "postgresql",
@@ -1754,35 +1823,48 @@ func TestServiceTarget(t *testing.T) {
 	})
 
 	t.Run("messaging_spans_with_peerservice_system_destination", func(t *testing.T) {
-		test(t, &modelpb.ServiceTarget{
-			Name: "myTopic",
-			Type: "kafka",
-		}, map[string]interface{}{
-			"peer.service":          "testsvc",
-			"messaging.system":      "kafka",
-			"messaging.destination": "myTopic",
-		})
+		baseAttr := map[string]any{
+			"peer.service":     "testsvc",
+			"messaging.system": "kafka",
+		}
+		for _, attr := range []map[string]any{
+			setAttr(t, baseAttr, "messaging.destination", "myTopic"),
+			setAttr(t, baseAttr, "messaging.destination.name", "myTopic"),
+		} {
+			test(t, &modelpb.ServiceTarget{
+				Name: "myTopic",
+				Type: "kafka",
+			}, attr)
+		}
 	})
 
 	t.Run("messaging_spans_with_peerservice_system_destination_tempdestination", func(t *testing.T) {
-		test(t, &modelpb.ServiceTarget{
-			Name: "testsvc",
-			Type: "kafka",
-		}, map[string]interface{}{
+		baseAttr := map[string]any{
 			"peer.service":               "testsvc",
 			"messaging.temp_destination": true,
 			"messaging.system":           "kafka",
-			"messaging.destination":      "myTopic",
-		})
+		}
+		for _, attr := range []map[string]any{
+			setAttr(t, baseAttr, "messaging.destination", "myTopic"),
+			setAttr(t, baseAttr, "messaging.destination.name", "myTopic"),
+		} {
+			test(t, &modelpb.ServiceTarget{
+				Name: "testsvc",
+				Type: "kafka",
+			}, attr)
+		}
 	})
 
 	t.Run("messaging_spans_with_destination", func(t *testing.T) {
-		test(t, &modelpb.ServiceTarget{
-			Name: "myTopic",
-			Type: "messaging",
-		}, map[string]interface{}{
-			"messaging.destination": "myTopic",
-		})
+		for _, attr := range []map[string]any{
+			{"messaging.destination": "myTopic"},
+			{"messaging.destination.name": "myTopic"},
+		} {
+			test(t, &modelpb.ServiceTarget{
+				Name: "myTopic",
+				Type: "messaging",
+			}, attr)
+		}
 	})
 }
 
@@ -1965,6 +2047,12 @@ func approveEventDocs(t testing.TB, name string, docs [][]byte) {
 		delete(event, "received")
 		if len(event) == 0 {
 			delete(m, "event")
+		}
+
+		if e, ok := m["error"].(map[string]any); ok {
+			if _, ok := e["id"]; ok {
+				e["id"] = "dynamic"
+			}
 		}
 
 		events[i] = m

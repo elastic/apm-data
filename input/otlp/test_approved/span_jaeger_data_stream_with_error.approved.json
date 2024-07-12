@@ -49,6 +49,7 @@
                 "namespace": "4"
             },
             "error": {
+                "id": "dynamic",
                 "exception": [
                     {
                         "message": "no connection established"

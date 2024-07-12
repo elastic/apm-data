@@ -424,38 +424,47 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		})
 
 		t.Run("messaging", func(t *testing.T) {
-			attrs := map[string]interface{}{
-				"messaging.system":      "kafka",
-				"messaging.destination": "myTopic",
-				"net.peer.ip":           "10.20.30.40",
-				"net.peer.port":         json.Number("123"),
+			for _, attrs := range []map[string]any{
+				{
+					"messaging.system":      "kafka",
+					"messaging.destination": "myTopic",
+					"net.peer.ip":           "10.20.30.40",
+					"net.peer.port":         json.Number("123"),
+				},
+				{
+					"messaging.system":           "kafka",
+					"messaging.destination.name": "myTopic",
+					"net.peer.ip":                "10.20.30.40",
+					"net.peer.port":              json.Number("123"),
+				},
+			} {
+
+				var input span
+				var event modelpb.APMEvent
+				modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+				input.OTel.Attributes = attrs
+				input.OTel.SpanKind.Set("PRODUCER")
+				input.Type.Reset()
+				mapToSpanModel(&input, &event)
+
+				assert.Equal(t, "messaging", event.Span.Type)
+				assert.Equal(t, "kafka", event.Span.Subtype)
+				assert.Equal(t, "send", event.Span.Action)
+				assert.Equal(t, "PRODUCER", event.Span.Kind)
+				assert.Equal(t, &modelpb.Destination{
+					Address: "10.20.30.40",
+					Port:    123,
+				}, event.Destination)
+				assert.Empty(t, cmp.Diff(&modelpb.DestinationService{
+					Type:     "messaging",
+					Name:     "kafka",
+					Resource: "kafka/myTopic",
+				}, event.Span.DestinationService, protocmp.Transform()))
+				assert.Empty(t, cmp.Diff(&modelpb.ServiceTarget{
+					Type: "kafka",
+					Name: "myTopic",
+				}, event.Service.Target, protocmp.Transform()))
 			}
-
-			var input span
-			var event modelpb.APMEvent
-			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-			input.OTel.Attributes = attrs
-			input.OTel.SpanKind.Set("PRODUCER")
-			input.Type.Reset()
-			mapToSpanModel(&input, &event)
-
-			assert.Equal(t, "messaging", event.Span.Type)
-			assert.Equal(t, "kafka", event.Span.Subtype)
-			assert.Equal(t, "send", event.Span.Action)
-			assert.Equal(t, "PRODUCER", event.Span.Kind)
-			assert.Equal(t, &modelpb.Destination{
-				Address: "10.20.30.40",
-				Port:    123,
-			}, event.Destination)
-			assert.Empty(t, cmp.Diff(&modelpb.DestinationService{
-				Type:     "messaging",
-				Name:     "kafka",
-				Resource: "kafka/myTopic",
-			}, event.Span.DestinationService, protocmp.Transform()))
-			assert.Empty(t, cmp.Diff(&modelpb.ServiceTarget{
-				Type: "kafka",
-				Name: "myTopic",
-			}, event.Service.Target, protocmp.Transform()))
 		})
 
 		t.Run("network", func(t *testing.T) {

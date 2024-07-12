@@ -20,6 +20,7 @@ package modelprocessor
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -141,10 +142,19 @@ func metricsetDataset(event *modelpb.APMEvent) string {
 		// metrics that we don't already know about; otherwise they will end
 		// up creating service-specific data streams.
 		internal := true
-		for _, s := range event.Metricset.Samples {
-			if !IsInternalMetricName(s.Name) {
-				internal = false
-				break
+
+		// set internal to false for metrics translated using OTel remappers.
+		if label, ok := event.Labels["otel_remapped"]; ok && label != nil {
+			remapped, _ := strconv.ParseBool(label.Value)
+			internal = !remapped
+		}
+
+		if internal {
+			for _, s := range event.Metricset.Samples {
+				if !IsInternalMetricName(s.Name) {
+					internal = false
+					break
+				}
 			}
 		}
 		if internal {

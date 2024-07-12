@@ -75,6 +75,9 @@ const (
 	attributeServerAddress              = "server.address"
 	attributeServerPort                 = "server.port"
 	attributeUrlFull                    = "url.full"
+	attributeUrlScheme                  = "url.scheme"
+	attributeUrlPath                    = "url.path"
+	attributeUrlQuery                   = "url.query"
 	attributeUserAgentOriginal          = "user_agent.original"
 	attributeDbElasticsearchClusterName = "db.elasticsearch.cluster.name"
 	attributeStackTrace                 = "code.stacktrace" // semconv 1.24 or later
@@ -255,6 +258,8 @@ func TranslateTransaction(
 		http           modelpb.HTTP
 		httpRequest    modelpb.HTTPRequest
 		httpResponse   modelpb.HTTPResponse
+		urlPath        string
+		urlQuery       string
 	)
 
 	var isHTTP, isRPC, isMessaging bool
@@ -304,7 +309,7 @@ func TranslateTransaction(
 					event.Source = modelpb.SourceFromVTPool()
 				}
 				event.Source.Port = uint32(v.Int())
-			case semconv.AttributeNetHostPort:
+			case semconv.AttributeNetHostPort, attributeServerPort:
 				netHostPort = int(v.Int())
 			case semconv.AttributeRPCGRPCStatusCode:
 				isRPC = true
@@ -324,10 +329,16 @@ func TranslateTransaction(
 			case semconv.AttributeHTTPURL, semconv.AttributeHTTPTarget, "http.path":
 				isHTTP = true
 				httpURL = stringval
+			case attributeUrlPath:
+				isHTTP = true
+				urlPath = stringval
+			case attributeUrlQuery:
+				isHTTP = true
+				urlQuery = stringval
 			case semconv.AttributeHTTPHost:
 				isHTTP = true
 				httpHost = stringval
-			case semconv.AttributeHTTPScheme:
+			case semconv.AttributeHTTPScheme, attributeUrlScheme:
 				isHTTP = true
 				httpScheme = stringval
 			case semconv.AttributeHTTPStatusCode, attributeHttpResponseStatusCode:
@@ -376,7 +387,7 @@ func TranslateTransaction(
 					event.Source = modelpb.SourceFromVTPool()
 				}
 				event.Source.Domain = stringval
-			case semconv.AttributeNetHostName:
+			case semconv.AttributeNetHostName, attributeServerAddress:
 				netHostName = stringval
 			case attributeNetworkConnectionType:
 				if event.Network == nil {
@@ -428,7 +439,11 @@ func TranslateTransaction(
 				event.Network.Carrier.Icc = stringval
 
 			// messaging.*
-			case "message_bus.destination", semconv.AttributeMessagingDestination:
+			//
+			// messaging.destination is now called messaging.destination.name in the latest semconv
+			// https://opentelemetry.io/docs/specs/semconv/attributes-registry/messaging
+			// keep both of them for the backward compatibility
+			case "message_bus.destination", semconv.AttributeMessagingDestination, "messaging.destination.name":
 				isMessaging = true
 				messagingQueueName = stringval
 			case semconv.AttributeMessagingSystem:
@@ -449,11 +464,6 @@ func TranslateTransaction(
 				isRPC = true
 			case semconv.AttributeRPCService:
 			case semconv.AttributeRPCMethod:
-
-			// URL
-			case attributeUrlFull:
-				isHTTP = true
-				httpURL = stringval
 
 			// miscellaneous
 			case "type":
@@ -515,7 +525,6 @@ func TranslateTransaction(
 			}
 		}
 
-		// Build the modelpb.URL from http{URL,Host,Scheme}.
 		httpHost := httpHost
 		if httpHost == "" {
 			httpHost = httpServerName
@@ -529,8 +538,20 @@ func TranslateTransaction(
 				httpHost = net.JoinHostPort(httpHost, strconv.Itoa(netHostPort))
 			}
 		}
+
+		// Build a relative url from the UrlPath and UrlQuery.
+		httpURL := httpURL
+		if httpURL == "" && urlPath != "" {
+			httpURL = urlPath
+			if urlQuery != "" {
+				httpURL += "?" + urlQuery
+			}
+		}
+
+		// Build the modelpb.URL from http{URL,Host,Scheme}.
 		event.Url = modelpb.ParseURL(httpURL, httpHost, httpScheme)
 	}
+
 	if isMessaging {
 		// Overwrite existing event.Transaction.Message
 		event.Transaction.Message = nil
@@ -555,6 +576,7 @@ func TranslateTransaction(
 	if event.Transaction.Result == "" {
 		event.Transaction.Result = spanStatusResult(spanStatus)
 	}
+
 	if name := library.Name(); name != "" {
 		if event.Service == nil {
 			event.Service = modelpb.ServiceFromVTPool()
@@ -766,7 +788,11 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				event.Session.Id = stringval
 
 			// messaging.*
-			case "message_bus.destination", semconv.AttributeMessagingDestination:
+			//
+			// messaging.destination is now called messaging.destination.name in the latest semconv
+			// https://opentelemetry.io/docs/specs/semconv/attributes-registry/messaging
+			// keep both of them for the backward compatibility
+			case "message_bus.destination", semconv.AttributeMessagingDestination, "messaging.destination.name":
 				message.QueueName = stringval
 				isMessaging = true
 			case semconv.AttributeMessagingOperation:
@@ -1221,6 +1247,9 @@ func (c *Consumer) convertJaegerErrorSpanEvent(event ptrace.SpanEvent, apmEvent 
 		e.Exception = modelpb.ExceptionFromVTPool()
 		e.Exception.Message = exMessage
 		e.Exception.Type = exType
+		if id, err := newUniqueID(); err == nil {
+			e.Id = id
+		}
 	}
 	return e
 }

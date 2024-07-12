@@ -125,7 +125,7 @@ func init() {
 				iter.Error = errors.New("invalid input type for HTTPHeader")
 				return
 			}
-			h := http.Header{}
+			h := make(http.Header, len(m))
 			for key, val := range m {
 				switch v := val.(type) {
 				case string:

@@ -15,32 +15,29 @@
 // specific language governing permissions and limitations
 // under the License.
 
-syntax = "proto3";
+package modeljson
 
-package elastic.apm.v1;
+import (
+	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
+	"github.com/elastic/apm-data/model/modelpb"
+)
 
-import "metricset.proto";
-
-option go_package = "github.com/elastic/apm-data/model/modelpb";
-
-message Event {
-  string outcome = 1;
-  string action = 2;
-  string dataset = 3;
-
-  string kind = 4;
-  string category = 5;
-  string type = 6;
-
-  SummaryMetric success_count = 7;
-
-  // nanoseconds
-  uint64 duration = 8;
-
-  uint64 severity = 9;
-
-  // nanoseconds since epoch
-  uint64 received = 10;
-
-  string module = 11;
+func SystemModelJSON(s *modelpb.System, out *modeljson.System) {
+	*out = modeljson.System{}
+	if s.Process != nil {
+		out.Process = modeljson.SystemProcess{
+			State:   s.Process.State,
+			Cmdline: s.Process.Cmdline,
+		}
+		if s.Process.Cpu != nil {
+			out.Process.CPU = modeljson.SystemProcessCPU{
+				StartTime: s.Process.Cpu.StartTime,
+			}
+		}
+	}
+	if s.Filesystem != nil {
+		out.Filesystem = modeljson.SystemFilesystem{
+			MountPoint: s.Filesystem.MountPoint,
+		}
+	}
 }

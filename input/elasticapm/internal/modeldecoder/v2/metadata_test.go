@@ -170,7 +170,14 @@ func isUnmappedMetadataField(key string) bool {
 		"url.port",
 		"url.path",
 		"url.query",
-		"url.fragment":
+		"url.fragment",
+		"system",
+		"system.process",
+		"system.process.state",
+		"system.process.cmdline",
+		"system.process.cpu.start_time",
+		"system.filesystem",
+		"system.filesystem.mount_point":
 		return true
 	}
 	return false
@@ -319,9 +326,11 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		input.System.ConfiguredHostname.Set("configured-host")
 		input.System.DetectedHostname.Set("detected-host")
 		input.System.DeprecatedHostname.Set("deprecated-host")
+		input.System.HostID.Set("host-id")
 		mapToMetadataModel(&input, &out)
 		assert.Equal(t, "configured-host", out.Host.Name)
 		assert.Equal(t, "detected-host", out.Host.Hostname)
+		assert.Equal(t, "host-id", out.Host.Id)
 		// no detected-host information
 		out = modelpb.APMEvent{}
 		input.System.DetectedHostname.Reset()
