@@ -1298,8 +1298,10 @@ func translateSpanLinks(out *modelpb.APMEvent, in ptrace.SpanLinkSlice) {
 	for i := 0; i < n; i++ {
 		link := in.At(i)
 		// When a link has the elastic.is_child attribute set, it is stored in the child_ids instead
-		childAttribVal, childAttribPresent := link.Attributes().Get("elastic.is_child")
-		if childAttribPresent && childAttribVal.Bool() {
+		elChildAttribVal, elChildAttribPresent := link.Attributes().Get("elastic.is_child")
+		// alternatively, we also look for just "is_child" without the elastic. prefix
+		childAttribVal, childAttribPresent := link.Attributes().Get("is_child")
+		if (elChildAttribPresent && elChildAttribVal.Bool()) || (childAttribPresent && childAttribVal.Bool()) {
 			out.ChildIds = append(out.ChildIds, hexSpanID(link.SpanID()))
 		} else {
 			sl := modelpb.SpanLinkFromVTPool()
