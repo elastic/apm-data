@@ -124,16 +124,28 @@ func TestAddr2IP(t *testing.T) {
 		expectedIP *IP
 	}{
 		{
-			name:    "with an IPv4 address",
+			name:    "IPv4 address 127.0.0.1",
 			address: netip.MustParseAddr("127.0.0.1"),
 
 			expectedIP: MustParseIP("127.0.0.1"),
 		},
 		{
-			name:    "with an IPv6 address",
+			name:    "IPv6 address 0.0.0.0",
+			address: netip.MustParseAddr("0.0.0.0"),
+
+			expectedIP: MustParseIP("0.0.0.0"),
+		},
+		{
+			name:    "IPv6 address ::1",
 			address: netip.MustParseAddr("::1"),
 
 			expectedIP: MustParseIP("::1"),
+		},
+		{
+			name:    "IPv6 address ::",
+			address: netip.MustParseAddr("::"),
+
+			expectedIP: MustParseIP("::"),
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -152,16 +164,28 @@ func TestIP2Addr(t *testing.T) {
 		expectedAddr netip.Addr
 	}{
 		{
-			name: "with an IPv4 address",
+			name: "IPv4 address 127.0.0.1",
 			ip:   MustParseIP("127.0.0.1"),
 
 			expectedAddr: netip.MustParseAddr("127.0.0.1"),
 		},
 		{
-			name: "with an IPv6 address",
+			name: "IPv4 address 0.0.0.0",
+			ip:   MustParseIP("0.0.0.0"),
+
+			expectedAddr: netip.MustParseAddr("0.0.0.0"),
+		},
+		{
+			name: "IPv6 address ::1",
 			ip:   MustParseIP("::1"),
 
 			expectedAddr: netip.MustParseAddr("::1"),
+		},
+		{
+			name: "IPv6 address ::",
+			ip:   MustParseIP("::"),
+
+			expectedAddr: netip.MustParseAddr("::"),
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
