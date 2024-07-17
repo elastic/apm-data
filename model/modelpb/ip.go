@@ -56,6 +56,9 @@ func Addr2IP(addr netip.Addr) *IP {
 
 // IP2Addr converts a valid IP to netip.Addr.
 func IP2Addr(i *IP) netip.Addr {
+	if i == nil {
+		return netip.Addr{}
+	}
 	if addr := i.GetV6(); len(addr) == 16 {
 		return netip.AddrFrom16([16]byte(addr))
 	}
