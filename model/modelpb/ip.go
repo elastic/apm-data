@@ -54,7 +54,7 @@ func Addr2IP(addr netip.Addr) *IP {
 	return ip
 }
 
-// IP2Addr converts a valid IP to netip.Addr.
+// IP2Addr converts a nil IP to a zero netip.Addr and a valid IP to a valid netip.Addr.
 func IP2Addr(i *IP) netip.Addr {
 	if i == nil {
 		return netip.Addr{}
