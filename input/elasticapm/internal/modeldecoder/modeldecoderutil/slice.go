@@ -24,7 +24,7 @@ import (
 // Reslice returns a slice with length n. It will reallocate the
 // slice if the capacity is not enough.
 func Reslice[Slice ~[]model, model any](slice Slice, n int) Slice {
-	if n-cap(slice) > 0 {
+	if n > cap(slice) {
 		slice = slices.Grow(slice, n-len(slice))
 	}
 	return slice[:n]
