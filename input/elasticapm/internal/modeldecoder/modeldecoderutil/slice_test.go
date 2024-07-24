@@ -66,8 +66,7 @@ func validateBackingArray(t *testing.T, out []*modelpb.APMEvent, expectedLen int
 	assert.Equal(t, expectedLen, len(out))
 
 	// validate all elements of backing array are non-nil
-	backing := out[:len(out)]
-	for i := 0; i < len(backing); i++ {
-		assert.NotNil(t, backing[i])
+	for i := 0; i < len(out); i++ {
+		assert.NotNil(t, out[i])
 	}
 }
