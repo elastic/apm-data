@@ -17,28 +17,30 @@
 
 package modeldecoderutil
 
-// Reslice increases the slice's capacity, if necessary, to match n.
-// If specified, the newFn function is used to create the elements
-// to populate the additional space appended to the slice.
-func Reslice[Slice ~[]model, model any](slice Slice, n int, newFn func() model) Slice {
-	if diff := n - cap(slice); diff > 0 {
-		// start of the extra space
-		idx := cap(slice)
+import (
+	"slices"
+)
 
-		// Grow the slice
-		// Note: append gives no guarantee on the capacity of the resulting slice
-		// and might overallocate as long as there's enough space for n elements.
-		slice = append([]model(slice)[:cap(slice)], make([]model, diff)...)
-		if newFn != nil {
-			// extend the slice to its capacity
-			slice = slice[:cap(slice)]
+// Reslice returns a slice with length n. It will reallocate the
+// slice if the capacity is not enough.
+func Reslice[Slice ~[]model, model any](slice Slice, n int) Slice {
+	if n > cap(slice) {
+		slice = slices.Grow(slice, n-len(slice))
+	}
+	return slice[:n]
+}
 
-			// populate the extra space
-			for ; idx < len(slice); idx++ {
-				slice[idx] = newFn()
+// ResliceAndPopulateNil ensures a slice of pointers has atleast
+// capacity for n elements and populates any non-nil elements
+// in the resulting slice with the value returned from newFn.
+func ResliceAndPopulateNil[Slice ~[]*model, model any](slice Slice, n int, newFn func() *model) Slice {
+	slice = Reslice(slice, n)
+	if newFn != nil {
+		for i := 0; i < len(slice); i++ {
+			if slice[i] == nil {
+				slice[i] = newFn()
 			}
 		}
 	}
-
-	return slice[:n]
+	return slice
 }

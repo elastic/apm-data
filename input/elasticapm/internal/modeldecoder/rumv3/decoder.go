@@ -251,7 +251,11 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			log.ParamMessage = from.Log.ParamMessage.Val
 		}
 		if len(from.Log.Stacktrace) > 0 {
-			log.Stacktrace = modeldecoderutil.Reslice(log.Stacktrace, len(from.Log.Stacktrace), modelpb.StacktraceFrameFromVTPool)
+			log.Stacktrace = modeldecoderutil.ResliceAndPopulateNil(
+				log.Stacktrace,
+				len(from.Log.Stacktrace),
+				modelpb.StacktraceFrameFromVTPool,
+			)
 			mapToStracktraceModel(from.Log.Stacktrace, log.Stacktrace)
 		}
 		out.Log = log
@@ -291,7 +295,11 @@ func mapToExceptionModel(from *errorException, out *modelpb.Exception) {
 		out.Code = modeldecoderutil.ExceptionCodeString(from.Code.Val)
 	}
 	if len(from.Cause) > 0 {
-		out.Cause = modeldecoderutil.Reslice(out.Cause, len(from.Cause), modelpb.ExceptionFromVTPool)
+		out.Cause = modeldecoderutil.ResliceAndPopulateNil(
+			out.Cause,
+			len(from.Cause),
+			modelpb.ExceptionFromVTPool,
+		)
 		for i := 0; i < len(from.Cause); i++ {
 			mapToExceptionModel(&from.Cause[i], out.Cause[i])
 		}
@@ -307,7 +315,11 @@ func mapToExceptionModel(from *errorException, out *modelpb.Exception) {
 		out.Module = from.Module.Val
 	}
 	if len(from.Stacktrace) > 0 {
-		out.Stacktrace = modeldecoderutil.Reslice(out.Stacktrace, len(from.Stacktrace), modelpb.StacktraceFrameFromVTPool)
+		out.Stacktrace = modeldecoderutil.ResliceAndPopulateNil(
+			out.Stacktrace,
+			len(from.Stacktrace),
+			modelpb.StacktraceFrameFromVTPool,
+		)
 		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
 	}
 	if from.Type.IsSet() {
@@ -676,7 +688,11 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		out.RepresentativeCount = 1 / from.SampleRate.Val
 	}
 	if len(from.Stacktrace) > 0 {
-		out.Stacktrace = modeldecoderutil.Reslice(out.Stacktrace, len(from.Stacktrace), modelpb.StacktraceFrameFromVTPool)
+		out.Stacktrace = modeldecoderutil.ResliceAndPopulateNil(
+			out.Stacktrace,
+			len(from.Stacktrace),
+			modelpb.StacktraceFrameFromVTPool,
+		)
 		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
 	}
 	if from.Sync.IsSet() {
@@ -720,11 +736,11 @@ func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFram
 			fr.Module = eventFrame.Module.Val
 		}
 		if len(eventFrame.PostContext) > 0 {
-			fr.PostContext = modeldecoderutil.Reslice(fr.PostContext, len(eventFrame.PostContext), nil)
+			fr.PostContext = modeldecoderutil.Reslice(fr.PostContext, len(eventFrame.PostContext))
 			copy(fr.PostContext, eventFrame.PostContext)
 		}
 		if len(eventFrame.PreContext) > 0 {
-			fr.PreContext = modeldecoderutil.Reslice(fr.PreContext, len(eventFrame.PreContext), nil)
+			fr.PreContext = modeldecoderutil.Reslice(fr.PreContext, len(eventFrame.PreContext))
 			copy(fr.PreContext, eventFrame.PreContext)
 		}
 	}
