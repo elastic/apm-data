@@ -40,15 +40,34 @@ func TestReslice(t *testing.T) {
 	assert.Equal(t, upsize, len(s))
 }
 
-func TestPopulateNil(t *testing.T) {
-	s := make([]*modelpb.APMEvent, 100)
-	s[0] = modelpb.APMEventFromVTPool()
-	s[49] = modelpb.APMEventFromVTPool()
-	s[99] = modelpb.APMEventFromVTPool()
+func TestResliceAndPopulateNil(t *testing.T) {
+	var s []*modelpb.APMEvent
 
-	PopulateNil(s, modelpb.APMEventFromVTPool)
+	originalSize := 10
+	s = ResliceAndPopulateNil(s, originalSize, modelpb.APMEventFromVTPool)
+	validateBackingArray(t, s, originalSize)
+	assert.Equal(t, originalSize, len(s))
 
-	for i := 0; i < 100; i++ {
-		assert.NotNil(t, s[i])
+	downsize := 4
+	s = ResliceAndPopulateNil(s, downsize, nil)
+	validateBackingArray(t, s, downsize)
+	assert.Equal(t, downsize, len(s))
+
+	upsize := 21
+	s = ResliceAndPopulateNil(s, upsize, modelpb.APMEventFromVTPool)
+	validateBackingArray(t, s, upsize)
+	assert.Equal(t, upsize, len(s))
+}
+
+func validateBackingArray(t *testing.T, out []*modelpb.APMEvent, expectedLen int) {
+	t.Helper()
+
+	// validate length
+	assert.Equal(t, expectedLen, len(out))
+
+	// validate all elements of backing array are non-nil
+	backing := out[:len(out)]
+	for i := 0; i < len(backing); i++ {
+		assert.NotNil(t, backing[i])
 	}
 }

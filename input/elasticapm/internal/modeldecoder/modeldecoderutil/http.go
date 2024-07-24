@@ -49,8 +49,7 @@ func HTTPHeadersToModelpb(h http.Header, out []*modelpb.HTTPHeader) []*modelpb.H
 	if len(h) == 0 {
 		return nil
 	}
-	out = Reslice(out, len(h))
-	PopulateNil(out, modelpb.HTTPHeaderFromVTPool)
+	out = ResliceAndPopulateNil(out, len(h), modelpb.HTTPHeaderFromVTPool)
 	i := 0
 	for k, v := range h {
 		out[i].Key = k

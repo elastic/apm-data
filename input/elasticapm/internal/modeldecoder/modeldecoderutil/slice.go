@@ -30,13 +30,16 @@ func Reslice[Slice ~[]model, model any](slice Slice, n int) Slice {
 	return slice[:n]
 }
 
-// PopulateNil populates all the nil elements of a pointer slice
-// with the value returned from the passed newFn. It returns the
-// slice to allow chaining.
-func PopulateNil[Slice ~[]*model, model any](slice Slice, newFn func() *model) Slice {
-	for i := 0; i < len(slice); i++ {
-		if slice[i] == nil {
-			slice[i] = newFn()
+// ResliceAndPopulateNil ensures a slice of pointers has atleast
+// capacity for n elements and populates any non-nil elements
+// in the resulting slice with the value returned from newFn.
+func ResliceAndPopulateNil[Slice ~[]*model, model any](slice Slice, n int, newFn func() *model) Slice {
+	slice = Reslice(slice, n)
+	if newFn != nil {
+		for i := 0; i < len(slice); i++ {
+			if slice[i] == nil {
+				slice[i] = newFn()
+			}
 		}
 	}
 	return slice

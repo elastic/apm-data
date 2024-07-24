@@ -240,6 +240,42 @@ func TestHandleStream(t *testing.T) {
 	}, processors)
 }
 
+func TestBadReslice(t *testing.T) {
+	metadata := `{"metadata": {"service": {"name": "1234_service-12a3","node": {"configured_name": "node-123"},"version": "5.1.3","environment": "staging","language": {"name": "ecmascript","version": "8"},"runtime": {"name": "node","version": "8.0.0"},"framework": {"name": "Express","version": "1.2.3"},"agent": {"name": "elastic-node","version": "3.14.0"}},"user": {"id": "123user", "username": "bar", "email": "bar@user.com"}, "labels": {"tag0": null, "tag1": "one", "tag2": 2}, "process": {"pid": 1234,"ppid": 6789,"title": "node","argv": ["node","server.js"]},"system": {"hostname": "prod1.example.com","architecture": "x64","platform": "darwin", "container": {"id": "container-id"}, "kubernetes": {"namespace": "namespace1", "pod": {"uid": "pod-uid", "name": "pod-name"}, "node": {"name": "node-name"}}},"cloud":{"account":{"id":"account_id","name":"account_name"},"availability_zone":"cloud_availability_zone","instance":{"id":"instance_id","name":"instance_name"},"machine":{"type":"machine_type"},"project":{"id":"project_id","name":"project_name"},"provider":"cloud_provider","region":"cloud_region","service":{"name":"lambda"}}}}`
+	errstacktrace := `{"error": {"id": "cdefab0123456789", "trace_id": null, "timestamp": 1533826745999000,"exception": {"message": "Cannot read property 'baz' no defined", "stacktrace": [{"classname": "cl1", "abs_path": "abs_path1"}, {"classname": "cl2", "abs_path": "abs_path2"}, {"classname": "cl3", "abs_path": "abs_path3"}, {"classname": "cl4", "abs_path": "abs_path4"}, {"classname": "cl5", "abs_path": "abs_path5"}]}}}`
+
+	batchProcessor := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+		return nil
+	})
+	p := NewProcessor(Config{
+		MaxEventSize: 100 * 1024,
+		Semaphore:    semaphore.NewWeighted(1),
+	})
+
+	// Below, we try to emulate a case where all of the capacity of Error#Exception#Stacktrace slice
+	// is not populated with non-nil values. In practical cases, this could happen with OTLP handling
+	// of exceptions: https://github.com/elastic/apm-data/blob/cee5ac3fc5f2ee66f156133992882cae758e2b66/input/otlp/exceptions.go#L165
+	event1 := modelpb.APMEventFromVTPool()
+	event1.Error = modelpb.ErrorFromVTPool()
+	event1.Error.Exception = modelpb.ExceptionFromVTPool()
+	for i := 0; i < 3; i++ {
+		// Add 3 so that reallocation makes the capacity 4
+		// this will cause the 4th element to be nil
+		event1.Error.Exception.Stacktrace = append(event1.Error.Exception.Stacktrace, modelpb.StacktraceFrameFromVTPool())
+	}
+	require.Equal(t, 4, cap(event1.Error.Exception.Stacktrace))
+
+	event1.ReturnToVTPool()
+	event2 := modelpb.APMEventFromVTPool()
+	payload2 := strings.Join([]string{metadata, errstacktrace}, "\n")
+	err := p.HandleStream(
+		context.Background(), event2,
+		strings.NewReader(payload2), 10, batchProcessor,
+		&Result{},
+	)
+	require.NoError(t, err)
+}
+
 func TestHandleStreamRUMv3(t *testing.T) {
 	var events []*modelpb.APMEvent
 	batchProcessor := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
