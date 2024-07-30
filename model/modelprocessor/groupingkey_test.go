@@ -30,6 +30,9 @@ import (
 )
 
 func TestSetGroupingKey(t *testing.T) {
+	stackTrace1 := "System.Exception: outer 1 ---> System.Exception: message\n   at Program.Main() in d:\\Windows\\Temp\\vv05tcpr.0.cs:line 11\n   --- End of inner exception stack trace ---\n   at Program.Main() in d:\\Windows\\Temp\\vv05tcpr.0.cs:line 15"
+	stackTrace2 := "System.Exception: outer 2 ---> System.Exception: message\n   at Program.Main() in d:\\Windows\\Temp\\vv05tcpr.0.cs:line 11\n   --- End of inner exception stack trace ---\n   at Program.Main() in d:\\Windows\\Temp\\vv05tcpr.0.cs:line 15"
+
 	tests := map[string]struct {
 		input       *modelpb.Error
 		groupingKey string
@@ -103,14 +106,48 @@ func TestSetGroupingKey(t *testing.T) {
 			},
 			groupingKey: hashStrings("message_1", "message_2", "message_3", "message_4"),
 		},
+		"exception_message_types": {
+			input: &modelpb.Error{
+				Exception: &modelpb.Exception{
+					Message: "message_1",
+					Type:    "type_1",
+					Cause: []*modelpb.Exception{{
+						Message: "message_2",
+						Type:    "type_2",
+						Cause: []*modelpb.Exception{
+							{Message: "message_3", Type: "type_3"},
+						},
+					}, {
+						Message: "message_4",
+						Type:    "type_4",
+					}},
+				},
+				Log: &modelpb.ErrorLog{Message: "log_message"}, // ignored
+			},
+			groupingKey: hashStrings("type_1", "type_2", "type_3", "type_4", "message_1", "message_2", "message_3", "message_4"),
+		},
 		"log_message": {
 			input: &modelpb.Error{
-				Log: &modelpb.ErrorLog{Message: "log_message"}, // ignored
+				Log: &modelpb.ErrorLog{Message: "log_message"},
 			},
 			groupingKey: hashStrings("log_message"),
 		},
+		"error_stack_trace_string": {
+			input: &modelpb.Error{
+				StackTrace: stackTrace1,
+			},
+			groupingKey: hashStrings(stackTrace1),
+		},
+		"error_stack_trace_string_different_message": {
+			input: &modelpb.Error{
+				StackTrace: stackTrace2,
+			},
+			groupingKey: hashStrings(stackTrace2),
+		},
+		//
 	}
 
+	groupingKeys := []string{}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			batch := modelpb.Batch{{
@@ -118,10 +155,17 @@ func TestSetGroupingKey(t *testing.T) {
 			}}
 			processor := modelprocessor.SetGroupingKey{}
 			err := processor.ProcessBatch(context.Background(), &batch)
+			groupingKeys = append(groupingKeys, batch[0].Error.GroupingKey)
 			assert.NoError(t, err)
 			assert.Equal(t, test.groupingKey, batch[0].Error.GroupingKey)
 		})
 	}
+
+	t.Run("grouping_keys_are_unique", func(t *testing.T) {
+		uniqueKeys := uniqueNonEmptyElementsOf(groupingKeys)
+		assert.Greater(t, len(uniqueKeys), 0)
+		assert.Len(t, uniqueKeys, len(groupingKeys))
+	})
 
 }
 
@@ -131,4 +175,20 @@ func hashStrings(s ...string) string {
 		md5.Write([]byte(s))
 	}
 	return hex.EncodeToString(md5.Sum(nil))
+}
+
+func uniqueNonEmptyElementsOf(s []string) []string {
+	unique := make(map[string]bool, len(s))
+	us := make([]string, len(unique))
+	for _, elem := range s {
+		if len(elem) != 0 {
+			if !unique[elem] {
+				us = append(us, elem)
+				unique[elem] = true
+			}
+		}
+	}
+
+	return us
+
 }
