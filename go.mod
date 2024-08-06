@@ -5,7 +5,7 @@ go 1.21.1
 require (
 	github.com/elastic/opentelemetry-lib v0.8.0
 	github.com/google/go-cmp v0.6.0
-	github.com/jaegertracing/jaeger v1.59.0
+	github.com/jaegertracing/jaeger v1.60.0
 	github.com/json-iterator/go v1.1.12
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.106.1
 	github.com/pkg/errors v0.9.1
@@ -50,7 +50,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/net v0.27.0 // indirect
-	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/sys v0.23.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240701130421-f6361c86f094 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
