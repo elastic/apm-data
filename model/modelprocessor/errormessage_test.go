@@ -59,7 +59,6 @@ func TestSetErrorMessage(t *testing.T) {
 		processor := modelprocessor.SetErrorMessage{}
 		err := processor.ProcessBatch(context.Background(), &batch)
 		assert.NoError(t, err)
-		assert.Equal(t, test.message, batch[0].Message)
+		assert.Equal(t, test.message, batch[0].Error.Message)
 	}
-
 }
