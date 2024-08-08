@@ -882,8 +882,9 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 			expected: []*modelpb.APMEvent{
 				{
 					Service: &modelpb.Service{
-						Name:     "unknown",
-						Language: &modelpb.Language{Name: "unknown"},
+						Name:      "unknown",
+						Language:  &modelpb.Language{Name: "unknown"},
+						Framework: &modelpb.Framework{Name: "otelcol/hostmetricsreceiver/load"},
 					},
 					Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
 					Timestamp: modelpb.FromTime(ts),
@@ -900,8 +901,9 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 				},
 				{
 					Service: &modelpb.Service{
-						Name:     "unknown",
-						Language: &modelpb.Language{Name: "unknown"},
+						Name:      "unknown",
+						Language:  &modelpb.Language{Name: "unknown"},
+						Framework: &modelpb.Framework{Name: "otelcol/hostmetricsreceiver/load"},
 					},
 					Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
 					Timestamp: modelpb.FromTime(ts),
@@ -955,8 +957,9 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 			expected: []*modelpb.APMEvent{
 				{
 					Service: &modelpb.Service{
-						Name:     "unknown",
-						Language: &modelpb.Language{Name: "unknown"},
+						Name:      "unknown",
+						Language:  &modelpb.Language{Name: "unknown"},
+						Framework: &modelpb.Framework{Name: "otelcol/hostmetricsreceiver/process"},
 					},
 					Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
 					Timestamp: modelpb.FromTime(ts),
@@ -979,8 +982,9 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 				},
 				{
 					Service: &modelpb.Service{
-						Name:     "unknown",
-						Language: &modelpb.Language{Name: "unknown"},
+						Name:      "unknown",
+						Language:  &modelpb.Language{Name: "unknown"},
+						Framework: &modelpb.Framework{Name: "otelcol/hostmetricsreceiver/process"},
 					},
 					Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
 					Timestamp: modelpb.FromTime(ts),
