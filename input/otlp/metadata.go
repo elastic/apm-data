@@ -467,6 +467,15 @@ func translateScopeMetadata(scope pcommon.InstrumentationScope, out *modelpb.APM
 		}
 		return true
 	})
+
+	if name := scope.Name(); name != "" {
+		if out.Service == nil {
+			out.Service = modelpb.ServiceFromVTPool()
+		}
+		out.Service.Framework = modelpb.FrameworkFromVTPool()
+		out.Service.Framework.Name = name
+		out.Service.Framework.Version = scope.Version()
+	}
 }
 
 func cleanServiceName(name string) string {
