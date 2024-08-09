@@ -577,15 +577,6 @@ func TranslateTransaction(
 		event.Transaction.Result = spanStatusResult(spanStatus)
 	}
 
-	if name := library.Name(); name != "" {
-		if event.Service == nil {
-			event.Service = modelpb.ServiceFromVTPool()
-		}
-		event.Service.Framework = modelpb.FrameworkFromVTPool()
-		event.Service.Framework.Name = name
-		event.Service.Framework.Version = library.Version()
-	}
-
 	// if outcome and result are still not assigned, assign success
 	if event.Event.Outcome == outcomeUnknown {
 		event.Event.Outcome = outcomeSuccess

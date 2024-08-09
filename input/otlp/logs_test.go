@@ -624,6 +624,41 @@ func TestConsumerConsumeLogsDataStream(t *testing.T) {
 	}
 }
 
+func TestLogsInstrumentationLibrary(t *testing.T) {
+	logs := plog.NewLogs()
+	resourceLogs := logs.ResourceLogs().AppendEmpty()
+	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
+	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKLanguage, "java")
+	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
+	timestamp := pcommon.NewTimestampFromTime(time.UnixMilli(946684800000))
+
+	resourceLogs.ScopeLogs().At(0).Scope().SetName("library-name")
+	resourceLogs.ScopeLogs().At(0).Scope().SetVersion("1.2.3")
+
+	record1 := newLogRecord("") // no log body
+	record1.SetTimestamp(timestamp)
+	record1.CopyTo(scopeLogs.LogRecords().AppendEmpty())
+
+	var processed modelpb.Batch
+	var processor modelpb.ProcessBatchFunc = func(_ context.Context, batch *modelpb.Batch) error {
+		if processed != nil {
+			panic("already processes batch")
+		}
+		processed = batch.Clone()
+		return nil
+	}
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor: processor,
+		Semaphore: semaphore.NewWeighted(100),
+	})
+	result, err := consumer.ConsumeLogsWithResult(context.Background(), logs)
+	assert.NoError(t, err)
+	assert.Equal(t, otlp.ConsumeLogsResult{}, result)
+	assert.Len(t, processed, 1)
+	assert.Equal(t, "library-name", processed[0].Service.Framework.Name)
+	assert.Equal(t, "1.2.3", processed[0].Service.Framework.Version)
+}
+
 func TestConsumerConsumeOTelLogsWithTimestamp(t *testing.T) {
 	logs := plog.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
