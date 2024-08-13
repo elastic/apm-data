@@ -538,13 +538,25 @@ func setLabel(key string, event *modelpb.APMEvent, v interface{}) {
 		case string:
 			value := make([]string, len(v))
 			for i := range v {
-				value[i] = v[i].(string)
+				// Ensure that the array is homogeneous
+				switch r := v[i].(type) {
+				case string:
+					value[i] = r
+				default:
+					// Drop value that is not OTEL supported: https://opentelemetry.io/docs/specs/otel/common/
+				}
 			}
 			modelpb.Labels(event.Labels).SetSlice(key, value)
 		case float64:
 			value := make([]float64, len(v))
 			for i := range v {
-				value[i] = v[i].(float64)
+				// Ensure that the array is homogeneous
+				switch r := v[i].(type) {
+				case float64:
+					value[i] = r
+				default:
+					// Drop value that is not OTEL supported: https://opentelemetry.io/docs/specs/otel/common/
+				}
 			}
 			modelpb.NumericLabels(event.NumericLabels).SetSlice(key, value)
 		}
