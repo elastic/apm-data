@@ -23,8 +23,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/ptrace"
 	"google.golang.org/protobuf/testing/protocmp"
 
+	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -340,6 +342,74 @@ func TestResourceLabels(t *testing.T) {
 	assert.Equal(t, modelpb.NumericLabels{
 		"int_array": {Global: true, Values: []float64{123, 456}},
 	}, modelpb.NumericLabels(metadata.NumericLabels))
+}
+
+func TestTranslateSpanValue(t *testing.T) {
+
+	m := pcommon.NewMap()
+	m.PutStr("s", "v")
+	m.PutBool("b", true)
+	m.PutInt("i", 1.0)
+	m.PutDouble("f", 1.0)
+
+	e := &modelpb.APMEvent{
+		Event:         &modelpb.Event{},
+		Span:          &modelpb.Span{},
+		Labels:        make(map[string]*modelpb.LabelValue),
+		NumericLabels: make(map[string]*modelpb.NumericLabelValue),
+	}
+
+	otlp.TranslateSpan(ptrace.SpanKindInternal, m, e)
+
+	assert.Equal(t, "v", e.GetLabels()["s"].Value)
+	assert.Equal(t, "true", e.GetLabels()["b"].Value)
+	assert.Equal(t, float64(1), e.GetNumericLabels()["i"].Value)
+	assert.Equal(t, float64(1), e.GetNumericLabels()["f"].Value)
+}
+
+func TestTranslateSpanSlice(t *testing.T) {
+
+	testCases := []struct {
+		desc     string
+		input    []any
+		expected int
+	}{
+		{
+			desc:     "drop non-string elements",
+			input:    []any{"a", 1, 2},
+			expected: 1,
+		},
+		{
+			desc:     "drop non-float64 elements",
+			input:    []any{1.1, "a", "b"},
+			expected: 1,
+		},
+		{
+			desc:     "drop all elements",
+			input:    []any{nil, nil, nil},
+			expected: 0,
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+
+			m := pcommon.NewMap()
+			s := m.PutEmptySlice("k")
+			s.FromRaw(tC.input)
+
+			e := &modelpb.APMEvent{
+				Event:         &modelpb.Event{},
+				Span:          &modelpb.Span{},
+				Labels:        make(map[string]*modelpb.LabelValue),
+				NumericLabels: make(map[string]*modelpb.NumericLabelValue),
+			}
+
+			otlp.TranslateSpan(ptrace.SpanKindInternal, m, e)
+
+			actual := len(e.Labels) + len(e.NumericLabels)
+			assert.Equal(t, tC.expected, actual)
+		})
+	}
 }
 
 func transformResourceMetadata(t *testing.T, resourceAttrs map[string]interface{}) *modelpb.APMEvent {
