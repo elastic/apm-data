@@ -205,7 +205,7 @@ func (c *Consumer) convertLogRecord(
 	})
 
 	// NOTE: we consider an error anything that contains an exception type
-	// or message, indipendently from the severity level.
+	// or message, independent of the severity level.
 	if exceptionMessage != "" || exceptionType != "" {
 		event.Error = convertOpenTelemetryExceptionSpanEvent(
 			exceptionType, exceptionMessage, exceptionStacktrace,
