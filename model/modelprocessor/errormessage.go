@@ -33,6 +33,9 @@ func (s SetErrorMessage) ProcessBatch(ctx context.Context, b *modelpb.Batch) err
 		event := (*b)[i]
 		if event.Error != nil {
 			event.Error.Message = s.setErrorMessage(event)
+			if event.GetMessage() == "" {
+				event.Message = event.Error.Message
+			}
 		}
 	}
 	return nil
