@@ -368,35 +368,49 @@ func TestTranslateSpanValue(t *testing.T) {
 }
 
 func TestTranslateSpanSlice(t *testing.T) {
-
+	const key = "k"
 	testCases := []struct {
-		desc     string
-		input    []any
-		expected int
+		input                 func() pcommon.Map
+		desc                  string
+		expectedLabel         []string
+		expectedNumericLabels []float64
+		expectedLen           int
 	}{
 		{
-			desc:     "drop non-string elements",
-			input:    []any{"a", 1, 2},
-			expected: 1,
+			desc: "drop non-string elements",
+			input: func() pcommon.Map {
+				m := pcommon.NewMap()
+				s := m.PutEmptySlice(key)
+				s.FromRaw([]any{"a", 1, "b", 2})
+				return m
+			},
+			expectedLen:   2,
+			expectedLabel: []string{"a", "b"},
 		},
 		{
-			desc:     "drop non-float64 elements",
-			input:    []any{1.1, "a", "b"},
-			expected: 1,
+			desc: "drop non-float64 elements",
+			input: func() pcommon.Map {
+				m := pcommon.NewMap()
+				s := m.PutEmptySlice("k")
+				s.FromRaw([]any{1.1, "a", 1.2, "b"})
+				return m
+			},
+			expectedLen:           2,
+			expectedNumericLabels: []float64{1.1, 1.2},
 		},
 		{
-			desc:     "drop all elements",
-			input:    []any{nil, nil, nil},
-			expected: 0,
+			desc: "drop all elements",
+			input: func() pcommon.Map {
+				m := pcommon.NewMap()
+				s := m.PutEmptySlice("k")
+				s.FromRaw([]any{nil, nil, nil})
+				return m
+			},
+			expectedLen: 0,
 		},
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-
-			m := pcommon.NewMap()
-			s := m.PutEmptySlice("k")
-			s.FromRaw(tC.input)
-
 			e := &modelpb.APMEvent{
 				Event:         &modelpb.Event{},
 				Span:          &modelpb.Span{},
@@ -404,10 +418,15 @@ func TestTranslateSpanSlice(t *testing.T) {
 				NumericLabels: make(map[string]*modelpb.NumericLabelValue),
 			}
 
-			otlp.TranslateSpan(ptrace.SpanKindInternal, m, e)
+			otlp.TranslateSpan(ptrace.SpanKindInternal, tC.input(), e)
 
-			actual := len(e.Labels) + len(e.NumericLabels)
-			assert.Equal(t, tC.expected, actual)
+			labels := e.GetLabels()[key].GetValues()
+			numericals := e.GetNumericLabels()[key].GetValues()
+			length := len(labels) + len(numericals)
+
+			assert.Equal(t, tC.expectedLen, length)
+			assert.Equal(t, tC.expectedLabel, labels)
+			assert.Equal(t, tC.expectedNumericLabels, numericals)
 		})
 	}
 }

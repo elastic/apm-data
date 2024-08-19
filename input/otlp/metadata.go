@@ -548,8 +548,6 @@ func setLabel(key string, event *modelpb.APMEvent, v interface{}) {
 		case float64:
 			value := make([]float64, 0, len(v))
 			for i := range v {
-				// Ensure that the array is homogeneous
-				// Drop value that is not OTEL supported: https://opentelemetry.io/docs/specs/otel/common/
 				if r, ok := v[i].(float64); ok {
 					value = append(value, r)
 				}
