@@ -139,7 +139,10 @@ func (c *Consumer) convertLogRecord(
 	if body := record.Body(); body.Type() != pcommon.ValueTypeEmpty {
 		event.Message = body.AsString()
 		if body.Type() == pcommon.ValueTypeMap {
-			setLabels(body.Map(), event)
+			body.Map().Range(func(k string, v pcommon.Value) bool {
+				setLabel(replaceDots(k), event, v)
+				return true
+			})
 		}
 	}
 	if traceID := record.TraceID(); !traceID.IsEmpty() {
@@ -235,11 +238,4 @@ func (c *Consumer) convertLogRecord(
 	}
 
 	return event
-}
-
-func setLabels(m pcommon.Map, event *modelpb.APMEvent) {
-	m.Range(func(k string, v pcommon.Value) bool {
-		setLabel(replaceDots(k), event, v)
-		return true
-	})
 }
