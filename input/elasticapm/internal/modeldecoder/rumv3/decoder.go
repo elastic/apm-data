@@ -256,7 +256,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 				len(from.Log.Stacktrace),
 				modelpb.StacktraceFrameFromVTPool,
 			)
-			mapToStracktraceModel(from.Log.Stacktrace, log.Stacktrace)
+			mapToStacktraceModel(from.Log.Stacktrace, log.Stacktrace)
 		}
 		out.Log = log
 	}
@@ -320,7 +320,7 @@ func mapToExceptionModel(from *errorException, out *modelpb.Exception) {
 			len(from.Stacktrace),
 			modelpb.StacktraceFrameFromVTPool,
 		)
-		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
+		mapToStacktraceModel(from.Stacktrace, out.Stacktrace)
 	}
 	if from.Type.IsSet() {
 		out.Type = from.Type.Val
@@ -693,7 +693,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 			len(from.Stacktrace),
 			modelpb.StacktraceFrameFromVTPool,
 		)
-		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
+		mapToStacktraceModel(from.Stacktrace, out.Stacktrace)
 	}
 	if from.Sync.IsSet() {
 		val := from.Sync.Val
@@ -706,7 +706,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 	}
 }
 
-func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFrame) {
+func mapToStacktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFrame) {
 	for idx, eventFrame := range from {
 		fr := out[idx]
 		if eventFrame.AbsPath.IsSet() {
