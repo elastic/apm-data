@@ -328,7 +328,7 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			if out.NumericLabels == nil {
 				out.NumericLabels = make(modelpb.NumericLabels)
 			}
-			setLabel(replaceDots(k), out, ifaceAttributeValue(v))
+			setLabel(replaceDots(k), out, v)
 		}
 		return true
 	})
@@ -482,28 +482,6 @@ func cleanServiceName(name string) string {
 	return serviceNameInvalidRegexp.ReplaceAllString(truncate(name), "_")
 }
 
-func ifaceAttributeValue(v pcommon.Value) interface{} {
-	switch v.Type() {
-	case pcommon.ValueTypeStr:
-		return truncate(v.Str())
-	case pcommon.ValueTypeBool:
-		return strconv.FormatBool(v.Bool())
-	case pcommon.ValueTypeInt:
-		return float64(v.Int())
-	case pcommon.ValueTypeDouble:
-		return v.Double()
-	case pcommon.ValueTypeSlice:
-		return ifaceAttributeValueSlice(v.Slice())
-	}
-	return nil
-}
-
-func ifaceAttributeValueSlice(slice pcommon.Slice) []interface{} {
-	return pSliceToType[interface{}](slice, func(v pcommon.Value) (interface{}, bool) {
-		return ifaceAttributeValue(v), true
-	})
-}
-
 func pSliceToType[T any](slice pcommon.Slice, f func(pcommon.Value) (T, bool)) []T {
 	result := make([]T, 0, slice.Len())
 	for i := 0; i < slice.Len(); i++ {
@@ -520,39 +498,61 @@ func initEventLabels(e *modelpb.APMEvent) {
 	e.NumericLabels = modelpb.NumericLabels(e.NumericLabels).Clone()
 }
 
-func setLabel(key string, event *modelpb.APMEvent, v interface{}) {
-	switch v := v.(type) {
-	case string:
-		modelpb.Labels(event.Labels).Set(key, v)
-	case bool:
-		modelpb.Labels(event.Labels).Set(key, strconv.FormatBool(v))
-	case float64:
-		modelpb.NumericLabels(event.NumericLabels).Set(key, v)
-	case int64:
-		modelpb.NumericLabels(event.NumericLabels).Set(key, float64(v))
-	case []interface{}:
-		if len(v) == 0 {
+func setLabel(key string, event *modelpb.APMEvent, v pcommon.Value) {
+
+	switch v.Type() {
+	case pcommon.ValueTypeStr:
+		modelpb.Labels(event.Labels).Set(key, truncate(v.Str()))
+	case pcommon.ValueTypeBool:
+		modelpb.Labels(event.Labels).Set(key, strconv.FormatBool(v.Bool()))
+	case pcommon.ValueTypeInt:
+		modelpb.NumericLabels(event.NumericLabels).Set(key, float64(v.Int()))
+	case pcommon.ValueTypeDouble:
+		modelpb.NumericLabels(event.NumericLabels).Set(key, v.Double())
+	case pcommon.ValueTypeSlice:
+		s := v.Slice()
+		if v.Slice().Len() == 0 {
 			return
 		}
-		switch v[0].(type) {
-		case string:
-			value := make([]string, 0, len(v))
-			for i := range v {
-				// Ensure that the array is homogeneous
-				// Drop value that is not OTEL supported: https://opentelemetry.io/docs/specs/otel/common/
-				if r, ok := v[i].(string); ok {
-					value = append(value, r)
+		switch s.At(0).Type() {
+		case pcommon.ValueTypeStr:
+			result := make([]string, 0, s.Len())
+			fmt.Println("len", s.Len())
+			for i := 0; i < s.Len(); i++ {
+				r := s.At(i)
+				fmt.Println("r:", r.Str())
+				if r.Type() == pcommon.ValueTypeStr {
+					result = append(result, r.Str())
 				}
 			}
-			modelpb.Labels(event.Labels).SetSlice(key, value)
-		case float64:
-			value := make([]float64, 0, len(v))
-			for i := range v {
-				if r, ok := v[i].(float64); ok {
-					value = append(value, r)
+			modelpb.Labels(event.Labels).SetSlice(key, result)
+		case pcommon.ValueTypeBool:
+			result := make([]string, 0, s.Len())
+			for i := 0; i < s.Len(); i++ {
+				r := s.At(i)
+				if r.Type() == pcommon.ValueTypeBool {
+					result = append(result, strconv.FormatBool(r.Bool()))
 				}
 			}
-			modelpb.NumericLabels(event.NumericLabels).SetSlice(key, value)
+			modelpb.Labels(event.Labels).SetSlice(key, result)
+		case pcommon.ValueTypeDouble:
+			result := make([]float64, 0, s.Len())
+			for i := 0; i < s.Len(); i++ {
+				r := s.At(i)
+				if r.Type() == pcommon.ValueTypeDouble {
+					result = append(result, r.Double())
+				}
+			}
+			modelpb.NumericLabels(event.NumericLabels).SetSlice(key, result)
+		case pcommon.ValueTypeInt:
+			result := make([]float64, 0, s.Len())
+			for i := 0; i < s.Len(); i++ {
+				r := s.At(i)
+				if r.Type() == pcommon.ValueTypeInt {
+					result = append(result, float64(r.Int()))
+				}
+			}
+			modelpb.NumericLabels(event.NumericLabels).SetSlice(key, result)
 		}
 	}
 }

@@ -292,12 +292,12 @@ func TranslateTransaction(
 					}
 				}
 			default:
-				setLabel(k, event, ifaceAttributeValue(v))
+				setLabel(k, event, v)
 			}
 		case pcommon.ValueTypeBool:
-			setLabel(k, event, ifaceAttributeValue(v))
+			setLabel(k, event, v)
 		case pcommon.ValueTypeDouble:
-			setLabel(k, event, ifaceAttributeValue(v))
+			setLabel(k, event, v)
 		case pcommon.ValueTypeInt:
 			switch kDots {
 			case semconv.AttributeHTTPStatusCode, attributeHttpResponseStatusCode:
@@ -315,7 +315,7 @@ func TranslateTransaction(
 				isRPC = true
 				event.Transaction.Result = codes.Code(v.Int()).String()
 			default:
-				setLabel(k, event, ifaceAttributeValue(v))
+				setLabel(k, event, v)
 			}
 		case pcommon.ValueTypeMap:
 		case pcommon.ValueTypeStr:
@@ -491,7 +491,6 @@ func TranslateTransaction(
 					event.DataStream = modelpb.DataStreamFromVTPool()
 				}
 				event.DataStream.Namespace = stringval
-
 			default:
 				modelpb.Labels(event.Labels).Set(k, stringval)
 			}
@@ -644,17 +643,17 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 		k := replaceDots(kDots)
 		switch v.Type() {
 		case pcommon.ValueTypeSlice:
-			setLabel(k, event, ifaceAttributeValueSlice(v.Slice()))
+			setLabel(k, event, v)
 		case pcommon.ValueTypeBool:
 			switch kDots {
 			case semconv.AttributeMessagingTempDestination:
 				messageTempDestination = v.Bool()
 				fallthrough
 			default:
-				setLabel(k, event, strconv.FormatBool(v.Bool()))
+				setLabel(k, event, v)
 			}
 		case pcommon.ValueTypeDouble:
-			setLabel(k, event, v.Double())
+			setLabel(k, event, v)
 		case pcommon.ValueTypeInt:
 			switch kDots {
 			case "http.status_code", attributeHttpResponseStatusCode:
@@ -667,7 +666,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				rpcSystem = "grpc"
 				isRPC = true
 			default:
-				setLabel(k, event, v.Int())
+				setLabel(k, event, v)
 			}
 		case pcommon.ValueTypeStr:
 			stringval := truncate(v.Str())
@@ -1116,7 +1115,7 @@ func (c *Consumer) convertSpanEvent(
 				event.DataStream.Namespace = v.Str()
 
 			default:
-				setLabel(replaceDots(k), event, ifaceAttributeValue(v))
+				setLabel(replaceDots(k), event, v)
 			}
 			return true
 		})
@@ -1161,7 +1160,7 @@ func (c *Consumer) convertSpanEvent(
 					event.Message = truncate(v.Str())
 					return true
 				}
-				setLabel(k, event, ifaceAttributeValue(v))
+				setLabel(k, event, v)
 			}
 			return true
 		})
@@ -1215,7 +1214,7 @@ func (c *Consumer) convertJaegerErrorSpanEvent(event ptrace.SpanEvent, apmEvent 
 			apmEvent.DataStream.Namespace = v.Str()
 
 		default:
-			setLabel(replaceDots(k), apmEvent, ifaceAttributeValue(v))
+			setLabel(replaceDots(k), apmEvent, v)
 		}
 		return true
 	})

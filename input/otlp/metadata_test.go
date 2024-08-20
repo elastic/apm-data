@@ -337,10 +337,16 @@ func TestResourceLabels(t *testing.T) {
 		"int_array":    []interface{}{123, 456},
 	})
 	assert.Equal(t, modelpb.Labels{
-		"string_array": {Global: true, Values: []string{"abc", "def"}},
+		"string_array": {
+			Global: true,
+			Values: []string{"abc", "def"},
+		},
 	}, modelpb.Labels(metadata.Labels))
 	assert.Equal(t, modelpb.NumericLabels{
-		"int_array": {Global: true, Values: []float64{123, 456}},
+		"int_array": {
+			Global: true,
+			Values: []float64{123, 456},
+		},
 	}, modelpb.NumericLabels(metadata.NumericLabels))
 }
 
@@ -381,29 +387,71 @@ func TestTranslateSpanSlice(t *testing.T) {
 			input: func() pcommon.Map {
 				m := pcommon.NewMap()
 				s := m.PutEmptySlice(key)
-				s.FromRaw([]any{"a", 1, "b", 2})
+				s.FromRaw([]any{"", "a", 1, "b", 2})
+				return m
+			},
+			expectedLen:   3,
+			expectedLabel: []string{"", "a", "b"}, // Explicitly check that empty string is stored
+		},
+		{
+			desc: "drop non-bool elements",
+			input: func() pcommon.Map {
+				m := pcommon.NewMap()
+				s := m.PutEmptySlice("k")
+				s.FromRaw([]any{true, "a", false, 1.1})
 				return m
 			},
 			expectedLen:   2,
-			expectedLabel: []string{"a", "b"},
+			expectedLabel: []string{"true", "false"},
+		},
+		{
+			desc: "drop non-int elements",
+			input: func() pcommon.Map {
+				m := pcommon.NewMap()
+				s := m.PutEmptySlice("k")
+				s.FromRaw([]any{0, 1, 2, "a", false, 1.1})
+				return m
+			},
+			expectedLen:           3,
+			expectedNumericLabels: []float64{0, 1, 2}, // Explicitly check that zero is stored
 		},
 		{
 			desc: "drop non-float64 elements",
 			input: func() pcommon.Map {
 				m := pcommon.NewMap()
 				s := m.PutEmptySlice("k")
-				s.FromRaw([]any{1.1, "a", 1.2, "b"})
+				s.FromRaw([]any{0.0, 1.1, 1.2, 2, "a", true})
 				return m
 			},
-			expectedLen:           2,
-			expectedNumericLabels: []float64{1.1, 1.2},
+			expectedLen:           3,
+			expectedNumericLabels: []float64{0.0, 1.1, 1.2}, // Explicitly check that zero is stored
 		},
 		{
-			desc: "drop all elements",
+			desc: "drop nil array values",
 			input: func() pcommon.Map {
 				m := pcommon.NewMap()
 				s := m.PutEmptySlice("k")
-				s.FromRaw([]any{nil, nil, nil})
+				s.FromRaw([]any{nil, nil})
+				return m
+			},
+			expectedLen: 0,
+		},
+		{
+			desc: "ensure empty array does not panic",
+			input: func() pcommon.Map {
+				m := pcommon.NewMap()
+				s := m.PutEmptySlice("k")
+				s.FromRaw([]any{})
+				return m
+			},
+			expectedLen: 0,
+		},
+		{
+			desc: "ensure nill array does not panic",
+			input: func() pcommon.Map {
+				m := pcommon.NewMap()
+				s := m.PutEmptySlice("k")
+				s.FromRaw(nil)
 				return m
 			},
 			expectedLen: 0,

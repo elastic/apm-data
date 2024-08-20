@@ -251,7 +251,7 @@ func (c *Consumer) handleScopeMetrics(
 					}
 					event.User.Name = truncate(v.Str())
 				default:
-					setLabel(k, event, ifaceAttributeValue(v))
+					setLabel(k, event, v)
 				}
 				return true
 			})

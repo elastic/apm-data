@@ -199,7 +199,7 @@ func (c *Consumer) convertLogRecord(
 			}
 			event.DataStream.Namespace = v.Str()
 		default:
-			setLabel(replaceDots(k), event, ifaceAttributeValue(v))
+			setLabel(replaceDots(k), event, v)
 		}
 		return true
 	})
@@ -239,7 +239,7 @@ func (c *Consumer) convertLogRecord(
 
 func setLabels(m pcommon.Map, event *modelpb.APMEvent) {
 	m.Range(func(k string, v pcommon.Value) bool {
-		setLabel(replaceDots(k), event, ifaceAttributeValue(v))
+		setLabel(replaceDots(k), event, v)
 		return true
 	})
 }
