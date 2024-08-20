@@ -185,17 +185,21 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 				out.Host = modelpb.HostFromVTPool()
 			}
 			out.Host.Architecture = truncate(v.Str())
+			// TODO: Don't think this is being tested.
 		case semconv.AttributeHostIP:
 			if out.Host == nil {
 				out.Host = modelpb.HostFromVTPool()
 			}
-			out.Host.Ip = pSliceToType[*modelpb.IP](v.Slice(), func(v pcommon.Value) (*modelpb.IP, bool) {
-				ip, err := modelpb.ParseIP(v.Str())
+			slice := v.Slice()
+			result := make([]*modelpb.IP, 0, slice.Len())
+			for i := 0; i < slice.Len(); i++ {
+				ip, err := modelpb.ParseIP(slice.At(i).Str())
 				if err != nil {
-					return nil, false
+					panic(err)
 				}
-				return ip, true
-			})
+				result = append(result, ip)
+			}
+			out.Host.Ip = result
 
 		// process.*
 		case semconv.AttributeProcessPID:
@@ -320,7 +324,6 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 				out.DataStream = modelpb.DataStreamFromVTPool()
 			}
 			out.DataStream.Namespace = v.Str()
-
 		default:
 			if out.Labels == nil {
 				out.Labels = make(modelpb.Labels)
@@ -482,16 +485,6 @@ func cleanServiceName(name string) string {
 	return serviceNameInvalidRegexp.ReplaceAllString(truncate(name), "_")
 }
 
-func pSliceToType[T any](slice pcommon.Slice, f func(pcommon.Value) (T, bool)) []T {
-	result := make([]T, 0, slice.Len())
-	for i := 0; i < slice.Len(); i++ {
-		if v, ok := f(slice.At(i)); ok {
-			result = append(result, v)
-		}
-	}
-	return result
-}
-
 // initEventLabels initializes an event-specific labels from an event.
 func initEventLabels(e *modelpb.APMEvent) {
 	e.Labels = modelpb.Labels(e.Labels).Clone()
@@ -499,7 +492,6 @@ func initEventLabels(e *modelpb.APMEvent) {
 }
 
 func setLabel(key string, event *modelpb.APMEvent, v pcommon.Value) {
-
 	switch v.Type() {
 	case pcommon.ValueTypeStr:
 		modelpb.Labels(event.Labels).Set(key, truncate(v.Str()))
@@ -517,10 +509,8 @@ func setLabel(key string, event *modelpb.APMEvent, v pcommon.Value) {
 		switch s.At(0).Type() {
 		case pcommon.ValueTypeStr:
 			result := make([]string, 0, s.Len())
-			fmt.Println("len", s.Len())
 			for i := 0; i < s.Len(); i++ {
 				r := s.At(i)
-				fmt.Println("r:", r.Str())
 				if r.Type() == pcommon.ValueTypeStr {
 					result = append(result, r.Str())
 				}

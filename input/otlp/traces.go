@@ -642,8 +642,6 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 
 		k := replaceDots(kDots)
 		switch v.Type() {
-		case pcommon.ValueTypeSlice:
-			setLabel(k, event, v)
 		case pcommon.ValueTypeBool:
 			switch kDots {
 			case semconv.AttributeMessagingTempDestination:
@@ -652,8 +650,6 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 			default:
 				setLabel(k, event, v)
 			}
-		case pcommon.ValueTypeDouble:
-			setLabel(k, event, v)
 		case pcommon.ValueTypeInt:
 			switch kDots {
 			case "http.status_code", attributeHttpResponseStatusCode:
@@ -836,10 +832,11 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 					event.DataStream = modelpb.DataStreamFromVTPool()
 				}
 				event.DataStream.Namespace = stringval
-
 			default:
-				modelpb.Labels(event.Labels).Set(k, stringval)
+				setLabel(k, event, v)
 			}
+		default:
+			setLabel(k, event, v)
 		}
 		return true
 	})
