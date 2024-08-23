@@ -294,10 +294,6 @@ func TranslateTransaction(
 			default:
 				setLabel(k, event, v)
 			}
-		case pcommon.ValueTypeBool:
-			setLabel(k, event, v)
-		case pcommon.ValueTypeDouble:
-			setLabel(k, event, v)
 		case pcommon.ValueTypeInt:
 			switch kDots {
 			case semconv.AttributeHTTPStatusCode, attributeHttpResponseStatusCode:
@@ -494,6 +490,8 @@ func TranslateTransaction(
 			default:
 				modelpb.Labels(event.Labels).Set(k, stringval)
 			}
+		default:
+			setLabel(k, event, v)
 		}
 		return true
 	})
