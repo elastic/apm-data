@@ -185,7 +185,6 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 				out.Host = modelpb.HostFromVTPool()
 			}
 			out.Host.Architecture = truncate(v.Str())
-			// TODO: Don't think this is being tested.
 		case semconv.AttributeHostIP:
 			if out.Host == nil {
 				out.Host = modelpb.HostFromVTPool()
@@ -194,10 +193,9 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			result := make([]*modelpb.IP, 0, slice.Len())
 			for i := 0; i < slice.Len(); i++ {
 				ip, err := modelpb.ParseIP(slice.At(i).Str())
-				if err != nil {
-					panic(err)
+				if err == nil {
+					result = append(result, ip)
 				}
-				result = append(result, ip)
 			}
 			out.Host.Ip = result
 
@@ -503,7 +501,7 @@ func setLabel(key string, event *modelpb.APMEvent, v pcommon.Value) {
 		modelpb.NumericLabels(event.NumericLabels).Set(key, v.Double())
 	case pcommon.ValueTypeSlice:
 		s := v.Slice()
-		if v.Slice().Len() == 0 {
+		if s.Len() == 0 {
 			return
 		}
 		switch s.At(0).Type() {

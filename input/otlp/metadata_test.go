@@ -447,7 +447,7 @@ func TestTranslateSpanSlice(t *testing.T) {
 			expectedLen: 0,
 		},
 		{
-			desc: "ensure nill array does not panic",
+			desc: "ensure nil array does not panic",
 			input: func() pcommon.Map {
 				m := pcommon.NewMap()
 				s := m.PutEmptySlice("k")
@@ -470,9 +470,7 @@ func TestTranslateSpanSlice(t *testing.T) {
 
 			labels := e.GetLabels()[key].GetValues()
 			numericals := e.GetNumericLabels()[key].GetValues()
-			length := len(labels) + len(numericals)
 
-			assert.Equal(t, tC.expectedLen, length)
 			assert.Equal(t, tC.expectedLabel, labels)
 			assert.Equal(t, tC.expectedNumericLabels, numericals)
 		})
