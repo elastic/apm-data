@@ -39,9 +39,7 @@ import (
 var (
 	errUnrecognizedObject = errors.New("did not recognize object type")
 
-	// ErrQueueFull may be returned by HandleStream when the internal
-	// queue is full.
-	ErrQueueFull = errors.New("queue is full")
+	errEmptyBody = errors.New("empty body")
 
 	batchPool sync.Pool
 )
@@ -88,7 +86,6 @@ type Config struct {
 type StreamHandler interface {
 	HandleStream(
 		ctx context.Context,
-		async bool,
 		baseEvent *modelpb.APMEvent,
 		stream io.Reader,
 		batchSize int,
@@ -114,6 +111,9 @@ func (p *Processor) readMetadata(reader *streamReader, out *modelpb.APMEvent) er
 	body, err := reader.ReadAhead()
 	if err != nil {
 		if err == io.EOF {
+			if len(reader.LatestLine()) == 0 {
+				return errEmptyBody
+			}
 			return &InvalidInputError{
 				Message:  "EOF while reading metadata",
 				Document: string(reader.LatestLine()),
@@ -238,43 +238,37 @@ func (p *Processor) readBatch(
 // Callers must not access result concurrently with HandleStream.
 func (p *Processor) HandleStream(
 	ctx context.Context,
-	async bool,
 	baseEvent *modelpb.APMEvent,
 	reader io.Reader,
 	batchSize int,
 	processor modelpb.BatchProcessor,
 	result *Result,
 ) error {
+	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
+	defer sp.End()
 	// Limit the number of concurrent batch decodes.
 	//
 	// The semaphore defaults to 200 (N), only allowing N requests to read
 	// an cache Y events (determined by batchSize) from the batch.
-	//
-	// Clients can set async to true which makes the processor process the
-	// events in the background. Returns with an error `ErrQueueFull`
-	// if the semaphore is full. When asynchronous processing is requested,
-	// the batches are decoded synchronously, but the batch is processed
-	// asynchronously.
-	if err := p.semAcquire(ctx, async); err != nil {
-		return err
+	if err := p.semAcquire(ctx); err != nil {
+		return fmt.Errorf("unable to service request: %w", err)
 	}
 	sr := p.getStreamReader(reader)
 
-	// Release the semaphore on early exit; this will be set to false
-	// for asynchronous requests once we may no longer exit early.
-	shouldReleaseSemaphore := true
+	// Release the semaphore on early exit
 	defer func() {
 		sr.release()
-		if shouldReleaseSemaphore {
-			p.sem.Release(1)
-		}
+		p.sem.Release(1)
 	}()
 
 	// The first item is the metadata object.
 	if err := p.readMetadata(sr, baseEvent); err != nil {
+		if err == errEmptyBody {
+			return nil
+		}
 		// no point in continuing if we couldn't read the metadata
 		if _, ok := err.(*InvalidInputError); ok {
-			return err
+			return fmt.Errorf("cannot read metadata in stream: %w", err)
 		}
 		return &InvalidInputError{
 			Message:  err.Error(),
@@ -282,93 +276,55 @@ func (p *Processor) HandleStream(
 		}
 	}
 
-	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
-	defer sp.End()
-
-	if async {
-		// The semaphore is released by handleStream
-		shouldReleaseSemaphore = false
+	var batch modelpb.Batch
+	if b, ok := batchPool.Get().(*modelpb.Batch); ok {
+		batch = (*b)[:0]
+	} else {
+		batch = make(modelpb.Batch, 0, batchSize)
 	}
-	first := true
+
+	defer batchPool.Put(&batch)
+
 	for {
-		err := p.handleStream(ctx, async, baseEvent, batchSize, sr, processor, result, first)
+		// reuse the batch for future iterations without pooling each time
+		batch = batch[:0]
+		err := p.handleStream(ctx, &batch, baseEvent, batchSize, sr, processor, result)
 		if err != nil {
 			if errors.Is(err, io.EOF) {
 				return nil
 			}
-			return err
-		}
-		if first {
-			first = false
+			return fmt.Errorf("cannot handle stream: %w", err)
 		}
 	}
 }
 
 func (p *Processor) handleStream(
 	ctx context.Context,
-	async bool,
+	batch *modelpb.Batch,
 	baseEvent *modelpb.APMEvent,
 	batchSize int,
 	sr *streamReader,
 	processor modelpb.BatchProcessor,
 	result *Result,
-	first bool,
-) (readErr error) {
-	// Async requests will re-aquire the semaphore if it has more events than
-	// `batchSize`. In that event, the semaphore will be acquired again. If
-	// the semaphore is full, `ErrQueueFull` is returned.
-	// The first iteration will not acquire the semaphore since it's already
-	// acquired in the caller function.
-	var n int
-	if async {
-		if !first {
-			if err := p.semAcquire(ctx, async); err != nil {
-				return err
-			}
-		}
-		defer func() {
-			// If no events have been read on an asynchronous request, release
-			// the semaphore since the processing goroutine isn't scheduled.
-			if n == 0 {
-				p.sem.Release(1)
-			}
-		}()
-	}
-	var batch modelpb.Batch
-	if b, ok := batchPool.Get().(*modelpb.Batch); ok {
-		batch = (*b)[:0]
-	}
-	n, readErr = p.readBatch(ctx, baseEvent, batchSize, &batch, sr, result)
+) error {
+	n, readErr := p.readBatch(ctx, baseEvent, batchSize, batch, sr, result)
 	if n == 0 {
-		// No events to process, return the batch to the pool.
-		batchPool.Put(&batch)
 		return readErr
 	}
-	// Async requests are processed in the background and once the batch has
-	// been processed, the semaphore is released.
-	if async {
-		go func() {
-			defer p.sem.Release(1)
-			if err := p.processBatch(ctx, processor, &batch); err != nil {
-				p.logger.Error("failed handling async request", zap.Error(err))
-			}
-		}()
-	} else {
-		if err := p.processBatch(ctx, processor, &batch); err != nil {
-			return err
-		}
-		result.Accepted += n
+
+	if err := p.processBatch(ctx, processor, batch); err != nil {
+		return fmt.Errorf("cannot process batch: %w", err)
 	}
+	result.Accepted += n
 	return readErr
 }
 
-// processBatch processes the batch and returns it to the pool after it's been processed.
+// processBatch processes the batch and returns the events to the pool after it's been processed.
 func (p *Processor) processBatch(ctx context.Context, processor modelpb.BatchProcessor, batch *modelpb.Batch) error {
 	defer func() {
 		for i := range *batch {
-			(*batch)[i] = nil
+			(*batch)[i].ReturnToVTPool()
 		}
-		batchPool.Put(batch)
 	}()
 	return processor.ProcessBatch(ctx, batch)
 }
@@ -385,13 +341,10 @@ func (p *Processor) getStreamReader(r io.Reader) *streamReader {
 	}
 }
 
-func (p *Processor) semAcquire(ctx context.Context, async bool) error {
-	if async {
-		if ok := p.sem.TryAcquire(1); !ok {
-			return ErrQueueFull
-		}
-		return nil
-	}
+func (p *Processor) semAcquire(ctx context.Context) error {
+	sp, ctx := apm.StartSpan(ctx, "Semaphore.Acquire", "Reporter")
+	defer sp.End()
+
 	return p.sem.Acquire(ctx, 1)
 }
 

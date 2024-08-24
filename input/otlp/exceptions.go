@@ -36,12 +36,13 @@ package otlp
 
 import (
 	"bufio"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
+	"io"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/gofrs/uuid"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -51,25 +52,39 @@ var (
 	javaStacktraceMoreRegexp = regexp.MustCompile(`\.\.\. ([0-9]+) more`)
 )
 
+const (
+	emptyExceptionMsg = "[EMPTY]"
+)
+
+// convertOpenTelemetryExceptionSpanEvent creates an otel Exception event
+// from the specified arguments.
+//
+// OpenTelemetry semantic convention require the presence of at least one
+// of the following attributes:
+// - exception.type
+// - exception.message
+// https://opentelemetry.io/docs/specs/semconv/exceptions/exceptions-spans/#attributes
+//
+// To fulfill this requirement we do not set exception.type if empty but
+// we always set exception.message defaulting to a constant value if empty.
 func convertOpenTelemetryExceptionSpanEvent(
 	exceptionType, exceptionMessage, exceptionStacktrace string,
 	exceptionEscaped bool,
 	language string,
 ) *modelpb.Error {
 	if exceptionMessage == "" {
-		exceptionMessage = "[EMPTY]"
+		exceptionMessage = emptyExceptionMsg
 	}
 	exceptionHandled := !exceptionEscaped
-	exceptionError := modelpb.Error{
-		Exception: &modelpb.Exception{
-			Message: exceptionMessage,
-			Type:    exceptionType,
-			Handled: &exceptionHandled,
-		},
+	exceptionError := modelpb.ErrorFromVTPool()
+	exceptionError.Exception = modelpb.ExceptionFromVTPool()
+	exceptionError.Exception.Message = exceptionMessage
+	if exceptionType != "" {
+		exceptionError.Exception.Type = exceptionType
 	}
-	// TODO(axw) replace github.com/gofrs/uuid, not worth having the dependency just for this.
-	if id, err := uuid.NewV4(); err == nil {
-		exceptionError.Id = id.String()
+	exceptionError.Exception.Handled = &exceptionHandled
+	if id, err := newUniqueID(); err == nil {
+		exceptionError.Id = id
 	}
 	if exceptionStacktrace != "" {
 		if err := setExceptionStacktrace(exceptionStacktrace, language, exceptionError.Exception); err != nil {
@@ -79,7 +94,7 @@ func convertOpenTelemetryExceptionSpanEvent(
 			exceptionError.StackTrace = exceptionStacktrace
 		}
 	}
-	return &exceptionError
+	return exceptionError
 }
 
 func setExceptionStacktrace(s, language string, out *modelpb.Exception) error {
@@ -153,7 +168,7 @@ func setJavaExceptionStacktrace(s string, out *modelpb.Exception) error {
 			// "Caused by:" lines are at the same level of indentation
 			// as the enclosing exception.
 			current.Cause = make([]*modelpb.Exception, 1)
-			current.Cause[0] = &modelpb.Exception{}
+			current.Cause[0] = modelpb.ExceptionFromVTPool()
 			current.enclosing = current.Exception
 			current.Exception = current.Cause[0]
 			current.Exception.Handled = current.enclosing.Handled
@@ -166,7 +181,7 @@ func setJavaExceptionStacktrace(s string, out *modelpb.Exception) error {
 			// enclosing exception; we just account for the indentation here.
 			stack = append(stack, current)
 			current.enclosing = current.Exception
-			current.Exception = &modelpb.Exception{}
+			current.Exception = modelpb.ExceptionFromVTPool()
 			current.indent = indent
 		default:
 			return fmt.Errorf("unexpected line %q", line)
@@ -204,16 +219,29 @@ func parseJavaStacktraceFrame(s string, out *modelpb.Exception) error {
 			lineno = &un
 		}
 	}
-	out.Stacktrace = append(out.Stacktrace, &modelpb.StacktraceFrame{
-		Module:    module,
-		Classname: classname,
-		Function:  function,
-		Filename:  file,
-		Lineno:    lineno,
-	})
+	sf := modelpb.StacktraceFrameFromVTPool()
+	sf.Module = module
+	sf.Classname = classname
+	sf.Function = function
+	sf.Filename = file
+	sf.Lineno = lineno
+	out.Stacktrace = append(out.Stacktrace, sf)
 	return nil
 }
 
 func isNotTab(r rune) bool {
 	return r != '\t'
+}
+
+func newUniqueID() (string, error) {
+	var u [16]byte
+	if _, err := io.ReadFull(rand.Reader, u[:]); err != nil {
+		return "", err
+	}
+
+	// convert to string
+	buf := make([]byte, 32)
+	hex.Encode(buf, u[:])
+
+	return string(buf), nil
 }

@@ -29,8 +29,9 @@ func EventModelJSON(e *modelpb.Event, out *modeljson.Event) {
 		Dataset:  e.Dataset,
 		Kind:     e.Kind,
 		Category: e.Category,
+		Module:   e.Module,
 		Type:     e.Type,
-		Duration: int64(e.Duration.AsDuration().Nanoseconds()),
+		Duration: e.Duration,
 		Severity: e.Severity,
 	}
 	if e.SuccessCount != nil {
@@ -39,7 +40,7 @@ func EventModelJSON(e *modelpb.Event, out *modeljson.Event) {
 			Sum:   e.SuccessCount.Sum,
 		}
 	}
-	if e.Received.IsValid() {
-		out.Received = modeljson.Time(e.Received.AsTime())
+	if e.Received != 0 {
+		out.Received = modeljson.Time(modelpb.ToTime(e.Received))
 	}
 }

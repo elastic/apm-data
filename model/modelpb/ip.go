@@ -41,28 +41,30 @@ func MustParseIP(s string) *IP {
 	return ip
 }
 
+// Addr2IP converts a valid netip.Addr to IP.
 func Addr2IP(addr netip.Addr) *IP {
 	if addr.Is4() {
-		return &IP{
-			V4: binary.BigEndian.Uint32(addr.AsSlice()),
-		}
+		ip := IPFromVTPool()
+		ip.V4 = binary.BigEndian.Uint32(addr.AsSlice())
+		return ip
 	}
 
-	return &IP{
-		V6: addr.AsSlice(),
-	}
+	ip := IPFromVTPool()
+	ip.V6 = addr.AsSlice()
+	return ip
 }
 
+// IP2Addr converts a nil IP to a zero netip.Addr and a valid IP to a valid netip.Addr.
 func IP2Addr(i *IP) netip.Addr {
+	if i == nil {
+		return netip.Addr{}
+	}
 	if addr := i.GetV6(); len(addr) == 16 {
 		return netip.AddrFrom16([16]byte(addr))
 	}
-	if i.GetV4() != 0 {
-		var addr [4]byte
-		binary.BigEndian.PutUint32(addr[:], i.V4)
-		return netip.AddrFrom4(addr)
-	}
-	return netip.Addr{}
+	var addr [4]byte
+	binary.BigEndian.PutUint32(addr[:], i.V4)
+	return netip.AddrFrom4(addr)
 }
 
 func IP2String(i *IP) string {

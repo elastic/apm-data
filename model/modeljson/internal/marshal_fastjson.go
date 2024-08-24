@@ -601,6 +601,12 @@ func (v *Document) MarshalFastJSON(w *fastjson.Writer) error {
 			firstErr = err
 		}
 	}
+	if v.Code != nil {
+		w.RawString(",\"code\":")
+		if err := v.Code.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
 	if v.Container != nil {
 		w.RawString(",\"container\":")
 		if err := v.Container.MarshalFastJSON(w); err != nil && firstErr == nil {
@@ -762,6 +768,12 @@ func (v *Document) MarshalFastJSON(w *fastjson.Writer) error {
 	if v.Span != nil {
 		w.RawString(",\"span\":")
 		if err := v.Span.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+	if v.System != nil {
+		w.RawString(",\"system\":")
+		if err := v.System.MarshalFastJSON(w); err != nil && firstErr == nil {
 			firstErr = err
 		}
 	}
@@ -1055,7 +1067,7 @@ func (v *Event) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
-		w.Int64(v.Duration)
+		w.Uint64(v.Duration)
 	}
 	if v.Kind != "" {
 		const prefix = ",\"kind\":"
@@ -1066,6 +1078,16 @@ func (v *Event) MarshalFastJSON(w *fastjson.Writer) error {
 			w.RawString(prefix)
 		}
 		w.String(v.Kind)
+	}
+	if v.Module != "" {
+		const prefix = ",\"module\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		w.String(v.Module)
 	}
 	if v.Outcome != "" {
 		const prefix = ",\"outcome\":"
@@ -2733,6 +2755,16 @@ func (v *Span) MarshalFastJSON(w *fastjson.Writer) error {
 	return firstErr
 }
 
+func (v *Code) MarshalFastJSON(w *fastjson.Writer) error {
+	w.RawByte('{')
+	if v.Stacktrace != "" {
+		w.RawString("\"stacktrace\":")
+		w.String(v.Stacktrace)
+	}
+	w.RawByte('}')
+	return nil
+}
+
 func (v *SpanDestination) MarshalFastJSON(w *fastjson.Writer) error {
 	var firstErr error
 	w.RawByte('{')
@@ -3190,6 +3222,98 @@ func (v *StacktraceFrameOriginal) MarshalFastJSON(w *fastjson.Writer) error {
 	return nil
 }
 
+func (v *System) MarshalFastJSON(w *fastjson.Writer) error {
+	var firstErr error
+	w.RawByte('{')
+	first := true
+	if !v.Filesystem.isZero() {
+		const prefix = ",\"filesystem\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		if err := v.Filesystem.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+	if !v.Process.isZero() {
+		const prefix = ",\"process\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		if err := v.Process.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+	w.RawByte('}')
+	return firstErr
+}
+
+func (v *SystemProcess) MarshalFastJSON(w *fastjson.Writer) error {
+	var firstErr error
+	w.RawByte('{')
+	first := true
+	if v.Cmdline != "" {
+		const prefix = ",\"cmdline\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		w.String(v.Cmdline)
+	}
+	if !v.CPU.isZero() {
+		const prefix = ",\"cpu\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		if err := v.CPU.MarshalFastJSON(w); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+	if v.State != "" {
+		const prefix = ",\"state\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		w.String(v.State)
+	}
+	w.RawByte('}')
+	return firstErr
+}
+
+func (v *SystemProcessCPU) MarshalFastJSON(w *fastjson.Writer) error {
+	w.RawByte('{')
+	if v.StartTime != "" {
+		w.RawString("\"start_time\":")
+		w.String(v.StartTime)
+	}
+	w.RawByte('}')
+	return nil
+}
+
+func (v *SystemFilesystem) MarshalFastJSON(w *fastjson.Writer) error {
+	w.RawByte('{')
+	if v.MountPoint != "" {
+		w.RawString("\"mount_point\":")
+		w.String(v.MountPoint)
+	}
+	w.RawByte('}')
+	return nil
+}
+
 func (v *Timestamp) MarshalFastJSON(w *fastjson.Writer) error {
 	w.RawByte('{')
 	w.RawString("\"us\":")
@@ -3348,6 +3472,23 @@ func (v *Transaction) MarshalFastJSON(w *fastjson.Writer) error {
 			w.RawString(prefix)
 		}
 		w.String(v.Name)
+	}
+	if v.ProfilerStackTraceIds != nil {
+		const prefix = ",\"profiler_stack_trace_ids\":"
+		if first {
+			first = false
+			w.RawString(prefix[1:])
+		} else {
+			w.RawString(prefix)
+		}
+		w.RawByte('[')
+		for i, v := range v.ProfilerStackTraceIds {
+			if i != 0 {
+				w.RawByte(',')
+			}
+			w.String(v)
+		}
+		w.RawByte(']')
 	}
 	if v.RepresentativeCount != 0 {
 		const prefix = ",\"representative_count\":"

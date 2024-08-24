@@ -55,6 +55,8 @@ func isUnmappedMetadataField(key string) bool {
 		"client.ip",
 		"client.port",
 		"cloud.origin",
+		"code",
+		"code.stacktrace",
 		"container.runtime",
 		"container.image_name",
 		"container.image_tag",
@@ -168,7 +170,14 @@ func isUnmappedMetadataField(key string) bool {
 		"url.port",
 		"url.path",
 		"url.query",
-		"url.fragment":
+		"url.fragment",
+		"system",
+		"system.process",
+		"system.process.state",
+		"system.process.cmdline",
+		"system.process.cpu.start_time",
+		"system.filesystem",
+		"system.filesystem.mount_point":
 		return true
 	}
 	return false
@@ -297,9 +306,13 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, &out2)
 		out2.Host.Ip = []*modelpb.IP{defaultVal.IP}
-		out2.Client = populateNil(out2.Client)
+		if out2.Client == nil {
+			out2.Client = &modelpb.Client{}
+		}
 		out2.Client.Ip = defaultVal.IP
-		out2.Source = populateNil(out2.Source)
+		if out2.Source == nil {
+			out2.Source = &modelpb.Source{}
+		}
 		out2.Source.Ip = defaultVal.IP
 		modeldecodertest.AssertStructValues(t, &out2, isMetadataException, otherVal)
 		modeldecodertest.AssertStructValues(t, &out1, isMetadataException, defaultVal)
@@ -313,9 +326,11 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		input.System.ConfiguredHostname.Set("configured-host")
 		input.System.DetectedHostname.Set("detected-host")
 		input.System.DeprecatedHostname.Set("deprecated-host")
+		input.System.HostID.Set("host-id")
 		mapToMetadataModel(&input, &out)
 		assert.Equal(t, "configured-host", out.Host.Name)
 		assert.Equal(t, "detected-host", out.Host.Hostname)
+		assert.Equal(t, "host-id", out.Host.Id)
 		// no detected-host information
 		out = modelpb.APMEvent{}
 		input.System.DetectedHostname.Reset()

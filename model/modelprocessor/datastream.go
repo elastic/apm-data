@@ -20,6 +20,7 @@ package modelprocessor
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -50,9 +51,14 @@ type SetDataStream struct {
 func (s *SetDataStream) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	for i := range *b {
 		if (*b)[i].DataStream == nil {
-			(*b)[i].DataStream = &modelpb.DataStream{}
+			(*b)[i].DataStream = modelpb.DataStreamFromVTPool()
 		}
-		(*b)[i].DataStream.Namespace = s.Namespace
+		if (*b)[i].DataStream.Namespace == "" || isRUMAgentName((*b)[i].GetAgent().GetName()) {
+			// Only set namespace if
+			// 1. it is not already set in the input event; OR
+			// 2. it is from RUM agents, so that they cannot create arbitrarily many data streams
+			(*b)[i].DataStream.Namespace = s.Namespace
+		}
 		if (*b)[i].DataStream.Type == "" || (*b)[i].DataStream.Dataset == "" {
 			s.setDataStream((*b)[i])
 		}
@@ -64,9 +70,13 @@ func (s *SetDataStream) setDataStream(event *modelpb.APMEvent) {
 	switch event.Type() {
 	case modelpb.SpanEventType, modelpb.TransactionEventType:
 		event.DataStream.Type = tracesType
-		event.DataStream.Dataset = tracesDataset
+		if event.DataStream.Dataset == "" {
+			// Only set dataset if it is not already set in the input event
+			event.DataStream.Dataset = tracesDataset
+		}
 		// In order to maintain different ILM policies, RUM traces are sent to
 		// a different datastream.
+		// RUM agents should not be able to configure dataset.
 		if isRUMAgentName(event.GetAgent().GetName()) {
 			event.DataStream.Dataset = rumTracesDataset
 		}
@@ -75,10 +85,16 @@ func (s *SetDataStream) setDataStream(event *modelpb.APMEvent) {
 		event.DataStream.Dataset = errorsDataset
 	case modelpb.LogEventType:
 		event.DataStream.Type = logsType
-		event.DataStream.Dataset = getAppLogsDataset(event)
+		if event.DataStream.Dataset == "" || isRUMAgentName(event.GetAgent().GetName()) {
+			// Only set dataset if it is not already set in the input event
+			event.DataStream.Dataset = getAppLogsDataset(event)
+		}
 	case modelpb.MetricEventType:
 		event.DataStream.Type = metricsType
-		event.DataStream.Dataset = metricsetDataset(event)
+		if event.DataStream.Dataset == "" || isRUMAgentName(event.GetAgent().GetName()) {
+			// Only set dataset if it is not already set in the input event
+			event.DataStream.Dataset = metricsetDataset(event)
+		}
 	}
 }
 
@@ -126,10 +142,19 @@ func metricsetDataset(event *modelpb.APMEvent) string {
 		// metrics that we don't already know about; otherwise they will end
 		// up creating service-specific data streams.
 		internal := true
-		for _, s := range event.Metricset.Samples {
-			if !IsInternalMetricName(s.Name) {
-				internal = false
-				break
+
+		// set internal to false for metrics translated using OTel remappers.
+		if label, ok := event.Labels["otel_remapped"]; ok && label != nil {
+			remapped, _ := strconv.ParseBool(label.Value)
+			internal = !remapped
+		}
+
+		if internal {
+			for _, s := range event.Metricset.Samples {
+				if !IsInternalMetricName(s.Name) {
+					internal = false
+					break
+				}
 			}
 		}
 		if internal {

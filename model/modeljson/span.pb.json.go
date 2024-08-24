@@ -63,7 +63,7 @@ func SpanModelJSON(e *modelpb.Span, out *modeljson.Span) {
 	if e.SelfTime != nil {
 		out.SelfTime = modeljson.AggregatedDuration{
 			Count: e.SelfTime.Count,
-			Sum:   e.SelfTime.Sum.AsDuration(),
+			Sum:   time.Duration(e.SelfTime.Sum),
 		}
 	}
 	if e.Db != nil {
@@ -89,10 +89,11 @@ func SpanModelJSON(e *modelpb.Span, out *modeljson.Span) {
 		if e.DestinationService.ResponseTime != nil {
 			out.Destination.Service.ResponseTime = modeljson.AggregatedDuration{
 				Count: e.DestinationService.ResponseTime.Count,
-				Sum:   e.DestinationService.ResponseTime.Sum.AsDuration(),
+				Sum:   time.Duration(e.DestinationService.ResponseTime.Sum),
 			}
 		}
 	}
+
 	if n := len(e.Links); n > 0 {
 		out.Links = make([]modeljson.SpanLink, n)
 		for i, link := range e.Links {

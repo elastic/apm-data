@@ -30,7 +30,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/testing/protocmp"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
@@ -59,8 +58,8 @@ func TestDecodeNestedSpan(t *testing.T) {
 		require.NoError(t, DecodeNestedSpan(dec, &input, &batch))
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Span)
-		assert.Equal(t, time.Time{}.Add(143*time.Millisecond), batch[0].Timestamp.AsTime())
-		assert.Equal(t, 100*time.Millisecond, batch[0].Event.Duration.AsDuration())
+		assert.Equal(t, eventBase.Timestamp+uint64((143*time.Millisecond).Nanoseconds()), batch[0].Timestamp)
+		assert.Equal(t, uint64(100*time.Millisecond), batch[0].Event.Duration)
 		assert.Equal(t, "parent-123", batch[0].ParentId, protocmp.Transform())
 		assert.Equal(t, &modelpb.Trace{Id: "trace-ab"}, batch[0].Trace, protocmp.Transform())
 		assert.Empty(t, cmp.Diff(&modelpb.Span{
@@ -175,9 +174,16 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		assert.Equal(t, "failure", out.Event.Outcome)
 		// derive from other fields - unknown
 		input.Outcome.Reset()
+		input.OTel.Reset()
 		input.Context.HTTP.StatusCode.Reset()
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, "unknown", out.Event.Outcome)
+		// outcome is success when not assigned and it's otel
+		input.Outcome.Reset()
+		input.OTel.SpanKind.Set(spanKindInternal)
+		input.Context.HTTP.StatusCode.Reset()
+		mapToSpanModel(&input, &out)
+		assert.Equal(t, "success", out.Event.Outcome)
 	})
 
 	t.Run("timestamp", func(t *testing.T) {
@@ -185,17 +191,17 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		var input span
 		var out modelpb.APMEvent
 		reqTime := time.Now().Add(time.Hour).UTC()
-		out.Timestamp = timestamppb.New(reqTime)
+		out.Timestamp = modelpb.FromTime(reqTime)
 		input.Start.Set(20.5)
 		mapToSpanModel(&input, &out)
 		timestamp := reqTime.Add(time.Duration(input.Start.Val * float64(time.Millisecond))).UTC()
-		assert.Equal(t, timestamp, out.Timestamp.AsTime())
+		assert.Equal(t, modelpb.FromTime(timestamp), out.Timestamp)
 
 		// leave base event timestamp unmodified if neither event timestamp nor start is specified
-		out = modelpb.APMEvent{Timestamp: timestamppb.New(reqTime)}
+		out = modelpb.APMEvent{Timestamp: modelpb.FromTime(reqTime)}
 		input.Start.Reset()
 		mapToSpanModel(&input, &out)
-		assert.Equal(t, reqTime, out.Timestamp.AsTime())
+		assert.Equal(t, modelpb.FromTime(reqTime), out.Timestamp)
 	})
 
 	t.Run("sample-rate", func(t *testing.T) {
@@ -418,48 +424,57 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		})
 
 		t.Run("messaging", func(t *testing.T) {
-			attrs := map[string]interface{}{
-				"messaging.system":      "kafka",
-				"messaging.destination": "myTopic",
-				"net.peer.ip":           "10.20.30.40",
-				"net.peer.port":         json.Number("123"),
+			for _, attrs := range []map[string]any{
+				{
+					"messaging.system":      "kafka",
+					"messaging.destination": "myTopic",
+					"net.peer.ip":           "10.20.30.40",
+					"net.peer.port":         json.Number("123"),
+				},
+				{
+					"messaging.system":           "kafka",
+					"messaging.destination.name": "myTopic",
+					"net.peer.ip":                "10.20.30.40",
+					"net.peer.port":              json.Number("123"),
+				},
+			} {
+
+				var input span
+				var event modelpb.APMEvent
+				modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+				input.OTel.Attributes = attrs
+				input.OTel.SpanKind.Set("PRODUCER")
+				input.Type.Reset()
+				mapToSpanModel(&input, &event)
+
+				assert.Equal(t, "messaging", event.Span.Type)
+				assert.Equal(t, "kafka", event.Span.Subtype)
+				assert.Equal(t, "send", event.Span.Action)
+				assert.Equal(t, "PRODUCER", event.Span.Kind)
+				assert.Equal(t, &modelpb.Destination{
+					Address: "10.20.30.40",
+					Port:    123,
+				}, event.Destination)
+				assert.Empty(t, cmp.Diff(&modelpb.DestinationService{
+					Type:     "messaging",
+					Name:     "kafka",
+					Resource: "kafka/myTopic",
+				}, event.Span.DestinationService, protocmp.Transform()))
+				assert.Empty(t, cmp.Diff(&modelpb.ServiceTarget{
+					Type: "kafka",
+					Name: "myTopic",
+				}, event.Service.Target, protocmp.Transform()))
 			}
-
-			var input span
-			var event modelpb.APMEvent
-			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-			input.OTel.Attributes = attrs
-			input.OTel.SpanKind.Set("PRODUCER")
-			input.Type.Reset()
-			mapToSpanModel(&input, &event)
-
-			assert.Equal(t, "messaging", event.Span.Type)
-			assert.Equal(t, "kafka", event.Span.Subtype)
-			assert.Equal(t, "send", event.Span.Action)
-			assert.Equal(t, "PRODUCER", event.Span.Kind)
-			assert.Equal(t, &modelpb.Destination{
-				Address: "10.20.30.40",
-				Port:    123,
-			}, event.Destination)
-			assert.Empty(t, cmp.Diff(&modelpb.DestinationService{
-				Type:     "messaging",
-				Name:     "kafka",
-				Resource: "kafka/myTopic",
-			}, event.Span.DestinationService, protocmp.Transform()))
-			assert.Empty(t, cmp.Diff(&modelpb.ServiceTarget{
-				Type: "kafka",
-				Name: "myTopic",
-			}, event.Service.Target, protocmp.Transform()))
 		})
 
 		t.Run("network", func(t *testing.T) {
 			attrs := map[string]interface{}{
-				"net.host.connection.type":    "cell",
-				"net.host.connection.subtype": "LTE",
-				"net.host.carrier.name":       "Vodafone",
-				"net.host.carrier.mnc":        "01",
-				"net.host.carrier.mcc":        "101",
-				"net.host.carrier.icc":        "UK",
+				"network.connection.type":    "cell",
+				"network.connection.subtype": "LTE",
+				"network.carrier.name":       "Vodafone",
+				"network.carrier.mnc":        "01",
+				"network.carrier.mcc":        "101",
+				"network.carrier.icc":        "UK",
 			}
 			var input span
 			var event modelpb.APMEvent

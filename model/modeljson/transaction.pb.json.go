@@ -18,19 +18,22 @@
 package modeljson
 
 import (
+	"time"
+
 	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
 func TransactionModelJSON(e *modelpb.Transaction, out *modeljson.Transaction, metricset bool) {
 	*out = modeljson.Transaction{
-		ID:                  e.Id,
-		Type:                e.Type,
-		Name:                e.Name,
-		Result:              e.Result,
-		Sampled:             e.Sampled,
-		Root:                e.Root,
-		RepresentativeCount: e.RepresentativeCount,
+		ID:                    e.Id,
+		Type:                  e.Type,
+		Name:                  e.Name,
+		Result:                e.Result,
+		Sampled:               e.Sampled,
+		Root:                  e.Root,
+		RepresentativeCount:   e.RepresentativeCount,
+		ProfilerStackTraceIds: e.ProfilerStackTraceIds,
 	}
 
 	if e.Custom != nil {
@@ -74,7 +77,7 @@ func TransactionModelJSON(e *modelpb.Transaction, out *modeljson.Transaction, me
 				if dss.Duration != nil {
 					dssJson.Duration = modeljson.AggregatedDuration{
 						Count: dss.Duration.Count,
-						Sum:   dss.Duration.Sum.AsDuration(),
+						Sum:   time.Duration(dss.Duration.Sum),
 					}
 				}
 

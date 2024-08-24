@@ -31,9 +31,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/testing/protocmp"
-	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/structpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
@@ -53,7 +51,7 @@ func TestResetTransactionOnRelease(t *testing.T) {
 
 func TestDecodeNestedTransaction(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
-		now := time.Now().UTC()
+		now := modelpb.FromTime(time.Now())
 		input := modeldecoder.Input{Base: &modelpb.APMEvent{}}
 		str := `{"transaction":{"duration":100,"timestamp":1599996822281000,"id":"100","trace_id":"1","type":"request","span_count":{"started":2}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
@@ -63,15 +61,15 @@ func TestDecodeNestedTransaction(t *testing.T) {
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Transaction)
 		assert.Equal(t, "request", batch[0].Transaction.Type)
-		assert.Equal(t, "2020-09-13 11:33:42.281 +0000 UTC", batch[0].Timestamp.AsTime().String())
+		assert.Equal(t, "2020-09-13 11:33:42.281 +0000 UTC", modelpb.ToTime(batch[0].Timestamp).String())
 
-		input = modeldecoder.Input{Base: &modelpb.APMEvent{Timestamp: timestamppb.New(now)}}
+		input = modeldecoder.Input{Base: &modelpb.APMEvent{Timestamp: now}}
 		str = `{"transaction":{"duration":100,"id":"100","trace_id":"1","type":"request","span_count":{"started":2}}}`
 		dec = decoder.NewJSONDecoder(strings.NewReader(str))
 		batch = modelpb.Batch{}
 		require.NoError(t, DecodeNestedTransaction(dec, &input, &batch))
 		// if no timestamp is provided, fall back to base event timestamp
-		assert.Equal(t, now, batch[0].Timestamp.AsTime())
+		assert.Equal(t, now, batch[0].Timestamp)
 
 		err := DecodeNestedTransaction(decoder.NewJSONDecoder(strings.NewReader(`malformed`)), &input, &batch)
 		require.Error(t, err)
@@ -202,7 +200,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 					Outcome:                    "success",
 					Duration: &modelpb.AggregatedDuration{
 						Count: 2,
-						Sum:   durationpb.New(time.Duration(durationSumUs) * time.Microsecond),
+						Sum:   uint64(time.Duration(durationSumUs) * time.Microsecond),
 					},
 				},
 				{
@@ -210,7 +208,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 					Outcome:                    "unknown",
 					Duration: &modelpb.AggregatedDuration{
 						Count: 10,
-						Sum:   durationpb.New(time.Duration(durationSumUs) * time.Microsecond),
+						Sum:   uint64(time.Duration(durationSumUs) * time.Microsecond),
 					},
 				},
 			},
@@ -270,6 +268,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"representative_count",
 				// Kind is tested further down
 				"Kind",
+				// profiler_stack_trace_ids are supplied as OTel-attributes
+				"profiler_stack_trace_ids",
 
 				// Not set for transaction events, tested in metricset decoding:
 				"AggregatedDuration",
@@ -296,8 +296,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 
 		var input transaction
 		var out1, out2 modelpb.APMEvent
-		reqTime := time.Now().Add(time.Second)
-		out1.Timestamp = timestamppb.New(reqTime)
+		reqTime := modelpb.FromTime(time.Now().Add(time.Second))
+		out1.Timestamp = reqTime
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		input.OTel.Reset()
@@ -306,13 +306,13 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
 
 		// leave base event timestamp unmodified if event timestamp is unspecified
-		out1.Timestamp = timestamppb.New(reqTime)
+		out1.Timestamp = reqTime
 		mapToTransactionModel(&input, &out1)
-		assert.Equal(t, reqTime.UTC(), out1.Timestamp.AsTime())
+		assert.Equal(t, reqTime, out1.Timestamp)
 		input.Reset()
 
 		// ensure memory is not shared by reusing input model
-		out2.Timestamp = timestamppb.New(reqTime)
+		out2.Timestamp = reqTime
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToTransactionModel(&input, &out1)
 		input.Reset()
@@ -425,9 +425,16 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		assert.Equal(t, "failure", out.Event.Outcome)
 		// derive from other fields - unknown
 		input.Outcome.Reset()
+		input.OTel.Reset()
 		input.Context.Response.StatusCode.Reset()
 		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "unknown", out.Event.Outcome)
+		// outcome is success when not assigned and it's otel
+		input.Outcome.Reset()
+		input.OTel.SpanKind.Set(spanKindInternal)
+		input.Context.Response.StatusCode.Reset()
+		mapToTransactionModel(&input, &out)
+		assert.Equal(t, "success", out.Event.Outcome)
 	})
 
 	t.Run("session", func(t *testing.T) {
@@ -556,14 +563,32 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			}, event.Transaction.Message)
 		})
 
+		t.Run("messaging_without_destination", func(t *testing.T) {
+			var input transaction
+			var event modelpb.APMEvent
+			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+			input.Type.Reset()
+			attrs := map[string]interface{}{
+				"messaging.system":    "kafka",
+				"messaging.operation": "publish",
+			}
+			input.OTel.Attributes = attrs
+			input.OTel.SpanKind.Reset()
+
+			mapToTransactionModel(&input, &event)
+			assert.Equal(t, "messaging", event.Transaction.Type)
+			assert.Equal(t, "CONSUMER", event.Span.Kind)
+			assert.Nil(t, event.Transaction.Message)
+		})
+
 		t.Run("network", func(t *testing.T) {
 			attrs := map[string]interface{}{
-				"net.host.connection.type":    "cell",
-				"net.host.connection.subtype": "LTE",
-				"net.host.carrier.name":       "Vodafone",
-				"net.host.carrier.mnc":        "01",
-				"net.host.carrier.mcc":        "101",
-				"net.host.carrier.icc":        "UK",
+				"network.connection.type":    "cell",
+				"network.connection.subtype": "LTE",
+				"network.carrier.name":       "Vodafone",
+				"network.carrier.mnc":        "01",
+				"network.carrier.mcc":        "101",
+				"network.carrier.icc":        "UK",
 			}
 			var input transaction
 			var event modelpb.APMEvent
@@ -612,6 +637,19 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 
 			mapToTransactionModel(&input, &event)
 			assert.Equal(t, "CLIENT", event.Span.Kind)
+		})
+
+		t.Run("elastic-profiling-ids", func(t *testing.T) {
+			var input transaction
+			var event modelpb.APMEvent
+			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
+			attrs := map[string]interface{}{
+				"elastic.profiler_stack_trace_ids": []interface{}{"id1", "id2"},
+			}
+			input.OTel.Attributes = attrs
+
+			mapToTransactionModel(&input, &event)
+			assert.Equal(t, []string{"id1", "id2"}, event.Transaction.ProfilerStackTraceIds)
 		})
 	})
 	t.Run("labels", func(t *testing.T) {

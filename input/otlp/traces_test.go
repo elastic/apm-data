@@ -50,6 +50,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/fastjson"
+	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
@@ -62,6 +63,10 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
+func TestConsumer_ConsumeTraces_Interface(t *testing.T) {
+	var _ consumer.Traces = otlp.NewConsumer(otlp.ConsumerConfig{})
+}
+
 func TestConsumer_ConsumeTraces_Empty(t *testing.T) {
 	var processor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
 		assert.Empty(t, batch)
@@ -73,7 +78,9 @@ func TestConsumer_ConsumeTraces_Empty(t *testing.T) {
 		Semaphore: semaphore.NewWeighted(100),
 	})
 	traces := ptrace.NewTraces()
-	assert.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+	result, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
+	assert.NoError(t, err)
+	assert.Equal(t, otlp.ConsumeTracesResult{}, result)
 }
 
 func TestOutcome(t *testing.T) {
@@ -99,7 +106,7 @@ func TestOutcome(t *testing.T) {
 		assert.Equal(t, expectedOutcome, (*batch)[1].GetEvent().GetOutcome())
 	}
 
-	test(t, "unknown", "", ptrace.StatusCodeUnset)
+	test(t, "success", "Success", ptrace.StatusCodeUnset)
 	test(t, "success", "Success", ptrace.StatusCodeOk)
 	test(t, "failure", "Error", ptrace.StatusCodeError)
 }
@@ -244,6 +251,34 @@ func TestHTTPTransactionURL(t *testing.T) {
 		}, map[string]interface{}{
 			"http.host":   "testing.invalid",
 			"http.target": "/foo",
+		})
+	})
+	t.Run("url_attributes", func(t *testing.T) {
+		test(t, &modelpb.URL{
+			Scheme:   "https",
+			Original: "/foo",
+			Full:     "https://test.domain/foo",
+			Path:     "/foo",
+			Domain:   "test.domain",
+		}, map[string]interface{}{
+			"url.scheme":     "https",
+			"server.address": "test.domain",
+			"url.path":       "/foo",
+		})
+	})
+	t.Run("url_attributes_with_query", func(t *testing.T) {
+		test(t, &modelpb.URL{
+			Scheme:   "https",
+			Original: "/foo?bar",
+			Full:     "https://test.domain/foo?bar",
+			Path:     "/foo",
+			Query:    "bar",
+			Domain:   "test.domain",
+		}, map[string]interface{}{
+			"url.scheme":     "https",
+			"server.address": "test.domain",
+			"url.path":       "/foo",
+			"url.query":      "bar",
 		})
 	})
 }
@@ -416,10 +451,23 @@ func TestHTTPTransactionFlavor(t *testing.T) {
 }
 
 func TestHTTPTransactionUserAgent(t *testing.T) {
-	event := transformTransactionWithAttributes(t, map[string]interface{}{
-		"http.user_agent": "Foo/bar (baz)",
+	test := func(t *testing.T, attrs map[string]interface{}) {
+		t.Helper()
+		event := transformTransactionWithAttributes(t, attrs)
+		assert.Equal(t, &modelpb.UserAgent{Original: "Foo/bar (baz)"}, event.UserAgent)
+	}
+
+	t.Run("http.user_agent", func(t *testing.T) {
+		test(t, map[string]interface{}{
+			"http.user_agent": "Foo/bar (baz)",
+		})
 	})
-	assert.Equal(t, &modelpb.UserAgent{Original: "Foo/bar (baz)"}, event.UserAgent)
+
+	t.Run("user_agent.original", func(t *testing.T) {
+		test(t, map[string]interface{}{
+			"user_agent.original": "Foo/bar (baz)",
+		})
+	})
 }
 
 func TestHTTPTransactionClientIP(t *testing.T) {
@@ -435,10 +483,23 @@ func TestHTTPTransactionClientIP(t *testing.T) {
 }
 
 func TestHTTPTransactionStatusCode(t *testing.T) {
-	event := transformTransactionWithAttributes(t, map[string]interface{}{
-		"http.status_code": 200,
+	test := func(t *testing.T, expected uint32, attrs map[string]interface{}) {
+		t.Helper()
+		event := transformSpanWithAttributes(t, attrs)
+		assert.Equal(t, expected, event.Http.Response.StatusCode)
+	}
+
+	t.Run("http.status_code", func(t *testing.T) {
+		test(t, 200, map[string]interface{}{
+			"http.status_code": 200,
+		})
 	})
-	assert.Equal(t, uint32(200), event.Http.Response.StatusCode)
+
+	t.Run("http.response.status_code", func(t *testing.T) {
+		test(t, 200, map[string]interface{}{
+			"http.response.status_code": 200,
+		})
+	})
 }
 
 func TestDatabaseSpan(t *testing.T) {
@@ -483,6 +544,24 @@ func TestDatabaseSpan(t *testing.T) {
 		Name:     "mysql",
 		Resource: "mysql",
 	}, event.Span.DestinationService, protocmp.Transform()))
+}
+
+func TestDatabaseSpanWithServerAttributes(t *testing.T) {
+	event := transformSpanWithAttributes(t, map[string]interface{}{
+		"db.system":      "mysql",
+		"db.name":        "ShopDb",
+		"server.address": "shopdb.example.com",
+		"server.port":    3306,
+	})
+
+	assert.Equal(t, "db", event.Span.Type)
+	assert.Equal(t, "mysql", event.Span.Subtype)
+	assert.Equal(t, "", event.Span.Action)
+
+	assert.Equal(t, &modelpb.Destination{
+		Address: "shopdb.example.com",
+		Port:    3306,
+	}, event.Destination)
 }
 
 func TestInstrumentationLibrary(t *testing.T) {
@@ -545,44 +624,90 @@ func TestRPCSpan(t *testing.T) {
 }
 
 func TestMessagingTransaction(t *testing.T) {
-	event := transformTransactionWithAttributes(t, map[string]interface{}{
-		"messaging.destination": "myQueue",
-	}, func(s ptrace.Span) {
-		s.SetKind(ptrace.SpanKindConsumer)
-		// Set parentID to imply this isn't the root, but
-		// kind==Consumer should still force the span to be translated
-		// as a transaction.
-		s.SetParentSpanID(pcommon.SpanID{3})
-	})
-	assert.Equal(t, "messaging", event.Transaction.Type)
-	assert.Empty(t, event.Labels)
-	assert.Equal(t, &modelpb.Message{
-		QueueName: "myQueue",
-	}, event.Transaction.Message)
+	for _, tc := range []struct {
+		attrs map[string]interface{}
+
+		expectedLabels     map[string]*modelpb.LabelValue
+		expectedTxnMessage *modelpb.Message
+	}{
+		{
+			attrs: map[string]interface{}{
+				"messaging.destination": "myQueue",
+			},
+			expectedLabels: nil,
+			expectedTxnMessage: &modelpb.Message{
+				QueueName: "myQueue",
+			},
+		},
+		{
+			attrs: map[string]interface{}{
+				"messaging.system": "kafka",
+			},
+			expectedLabels: map[string]*modelpb.LabelValue{
+				"messaging_system": {Value: "kafka"},
+			},
+			expectedTxnMessage: nil,
+		},
+		{
+			attrs: map[string]interface{}{
+				"messaging.operation": "publish",
+			},
+			expectedLabels: map[string]*modelpb.LabelValue{
+				"messaging_operation": {Value: "publish"},
+			},
+			expectedTxnMessage: nil,
+		},
+	} {
+		tcName, err := json.Marshal(tc.attrs)
+		require.NoError(t, err)
+		t.Run(string(tcName), func(t *testing.T) {
+			event := transformTransactionWithAttributes(t, tc.attrs, func(s ptrace.Span) {
+				s.SetKind(ptrace.SpanKindConsumer)
+				// Set parentID to imply this isn't the root, but
+				// kind==Consumer should still force the span to be translated
+				// as a transaction.
+				s.SetParentSpanID(pcommon.SpanID{3})
+			})
+			assert.Equal(t, "messaging", event.Transaction.Type)
+			assert.Equal(t, tc.expectedLabels, event.Labels)
+			assert.Equal(t, tc.expectedTxnMessage, event.Transaction.Message)
+		})
+	}
+
 }
 
 func TestMessagingSpan(t *testing.T) {
-	event := transformSpanWithAttributes(t, map[string]interface{}{
-		"messaging.system":      "kafka",
-		"messaging.destination": "myTopic",
-		"net.peer.ip":           "10.20.30.40",
-		"net.peer.port":         123,
-	}, func(s ptrace.Span) {
-		s.SetKind(ptrace.SpanKindProducer)
-	})
-	assert.Equal(t, "messaging", event.Span.Type)
-	assert.Equal(t, "kafka", event.Span.Subtype)
-	assert.Equal(t, "send", event.Span.Action)
-	assert.Empty(t, event.Labels)
-	assert.Equal(t, &modelpb.Destination{
-		Address: "10.20.30.40",
-		Port:    123,
-	}, event.Destination)
-	assert.Empty(t, cmp.Diff(&modelpb.DestinationService{
-		Type:     "messaging",
-		Name:     "kafka",
-		Resource: "kafka/myTopic",
-	}, event.Span.DestinationService, protocmp.Transform()))
+	for _, attr := range []map[string]any{
+		{
+			"messaging.system":      "kafka",
+			"messaging.destination": "myTopic",
+			"net.peer.ip":           "10.20.30.40",
+			"net.peer.port":         123,
+		},
+		{
+			"messaging.system":           "kafka",
+			"messaging.destination.name": "myTopic",
+			"net.peer.ip":                "10.20.30.40",
+			"net.peer.port":              123,
+		},
+	} {
+		event := transformSpanWithAttributes(t, attr, func(s ptrace.Span) {
+			s.SetKind(ptrace.SpanKindProducer)
+		})
+		assert.Equal(t, "messaging", event.Span.Type)
+		assert.Equal(t, "kafka", event.Span.Subtype)
+		assert.Equal(t, "send", event.Span.Action)
+		assert.Empty(t, event.Labels)
+		assert.Equal(t, &modelpb.Destination{
+			Address: "10.20.30.40",
+			Port:    123,
+		}, event.Destination)
+		assert.Empty(t, cmp.Diff(&modelpb.DestinationService{
+			Type:     "messaging",
+			Name:     "kafka",
+			Resource: "kafka/myTopic",
+		}, event.Span.DestinationService, protocmp.Transform()))
+	}
 }
 
 func TestMessagingSpan_DestinationResource(t *testing.T) {
@@ -593,40 +718,66 @@ func TestMessagingSpan_DestinationResource(t *testing.T) {
 		assert.Empty(t, cmp.Diff(expectedDestinationService, event.Span.DestinationService, protocmp.Transform()))
 	}
 
+	setAttr := func(t *testing.T, baseAttr map[string]any, key string, val any) map[string]any {
+		t.Helper()
+		newAttr := make(map[string]any)
+		// Copy from the original map to the target map
+		for key, value := range baseAttr {
+			newAttr[key] = value
+		}
+		newAttr[key] = val
+		return newAttr
+	}
+
 	t.Run("system_destination_peerservice_peeraddress", func(t *testing.T) {
-		test(t, &modelpb.Destination{
-			Address: "127.0.0.1",
-		}, &modelpb.DestinationService{
-			Type:     "messaging",
-			Name:     "testsvc",
-			Resource: "127.0.0.1/testtopic",
-		}, map[string]interface{}{
-			"messaging.system":      "kafka",
-			"messaging.destination": "testtopic",
-			"peer.service":          "testsvc",
-			"peer.address":          "127.0.0.1",
-		})
+		baseAttr := map[string]any{
+			"messaging.system": "kafka",
+			"peer.service":     "testsvc",
+			"peer.address":     "127.0.0.1",
+		}
+		for _, attr := range []map[string]any{
+			setAttr(t, baseAttr, "messaging.destination", "testtopic"),
+			setAttr(t, baseAttr, "messaging.destination.name", "testtopic"),
+		} {
+			test(t, &modelpb.Destination{
+				Address: "127.0.0.1",
+			}, &modelpb.DestinationService{
+				Type:     "messaging",
+				Name:     "testsvc",
+				Resource: "127.0.0.1/testtopic",
+			}, attr)
+		}
 	})
 	t.Run("system_destination_peerservice", func(t *testing.T) {
-		test(t, nil, &modelpb.DestinationService{
-			Type:     "messaging",
-			Name:     "testsvc",
-			Resource: "testsvc/testtopic",
-		}, map[string]interface{}{
-			"messaging.system":      "kafka",
-			"messaging.destination": "testtopic",
-			"peer.service":          "testsvc",
-		})
+		baseAttr := map[string]any{
+			"messaging.system": "kafka",
+			"peer.service":     "testsvc",
+		}
+		for _, attr := range []map[string]any{
+			setAttr(t, baseAttr, "messaging.destination", "testtopic"),
+			setAttr(t, baseAttr, "messaging.destination.name", "testtopic"),
+		} {
+			test(t, nil, &modelpb.DestinationService{
+				Type:     "messaging",
+				Name:     "testsvc",
+				Resource: "testsvc/testtopic",
+			}, attr)
+		}
 	})
 	t.Run("system_destination", func(t *testing.T) {
-		test(t, nil, &modelpb.DestinationService{
-			Type:     "messaging",
-			Name:     "kafka",
-			Resource: "kafka/testtopic",
-		}, map[string]interface{}{
-			"messaging.system":      "kafka",
-			"messaging.destination": "testtopic",
-		})
+		baseAttr := map[string]any{
+			"messaging.system": "kafka",
+		}
+		for _, attr := range []map[string]any{
+			setAttr(t, baseAttr, "messaging.destination", "testtopic"),
+			setAttr(t, baseAttr, "messaging.destination.name", "testtopic"),
+		} {
+			test(t, nil, &modelpb.DestinationService{
+				Type:     "messaging",
+				Name:     "kafka",
+				Resource: "kafka/testtopic",
+			}, attr)
+		}
 	})
 }
 
@@ -661,6 +812,9 @@ func TestTransactionTypePriorities(t *testing.T) {
 
 	attribs["messaging.destination"] = "foobar"
 	assert.Equal(t, "messaging", transactionWithAttribs(attribs).Transaction.Type)
+	delete(attribs, "messaging.destination")
+	attribs["messaging.destination.name"] = "foobar"
+	assert.Equal(t, "messaging", transactionWithAttribs(attribs).Transaction.Type)
 }
 
 func TestSpanTypePriorities(t *testing.T) {
@@ -682,18 +836,22 @@ func TestSpanTypePriorities(t *testing.T) {
 	attribs["messaging.destination"] = "foobar"
 	assert.Equal(t, "messaging", spanWithAttribs(attribs).Span.Type)
 
+	delete(attribs, "messaging.destination")
+	attribs["messaging.destination.name"] = "foobar"
+	assert.Equal(t, "messaging", spanWithAttribs(attribs).Span.Type)
+
 	attribs["db.statement"] = "SELECT * FROM FOO"
 	assert.Equal(t, "db", spanWithAttribs(attribs).Span.Type)
 }
 
 func TestSpanNetworkAttributes(t *testing.T) {
 	networkAttributes := map[string]interface{}{
-		"net.host.connection.type":    "cell",
-		"net.host.connection.subtype": "LTE",
-		"net.host.carrier.name":       "Vodafone",
-		"net.host.carrier.mnc":        "01",
-		"net.host.carrier.mcc":        "101",
-		"net.host.carrier.icc":        "UK",
+		"network.connection.type":    "cell",
+		"network.connection.subtype": "LTE",
+		"network.carrier.name":       "Vodafone",
+		"network.carrier.mnc":        "01",
+		"network.carrier.mcc":        "101",
+		"network.carrier.icc":        "UK",
 	}
 	txEvent := transformTransactionWithAttributes(t, networkAttributes)
 	spanEvent := transformSpanWithAttributes(t, networkAttributes)
@@ -712,6 +870,90 @@ func TestSpanNetworkAttributes(t *testing.T) {
 	}
 	assert.Equal(t, &expected, txEvent.Network)
 	assert.Equal(t, &expected, spanEvent.Network)
+}
+
+func TestSpanDataStream(t *testing.T) {
+	for _, tc := range []struct {
+		resourceDataStreamDataset   string
+		resourceDataStreamNamespace string
+		scopeDataStreamDataset      string
+		scopeDataStreamNamespace    string
+		recordDataStreamDataset     string
+		recordDataStreamNamespace   string
+
+		expectedDataStreamDataset   string
+		expectedDataStreamNamespace string
+	}{
+		{
+			resourceDataStreamDataset:   "1",
+			resourceDataStreamNamespace: "2",
+			scopeDataStreamDataset:      "3",
+			scopeDataStreamNamespace:    "4",
+			recordDataStreamDataset:     "5",
+			recordDataStreamNamespace:   "6",
+			expectedDataStreamDataset:   "5",
+			expectedDataStreamNamespace: "6",
+		},
+		{
+			resourceDataStreamDataset:   "1",
+			resourceDataStreamNamespace: "2",
+			scopeDataStreamDataset:      "3",
+			scopeDataStreamNamespace:    "4",
+			expectedDataStreamDataset:   "3",
+			expectedDataStreamNamespace: "4",
+		},
+		{
+			resourceDataStreamDataset:   "1",
+			resourceDataStreamNamespace: "2",
+			expectedDataStreamDataset:   "1",
+			expectedDataStreamNamespace: "2",
+		},
+	} {
+		for _, isTxn := range []bool{false, true} {
+			tcName := fmt.Sprintf("%s,%s,txn=%v", tc.expectedDataStreamDataset, tc.expectedDataStreamNamespace, isTxn)
+			t.Run(tcName, func(t *testing.T) {
+				traces := ptrace.NewTraces()
+				resourceSpans := traces.ResourceSpans().AppendEmpty()
+				resourceAttrs := traces.ResourceSpans().At(0).Resource().Attributes()
+				if tc.resourceDataStreamDataset != "" {
+					resourceAttrs.PutStr("data_stream.dataset", tc.resourceDataStreamDataset)
+				}
+				if tc.resourceDataStreamNamespace != "" {
+					resourceAttrs.PutStr("data_stream.namespace", tc.resourceDataStreamNamespace)
+				}
+
+				scopeSpans := resourceSpans.ScopeSpans().AppendEmpty()
+				scopeAttrs := resourceSpans.ScopeSpans().At(0).Scope().Attributes()
+				if tc.scopeDataStreamDataset != "" {
+					scopeAttrs.PutStr("data_stream.dataset", tc.scopeDataStreamDataset)
+				}
+				if tc.scopeDataStreamNamespace != "" {
+					scopeAttrs.PutStr("data_stream.namespace", tc.scopeDataStreamNamespace)
+				}
+
+				otelSpan := scopeSpans.Spans().AppendEmpty()
+				otelSpan.SetTraceID(pcommon.TraceID{1})
+				otelSpan.SetSpanID(pcommon.SpanID{2})
+				if !isTxn {
+					otelSpan.SetParentSpanID(pcommon.SpanID{3})
+				}
+				if tc.recordDataStreamDataset != "" {
+					otelSpan.Attributes().PutStr("data_stream.dataset", tc.recordDataStreamDataset)
+				}
+				if tc.recordDataStreamNamespace != "" {
+					otelSpan.Attributes().PutStr("data_stream.namespace", tc.recordDataStreamNamespace)
+				}
+				events := transformTraces(t, traces)
+
+				dataStream := &modelpb.DataStream{
+					Dataset:   tc.expectedDataStreamDataset,
+					Namespace: tc.expectedDataStreamNamespace,
+				}
+
+				assert.Equal(t, dataStream, (*events)[0].DataStream)
+			})
+		}
+	}
 }
 
 func TestSessionID(t *testing.T) {
@@ -765,6 +1007,26 @@ func TestArrayLabels(t *testing.T) {
 	}, modelpb.NumericLabels(spanEvent.NumericLabels))
 }
 
+func TestProfilerStackTraceIds(t *testing.T) {
+	validIds := []interface{}{"myId1", "myId2"}
+	badValueTypes := []interface{}{42, 68, "valid"}
+
+	tx1 := transformTransactionWithAttributes(t, map[string]interface{}{
+		"elastic.profiler_stack_trace_ids": validIds,
+	})
+	assert.Equal(t, []string{"myId1", "myId2"}, tx1.Transaction.ProfilerStackTraceIds)
+
+	tx2 := transformTransactionWithAttributes(t, map[string]interface{}{
+		"elastic.profiler_stack_trace_ids": badValueTypes,
+	})
+	assert.Equal(t, []string{"valid"}, tx2.Transaction.ProfilerStackTraceIds)
+
+	tx3 := transformTransactionWithAttributes(t, map[string]interface{}{
+		"elastic.profiler_stack_trace_ids": "bad type",
+	})
+	assert.Equal(t, []string(nil), tx3.Transaction.ProfilerStackTraceIds)
+}
+
 func TestConsumeTracesExportTimestamp(t *testing.T) {
 	traces, otelSpans := newTracesSpans()
 
@@ -774,7 +1036,7 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	// Use a large delta so that we can allow for a significant amount of
 	// delay in the test environment affecting the timestamp adjustment.
 	const timeDelta = time.Hour
-	const allowedError = 5 // seconds
+	const allowedError = 5 * time.Second // seconds
 
 	now := time.Now()
 	exportTimestamp := now.Add(-timeDelta)
@@ -815,13 +1077,13 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	require.Len(t, *batch, 3)
 
 	// Give some leeway for one event, and check other events' timestamps relative to that one.
-	assert.InDelta(t, now.Add(transactionOffset).Unix(), (*batch)[0].Timestamp.AsTime().Unix(), allowedError)
-	assert.Equal(t, spanOffset-transactionOffset, (*batch)[1].Timestamp.AsTime().Sub((*batch)[0].Timestamp.AsTime()))
-	assert.Equal(t, exceptionOffset-transactionOffset, (*batch)[2].Timestamp.AsTime().Sub((*batch)[0].Timestamp.AsTime()))
+	assert.InDelta(t, modelpb.FromTime(now.Add(transactionOffset)), (*batch)[0].Timestamp, float64(allowedError.Nanoseconds()))
+	assert.Equal(t, uint64((spanOffset - transactionOffset).Nanoseconds()), (*batch)[1].Timestamp-(*batch)[0].Timestamp)
+	assert.Equal(t, uint64((exceptionOffset - transactionOffset).Nanoseconds()), (*batch)[2].Timestamp-(*batch)[0].Timestamp)
 
 	// Durations should be unaffected.
-	assert.Equal(t, transactionDuration, (*batch)[0].GetEvent().GetDuration().AsDuration())
-	assert.Equal(t, spanDuration, (*batch)[1].GetEvent().GetDuration().AsDuration())
+	assert.Equal(t, transactionDuration, time.Duration((*batch)[0].GetEvent().GetDuration()))
+	assert.Equal(t, spanDuration, time.Duration((*batch)[1].GetEvent().GetDuration()))
 
 	for _, b := range *batch {
 		// telemetry.sdk.elastic_export_timestamp should not be sent as a label.
@@ -831,7 +1093,7 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 
 func TestConsumeTracesEventReceived(t *testing.T) {
 	traces, otelSpans := newTracesSpans()
-	now := time.Now()
+	now := modelpb.FromTime(time.Now())
 
 	otelSpan1 := otelSpans.Spans().AppendEmpty()
 	otelSpan1.SetTraceID(pcommon.TraceID{1})
@@ -840,8 +1102,8 @@ func TestConsumeTracesEventReceived(t *testing.T) {
 	batch := transformTraces(t, traces)
 	require.Len(t, *batch, 1)
 
-	const allowedDelta = 2 // seconds
-	require.InDelta(t, now.Unix(), (*batch)[0].Event.Received.AsTime().Unix(), allowedDelta)
+	const allowedDelta = 2 * time.Second // seconds
+	require.InDelta(t, now, (*batch)[0].Event.Received, float64(allowedDelta.Nanoseconds()))
 }
 
 func TestSpanLinks(t *testing.T) {
@@ -851,11 +1113,25 @@ func TestSpanLinks(t *testing.T) {
 	spanLink.SetSpanID(linkedSpanID)
 	spanLink.SetTraceID(linkedTraceID)
 
+	childSpanID1 := pcommon.SpanID{16, 17, 18, 19, 20, 21, 22, 23}
+	childLink1 := ptrace.NewSpanLink()
+	childLink1.SetSpanID(childSpanID1)
+	childLink1.SetTraceID(linkedTraceID)
+	childLink1.Attributes().PutBool("elastic.is_child", true)
+
+	childSpanID2 := pcommon.SpanID{24, 25, 26, 27, 28, 29, 30, 31}
+	childLink2 := ptrace.NewSpanLink()
+	childLink2.SetSpanID(childSpanID2)
+	childLink2.SetTraceID(linkedTraceID)
+	childLink2.Attributes().PutBool("is_child", true)
+
 	txEvent := transformTransactionWithAttributes(t, map[string]interface{}{}, func(span ptrace.Span) {
 		spanLink.CopyTo(span.Links().AppendEmpty())
 	})
-	spanEvent := transformTransactionWithAttributes(t, map[string]interface{}{}, func(span ptrace.Span) {
+	spanEvent := transformSpanWithAttributes(t, map[string]interface{}{}, func(span ptrace.Span) {
 		spanLink.CopyTo(span.Links().AppendEmpty())
+		childLink1.CopyTo(span.Links().AppendEmpty())
+		childLink2.CopyTo(span.Links().AppendEmpty())
 	})
 	for _, event := range []*modelpb.APMEvent{txEvent, spanEvent} {
 		assert.Equal(t, []*modelpb.SpanLink{{
@@ -863,6 +1139,7 @@ func TestSpanLinks(t *testing.T) {
 			TraceId: "000102030405060708090a0b0c0d0e0f",
 		}}, event.Span.Links)
 	}
+	assert.Equal(t, spanEvent.ChildIds, []string{"1011121314151617", "18191a1b1c1d1e1f"})
 }
 
 func TestConsumeTracesSemaphore(t *testing.T) {
@@ -872,7 +1149,8 @@ func TestConsumeTracesSemaphore(t *testing.T) {
 	doneCh := make(chan struct{})
 	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
 		<-doneCh
-		batches = append(batches, batch)
+		batchCopy := batch.Clone()
+		batches = append(batches, &batchCopy)
 		return nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
@@ -883,17 +1161,19 @@ func TestConsumeTracesSemaphore(t *testing.T) {
 	startCh := make(chan struct{})
 	go func() {
 		close(startCh)
-		assert.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+		_, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
+		assert.NoError(t, err)
 	}()
 
 	<-startCh
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
-	err := consumer.ConsumeTraces(ctx, traces)
+	_, err := consumer.ConsumeTracesWithResult(ctx, traces)
 	assert.Equal(t, err.Error(), "context deadline exceeded")
 	close(doneCh)
 
-	assert.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+	_, err = consumer.ConsumeTracesWithResult(context.Background(), traces)
+	assert.NoError(t, err)
 }
 
 func TestConsumer_JaegerMetadata(t *testing.T) {
@@ -942,7 +1222,9 @@ func TestConsumer_JaegerMetadata(t *testing.T) {
 			jaegerBatch.Process = tc.process
 			traces, err := jaegertranslator.ProtoToTraces([]*jaegermodel.Batch{jaegerBatch})
 			require.NoError(t, err)
-			require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+			result, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
+			require.NoError(t, err)
+			require.Equal(t, otlp.ConsumeTracesResult{}, result)
 
 			docs := encodeBatch(t, batches...)
 			approveEventDocs(t, "metadata_"+tc.name, docs)
@@ -1010,7 +1292,9 @@ func TestConsumer_JaegerSampleRate(t *testing.T) {
 		Processor: recorder,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+	result, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
+	require.NoError(t, err)
+	require.Equal(t, otlp.ConsumeTracesResult{}, result)
 	require.Len(t, batches, 1)
 	batch := *batches[0]
 
@@ -1044,7 +1328,9 @@ func TestConsumer_JaegerTraceID(t *testing.T) {
 		}},
 	}})
 	require.NoError(t, err)
-	require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+	result, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
+	require.NoError(t, err)
+	require.Equal(t, otlp.ConsumeTracesResult{}, result)
 
 	batch := *batches[0]
 	assert.Equal(t, "00000000000000000000000046467830", batch[0].Trace.Id)
@@ -1155,6 +1441,36 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 				},
 			}},
 		},
+		{
+			name: "jaeger_data_stream",
+			spans: []*jaegermodel.Span{{
+				StartTime: testStartTime(),
+				Tags: []jaegermodel.KeyValue{
+					jaegerKeyValue("data_stream.dataset", "1"),
+					jaegerKeyValue("data_stream.namespace", "2"),
+				},
+			}},
+		},
+		{
+			name: "jaeger_data_stream_with_error",
+			spans: []*jaegermodel.Span{{
+				TraceID: jaegermodel.NewTraceID(0, 0x46467830),
+				Tags: []jaegermodel.KeyValue{
+					jaegerKeyValue("data_stream.dataset", "1"),
+					jaegerKeyValue("data_stream.namespace", "2"),
+				},
+				Logs: []jaegermodel.Log{{
+					Timestamp: testStartTime().Add(23 * time.Nanosecond),
+					Fields: jaegerKeyValues(
+						"event", "retrying connection",
+						"level", "error",
+						"error", "no connection established",
+						"data_stream.dataset", "3",
+						"data_stream.namespace", "4",
+					),
+				}},
+			}},
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			traces, err := jaegertranslator.ProtoToTraces([]*jaegermodel.Batch{{
@@ -1172,7 +1488,9 @@ func TestConsumer_JaegerTransaction(t *testing.T) {
 				Processor: recorder,
 				Semaphore: semaphore.NewWeighted(100),
 			})
-			require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+			result, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
+			require.NoError(t, err)
+			require.Equal(t, otlp.ConsumeTracesResult{}, result)
 
 			docs := encodeBatch(t, batches...)
 			approveEventDocs(t, "transaction_"+tc.name, docs)
@@ -1263,6 +1581,34 @@ func TestConsumer_JaegerSpan(t *testing.T) {
 			name:  "jaeger_custom",
 			spans: []*jaegermodel.Span{{}},
 		},
+		{
+			name: "jaeger_data_stream",
+			spans: []*jaegermodel.Span{{
+				Tags: []jaegermodel.KeyValue{
+					jaegerKeyValue("data_stream.dataset", "1"),
+					jaegerKeyValue("data_stream.namespace", "2"),
+				},
+			}},
+		},
+		{
+			name: "jaeger_data_stream_with_error",
+			spans: []*jaegermodel.Span{{
+				Tags: []jaegermodel.KeyValue{
+					jaegerKeyValue("data_stream.dataset", "1"),
+					jaegerKeyValue("data_stream.namespace", "2"),
+				},
+				Logs: []jaegermodel.Log{{
+					Timestamp: testStartTime().Add(23 * time.Nanosecond),
+					Fields: jaegerKeyValues(
+						"event", "retrying connection",
+						"level", "error",
+						"error", "no connection established",
+						"data_stream.dataset", "3",
+						"data_stream.namespace", "4",
+					),
+				}},
+			}},
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			batch := &jaegermodel.Batch{
@@ -1292,7 +1638,9 @@ func TestConsumer_JaegerSpan(t *testing.T) {
 				Processor: recorder,
 				Semaphore: semaphore.NewWeighted(100),
 			})
-			require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+			result, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
+			require.NoError(t, err)
+			require.Equal(t, otlp.ConsumeTracesResult{}, result)
 
 			docs := encodeBatch(t, batches...)
 			approveEventDocs(t, "span_"+tc.name, docs)
@@ -1325,7 +1673,9 @@ func TestJaegerServiceVersion(t *testing.T) {
 		Processor: recorder,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+	result, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
+	require.NoError(t, err)
+	require.Equal(t, otlp.ConsumeTracesResult{}, result)
 
 	batch := *batches[0]
 	assert.Equal(t, "process_tag_value", batch[0].Service.Version)
@@ -1354,6 +1704,17 @@ func TestServiceTarget(t *testing.T) {
 		t.Helper()
 		event := transformSpanWithAttributes(t, input)
 		assert.Empty(t, cmp.Diff(expected, event.Service.Target, protocmp.Transform()))
+	}
+
+	setAttr := func(t *testing.T, baseAttr map[string]any, key string, val any) map[string]any {
+		t.Helper()
+		newAttr := make(map[string]any)
+		// Copy from the original map to the target map
+		for key, value := range baseAttr {
+			newAttr[key] = value
+		}
+		newAttr[key] = val
+		return newAttr
 	}
 	t.Run("db_spans_with_peerservice_system", func(t *testing.T) {
 		test(t, &modelpb.ServiceTarget{
@@ -1462,35 +1823,48 @@ func TestServiceTarget(t *testing.T) {
 	})
 
 	t.Run("messaging_spans_with_peerservice_system_destination", func(t *testing.T) {
-		test(t, &modelpb.ServiceTarget{
-			Name: "myTopic",
-			Type: "kafka",
-		}, map[string]interface{}{
-			"peer.service":          "testsvc",
-			"messaging.system":      "kafka",
-			"messaging.destination": "myTopic",
-		})
+		baseAttr := map[string]any{
+			"peer.service":     "testsvc",
+			"messaging.system": "kafka",
+		}
+		for _, attr := range []map[string]any{
+			setAttr(t, baseAttr, "messaging.destination", "myTopic"),
+			setAttr(t, baseAttr, "messaging.destination.name", "myTopic"),
+		} {
+			test(t, &modelpb.ServiceTarget{
+				Name: "myTopic",
+				Type: "kafka",
+			}, attr)
+		}
 	})
 
 	t.Run("messaging_spans_with_peerservice_system_destination_tempdestination", func(t *testing.T) {
-		test(t, &modelpb.ServiceTarget{
-			Name: "testsvc",
-			Type: "kafka",
-		}, map[string]interface{}{
+		baseAttr := map[string]any{
 			"peer.service":               "testsvc",
 			"messaging.temp_destination": true,
 			"messaging.system":           "kafka",
-			"messaging.destination":      "myTopic",
-		})
+		}
+		for _, attr := range []map[string]any{
+			setAttr(t, baseAttr, "messaging.destination", "myTopic"),
+			setAttr(t, baseAttr, "messaging.destination.name", "myTopic"),
+		} {
+			test(t, &modelpb.ServiceTarget{
+				Name: "testsvc",
+				Type: "kafka",
+			}, attr)
+		}
 	})
 
 	t.Run("messaging_spans_with_destination", func(t *testing.T) {
-		test(t, &modelpb.ServiceTarget{
-			Name: "myTopic",
-			Type: "messaging",
-		}, map[string]interface{}{
-			"messaging.destination": "myTopic",
-		})
+		for _, attr := range []map[string]any{
+			{"messaging.destination": "myTopic"},
+			{"messaging.destination.name": "myTopic"},
+		} {
+			test(t, &modelpb.ServiceTarget{
+				Name: "myTopic",
+				Type: "messaging",
+			}, attr)
+		}
 	})
 }
 
@@ -1515,6 +1889,52 @@ func TestGRPCTransactionFromNodejsSDK(t *testing.T) {
 		assert.Equal(t, "external", event.Span.Type)
 		assert.Equal(t, "grpc", event.Span.Subtype)
 	})
+}
+
+func TestSpanCodeStacktrace(t *testing.T) {
+	t.Run("code stacktrace", func(t *testing.T) {
+		event := transformSpanWithAttributes(t, map[string]interface{}{
+			"code.stacktrace": "stacktrace value",
+		})
+		assert.Equal(t, "stacktrace value", event.Code.Stacktrace)
+	})
+}
+
+func TestSpanEventsDataStream(t *testing.T) {
+	for _, isException := range []bool{false, true} {
+		t.Run(fmt.Sprintf("isException=%v", isException), func(t *testing.T) {
+			timestamp := time.Unix(123, 0).UTC()
+
+			traces, spans := newTracesSpans()
+			traces.ResourceSpans().At(0).Resource().Attributes().PutStr(semconv.AttributeTelemetrySDKLanguage, "java")
+			traces.ResourceSpans().At(0).Resource().Attributes().PutStr("data_stream.dataset", "1")
+			traces.ResourceSpans().At(0).Resource().Attributes().PutStr("data_stream.namespace", "2")
+			otelSpan := spans.Spans().AppendEmpty()
+			otelSpan.SetTraceID(pcommon.TraceID{1})
+			otelSpan.SetSpanID(pcommon.SpanID{2})
+			otelSpan.Attributes().PutStr("data_stream.dataset", "3")
+			otelSpan.Attributes().PutStr("data_stream.namespace", "4")
+
+			spanEvent := ptrace.NewSpanEvent()
+			spanEvent.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
+			if isException {
+				spanEvent.SetName("exception")
+				spanEvent.Attributes().PutStr("exception.type", "java.net.ConnectException.OSError")
+				spanEvent.Attributes().PutStr("exception.message", "Division by zero")
+			}
+
+			spanEvent.Attributes().PutStr("data_stream.dataset", "5")
+			spanEvent.Attributes().PutStr("data_stream.namespace", "6")
+			spanEvent.CopyTo(otelSpan.Events().AppendEmpty())
+
+			allEvents := transformTraces(t, traces)
+			events := (*allEvents)[1:]
+			assert.Equal(t, &modelpb.DataStream{
+				Dataset:   "5",
+				Namespace: "6",
+			}, events[0].DataStream)
+		})
+	}
 }
 
 func testJaegerLogs() []jaegermodel.Log {
@@ -1587,7 +2007,8 @@ func testDuration() time.Duration {
 
 func batchRecorderBatchProcessor(out *[]*modelpb.Batch) modelpb.BatchProcessor {
 	return modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
-		*out = append(*out, batch)
+		batchCopy := batch.Clone()
+		*out = append(*out, &batchCopy)
 		return nil
 	})
 }
@@ -1626,6 +2047,12 @@ func approveEventDocs(t testing.TB, name string, docs [][]byte) {
 		delete(event, "received")
 		if len(event) == 0 {
 			delete(m, "event")
+		}
+
+		if e, ok := m["error"].(map[string]any); ok {
+			if _, ok := e["id"]; ok {
+				e["id"] = "dynamic"
+			}
 		}
 
 		events[i] = m
@@ -1726,14 +2153,15 @@ func transformTraces(t *testing.T, traces ptrace.Traces) *modelpb.Batch {
 		if processed != nil {
 			panic("already processes batch")
 		}
-		processed = *batch
+		processed = batch.Clone()
 		return nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
 		Processor: processor,
 		Semaphore: semaphore.NewWeighted(100),
 	})
-	require.NoError(t, consumer.ConsumeTraces(context.Background(), traces))
+	_, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
+	require.NoError(t, err)
 	return &processed
 }
 

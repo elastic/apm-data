@@ -75,6 +75,52 @@ func TestResourceConventions(t *testing.T) {
 				},
 			},
 		},
+		"agent_distro": {
+			attrs: map[string]interface{}{
+				"telemetry.sdk.name":       "sdk_name",
+				"telemetry.sdk.version":    "sdk_version",
+				"telemetry.sdk.language":   "language_name",
+				"telemetry.distro.name":    "distro_name",
+				"telemetry.distro.version": "distro_version",
+			},
+			expected: &modelpb.APMEvent{
+				Agent: &modelpb.Agent{Name: "sdk_name/language_name/distro_name", Version: "distro_version"},
+				Service: &modelpb.Service{
+					Name:     "unknown",
+					Language: &modelpb.Language{Name: "language_name"},
+				},
+			},
+		},
+		"agent_distro_no_language": {
+			attrs: map[string]interface{}{
+				"telemetry.sdk.name":       "sdk_name",
+				"telemetry.sdk.version":    "sdk_version",
+				"telemetry.distro.name":    "distro_name",
+				"telemetry.distro.version": "distro_version",
+			},
+			expected: &modelpb.APMEvent{
+				Agent: &modelpb.Agent{Name: "sdk_name/unknown/distro_name", Version: "distro_version"},
+				Service: &modelpb.Service{
+					Name:     "unknown",
+					Language: &modelpb.Language{Name: "unknown"},
+				},
+			},
+		},
+		"agent_distro_no_version": {
+			attrs: map[string]interface{}{
+				"telemetry.sdk.name":     "sdk_name",
+				"telemetry.sdk.version":  "sdk_version",
+				"telemetry.sdk.language": "language_name",
+				"telemetry.distro.name":  "distro_name",
+			},
+			expected: &modelpb.APMEvent{
+				Agent: &modelpb.Agent{Name: "sdk_name/language_name/distro_name", Version: "unknown"},
+				Service: &modelpb.Service{
+					Name:     "unknown",
+					Language: &modelpb.Language{Name: "language_name"},
+				},
+			},
+		},
 		"runtime": {
 			attrs: map[string]interface{}{
 				"process.runtime.name":    "runtime_name",
@@ -156,6 +202,7 @@ func TestResourceConventions(t *testing.T) {
 				"host.id":   "host_id",
 				"host.type": "host_type",
 				"host.arch": "host_arch",
+				"host.ip":   []interface{}{"10.244.0.1", "172.19.0.2", "fc00:f853:ccd:e793::2"},
 			},
 			expected: &modelpb.APMEvent{
 				Agent:   &defaultAgent,
@@ -165,6 +212,13 @@ func TestResourceConventions(t *testing.T) {
 					Id:           "host_id",
 					Type:         "host_type",
 					Architecture: "host_arch",
+					Ip: func() []*modelpb.IP {
+						ips := make([]*modelpb.IP, 3)
+						ips[0] = modelpb.MustParseIP("10.244.0.1")
+						ips[1] = modelpb.MustParseIP("172.19.0.2")
+						ips[2] = modelpb.MustParseIP("fc00:f853:ccd:e793::2")
+						return ips
+					}(),
 				},
 			},
 		},
@@ -299,6 +353,6 @@ func transformResourceMetadata(t *testing.T, resourceAttrs map[string]interface{
 	(*events)[0].Span = nil
 	(*events)[0].Trace = nil
 	(*events)[0].Event = nil
-	(*events)[0].Timestamp = nil
+	(*events)[0].Timestamp = 0
 	return (*events)[0]
 }

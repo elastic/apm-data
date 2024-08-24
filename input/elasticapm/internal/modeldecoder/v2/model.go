@@ -594,6 +594,8 @@ type metadataSystem struct {
 	Kubernetes metadataSystemKubernetes `json:"kubernetes"`
 	// Platform name of the system platform the monitored service is running on.
 	Platform nullable.String `json:"platform" validate:"maxLength=1024"`
+	// The OpenTelemetry semantic conventions compliant "host.id" attribute, if available.
+	HostID nullable.String `json:"host_id" validate:"maxLength=1024"`
 }
 
 type metadataSystemContainer struct {
@@ -680,7 +682,7 @@ type metricsetSampleValue struct {
 	// If Counts is specified, then Values is expected to be
 	// specified with the same number of elements, and with the
 	// same order.
-	Counts []uint64 `json:"counts" validate:"requiredIfAny=values,minVals=0"`
+	Counts []uint64 `json:"counts" validate:"requiredIfAny=values"`
 	// Value holds the value of a single metric sample.
 	Value nullable.Float64 `json:"value"`
 }

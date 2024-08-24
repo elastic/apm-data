@@ -22,13 +22,11 @@ import (
 	"time"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func fullEvent(t *testing.B) *modelpb.APMEvent {
 	return &modelpb.APMEvent{
-		Timestamp: timestamppb.New(time.Unix(1, 1)),
+		Timestamp: uint64(time.Second.Nanoseconds() + 1),
 		Span: &modelpb.Span{
 			Message: &modelpb.Message{
 				Body: "body",
@@ -53,7 +51,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 				Resource: "destination_resource",
 				ResponseTime: &modelpb.AggregatedDuration{
 					Count: 3,
-					Sum:   durationpb.New(4 * time.Second),
+					Sum:   uint64(4 * time.Second),
 				},
 			},
 			Db: &modelpb.DB{
@@ -107,7 +105,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 			},
 			SelfTime: &modelpb.AggregatedDuration{
 				Count: 6,
-				Sum:   durationpb.New(7 * time.Second),
+				Sum:   uint64(7 * time.Second),
 			},
 			RepresentativeCount: 8,
 		},
@@ -178,7 +176,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 					Outcome:                    "outcome",
 					Duration: &modelpb.AggregatedDuration{
 						Count: 4,
-						Sum:   durationpb.New(5 * time.Second),
+						Sum:   uint64(5 * time.Second),
 					},
 				},
 			},
@@ -465,7 +463,7 @@ func fullEvent(t *testing.B) *modelpb.APMEvent {
 				Count: 1,
 				Sum:   2,
 			},
-			Duration: durationpb.New(3 * time.Second),
+			Duration: uint64(3 * time.Second),
 			Severity: 4,
 		},
 	}

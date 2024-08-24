@@ -25,7 +25,6 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 func TestTransactionToModelJSON(t *testing.T) {
@@ -99,7 +98,7 @@ func TestTransactionToModelJSON(t *testing.T) {
 						Outcome:                    "outcome",
 						Duration: &modelpb.AggregatedDuration{
 							Count: 4,
-							Sum:   durationpb.New(5 * time.Second),
+							Sum:   uint64(5 * time.Second),
 						},
 					},
 				},
@@ -107,9 +106,10 @@ func TestTransactionToModelJSON(t *testing.T) {
 					Count: 6,
 					Sum:   7,
 				},
-				RepresentativeCount: 8,
-				Sampled:             true,
-				Root:                true,
+				RepresentativeCount:   8,
+				Sampled:               true,
+				Root:                  true,
+				ProfilerStackTraceIds: []string{"foo", "foo", "bar"},
 			},
 			expectedNoMetricset: &modeljson.Transaction{
 				SpanCount: modeljson.SpanCount{
@@ -135,9 +135,10 @@ func TestTransactionToModelJSON(t *testing.T) {
 					Count: 6,
 					Sum:   7,
 				},
-				RepresentativeCount: 8,
-				Sampled:             true,
-				Root:                true,
+				RepresentativeCount:   8,
+				Sampled:               true,
+				Root:                  true,
+				ProfilerStackTraceIds: []string{"foo", "foo", "bar"},
 			},
 			expectedMetricset: &modeljson.Transaction{
 				SpanCount: modeljson.SpanCount{
@@ -175,9 +176,10 @@ func TestTransactionToModelJSON(t *testing.T) {
 					Count: 6,
 					Sum:   7,
 				},
-				RepresentativeCount: 8,
-				Sampled:             true,
-				Root:                true,
+				RepresentativeCount:   8,
+				Sampled:               true,
+				Root:                  true,
+				ProfilerStackTraceIds: []string{"foo", "foo", "bar"},
 			},
 		},
 	}

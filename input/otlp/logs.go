@@ -37,19 +37,35 @@ package otlp
 import (
 	"context"
 	"encoding/hex"
+	"strings"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
-	"google.golang.org/protobuf/types/known/timestamppb"
+	"go.uber.org/zap"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
+// ConsumeLogsResult contains the number of rejected log records and error message for partial success response.
+type ConsumeLogsResult struct {
+	ErrorMessage       string
+	RejectedLogRecords int64
+}
+
+// ConsumeLogs calls ConsumeLogsWithResult but ignores the result.
+// It exists to satisfy the go.opentelemetry.io/collector/consumer.Logs interface.
 func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
-	if err := c.sem.Acquire(ctx, 1); err != nil {
-		return err
+	_, err := c.ConsumeLogsWithResult(ctx, logs)
+	return err
+}
+
+// ConsumeLogsWithResult consumes OpenTelemetry log data, converting into
+// the Elastic APM log model and sending to the reporter.
+func (c *Consumer) ConsumeLogsWithResult(ctx context.Context, logs plog.Logs) (ConsumeLogsResult, error) {
+	if err := semAcquire(ctx, c.sem, 1); err != nil {
+		return ConsumeLogsResult{}, err
 	}
 	defer c.sem.Release(1)
 
@@ -59,25 +75,26 @@ func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
 	for i := 0; i < resourceLogs.Len(); i++ {
 		c.convertResourceLogs(resourceLogs.At(i), receiveTimestamp, &batch)
 	}
-	return c.config.Processor.ProcessBatch(ctx, &batch)
+	if err := c.config.Processor.ProcessBatch(ctx, &batch); err != nil {
+		return ConsumeLogsResult{}, err
+	}
+	return ConsumeLogsResult{RejectedLogRecords: 0}, nil
 }
 
 func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTimestamp time.Time, out *modelpb.Batch) {
 	var timeDelta time.Duration
 	resource := resourceLogs.Resource()
-	baseEvent := modelpb.APMEvent{
-		Event: &modelpb.Event{
-			Received: timestamppb.New(receiveTimestamp),
-		},
-	}
-	translateResourceMetadata(resource, &baseEvent)
+	baseEvent := modelpb.APMEventFromVTPool()
+	baseEvent.Event = modelpb.EventFromVTPool()
+	baseEvent.Event.Received = modelpb.FromTime(receiveTimestamp)
+	translateResourceMetadata(resource, baseEvent)
 
 	if exportTimestamp, ok := exportTimestamp(resource); ok {
 		timeDelta = receiveTimestamp.Sub(exportTimestamp)
 	}
 	scopeLogs := resourceLogs.ScopeLogs()
 	for i := 0; i < scopeLogs.Len(); i++ {
-		c.convertInstrumentationLibraryLogs(scopeLogs.At(i), &baseEvent, timeDelta, out)
+		c.convertInstrumentationLibraryLogs(scopeLogs.At(i), baseEvent, timeDelta, out)
 	}
 }
 
@@ -89,22 +106,34 @@ func (c *Consumer) convertInstrumentationLibraryLogs(
 ) {
 	otelLogs := in.LogRecords()
 	for i := 0; i < otelLogs.Len(); i++ {
-		event := c.convertLogRecord(otelLogs.At(i), baseEvent, timeDelta)
+		event := c.convertLogRecord(otelLogs.At(i), in.Scope(), baseEvent, timeDelta)
 		*out = append(*out, event)
 	}
 }
 
 func (c *Consumer) convertLogRecord(
 	record plog.LogRecord,
+	scope pcommon.InstrumentationScope,
 	baseEvent *modelpb.APMEvent,
 	timeDelta time.Duration,
 ) *modelpb.APMEvent {
 	event := baseEvent.CloneVT()
 	initEventLabels(event)
-	event.Timestamp = timestamppb.New(record.Timestamp().AsTime().Add(timeDelta))
-	event.Event = populateNil(event.Event)
+
+	translateScopeMetadata(scope, event)
+
+	if record.Timestamp() == 0 {
+		event.Timestamp = modelpb.FromTime(record.ObservedTimestamp().AsTime().Add(timeDelta))
+	} else {
+		event.Timestamp = modelpb.FromTime(record.Timestamp().AsTime().Add(timeDelta))
+	}
+	if event.Event == nil {
+		event.Event = modelpb.EventFromVTPool()
+	}
 	event.Event.Severity = uint64(record.SeverityNumber())
-	event.Log = populateNil(event.Log)
+	if event.Log == nil {
+		event.Log = modelpb.LogFromVTPool()
+	}
 	event.Log.Level = record.SeverityText()
 	if body := record.Body(); body.Type() != pcommon.ValueTypeEmpty {
 		event.Message = body.AsString()
@@ -113,12 +142,13 @@ func (c *Consumer) convertLogRecord(
 		}
 	}
 	if traceID := record.TraceID(); !traceID.IsEmpty() {
-		event.Trace = &modelpb.Trace{
-			Id: hex.EncodeToString(traceID[:]),
-		}
+		event.Trace = modelpb.TraceFromVTPool()
+		event.Trace.Id = hex.EncodeToString(traceID[:])
 	}
 	if spanID := record.SpanID(); !spanID.IsEmpty() {
-		event.Span = populateNil(event.Span)
+		if event.Span == nil {
+			event.Span = modelpb.SpanFromVTPool()
+		}
 		event.Span.Id = hex.EncodeToString(spanID[:])
 	}
 	attrs := record.Attributes()
@@ -144,33 +174,57 @@ func (c *Consumer) convertLogRecord(
 		case "event.domain":
 			eventDomain = v.Str()
 		case "session.id":
-			event.Session = populateNil(event.Session)
+			if event.Session == nil {
+				event.Session = modelpb.SessionFromVTPool()
+			}
 			event.Session.Id = v.Str()
+		case attributeNetworkConnectionType:
+			if event.Network == nil {
+				event.Network = modelpb.NetworkFromVTPool()
+			}
+			if event.Network.Connection == nil {
+				event.Network.Connection = modelpb.NetworkConnectionFromVTPool()
+			}
+			event.Network.Connection.Type = v.Str()
+		// data_stream.*
+		case attributeDataStreamDataset:
+			if event.DataStream == nil {
+				event.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			event.DataStream.Dataset = v.Str()
+		case attributeDataStreamNamespace:
+			if event.DataStream == nil {
+				event.DataStream = modelpb.DataStreamFromVTPool()
+			}
+			event.DataStream.Namespace = v.Str()
 		default:
 			setLabel(replaceDots(k), event, ifaceAttributeValue(v))
 		}
 		return true
 	})
 
-	if exceptionMessage != "" && exceptionType != "" {
-		// Per OpenTelemetry semantic conventions:
-		//   `At least one of the following sets of attributes is required:
-		//   - exception.type
-		//   - exception.message`
+	// NOTE: we consider an error anything that contains an exception type
+	// or message, independent of the severity level.
+	if exceptionMessage != "" || exceptionType != "" {
 		event.Error = convertOpenTelemetryExceptionSpanEvent(
 			exceptionType, exceptionMessage, exceptionStacktrace,
 			exceptionEscaped, event.Service.Language.Name,
 		)
 	}
 
-	if eventDomain == "device" && eventName != "" {
+	// We need to check if the "event.name" has the "device" prefix based on the removal of the "event.domain" attribute
+	// done in the OTel semantic conventions version 1.24.0.
+	if (eventDomain == "device" && eventName != "") || strings.HasPrefix(eventName, "device.") {
 		event.Event.Category = "device"
-		if eventName == "crash" {
-			event.Error = populateNil(event.Error)
+		action := strings.TrimPrefix(eventName, "device.")
+		if action == "crash" {
+			if event.Error == nil {
+				event.Error = modelpb.ErrorFromVTPool()
+			}
 			event.Error.Type = "crash"
 		} else {
 			event.Event.Kind = "event"
-			event.Event.Action = eventName
+			event.Event.Action = action
 		}
 	}
 

@@ -28,7 +28,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/testing/protocmp"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
@@ -47,9 +46,9 @@ func TestResetTransactionOnRelease(t *testing.T) {
 
 func TestDecodeNestedTransaction(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
-		now := time.Now().UTC()
+		now := modelpb.FromTime(time.Now())
 		eventBase := initializedMetadata()
-		eventBase.Timestamp = timestamppb.New(now)
+		eventBase.Timestamp = now
 		input := modeldecoder.Input{Base: eventBase}
 		str := `{"x":{"n":"tr-a","d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"y":[{"n":"a","d":10,"t":"http","id":"123","s":20}],"me":[{"sa":{"ysc":{"v":5}},"y":{"t":"span_type","su":"span_subtype"}}]}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
@@ -62,7 +61,7 @@ func TestDecodeNestedTransaction(t *testing.T) {
 
 		assert.Equal(t, "request", batch[0].Transaction.Type)
 		// fall back to request time
-		assert.Equal(t, now, batch[0].Timestamp.AsTime())
+		assert.Equal(t, now, batch[0].Timestamp)
 
 		// Ensure nested metricsets are decoded. RUMv3 only sends
 		// breakdown metrics, so the Metricsets will be empty and
@@ -78,11 +77,11 @@ func TestDecodeNestedTransaction(t *testing.T) {
 			Subtype:  "span_subtype",
 			SelfTime: &modelpb.AggregatedDuration{Count: 5},
 		}, batch[1].Span, protocmp.Transform()))
-		assert.Equal(t, now, batch[1].Timestamp.AsTime())
+		assert.Equal(t, now, batch[1].Timestamp)
 
 		// ensure nested spans are decoded
-		start := time.Duration(20 * 1000 * 1000)
-		assert.Equal(t, now.Add(start), batch[2].Timestamp.AsTime()) // add start to timestamp
+		start := uint64(time.Duration(20 * 1000 * 1000).Nanoseconds())
+		assert.Equal(t, now+start, batch[2].Timestamp) // add start to timestamp
 		assert.Equal(t, "100", batch[2].Transaction.Id)
 		assert.Equal(t, "1", batch[2].Trace.Id)
 		assert.Equal(t, "100", batch[2].ParentId)
@@ -93,8 +92,8 @@ func TestDecodeNestedTransaction(t *testing.T) {
 	})
 
 	t.Run("decode-marks", func(t *testing.T) {
-		now := time.Now()
-		eventBase := modelpb.APMEvent{Timestamp: timestamppb.New(now)}
+		now := modelpb.FromTime(time.Now())
+		eventBase := modelpb.APMEvent{Timestamp: now}
 		input := modeldecoder.Input{Base: &eventBase}
 		str := `{"x":{"d":100,"id":"100","tid":"1","t":"request","yc":{"sd":2},"k":{"a":{"dc":0.1,"di":0.2,"ds":0.3,"de":0.4,"fb":0.5,"fp":0.6,"lp":0.7,"long":0.8},"nt":{"fs":0.1,"ls":0.2,"le":0.3,"cs":0.4,"ce":0.5,"qs":0.6,"rs":0.7,"re":0.8,"dl":0.9,"di":0.11,"ds":0.21,"de":0.31,"dc":0.41,"es":0.51,"ee":6,"long":0.99},"long":{"long":0.1}}}}`
 		dec := decoder.NewJSONDecoder(strings.NewReader(str))
@@ -190,7 +189,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		exceptions := func(key string) bool {
 			for _, s := range []string{
 				// values not set for RUM v3
-				"Kind", "representative_count", "message", "dropped_spans_stats",
+				"Kind", "representative_count", "message", "dropped_spans_stats", "profiler_stack_trace_ids",
 				// Not set for transaction events:
 				"AggregatedDuration",
 				"AggregatedDuration.Count",
@@ -215,8 +214,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 
 		var input transaction
 		var out1, out2 modelpb.APMEvent
-		reqTime := time.Now().Add(time.Second)
-		out1.Timestamp = timestamppb.New(reqTime)
+		reqTime := modelpb.FromTime(time.Now().Add(time.Second))
+		out1.Timestamp = reqTime
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToTransactionModel(&input, &out1)
@@ -224,7 +223,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
-		out2.Timestamp = timestamppb.New(reqTime)
+		out2.Timestamp = reqTime
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToTransactionModel(&input, &out2)
@@ -267,8 +266,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 
 		var input span
 		var out1, out2 modelpb.APMEvent
-		reqTime := time.Now().Add(time.Second)
-		out1.Timestamp = timestamppb.New(reqTime)
+		reqTime := modelpb.FromTime(time.Now().Add(time.Second))
+		out1.Timestamp = reqTime
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToSpanModel(&input, &out1)
@@ -276,7 +275,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		modeldecodertest.AssertStructValues(t, out1.Span, exceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
-		out2.Timestamp = timestamppb.New(reqTime)
+		out2.Timestamp = reqTime
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToSpanModel(&input, &out2)
