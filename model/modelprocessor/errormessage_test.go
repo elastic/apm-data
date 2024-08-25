@@ -27,75 +27,27 @@ import (
 	"github.com/elastic/apm-data/model/modelprocessor"
 )
 
-// Copy the error message to the event message if event message is empty.
-func TestSetErrorMessage(t *testing.T) {
-	tests := []struct {
-		input    *modelpb.Error
-		expected string
-	}{{
-		input:    &modelpb.Error{},
-		expected: "",
-	}, {
-		input:    &modelpb.Error{Log: &modelpb.ErrorLog{Message: "log_message"}},
-		expected: "log_message",
-	}, {
-		input:    &modelpb.Error{Exception: &modelpb.Exception{Message: "exception_message"}},
-		expected: "exception_message",
-	}, {
-		input: &modelpb.Error{
-			Log:       &modelpb.ErrorLog{},
-			Exception: &modelpb.Exception{Message: "exception_message"},
-		},
-		expected: "exception_message",
-	}, {
-		input: &modelpb.Error{
-			Log:       &modelpb.ErrorLog{Message: "log_message"},
-			Exception: &modelpb.Exception{Message: "exception_message"},
-		},
-		expected: "log_message",
-	}}
-	for _, test := range tests {
-		batch := modelpb.Batch{{Error: test.input}}
-		processor := modelprocessor.SetErrorMessage{}
-		err := processor.ProcessBatch(context.Background(), &batch)
-		assert.NoError(t, err)
-		assert.Equal(t, test.expected, batch[0].Message)
-		assert.Equal(t, test.expected, batch[0].Error.Message)
-	}
-}
-
-// If event message is non-empty, do not override with error message.
 func TestSetEventMessage(t *testing.T) {
 	tests := []struct {
-		input    *modelpb.APMEvent
-		expected string
+		desc                     string
+		input                    *modelpb.APMEvent
+		expectedMessage          string
+		expectedLogMessage       string
+		expectedExceptionMessage string
 	}{{
-		input: &modelpb.APMEvent{
-			Message: "message",
-		},
-		expected: "message",
-	}, {
-		input: &modelpb.APMEvent{
-			Error:   &modelpb.Error{Log: &modelpb.ErrorLog{Message: "log_message"}},
-			Message: "message",
-		},
-		expected: "message",
-	}, {
-		input: &modelpb.APMEvent{
-			Error:   &modelpb.Error{Exception: &modelpb.Exception{Message: "exception_message"}},
-			Message: "message",
-		},
-		expected: "message",
-	}, {
+		desc: "keep event message when no error",
 		input: &modelpb.APMEvent{
 			Error: &modelpb.Error{
 				Log:       &modelpb.ErrorLog{},
-				Exception: &modelpb.Exception{Message: "exception_message"},
+				Exception: &modelpb.Exception{},
 			},
 			Message: "message",
 		},
-		expected: "message",
+		expectedMessage:          "message",
+		expectedLogMessage:       "",
+		expectedExceptionMessage: "",
 	}, {
+		desc: "keep event message when error",
 		input: &modelpb.APMEvent{
 			Error: &modelpb.Error{
 				Log:       &modelpb.ErrorLog{Message: "log_message"},
@@ -103,7 +55,33 @@ func TestSetEventMessage(t *testing.T) {
 			},
 			Message: "message",
 		},
-		expected: "message",
+		expectedMessage:          "message",
+		expectedLogMessage:       "log_message",
+		expectedExceptionMessage: "exception_message",
+	}, {
+		desc: "propagate log error if event message empty",
+		input: &modelpb.APMEvent{
+			Error: &modelpb.Error{
+				Log:       &modelpb.ErrorLog{Message: "log_message"},
+				Exception: &modelpb.Exception{},
+			},
+			Message: "",
+		},
+		expectedMessage:          "log_message",
+		expectedLogMessage:       "log_message",
+		expectedExceptionMessage: "",
+	}, {
+		desc: "propagate exception error if event message is empty",
+		input: &modelpb.APMEvent{
+			Error: &modelpb.Error{
+				Log:       &modelpb.ErrorLog{},
+				Exception: &modelpb.Exception{Message: "exception_message"},
+			},
+			Message: "",
+		},
+		expectedMessage:          "exception_message",
+		expectedLogMessage:       "",
+		expectedExceptionMessage: "exception_message",
 	}}
 
 	for _, test := range tests {
@@ -111,6 +89,8 @@ func TestSetEventMessage(t *testing.T) {
 		processor := modelprocessor.SetErrorMessage{}
 		err := processor.ProcessBatch(context.Background(), &batch)
 		assert.NoError(t, err)
-		assert.Equal(t, test.expected, batch[0].Message)
+		assert.Equal(t, test.expectedMessage, batch[0].Message)
+		assert.Equal(t, test.expectedLogMessage, batch[0].Error.Log.Message)
+		assert.Equal(t, test.expectedExceptionMessage, batch[0].Error.Exception.Message)
 	}
 }
