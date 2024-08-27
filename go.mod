@@ -1,6 +1,7 @@
 module github.com/elastic/apm-data
 
 go 1.22
+toolchain go1.22.5
 
 require (
 	github.com/elastic/opentelemetry-lib v0.8.1
@@ -15,8 +16,8 @@ require (
 	go.elastic.co/apm/v2 v2.6.0
 	go.elastic.co/fastjson v1.4.0
 	go.opentelemetry.io/collector/consumer v0.107.0
-	go.opentelemetry.io/collector/pdata v1.13.0
-	go.opentelemetry.io/collector/semconv v0.107.0
+	go.opentelemetry.io/collector/pdata v1.14.0
+	go.opentelemetry.io/collector/semconv v0.108.1
 	go.opentelemetry.io/otel v1.29.0
 	go.opentelemetry.io/otel/metric v1.29.0
 	go.opentelemetry.io/otel/sdk v1.29.0
