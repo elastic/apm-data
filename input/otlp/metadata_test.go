@@ -23,10 +23,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/pdata/pcommon"
-	"go.opentelemetry.io/collector/pdata/ptrace"
 	"google.golang.org/protobuf/testing/protocmp"
 
-	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -331,150 +329,56 @@ func TestResourceConventions(t *testing.T) {
 	}
 }
 
+// This test ensures that the values are properly translated,
+// and that heterogeneous array elements are dropped without a panic.
 func TestResourceLabels(t *testing.T) {
 	metadata := transformResourceMetadata(t, map[string]interface{}{
-		"string_array": []interface{}{"abc", "def"},
-		"int_array":    []interface{}{123, 456},
+		"string_value": "abc",
+		"bool_value":   true,
+		"int_value":    123,
+		"float_value":  1.23,
+		"string_array": []interface{}{"abc", "def", true, 123, 1.23, nil},
+		"bool_array":   []interface{}{true, false, "true", 123, 1.23, nil},
+		"int_array":    []interface{}{123, 456, "abc", true, 1.23, nil},
+		"float_array":  []interface{}{1.23, 4.56, "abc", true, 123, nil},
+		"empty_array":  []interface{}{}, // Ensure that an empty array is ignored.
 	})
 	assert.Equal(t, modelpb.Labels{
+		"string_value": {
+			Global: true,
+			Value:  "abc",
+		},
+		"bool_value": {
+			Global: true,
+			Value:  "true",
+		},
 		"string_array": {
 			Global: true,
 			Values: []string{"abc", "def"},
 		},
+		"bool_array": {
+			Global: true,
+			Values: []string{"true", "false"},
+		},
 	}, modelpb.Labels(metadata.Labels))
 	assert.Equal(t, modelpb.NumericLabels{
+		"int_value": {
+			Global: true,
+			Value:  123,
+		},
+		"float_value": {
+			Global: true,
+			Value:  1.23,
+		},
 		"int_array": {
 			Global: true,
 			Values: []float64{123, 456},
 		},
+		"float_array": {
+			Global: true,
+			Values: []float64{1.23, 4.56},
+		},
 	}, modelpb.NumericLabels(metadata.NumericLabels))
-}
-
-func TestTranslateSpanValue(t *testing.T) {
-
-	m := pcommon.NewMap()
-	m.PutStr("s", "v")
-	m.PutBool("b", true)
-	m.PutInt("i", 1.0)
-	m.PutDouble("f", 1.0)
-
-	e := &modelpb.APMEvent{
-		Event:         &modelpb.Event{},
-		Span:          &modelpb.Span{},
-		Labels:        make(map[string]*modelpb.LabelValue),
-		NumericLabels: make(map[string]*modelpb.NumericLabelValue),
-	}
-
-	otlp.TranslateSpan(ptrace.SpanKindInternal, m, e)
-
-	assert.Equal(t, "v", e.GetLabels()["s"].Value)
-	assert.Equal(t, "true", e.GetLabels()["b"].Value)
-	assert.Equal(t, float64(1), e.GetNumericLabels()["i"].Value)
-	assert.Equal(t, float64(1), e.GetNumericLabels()["f"].Value)
-}
-
-func TestTranslateSpanSlice(t *testing.T) {
-	const key = "k"
-	testCases := []struct {
-		input                 func() pcommon.Map
-		desc                  string
-		expectedLabel         []string
-		expectedNumericLabels []float64
-		expectedLen           int
-	}{
-		{
-			desc: "drop non-string elements",
-			input: func() pcommon.Map {
-				m := pcommon.NewMap()
-				s := m.PutEmptySlice(key)
-				s.FromRaw([]any{"", "a", 1, "b", 2})
-				return m
-			},
-			expectedLen:   3,
-			expectedLabel: []string{"", "a", "b"}, // Explicitly check that empty string is stored
-		},
-		{
-			desc: "drop non-bool elements",
-			input: func() pcommon.Map {
-				m := pcommon.NewMap()
-				s := m.PutEmptySlice("k")
-				s.FromRaw([]any{true, "a", false, 1.1})
-				return m
-			},
-			expectedLen:   2,
-			expectedLabel: []string{"true", "false"},
-		},
-		{
-			desc: "drop non-int elements",
-			input: func() pcommon.Map {
-				m := pcommon.NewMap()
-				s := m.PutEmptySlice("k")
-				s.FromRaw([]any{0, 1, 2, "a", false, 1.1})
-				return m
-			},
-			expectedLen:           3,
-			expectedNumericLabels: []float64{0, 1, 2}, // Explicitly check that zero is stored
-		},
-		{
-			desc: "drop non-float64 elements",
-			input: func() pcommon.Map {
-				m := pcommon.NewMap()
-				s := m.PutEmptySlice("k")
-				s.FromRaw([]any{0.0, 1.1, 1.2, 2, "a", true})
-				return m
-			},
-			expectedLen:           3,
-			expectedNumericLabels: []float64{0.0, 1.1, 1.2}, // Explicitly check that zero is stored
-		},
-		{
-			desc: "drop nil array values",
-			input: func() pcommon.Map {
-				m := pcommon.NewMap()
-				s := m.PutEmptySlice("k")
-				s.FromRaw([]any{nil, nil})
-				return m
-			},
-			expectedLen: 0,
-		},
-		{
-			desc: "ensure empty array does not panic",
-			input: func() pcommon.Map {
-				m := pcommon.NewMap()
-				s := m.PutEmptySlice("k")
-				s.FromRaw([]any{})
-				return m
-			},
-			expectedLen: 0,
-		},
-		{
-			desc: "ensure nil array does not panic",
-			input: func() pcommon.Map {
-				m := pcommon.NewMap()
-				s := m.PutEmptySlice("k")
-				s.FromRaw(nil)
-				return m
-			},
-			expectedLen: 0,
-		},
-	}
-	for _, tC := range testCases {
-		t.Run(tC.desc, func(t *testing.T) {
-			e := &modelpb.APMEvent{
-				Event:         &modelpb.Event{},
-				Span:          &modelpb.Span{},
-				Labels:        make(map[string]*modelpb.LabelValue),
-				NumericLabels: make(map[string]*modelpb.NumericLabelValue),
-			}
-
-			otlp.TranslateSpan(ptrace.SpanKindInternal, tC.input(), e)
-
-			labels := e.GetLabels()[key].GetValues()
-			numericals := e.GetNumericLabels()[key].GetValues()
-
-			assert.Equal(t, tC.expectedLabel, labels)
-			assert.Equal(t, tC.expectedNumericLabels, numericals)
-		})
-	}
 }
 
 func transformResourceMetadata(t *testing.T, resourceAttrs map[string]interface{}) *modelpb.APMEvent {

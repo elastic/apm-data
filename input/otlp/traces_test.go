@@ -970,40 +970,49 @@ func TestSessionID(t *testing.T) {
 	assert.Equal(t, &expected, spanEvent.Session)
 }
 
+// This test ensures that the values are properly translated,
+// and that heterogeneous array elements are dropped without a panic.
 func TestArrayLabels(t *testing.T) {
-	stringArray := []interface{}{"string1", "string2"}
-	boolArray := []interface{}{false, true}
-	intArray := []interface{}{1234, 5678}
-	floatArray := []interface{}{1234.5678, 9123.234123123}
+	attr := map[string]interface{}{
+		"string_value": "abc",
+		"bool_value":   true,
+		"int_value":    123,
+		"float_value":  1.23,
+		"string_array": []interface{}{"abc", "def", true, 123, 1.23, nil},
+		"bool_array":   []interface{}{true, false, "true", 123, 1.23, nil},
+		"int_array":    []interface{}{123, 456, "abc", true, 1.23, nil},
+		"float_array":  []interface{}{1.23, 4.56, "abc", true, 123, nil},
+		"empty_array":  []interface{}{}, // Ensure that an empty array is ignored.
+	}
 
-	txEvent := transformTransactionWithAttributes(t, map[string]interface{}{
-		"string_array": stringArray,
-		"bool_array":   boolArray,
-		"int_array":    intArray,
-		"float_array":  floatArray,
-	})
+	// This also tests the TranslateTransaction method.
+	txEvent := transformTransactionWithAttributes(t, attr)
 	assert.Equal(t, modelpb.Labels{
-		"bool_array":   {Values: []string{"false", "true"}},
-		"string_array": {Values: []string{"string1", "string2"}},
+		"bool_value":   {Value: "true"},
+		"string_value": {Value: "abc"},
+		"bool_array":   {Values: []string{"true", "false"}},
+		"string_array": {Values: []string{"abc", "def"}},
 	}, modelpb.Labels(txEvent.Labels))
 	assert.Equal(t, modelpb.NumericLabels{
-		"int_array":   {Values: []float64{1234, 5678}},
-		"float_array": {Values: []float64{1234.5678, 9123.234123123}},
+		"int_value":   {Value: 123},
+		"float_value": {Value: 1.23},
+		"int_array":   {Values: []float64{123, 456}},
+		"float_array": {Values: []float64{1.23, 4.56}},
 	}, modelpb.NumericLabels(txEvent.NumericLabels))
 
-	spanEvent := transformSpanWithAttributes(t, map[string]interface{}{
-		"string_array": stringArray,
-		"bool_array":   boolArray,
-		"int_array":    intArray,
-		"float_array":  floatArray,
-	})
+	// This also tests the TranslateSpan method.
+	spanEvent := transformSpanWithAttributes(t, attr)
 	assert.Equal(t, modelpb.Labels{
-		"bool_array":   {Values: []string{"false", "true"}},
-		"string_array": {Values: []string{"string1", "string2"}},
+		"bool_value":   {Value: "true"},
+		"string_value": {Value: "abc"},
+		"bool_array":   {Values: []string{"true", "false"}},
+		"string_array": {Values: []string{"abc", "def"}},
 	}, modelpb.Labels(spanEvent.Labels))
 	assert.Equal(t, modelpb.NumericLabels{
-		"int_array":   {Values: []float64{1234, 5678}},
-		"float_array": {Values: []float64{1234.5678, 9123.234123123}},
+		"int_value":   {Value: 123},
+		"float_value": {Value: 1.23},
+		"int_array":   {Values: []float64{123, 456}},
+		"float_array": {Values: []float64{1.23, 4.56}},
 	}, modelpb.NumericLabels(spanEvent.NumericLabels))
 }
 
