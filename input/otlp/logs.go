@@ -70,7 +70,6 @@ func (c *Consumer) ConsumeLogsWithResult(ctx context.Context, logs plog.Logs) (C
 	defer c.sem.Release(1)
 
 	receiveTimestamp := time.Now()
-	c.config.Logger.Debug("consuming logs", zap.Stringer("logs", logsStringer(logs)))
 	resourceLogs := logs.ResourceLogs()
 	batch := make(modelpb.Batch, 0, resourceLogs.Len())
 	for i := 0; i < resourceLogs.Len(); i++ {

@@ -74,7 +74,6 @@ func (c *Consumer) ConsumeMetricsWithResult(ctx context.Context, metrics pmetric
 	remainingDataPoints := totalDataPoints
 	remainingMetrics := totalMetrics
 	receiveTimestamp := time.Now()
-	c.config.Logger.Debug("consuming metrics", zap.Stringer("metrics", metricsStringer(metrics)))
 	batch := c.handleMetrics(metrics, receiveTimestamp, &remainingDataPoints, &remainingMetrics)
 	if remainingMetrics > 0 {
 		// Some metrics remained after conversion, meaning that they were dropped.

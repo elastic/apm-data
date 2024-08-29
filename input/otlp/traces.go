@@ -107,7 +107,6 @@ func (c *Consumer) ConsumeTracesWithResult(ctx context.Context, traces ptrace.Tr
 	defer c.sem.Release(1)
 
 	receiveTimestamp := time.Now()
-	c.config.Logger.Debug("consuming traces", zap.Stringer("traces", tracesStringer(traces)))
 
 	resourceSpans := traces.ResourceSpans()
 	batch := make(modelpb.Batch, 0, resourceSpans.Len())
