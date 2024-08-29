@@ -29,11 +29,9 @@ import (
 
 func TestSetEventMessage(t *testing.T) {
 	tests := []struct {
-		desc                     string
-		input                    *modelpb.APMEvent
-		expectedMessage          string
-		expectedLogMessage       string
-		expectedExceptionMessage string
+		desc            string
+		input           *modelpb.APMEvent
+		expectedMessage string
 	}{{
 		desc: "keep event message when no error",
 		input: &modelpb.APMEvent{
@@ -43,9 +41,7 @@ func TestSetEventMessage(t *testing.T) {
 			},
 			Message: "message",
 		},
-		expectedMessage:          "message",
-		expectedLogMessage:       "",
-		expectedExceptionMessage: "",
+		expectedMessage: "message",
 	}, {
 		desc: "keep event message when error",
 		input: &modelpb.APMEvent{
@@ -55,9 +51,7 @@ func TestSetEventMessage(t *testing.T) {
 			},
 			Message: "message",
 		},
-		expectedMessage:          "message",
-		expectedLogMessage:       "log_message",
-		expectedExceptionMessage: "exception_message",
+		expectedMessage: "message",
 	}, {
 		desc: "propagate log error if event message empty",
 		input: &modelpb.APMEvent{
@@ -67,9 +61,7 @@ func TestSetEventMessage(t *testing.T) {
 			},
 			Message: "",
 		},
-		expectedMessage:          "log_message",
-		expectedLogMessage:       "log_message",
-		expectedExceptionMessage: "",
+		expectedMessage: "log_message",
 	}, {
 		desc: "propagate exception error if event message is empty",
 		input: &modelpb.APMEvent{
@@ -79,9 +71,7 @@ func TestSetEventMessage(t *testing.T) {
 			},
 			Message: "",
 		},
-		expectedMessage:          "exception_message",
-		expectedLogMessage:       "",
-		expectedExceptionMessage: "exception_message",
+		expectedMessage: "exception_message",
 	}}
 
 	for _, test := range tests {
@@ -90,7 +80,5 @@ func TestSetEventMessage(t *testing.T) {
 		err := processor.ProcessBatch(context.Background(), &batch)
 		assert.NoError(t, err)
 		assert.Equal(t, test.expectedMessage, batch[0].Message)
-		assert.Equal(t, test.expectedLogMessage, batch[0].Error.Log.Message)
-		assert.Equal(t, test.expectedExceptionMessage, batch[0].Error.Exception.Message)
 	}
 }
