@@ -27,7 +27,7 @@ import (
 	"github.com/elastic/apm-data/model/modelprocessor"
 )
 
-func TestSetEventMessage(t *testing.T) {
+func TestSetErrorMessage(t *testing.T) {
 	tests := []struct {
 		desc            string
 		input           *modelpb.APMEvent
