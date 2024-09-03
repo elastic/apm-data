@@ -24,7 +24,6 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -42,7 +41,7 @@ func (m *Process) CloneVT() *Process {
 	if m == nil {
 		return (*Process)(nil)
 	}
-	r := ProcessFromVTPool()
+	r := new(Process)
 	r.Ppid = m.Ppid
 	r.Thread = m.Thread.CloneVT()
 	r.Title = m.Title
@@ -69,7 +68,7 @@ func (m *ProcessThread) CloneVT() *ProcessThread {
 	if m == nil {
 		return (*ProcessThread)(nil)
 	}
-	r := ProcessThreadFromVTPool()
+	r := new(ProcessThread)
 	r.Name = m.Name
 	r.Id = m.Id
 	if len(m.unknownFields) > 0 {
@@ -211,50 +210,6 @@ func (m *ProcessThread) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_Process = sync.Pool{
-	New: func() interface{} {
-		return &Process{}
-	},
-}
-
-func (m *Process) ResetVT() {
-	if m != nil {
-		m.Thread.ReturnToVTPool()
-		f0 := m.Argv[:0]
-		m.Reset()
-		m.Argv = f0
-	}
-}
-func (m *Process) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Process.Put(m)
-	}
-}
-func ProcessFromVTPool() *Process {
-	return vtprotoPool_Process.Get().(*Process)
-}
-
-var vtprotoPool_ProcessThread = sync.Pool{
-	New: func() interface{} {
-		return &ProcessThread{}
-	},
-}
-
-func (m *ProcessThread) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *ProcessThread) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_ProcessThread.Put(m)
-	}
-}
-func ProcessThreadFromVTPool() *ProcessThread {
-	return vtprotoPool_ProcessThread.Get().(*ProcessThread)
-}
 func (m *Process) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -388,7 +343,7 @@ func (m *Process) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Thread == nil {
-				m.Thread = ProcessThreadFromVTPool()
+				m.Thread = &ProcessThread{}
 			}
 			if err := m.Thread.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err

@@ -24,7 +24,6 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -42,7 +41,7 @@ func (m *StacktraceFrame) CloneVT() *StacktraceFrame {
 	if m == nil {
 		return (*StacktraceFrame)(nil)
 	}
-	r := StacktraceFrameFromVTPool()
+	r := new(StacktraceFrame)
 	r.Filename = m.Filename
 	r.Classname = m.Classname
 	r.ContextLine = m.ContextLine
@@ -94,7 +93,7 @@ func (m *Original) CloneVT() *Original {
 	if m == nil {
 		return (*Original)(nil)
 	}
-	r := OriginalFromVTPool()
+	r := new(Original)
 	r.AbsPath = m.AbsPath
 	r.Filename = m.Filename
 	r.Classname = m.Classname
@@ -364,57 +363,6 @@ func (m *Original) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_StacktraceFrame = sync.Pool{
-	New: func() interface{} {
-		return &StacktraceFrame{}
-	},
-}
-
-func (m *StacktraceFrame) ResetVT() {
-	if m != nil {
-		for _, mm := range m.Vars {
-			mm.ResetVT()
-		}
-		f0 := m.Vars[:0]
-		m.Original.ReturnToVTPool()
-		f1 := m.PreContext[:0]
-		f2 := m.PostContext[:0]
-		m.Reset()
-		m.Vars = f0
-		m.PreContext = f1
-		m.PostContext = f2
-	}
-}
-func (m *StacktraceFrame) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_StacktraceFrame.Put(m)
-	}
-}
-func StacktraceFrameFromVTPool() *StacktraceFrame {
-	return vtprotoPool_StacktraceFrame.Get().(*StacktraceFrame)
-}
-
-var vtprotoPool_Original = sync.Pool{
-	New: func() interface{} {
-		return &Original{}
-	},
-}
-
-func (m *Original) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *Original) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Original.Put(m)
-	}
-}
-func OriginalFromVTPool() *Original {
-	return vtprotoPool_Original.Get().(*Original)
-}
 func (m *StacktraceFrame) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -583,14 +531,7 @@ func (m *StacktraceFrame) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if len(m.Vars) == cap(m.Vars) {
-				m.Vars = append(m.Vars, &KeyValue{})
-			} else {
-				m.Vars = m.Vars[:len(m.Vars)+1]
-				if m.Vars[len(m.Vars)-1] == nil {
-					m.Vars[len(m.Vars)-1] = &KeyValue{}
-				}
-			}
+			m.Vars = append(m.Vars, &KeyValue{})
 			if err := m.Vars[len(m.Vars)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -889,7 +830,7 @@ func (m *StacktraceFrame) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Original == nil {
-				m.Original = OriginalFromVTPool()
+				m.Original = &Original{}
 			}
 			if err := m.Original.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err

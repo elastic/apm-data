@@ -24,7 +24,6 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -42,7 +41,7 @@ func (m *Cloud) CloneVT() *Cloud {
 	if m == nil {
 		return (*Cloud)(nil)
 	}
-	r := CloudFromVTPool()
+	r := new(Cloud)
 	r.Origin = m.Origin.CloneVT()
 	r.AccountId = m.AccountId
 	r.AccountName = m.AccountName
@@ -70,7 +69,7 @@ func (m *CloudOrigin) CloneVT() *CloudOrigin {
 	if m == nil {
 		return (*CloudOrigin)(nil)
 	}
-	r := CloudOriginFromVTPool()
+	r := new(CloudOrigin)
 	r.AccountId = m.AccountId
 	r.Provider = m.Provider
 	r.Region = m.Region
@@ -267,48 +266,6 @@ func (m *CloudOrigin) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_Cloud = sync.Pool{
-	New: func() interface{} {
-		return &Cloud{}
-	},
-}
-
-func (m *Cloud) ResetVT() {
-	if m != nil {
-		m.Origin.ReturnToVTPool()
-		m.Reset()
-	}
-}
-func (m *Cloud) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Cloud.Put(m)
-	}
-}
-func CloudFromVTPool() *Cloud {
-	return vtprotoPool_Cloud.Get().(*Cloud)
-}
-
-var vtprotoPool_CloudOrigin = sync.Pool{
-	New: func() interface{} {
-		return &CloudOrigin{}
-	},
-}
-
-func (m *CloudOrigin) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *CloudOrigin) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_CloudOrigin.Put(m)
-	}
-}
-func CloudOriginFromVTPool() *CloudOrigin {
-	return vtprotoPool_CloudOrigin.Get().(*CloudOrigin)
-}
 func (m *Cloud) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -452,7 +409,7 @@ func (m *Cloud) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Origin == nil {
-				m.Origin = CloudOriginFromVTPool()
+				m.Origin = &CloudOrigin{}
 			}
 			if err := m.Origin.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err

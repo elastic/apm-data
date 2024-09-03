@@ -24,7 +24,6 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -42,7 +41,7 @@ func (m *Event) CloneVT() *Event {
 	if m == nil {
 		return (*Event)(nil)
 	}
-	r := EventFromVTPool()
+	r := new(Event)
 	r.Outcome = m.Outcome
 	r.Action = m.Action
 	r.Dataset = m.Dataset
@@ -172,27 +171,6 @@ func (m *Event) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_Event = sync.Pool{
-	New: func() interface{} {
-		return &Event{}
-	},
-}
-
-func (m *Event) ResetVT() {
-	if m != nil {
-		m.SuccessCount.ReturnToVTPool()
-		m.Reset()
-	}
-}
-func (m *Event) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Event.Put(m)
-	}
-}
-func EventFromVTPool() *Event {
-	return vtprotoPool_Event.Get().(*Event)
-}
 func (m *Event) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -495,7 +473,7 @@ func (m *Event) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.SuccessCount == nil {
-				m.SuccessCount = SummaryMetricFromVTPool()
+				m.SuccessCount = &SummaryMetric{}
 			}
 			if err := m.SuccessCount.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
