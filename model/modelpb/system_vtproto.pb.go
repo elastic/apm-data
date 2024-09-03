@@ -24,7 +24,6 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -42,7 +41,7 @@ func (m *System) CloneVT() *System {
 	if m == nil {
 		return (*System)(nil)
 	}
-	r := SystemFromVTPool()
+	r := new(System)
 	r.Process = m.Process.CloneVT()
 	r.Filesystem = m.Filesystem.CloneVT()
 	if len(m.unknownFields) > 0 {
@@ -60,7 +59,7 @@ func (m *SystemProcess) CloneVT() *SystemProcess {
 	if m == nil {
 		return (*SystemProcess)(nil)
 	}
-	r := SystemProcessFromVTPool()
+	r := new(SystemProcess)
 	r.Cpu = m.Cpu.CloneVT()
 	r.State = m.State
 	r.Cmdline = m.Cmdline
@@ -79,7 +78,7 @@ func (m *SystemProcessCPU) CloneVT() *SystemProcessCPU {
 	if m == nil {
 		return (*SystemProcessCPU)(nil)
 	}
-	r := SystemProcessCPUFromVTPool()
+	r := new(SystemProcessCPU)
 	r.StartTime = m.StartTime
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -96,7 +95,7 @@ func (m *SystemFilesystem) CloneVT() *SystemFilesystem {
 	if m == nil {
 		return (*SystemFilesystem)(nil)
 	}
-	r := SystemFilesystemFromVTPool()
+	r := new(SystemFilesystem)
 	r.MountPoint = m.MountPoint
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -299,92 +298,6 @@ func (m *SystemFilesystem) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_System = sync.Pool{
-	New: func() interface{} {
-		return &System{}
-	},
-}
-
-func (m *System) ResetVT() {
-	if m != nil {
-		m.Process.ReturnToVTPool()
-		m.Filesystem.ReturnToVTPool()
-		m.Reset()
-	}
-}
-func (m *System) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_System.Put(m)
-	}
-}
-func SystemFromVTPool() *System {
-	return vtprotoPool_System.Get().(*System)
-}
-
-var vtprotoPool_SystemProcess = sync.Pool{
-	New: func() interface{} {
-		return &SystemProcess{}
-	},
-}
-
-func (m *SystemProcess) ResetVT() {
-	if m != nil {
-		m.Cpu.ReturnToVTPool()
-		m.Reset()
-	}
-}
-func (m *SystemProcess) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_SystemProcess.Put(m)
-	}
-}
-func SystemProcessFromVTPool() *SystemProcess {
-	return vtprotoPool_SystemProcess.Get().(*SystemProcess)
-}
-
-var vtprotoPool_SystemProcessCPU = sync.Pool{
-	New: func() interface{} {
-		return &SystemProcessCPU{}
-	},
-}
-
-func (m *SystemProcessCPU) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *SystemProcessCPU) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_SystemProcessCPU.Put(m)
-	}
-}
-func SystemProcessCPUFromVTPool() *SystemProcessCPU {
-	return vtprotoPool_SystemProcessCPU.Get().(*SystemProcessCPU)
-}
-
-var vtprotoPool_SystemFilesystem = sync.Pool{
-	New: func() interface{} {
-		return &SystemFilesystem{}
-	},
-}
-
-func (m *SystemFilesystem) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *SystemFilesystem) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_SystemFilesystem.Put(m)
-	}
-}
-func SystemFilesystemFromVTPool() *SystemFilesystem {
-	return vtprotoPool_SystemFilesystem.Get().(*SystemFilesystem)
-}
 func (m *System) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -512,7 +425,7 @@ func (m *System) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Process == nil {
-				m.Process = SystemProcessFromVTPool()
+				m.Process = &SystemProcess{}
 			}
 			if err := m.Process.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -548,7 +461,7 @@ func (m *System) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Filesystem == nil {
-				m.Filesystem = SystemFilesystemFromVTPool()
+				m.Filesystem = &SystemFilesystem{}
 			}
 			if err := m.Filesystem.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -635,7 +548,7 @@ func (m *SystemProcess) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Cpu == nil {
-				m.Cpu = SystemProcessCPUFromVTPool()
+				m.Cpu = &SystemProcessCPU{}
 			}
 			if err := m.Cpu.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err

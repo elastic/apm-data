@@ -24,7 +24,6 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -42,7 +41,7 @@ func (m *DataStream) CloneVT() *DataStream {
 	if m == nil {
 		return (*DataStream)(nil)
 	}
-	r := DataStreamFromVTPool()
+	r := new(DataStream)
 	r.Type = m.Type
 	r.Dataset = m.Dataset
 	r.Namespace = m.Namespace
@@ -111,26 +110,6 @@ func (m *DataStream) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_DataStream = sync.Pool{
-	New: func() interface{} {
-		return &DataStream{}
-	},
-}
-
-func (m *DataStream) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *DataStream) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_DataStream.Put(m)
-	}
-}
-func DataStreamFromVTPool() *DataStream {
-	return vtprotoPool_DataStream.Get().(*DataStream)
-}
 func (m *DataStream) SizeVT() (n int) {
 	if m == nil {
 		return 0

@@ -24,7 +24,6 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -42,7 +41,7 @@ func (m *HTTPHeader) CloneVT() *HTTPHeader {
 	if m == nil {
 		return (*HTTPHeader)(nil)
 	}
-	r := HTTPHeaderFromVTPool()
+	r := new(HTTPHeader)
 	r.Key = m.Key
 	if rhs := m.Value; rhs != nil {
 		tmpContainer := make([]string, len(rhs))
@@ -109,28 +108,6 @@ func (m *HTTPHeader) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_HTTPHeader = sync.Pool{
-	New: func() interface{} {
-		return &HTTPHeader{}
-	},
-}
-
-func (m *HTTPHeader) ResetVT() {
-	if m != nil {
-		f0 := m.Value[:0]
-		m.Reset()
-		m.Value = f0
-	}
-}
-func (m *HTTPHeader) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_HTTPHeader.Put(m)
-	}
-}
-func HTTPHeaderFromVTPool() *HTTPHeader {
-	return vtprotoPool_HTTPHeader.Get().(*HTTPHeader)
-}
 func (m *HTTPHeader) SizeVT() (n int) {
 	if m == nil {
 		return 0

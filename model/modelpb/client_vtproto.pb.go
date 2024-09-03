@@ -24,7 +24,6 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -42,7 +41,7 @@ func (m *Client) CloneVT() *Client {
 	if m == nil {
 		return (*Client)(nil)
 	}
-	r := ClientFromVTPool()
+	r := new(Client)
 	r.Ip = m.Ip.CloneVT()
 	r.Domain = m.Domain
 	r.Port = m.Port
@@ -112,27 +111,6 @@ func (m *Client) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_Client = sync.Pool{
-	New: func() interface{} {
-		return &Client{}
-	},
-}
-
-func (m *Client) ResetVT() {
-	if m != nil {
-		m.Ip.ReturnToVTPool()
-		m.Reset()
-	}
-}
-func (m *Client) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Client.Put(m)
-	}
-}
-func ClientFromVTPool() *Client {
-	return vtprotoPool_Client.Get().(*Client)
-}
 func (m *Client) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -213,7 +191,7 @@ func (m *Client) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Ip == nil {
-				m.Ip = IPFromVTPool()
+				m.Ip = &IP{}
 			}
 			if err := m.Ip.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err

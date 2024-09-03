@@ -24,7 +24,6 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -42,7 +41,7 @@ func (m *Source) CloneVT() *Source {
 	if m == nil {
 		return (*Source)(nil)
 	}
-	r := SourceFromVTPool()
+	r := new(Source)
 	r.Ip = m.Ip.CloneVT()
 	r.Nat = m.Nat.CloneVT()
 	r.Domain = m.Domain
@@ -62,7 +61,7 @@ func (m *NAT) CloneVT() *NAT {
 	if m == nil {
 		return (*NAT)(nil)
 	}
-	r := NATFromVTPool()
+	r := new(NAT)
 	r.Ip = m.Ip.CloneVT()
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -183,50 +182,6 @@ func (m *NAT) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_Source = sync.Pool{
-	New: func() interface{} {
-		return &Source{}
-	},
-}
-
-func (m *Source) ResetVT() {
-	if m != nil {
-		m.Ip.ReturnToVTPool()
-		m.Nat.ReturnToVTPool()
-		m.Reset()
-	}
-}
-func (m *Source) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Source.Put(m)
-	}
-}
-func SourceFromVTPool() *Source {
-	return vtprotoPool_Source.Get().(*Source)
-}
-
-var vtprotoPool_NAT = sync.Pool{
-	New: func() interface{} {
-		return &NAT{}
-	},
-}
-
-func (m *NAT) ResetVT() {
-	if m != nil {
-		m.Ip.ReturnToVTPool()
-		m.Reset()
-	}
-}
-func (m *NAT) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_NAT.Put(m)
-	}
-}
-func NATFromVTPool() *NAT {
-	return vtprotoPool_NAT.Get().(*NAT)
-}
 func (m *Source) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -325,7 +280,7 @@ func (m *Source) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Ip == nil {
-				m.Ip = IPFromVTPool()
+				m.Ip = &IP{}
 			}
 			if err := m.Ip.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -361,7 +316,7 @@ func (m *Source) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Nat == nil {
-				m.Nat = NATFromVTPool()
+				m.Nat = &NAT{}
 			}
 			if err := m.Nat.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -499,7 +454,7 @@ func (m *NAT) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Ip == nil {
-				m.Ip = IPFromVTPool()
+				m.Ip = &IP{}
 			}
 			if err := m.Ip.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err

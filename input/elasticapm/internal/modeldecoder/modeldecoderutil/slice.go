@@ -44,3 +44,6 @@ func ResliceAndPopulateNil[Slice ~[]*model, model any](slice Slice, n int, newFn
 	}
 	return slice
 }
+
+// NewType returns a new instance of the model type.
+func NewType[model any]() *model { return new(model) }

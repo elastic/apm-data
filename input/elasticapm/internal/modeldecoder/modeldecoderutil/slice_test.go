@@ -44,7 +44,7 @@ func TestResliceAndPopulateNil(t *testing.T) {
 	var s []*modelpb.APMEvent
 
 	originalSize := 10
-	s = ResliceAndPopulateNil(s, originalSize, modelpb.APMEventFromVTPool)
+	s = ResliceAndPopulateNil(s, originalSize, NewType[modelpb.APMEvent])
 	validateBackingArray(t, s, originalSize)
 	assert.Equal(t, originalSize, len(s))
 
@@ -54,7 +54,7 @@ func TestResliceAndPopulateNil(t *testing.T) {
 	assert.Equal(t, downsize, len(s))
 
 	upsize := 21
-	s = ResliceAndPopulateNil(s, upsize, modelpb.APMEventFromVTPool)
+	s = ResliceAndPopulateNil(s, upsize, NewType[modelpb.APMEvent])
 	validateBackingArray(t, s, upsize)
 	assert.Equal(t, upsize, len(s))
 }

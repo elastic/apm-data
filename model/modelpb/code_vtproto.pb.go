@@ -24,7 +24,6 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -42,7 +41,7 @@ func (m *Code) CloneVT() *Code {
 	if m == nil {
 		return (*Code)(nil)
 	}
-	r := CodeFromVTPool()
+	r := new(Code)
 	r.Stacktrace = m.Stacktrace
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -95,26 +94,6 @@ func (m *Code) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_Code = sync.Pool{
-	New: func() interface{} {
-		return &Code{}
-	},
-}
-
-func (m *Code) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *Code) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Code.Put(m)
-	}
-}
-func CodeFromVTPool() *Code {
-	return vtprotoPool_Code.Get().(*Code)
-}
 func (m *Code) SizeVT() (n int) {
 	if m == nil {
 		return 0

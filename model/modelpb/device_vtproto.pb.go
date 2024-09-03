@@ -24,7 +24,6 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -42,7 +41,7 @@ func (m *Device) CloneVT() *Device {
 	if m == nil {
 		return (*Device)(nil)
 	}
-	r := DeviceFromVTPool()
+	r := new(Device)
 	r.Id = m.Id
 	r.Model = m.Model.CloneVT()
 	r.Manufacturer = m.Manufacturer
@@ -61,7 +60,7 @@ func (m *DeviceModel) CloneVT() *DeviceModel {
 	if m == nil {
 		return (*DeviceModel)(nil)
 	}
-	r := DeviceModelFromVTPool()
+	r := new(DeviceModel)
 	r.Name = m.Name
 	r.Identifier = m.Identifier
 	if len(m.unknownFields) > 0 {
@@ -179,48 +178,6 @@ func (m *DeviceModel) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_Device = sync.Pool{
-	New: func() interface{} {
-		return &Device{}
-	},
-}
-
-func (m *Device) ResetVT() {
-	if m != nil {
-		m.Model.ReturnToVTPool()
-		m.Reset()
-	}
-}
-func (m *Device) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Device.Put(m)
-	}
-}
-func DeviceFromVTPool() *Device {
-	return vtprotoPool_Device.Get().(*Device)
-}
-
-var vtprotoPool_DeviceModel = sync.Pool{
-	New: func() interface{} {
-		return &DeviceModel{}
-	},
-}
-
-func (m *DeviceModel) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *DeviceModel) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_DeviceModel.Put(m)
-	}
-}
-func DeviceModelFromVTPool() *DeviceModel {
-	return vtprotoPool_DeviceModel.Get().(*DeviceModel)
-}
 func (m *Device) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -352,7 +309,7 @@ func (m *Device) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Model == nil {
-				m.Model = DeviceModelFromVTPool()
+				m.Model = &DeviceModel{}
 			}
 			if err := m.Model.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err

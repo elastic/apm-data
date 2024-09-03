@@ -24,7 +24,6 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	structpb1 "github.com/planetscale/vtprotobuf/types/known/structpb"
@@ -44,7 +43,7 @@ func (m *KeyValue) CloneVT() *KeyValue {
 	if m == nil {
 		return (*KeyValue)(nil)
 	}
-	r := KeyValueFromVTPool()
+	r := new(KeyValue)
 	r.Key = m.Key
 	r.Value = (*structpb.Value)((*structpb1.Value)(m.Value).CloneVT())
 	if len(m.unknownFields) > 0 {
@@ -108,26 +107,6 @@ func (m *KeyValue) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_KeyValue = sync.Pool{
-	New: func() interface{} {
-		return &KeyValue{}
-	},
-}
-
-func (m *KeyValue) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *KeyValue) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_KeyValue.Put(m)
-	}
-}
-func KeyValueFromVTPool() *KeyValue {
-	return vtprotoPool_KeyValue.Get().(*KeyValue)
-}
 func (m *KeyValue) SizeVT() (n int) {
 	if m == nil {
 		return 0

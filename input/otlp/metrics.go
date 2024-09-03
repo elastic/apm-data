@@ -113,19 +113,19 @@ func (c *Consumer) handleResourceMetrics(
 	remainingDataPoints, remainingMetrics *int64,
 ) (
 	droppedDataPoints, droppedMetrics int64) {
-	baseEvent := modelpb.APMEventFromVTPool()
-	baseEvent.Event = modelpb.EventFromVTPool()
+	baseEvent := modelpb.APMEvent{}
+	baseEvent.Event = &modelpb.Event{}
 	baseEvent.Event.Received = modelpb.FromTime(receiveTimestamp)
 
 	var timeDelta time.Duration
 	resource := resourceMetrics.Resource()
-	translateResourceMetadata(resource, baseEvent)
+	translateResourceMetadata(resource, &baseEvent)
 	if exportTimestamp, ok := exportTimestamp(resource); ok {
 		timeDelta = receiveTimestamp.Sub(exportTimestamp)
 	}
 	scopeMetrics := resourceMetrics.ScopeMetrics()
 	for i := 0; i < scopeMetrics.Len(); i++ {
-		c.handleScopeMetrics(scopeMetrics.At(i), resource, baseEvent, timeDelta, out, remainingDataPoints, remainingMetrics)
+		c.handleScopeMetrics(scopeMetrics.At(i), resource, &baseEvent, timeDelta, out, remainingDataPoints, remainingMetrics)
 	}
 	return
 }
@@ -168,7 +168,7 @@ func (c *Consumer) handleScopeMetrics(
 		for _, s := range ms.samples {
 			metrs = append(metrs, s)
 		}
-		event.Metricset = modelpb.MetricsetFromVTPool()
+		event.Metricset = &modelpb.Metricset{}
 		event.Metricset.Samples = metrs
 		event.Metricset.Name = "app"
 		if ms.attributes.Len() > 0 {
@@ -178,12 +178,12 @@ func (c *Consumer) handleScopeMetrics(
 				// data_stream.*
 				case attributeDataStreamDataset:
 					if event.DataStream == nil {
-						event.DataStream = modelpb.DataStreamFromVTPool()
+						event.DataStream = &modelpb.DataStream{}
 					}
 					event.DataStream.Dataset = v.Str()
 				case attributeDataStreamNamespace:
 					if event.DataStream == nil {
-						event.DataStream = modelpb.DataStreamFromVTPool()
+						event.DataStream = &modelpb.DataStream{}
 					}
 					event.DataStream.Namespace = v.Str()
 
@@ -194,13 +194,13 @@ func (c *Consumer) handleScopeMetrics(
 				// and are not OTel semconv fields.
 				case "system.process.cpu.start_time":
 					if event.System == nil {
-						event.System = modelpb.SystemFromVTPool()
+						event.System = &modelpb.System{}
 					}
 					if event.System.Process == nil {
-						event.System.Process = modelpb.SystemProcessFromVTPool()
+						event.System.Process = &modelpb.SystemProcess{}
 					}
 					if event.System.Process.Cpu == nil {
-						event.System.Process.Cpu = modelpb.SystemProcessCPUFromVTPool()
+						event.System.Process.Cpu = &modelpb.SystemProcessCPU{}
 					}
 					event.System.Process.Cpu.StartTime = v.Str()
 
@@ -213,41 +213,41 @@ func (c *Consumer) handleScopeMetrics(
 				// processing the OTel semconv resource attribute `process.command_line`.
 				case "system.process.cmdline":
 					if event.System == nil {
-						event.System = modelpb.SystemFromVTPool()
+						event.System = &modelpb.System{}
 					}
 					if event.System.Process == nil {
-						event.System.Process = modelpb.SystemProcessFromVTPool()
+						event.System.Process = &modelpb.SystemProcess{}
 					}
 					event.System.Process.Cmdline = truncate(v.Str())
 				case "system.process.state":
 					if event.System == nil {
-						event.System = modelpb.SystemFromVTPool()
+						event.System = &modelpb.System{}
 					}
 					if event.System.Process == nil {
-						event.System.Process = modelpb.SystemProcessFromVTPool()
+						event.System.Process = &modelpb.SystemProcess{}
 					}
 					event.System.Process.State = v.Str()
 				case "system.filesystem.mount_point":
 					if event.System == nil {
-						event.System = modelpb.SystemFromVTPool()
+						event.System = &modelpb.System{}
 					}
 					if event.System.Filesystem == nil {
-						event.System.Filesystem = modelpb.SystemFilesystemFromVTPool()
+						event.System.Filesystem = &modelpb.SystemFilesystem{}
 					}
 					event.System.Filesystem.MountPoint = truncate(v.Str())
 				case "event.dataset":
 					if event.Event == nil {
-						event.Event = modelpb.EventFromVTPool()
+						event.Event = &modelpb.Event{}
 					}
 					event.Event.Dataset = v.Str()
 				case "event.module":
 					if event.Event == nil {
-						event.Event = modelpb.EventFromVTPool()
+						event.Event = &modelpb.Event{}
 					}
 					event.Event.Module = v.Str()
 				case "user.name":
 					if event.User == nil {
-						event.User = modelpb.UserFromVTPool()
+						event.User = &modelpb.User{}
 					}
 					event.User.Name = truncate(v.Str())
 				default:
@@ -339,19 +339,19 @@ func numberSample(dp pmetric.NumberDataPoint, metricType modelpb.MetricType) (*m
 	default:
 		return nil, false
 	}
-	ms := modelpb.MetricsetSampleFromVTPool()
+	ms := modelpb.MetricsetSample{}
 	ms.Type = metricType
 	ms.Value = value
-	return ms, true
+	return &ms, true
 }
 
 func summarySample(dp pmetric.SummaryDataPoint) *modelpb.MetricsetSample {
-	ms := modelpb.MetricsetSampleFromVTPool()
+	ms := modelpb.MetricsetSample{}
 	ms.Type = modelpb.MetricType_METRIC_TYPE_SUMMARY
-	ms.Summary = modelpb.SummaryMetricFromVTPool()
+	ms.Summary = &modelpb.SummaryMetric{}
 	ms.Summary.Count = uint64(dp.Count())
 	ms.Summary.Sum = dp.Sum()
-	return ms
+	return &ms
 }
 
 func histogramSample(bucketCounts pcommon.UInt64Slice, explicitBounds pcommon.Float64Slice) (*modelpb.MetricsetSample, bool) {
@@ -367,7 +367,7 @@ func histogramSample(bucketCounts pcommon.UInt64Slice, explicitBounds pcommon.Fl
 	// The values in the explicit_bounds array must be strictly increasing.
 	//
 	if bucketCounts.Len() != explicitBounds.Len()+1 || explicitBounds.Len() == 0 {
-		return modelpb.MetricsetSampleFromVTPool(), false
+		return &modelpb.MetricsetSample{}, false
 	}
 
 	// For the bucket values, we follow the approach described by Prometheus's
@@ -410,12 +410,12 @@ func histogramSample(bucketCounts pcommon.UInt64Slice, explicitBounds pcommon.Fl
 		counts = append(counts, uint64(count))
 		values = append(values, value)
 	}
-	ms := modelpb.MetricsetSampleFromVTPool()
+	ms := modelpb.MetricsetSample{}
 	ms.Type = modelpb.MetricType_METRIC_TYPE_HISTOGRAM
-	ms.Histogram = modelpb.HistogramFromVTPool()
+	ms.Histogram = &modelpb.Histogram{}
 	ms.Histogram.Counts = counts
 	ms.Histogram.Values = values
-	return ms, true
+	return &ms, true
 }
 
 type metricsets map[metricsetKey]metricset
