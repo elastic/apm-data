@@ -31,3 +31,4 @@ install-protobuf:
 
 generate-modelpb: install-protobuf
 	./tools/generate-modelpb.sh
+	@$(MAKE) update-licenses fmt

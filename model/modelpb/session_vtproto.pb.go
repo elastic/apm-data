@@ -24,7 +24,6 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -42,7 +41,7 @@ func (m *Session) CloneVT() *Session {
 	if m == nil {
 		return (*Session)(nil)
 	}
-	r := SessionFromVTPool()
+	r := new(Session)
 	r.Id = m.Id
 	r.Sequence = m.Sequence
 	if len(m.unknownFields) > 0 {
@@ -101,26 +100,6 @@ func (m *Session) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_Session = sync.Pool{
-	New: func() interface{} {
-		return &Session{}
-	},
-}
-
-func (m *Session) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *Session) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Session.Put(m)
-	}
-}
-func SessionFromVTPool() *Session {
-	return vtprotoPool_Session.Get().(*Session)
-}
 func (m *Session) SizeVT() (n int) {
 	if m == nil {
 		return 0

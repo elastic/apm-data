@@ -24,7 +24,6 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -42,7 +41,7 @@ func (m *APMEvent) CloneVT() *APMEvent {
 	if m == nil {
 		return (*APMEvent)(nil)
 	}
-	r := APMEventFromVTPool()
+	r := new(APMEvent)
 	r.Timestamp = m.Timestamp
 	r.Span = m.Span.CloneVT()
 	r.Transaction = m.Transaction.CloneVT()
@@ -540,57 +539,6 @@ func (m *APMEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_APMEvent = sync.Pool{
-	New: func() interface{} {
-		return &APMEvent{}
-	},
-}
-
-func (m *APMEvent) ResetVT() {
-	if m != nil {
-		m.Span.ReturnToVTPool()
-		m.Transaction.ReturnToVTPool()
-		m.Metricset.ReturnToVTPool()
-		m.Error.ReturnToVTPool()
-		m.Cloud.ReturnToVTPool()
-		m.Service.ReturnToVTPool()
-		m.Faas.ReturnToVTPool()
-		m.Network.ReturnToVTPool()
-		m.Container.ReturnToVTPool()
-		m.User.ReturnToVTPool()
-		m.Device.ReturnToVTPool()
-		m.Kubernetes.ReturnToVTPool()
-		m.Observer.ReturnToVTPool()
-		m.DataStream.ReturnToVTPool()
-		m.Agent.ReturnToVTPool()
-		m.Http.ReturnToVTPool()
-		m.UserAgent.ReturnToVTPool()
-		m.Trace.ReturnToVTPool()
-		m.Host.ReturnToVTPool()
-		m.Url.ReturnToVTPool()
-		m.Log.ReturnToVTPool()
-		m.Source.ReturnToVTPool()
-		m.Client.ReturnToVTPool()
-		f0 := m.ChildIds[:0]
-		m.Destination.ReturnToVTPool()
-		m.Session.ReturnToVTPool()
-		m.Process.ReturnToVTPool()
-		m.Event.ReturnToVTPool()
-		m.Code.ReturnToVTPool()
-		m.System.ReturnToVTPool()
-		m.Reset()
-		m.ChildIds = f0
-	}
-}
-func (m *APMEvent) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_APMEvent.Put(m)
-	}
-}
-func APMEventFromVTPool() *APMEvent {
-	return vtprotoPool_APMEvent.Get().(*APMEvent)
-}
 func (m *APMEvent) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -838,7 +786,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Span == nil {
-				m.Span = SpanFromVTPool()
+				m.Span = &Span{}
 			}
 			if err := m.Span.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1132,7 +1080,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Transaction == nil {
-				m.Transaction = TransactionFromVTPool()
+				m.Transaction = &Transaction{}
 			}
 			if err := m.Transaction.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1168,7 +1116,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Metricset == nil {
-				m.Metricset = MetricsetFromVTPool()
+				m.Metricset = &Metricset{}
 			}
 			if err := m.Metricset.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1204,7 +1152,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Error == nil {
-				m.Error = ErrorFromVTPool()
+				m.Error = &Error{}
 			}
 			if err := m.Error.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1240,7 +1188,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Cloud == nil {
-				m.Cloud = CloudFromVTPool()
+				m.Cloud = &Cloud{}
 			}
 			if err := m.Cloud.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1276,7 +1224,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Service == nil {
-				m.Service = ServiceFromVTPool()
+				m.Service = &Service{}
 			}
 			if err := m.Service.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1312,7 +1260,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Faas == nil {
-				m.Faas = FaasFromVTPool()
+				m.Faas = &Faas{}
 			}
 			if err := m.Faas.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1348,7 +1296,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Network == nil {
-				m.Network = NetworkFromVTPool()
+				m.Network = &Network{}
 			}
 			if err := m.Network.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1384,7 +1332,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Container == nil {
-				m.Container = ContainerFromVTPool()
+				m.Container = &Container{}
 			}
 			if err := m.Container.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1420,7 +1368,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.User == nil {
-				m.User = UserFromVTPool()
+				m.User = &User{}
 			}
 			if err := m.User.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1456,7 +1404,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Device == nil {
-				m.Device = DeviceFromVTPool()
+				m.Device = &Device{}
 			}
 			if err := m.Device.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1492,7 +1440,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Kubernetes == nil {
-				m.Kubernetes = KubernetesFromVTPool()
+				m.Kubernetes = &Kubernetes{}
 			}
 			if err := m.Kubernetes.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1528,7 +1476,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Observer == nil {
-				m.Observer = ObserverFromVTPool()
+				m.Observer = &Observer{}
 			}
 			if err := m.Observer.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1564,7 +1512,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.DataStream == nil {
-				m.DataStream = DataStreamFromVTPool()
+				m.DataStream = &DataStream{}
 			}
 			if err := m.DataStream.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1600,7 +1548,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Agent == nil {
-				m.Agent = AgentFromVTPool()
+				m.Agent = &Agent{}
 			}
 			if err := m.Agent.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1636,7 +1584,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Http == nil {
-				m.Http = HTTPFromVTPool()
+				m.Http = &HTTP{}
 			}
 			if err := m.Http.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1672,7 +1620,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.UserAgent == nil {
-				m.UserAgent = UserAgentFromVTPool()
+				m.UserAgent = &UserAgent{}
 			}
 			if err := m.UserAgent.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1772,7 +1720,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Trace == nil {
-				m.Trace = TraceFromVTPool()
+				m.Trace = &Trace{}
 			}
 			if err := m.Trace.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1808,7 +1756,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Host == nil {
-				m.Host = HostFromVTPool()
+				m.Host = &Host{}
 			}
 			if err := m.Host.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1844,7 +1792,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Url == nil {
-				m.Url = URLFromVTPool()
+				m.Url = &URL{}
 			}
 			if err := m.Url.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1880,7 +1828,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Log == nil {
-				m.Log = LogFromVTPool()
+				m.Log = &Log{}
 			}
 			if err := m.Log.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1916,7 +1864,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Source == nil {
-				m.Source = SourceFromVTPool()
+				m.Source = &Source{}
 			}
 			if err := m.Source.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1952,7 +1900,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Client == nil {
-				m.Client = ClientFromVTPool()
+				m.Client = &Client{}
 			}
 			if err := m.Client.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2020,7 +1968,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Destination == nil {
-				m.Destination = DestinationFromVTPool()
+				m.Destination = &Destination{}
 			}
 			if err := m.Destination.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2056,7 +2004,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Session == nil {
-				m.Session = SessionFromVTPool()
+				m.Session = &Session{}
 			}
 			if err := m.Session.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2092,7 +2040,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Process == nil {
-				m.Process = ProcessFromVTPool()
+				m.Process = &Process{}
 			}
 			if err := m.Process.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2128,7 +2076,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Event == nil {
-				m.Event = EventFromVTPool()
+				m.Event = &Event{}
 			}
 			if err := m.Event.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2164,7 +2112,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Code == nil {
-				m.Code = CodeFromVTPool()
+				m.Code = &Code{}
 			}
 			if err := m.Code.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2200,7 +2148,7 @@ func (m *APMEvent) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.System == nil {
-				m.System = SystemFromVTPool()
+				m.System = &System{}
 			}
 			if err := m.System.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
