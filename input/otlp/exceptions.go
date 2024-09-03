@@ -76,8 +76,8 @@ func convertOpenTelemetryExceptionSpanEvent(
 		exceptionMessage = emptyExceptionMsg
 	}
 	exceptionHandled := !exceptionEscaped
-	exceptionError := modelpb.ErrorFromVTPool()
-	exceptionError.Exception = modelpb.ExceptionFromVTPool()
+	exceptionError := modelpb.Error{}
+	exceptionError.Exception = &modelpb.Exception{}
 	exceptionError.Exception.Message = exceptionMessage
 	if exceptionType != "" {
 		exceptionError.Exception.Type = exceptionType
@@ -94,7 +94,7 @@ func convertOpenTelemetryExceptionSpanEvent(
 			exceptionError.StackTrace = exceptionStacktrace
 		}
 	}
-	return exceptionError
+	return &exceptionError
 }
 
 func setExceptionStacktrace(s, language string, out *modelpb.Exception) error {
@@ -168,7 +168,7 @@ func setJavaExceptionStacktrace(s string, out *modelpb.Exception) error {
 			// "Caused by:" lines are at the same level of indentation
 			// as the enclosing exception.
 			current.Cause = make([]*modelpb.Exception, 1)
-			current.Cause[0] = modelpb.ExceptionFromVTPool()
+			current.Cause[0] = &modelpb.Exception{}
 			current.enclosing = current.Exception
 			current.Exception = current.Cause[0]
 			current.Exception.Handled = current.enclosing.Handled
@@ -181,7 +181,7 @@ func setJavaExceptionStacktrace(s string, out *modelpb.Exception) error {
 			// enclosing exception; we just account for the indentation here.
 			stack = append(stack, current)
 			current.enclosing = current.Exception
-			current.Exception = modelpb.ExceptionFromVTPool()
+			current.Exception = &modelpb.Exception{}
 			current.indent = indent
 		default:
 			return fmt.Errorf("unexpected line %q", line)
@@ -219,13 +219,13 @@ func parseJavaStacktraceFrame(s string, out *modelpb.Exception) error {
 			lineno = &un
 		}
 	}
-	sf := modelpb.StacktraceFrameFromVTPool()
+	sf := modelpb.StacktraceFrame{}
 	sf.Module = module
 	sf.Classname = classname
 	sf.Function = function
 	sf.Filename = file
 	sf.Lineno = lineno
-	out.Stacktrace = append(out.Stacktrace, sf)
+	out.Stacktrace = append(out.Stacktrace, &sf)
 	return nil
 }
 

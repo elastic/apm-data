@@ -44,150 +44,150 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 		// service.*
 		case semconv.AttributeServiceName:
 			if out.Service == nil {
-				out.Service = modelpb.ServiceFromVTPool()
+				out.Service = &modelpb.Service{}
 			}
 			out.Service.Name = cleanServiceName(v.Str())
 		case semconv.AttributeServiceVersion:
 			if out.Service == nil {
-				out.Service = modelpb.ServiceFromVTPool()
+				out.Service = &modelpb.Service{}
 			}
 			out.Service.Version = truncate(v.Str())
 		case semconv.AttributeServiceInstanceID:
 			if out.Service == nil {
-				out.Service = modelpb.ServiceFromVTPool()
+				out.Service = &modelpb.Service{}
 			}
 			if out.Service.Node == nil {
-				out.Service.Node = modelpb.ServiceNodeFromVTPool()
+				out.Service.Node = &modelpb.ServiceNode{}
 			}
 			out.Service.Node.Name = truncate(v.Str())
 
 		// deployment.*
 		case semconv.AttributeDeploymentEnvironment:
 			if out.Service == nil {
-				out.Service = modelpb.ServiceFromVTPool()
+				out.Service = &modelpb.Service{}
 			}
 			out.Service.Environment = truncate(v.Str())
 
 		// telemetry.sdk.*
 		case semconv.AttributeTelemetrySDKName:
 			if out.Agent == nil {
-				out.Agent = modelpb.AgentFromVTPool()
+				out.Agent = &modelpb.Agent{}
 			}
 			out.Agent.Name = truncate(v.Str())
 		case semconv.AttributeTelemetrySDKVersion:
 			if out.Agent == nil {
-				out.Agent = modelpb.AgentFromVTPool()
+				out.Agent = &modelpb.Agent{}
 			}
 			out.Agent.Version = truncate(v.Str())
 		case semconv.AttributeTelemetrySDKLanguage:
 			if out.Service == nil {
-				out.Service = modelpb.ServiceFromVTPool()
+				out.Service = &modelpb.Service{}
 			}
 			if out.Service.Language == nil {
-				out.Service.Language = modelpb.LanguageFromVTPool()
+				out.Service.Language = &modelpb.Language{}
 			}
 			out.Service.Language.Name = truncate(v.Str())
 
 		// cloud.*
 		case semconv.AttributeCloudProvider:
 			if out.Cloud == nil {
-				out.Cloud = modelpb.CloudFromVTPool()
+				out.Cloud = &modelpb.Cloud{}
 			}
 			out.Cloud.Provider = truncate(v.Str())
 		case semconv.AttributeCloudAccountID:
 			if out.Cloud == nil {
-				out.Cloud = modelpb.CloudFromVTPool()
+				out.Cloud = &modelpb.Cloud{}
 			}
 			out.Cloud.AccountId = truncate(v.Str())
 		case semconv.AttributeCloudRegion:
 			if out.Cloud == nil {
-				out.Cloud = modelpb.CloudFromVTPool()
+				out.Cloud = &modelpb.Cloud{}
 			}
 			out.Cloud.Region = truncate(v.Str())
 		case semconv.AttributeCloudAvailabilityZone:
 			if out.Cloud == nil {
-				out.Cloud = modelpb.CloudFromVTPool()
+				out.Cloud = &modelpb.Cloud{}
 			}
 			out.Cloud.AvailabilityZone = truncate(v.Str())
 		case semconv.AttributeCloudPlatform:
 			if out.Cloud == nil {
-				out.Cloud = modelpb.CloudFromVTPool()
+				out.Cloud = &modelpb.Cloud{}
 			}
 			out.Cloud.ServiceName = truncate(v.Str())
 
 		// container.*
 		case semconv.AttributeContainerName:
 			if out.Container == nil {
-				out.Container = modelpb.ContainerFromVTPool()
+				out.Container = &modelpb.Container{}
 			}
 			out.Container.Name = truncate(v.Str())
 		case semconv.AttributeContainerID:
 			if out.Container == nil {
-				out.Container = modelpb.ContainerFromVTPool()
+				out.Container = &modelpb.Container{}
 			}
 			out.Container.Id = truncate(v.Str())
 		case semconv.AttributeContainerImageName:
 			if out.Container == nil {
-				out.Container = modelpb.ContainerFromVTPool()
+				out.Container = &modelpb.Container{}
 			}
 			out.Container.ImageName = truncate(v.Str())
 		case "container.image.tag":
 			if out.Container == nil {
-				out.Container = modelpb.ContainerFromVTPool()
+				out.Container = &modelpb.Container{}
 			}
 			out.Container.ImageTag = truncate(v.Str())
 		case "container.runtime":
 			if out.Container == nil {
-				out.Container = modelpb.ContainerFromVTPool()
+				out.Container = &modelpb.Container{}
 			}
 			out.Container.Runtime = truncate(v.Str())
 
 		// k8s.*
 		case semconv.AttributeK8SNamespaceName:
 			if out.Kubernetes == nil {
-				out.Kubernetes = modelpb.KubernetesFromVTPool()
+				out.Kubernetes = &modelpb.Kubernetes{}
 			}
 			out.Kubernetes.Namespace = truncate(v.Str())
 		case semconv.AttributeK8SNodeName:
 			if out.Kubernetes == nil {
-				out.Kubernetes = modelpb.KubernetesFromVTPool()
+				out.Kubernetes = &modelpb.Kubernetes{}
 			}
 			out.Kubernetes.NodeName = truncate(v.Str())
 		case semconv.AttributeK8SPodName:
 			if out.Kubernetes == nil {
-				out.Kubernetes = modelpb.KubernetesFromVTPool()
+				out.Kubernetes = &modelpb.Kubernetes{}
 			}
 			out.Kubernetes.PodName = truncate(v.Str())
 		case semconv.AttributeK8SPodUID:
 			if out.Kubernetes == nil {
-				out.Kubernetes = modelpb.KubernetesFromVTPool()
+				out.Kubernetes = &modelpb.Kubernetes{}
 			}
 			out.Kubernetes.PodUid = truncate(v.Str())
 
 		// host.*
 		case semconv.AttributeHostName:
 			if out.Host == nil {
-				out.Host = modelpb.HostFromVTPool()
+				out.Host = &modelpb.Host{}
 			}
 			out.Host.Hostname = truncate(v.Str())
 		case semconv.AttributeHostID:
 			if out.Host == nil {
-				out.Host = modelpb.HostFromVTPool()
+				out.Host = &modelpb.Host{}
 			}
 			out.Host.Id = truncate(v.Str())
 		case semconv.AttributeHostType:
 			if out.Host == nil {
-				out.Host = modelpb.HostFromVTPool()
+				out.Host = &modelpb.Host{}
 			}
 			out.Host.Type = truncate(v.Str())
 		case "host.arch":
 			if out.Host == nil {
-				out.Host = modelpb.HostFromVTPool()
+				out.Host = &modelpb.Host{}
 			}
 			out.Host.Architecture = truncate(v.Str())
 		case semconv.AttributeHostIP:
 			if out.Host == nil {
-				out.Host = modelpb.HostFromVTPool()
+				out.Host = &modelpb.Host{}
 			}
 			slice := v.Slice()
 			result := make([]*modelpb.IP, 0, slice.Len())
@@ -202,100 +202,100 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 		// process.*
 		case semconv.AttributeProcessPID:
 			if out.Process == nil {
-				out.Process = modelpb.ProcessFromVTPool()
+				out.Process = &modelpb.Process{}
 			}
 			out.Process.Pid = uint32(v.Int())
 		case semconv.AttributeProcessCommandLine:
 			if out.Process == nil {
-				out.Process = modelpb.ProcessFromVTPool()
+				out.Process = &modelpb.Process{}
 			}
 			out.Process.CommandLine = truncate(v.Str())
 		case semconv.AttributeProcessExecutablePath:
 			if out.Process == nil {
-				out.Process = modelpb.ProcessFromVTPool()
+				out.Process = &modelpb.Process{}
 			}
 			out.Process.Executable = truncate(v.Str())
 		case "process.runtime.name":
 			if out.Service == nil {
-				out.Service = modelpb.ServiceFromVTPool()
+				out.Service = &modelpb.Service{}
 			}
 			if out.Service.Runtime == nil {
-				out.Service.Runtime = modelpb.RuntimeFromVTPool()
+				out.Service.Runtime = &modelpb.Runtime{}
 			}
 			out.Service.Runtime.Name = truncate(v.Str())
 		case "process.runtime.version":
 			if out.Service == nil {
-				out.Service = modelpb.ServiceFromVTPool()
+				out.Service = &modelpb.Service{}
 			}
 			if out.Service.Runtime == nil {
-				out.Service.Runtime = modelpb.RuntimeFromVTPool()
+				out.Service.Runtime = &modelpb.Runtime{}
 			}
 			out.Service.Runtime.Version = truncate(v.Str())
 		case semconv.AttributeProcessOwner:
 			if out.User == nil {
-				out.User = modelpb.UserFromVTPool()
+				out.User = &modelpb.User{}
 			}
 			out.User.Name = truncate(v.Str())
 
 		// os.*
 		case semconv.AttributeOSType:
 			if out.Host == nil {
-				out.Host = modelpb.HostFromVTPool()
+				out.Host = &modelpb.Host{}
 			}
 			if out.Host.Os == nil {
-				out.Host.Os = modelpb.OSFromVTPool()
+				out.Host.Os = &modelpb.OS{}
 			}
 			out.Host.Os.Platform = strings.ToLower(truncate(v.Str()))
 		case semconv.AttributeOSDescription:
 			if out.Host == nil {
-				out.Host = modelpb.HostFromVTPool()
+				out.Host = &modelpb.Host{}
 			}
 			if out.Host.Os == nil {
-				out.Host.Os = modelpb.OSFromVTPool()
+				out.Host.Os = &modelpb.OS{}
 			}
 			out.Host.Os.Full = truncate(v.Str())
 		case semconv.AttributeOSName:
 			if out.Host == nil {
-				out.Host = modelpb.HostFromVTPool()
+				out.Host = &modelpb.Host{}
 			}
 			if out.Host.Os == nil {
-				out.Host.Os = modelpb.OSFromVTPool()
+				out.Host.Os = &modelpb.OS{}
 			}
 			out.Host.Os.Name = truncate(v.Str())
 		case semconv.AttributeOSVersion:
 			if out.Host == nil {
-				out.Host = modelpb.HostFromVTPool()
+				out.Host = &modelpb.Host{}
 			}
 			if out.Host.Os == nil {
-				out.Host.Os = modelpb.OSFromVTPool()
+				out.Host.Os = &modelpb.OS{}
 			}
 			out.Host.Os.Version = truncate(v.Str())
 
 		// device.*
 		case semconv.AttributeDeviceID:
 			if out.Device == nil {
-				out.Device = modelpb.DeviceFromVTPool()
+				out.Device = &modelpb.Device{}
 			}
 			out.Device.Id = truncate(v.Str())
 		case semconv.AttributeDeviceModelIdentifier:
 			if out.Device == nil {
-				out.Device = modelpb.DeviceFromVTPool()
+				out.Device = &modelpb.Device{}
 			}
 			if out.Device.Model == nil {
-				out.Device.Model = modelpb.DeviceModelFromVTPool()
+				out.Device.Model = &modelpb.DeviceModel{}
 			}
 			out.Device.Model.Identifier = truncate(v.Str())
 		case semconv.AttributeDeviceModelName:
 			if out.Device == nil {
-				out.Device = modelpb.DeviceFromVTPool()
+				out.Device = &modelpb.Device{}
 			}
 			if out.Device.Model == nil {
-				out.Device.Model = modelpb.DeviceModelFromVTPool()
+				out.Device.Model = &modelpb.DeviceModel{}
 			}
 			out.Device.Model.Name = truncate(v.Str())
 		case "device.manufacturer":
 			if out.Device == nil {
-				out.Device = modelpb.DeviceFromVTPool()
+				out.Device = &modelpb.Device{}
 			}
 			out.Device.Manufacturer = truncate(v.Str())
 
@@ -314,12 +314,12 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 		// data_stream.*
 		case attributeDataStreamDataset:
 			if out.DataStream == nil {
-				out.DataStream = modelpb.DataStreamFromVTPool()
+				out.DataStream = &modelpb.DataStream{}
 			}
 			out.DataStream.Dataset = v.Str()
 		case attributeDataStreamNamespace:
 			if out.DataStream == nil {
-				out.DataStream = modelpb.DataStreamFromVTPool()
+				out.DataStream = &modelpb.DataStream{}
 			}
 			out.DataStream.Namespace = v.Str()
 		default:
@@ -360,15 +360,15 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 		versionParts := strings.SplitN(exporterVersion, "-", nVersionParts)
 		if out.GetService().GetLanguage().GetName() == "" && len(versionParts) == nVersionParts {
 			if out.Service == nil {
-				out.Service = modelpb.ServiceFromVTPool()
+				out.Service = &modelpb.Service{}
 			}
 			if out.Service.Language == nil {
-				out.Service.Language = modelpb.LanguageFromVTPool()
+				out.Service.Language = &modelpb.Language{}
 			}
 			out.Service.Language.Name = versionParts[1]
 		}
 		if out.Agent == nil {
-			out.Agent = modelpb.AgentFromVTPool()
+			out.Agent = &modelpb.Agent{}
 		}
 		if v := versionParts[len(versionParts)-1]; v != "" {
 			out.Agent.Version = v
@@ -390,13 +390,13 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 
 	if out.GetService().GetName() == "" {
 		if out.Service == nil {
-			out.Service = modelpb.ServiceFromVTPool()
+			out.Service = &modelpb.Service{}
 		}
 		// service.name is a required field.
 		out.Service.Name = "unknown"
 	}
 	if out.Agent == nil {
-		out.Agent = modelpb.AgentFromVTPool()
+		out.Agent = &modelpb.Agent{}
 	}
 	if out.GetAgent().GetName() == "" {
 		// agent.name is a required field.
@@ -432,10 +432,10 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 
 	if out.GetService().GetLanguage().GetName() == "" {
 		if out.Service == nil {
-			out.Service = modelpb.ServiceFromVTPool()
+			out.Service = &modelpb.Service{}
 		}
 		if out.Service.Language == nil {
-			out.Service.Language = modelpb.LanguageFromVTPool()
+			out.Service.Language = &modelpb.Language{}
 		}
 		out.Service.Language.Name = "unknown"
 	}
@@ -457,12 +457,12 @@ func translateScopeMetadata(scope pcommon.InstrumentationScope, out *modelpb.APM
 		// data_stream.*
 		case attributeDataStreamDataset:
 			if out.DataStream == nil {
-				out.DataStream = modelpb.DataStreamFromVTPool()
+				out.DataStream = &modelpb.DataStream{}
 			}
 			out.DataStream.Dataset = v.Str()
 		case attributeDataStreamNamespace:
 			if out.DataStream == nil {
-				out.DataStream = modelpb.DataStreamFromVTPool()
+				out.DataStream = &modelpb.DataStream{}
 			}
 			out.DataStream.Namespace = v.Str()
 		}
@@ -471,11 +471,12 @@ func translateScopeMetadata(scope pcommon.InstrumentationScope, out *modelpb.APM
 
 	if name := scope.Name(); name != "" {
 		if out.Service == nil {
-			out.Service = modelpb.ServiceFromVTPool()
+			out.Service = &modelpb.Service{}
 		}
-		out.Service.Framework = modelpb.FrameworkFromVTPool()
-		out.Service.Framework.Name = name
-		out.Service.Framework.Version = scope.Version()
+		out.Service.Framework = &modelpb.Framework{
+			Name:    name,
+			Version: scope.Version(),
+		}
 	}
 }
 

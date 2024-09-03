@@ -36,7 +36,7 @@ func (s *SetDefaultServiceEnvironment) ProcessBatch(ctx context.Context, b *mode
 	for i := range *b {
 		event := (*b)[i]
 		if event.Service == nil {
-			event.Service = modelpb.ServiceFromVTPool()
+			event.Service = &modelpb.Service{}
 		}
 		if event.Service.Environment == "" {
 			event.Service.Environment = s.DefaultServiceEnvironment
