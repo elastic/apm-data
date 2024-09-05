@@ -27,7 +27,9 @@ func Reslice[Slice ~[]model, model any](slice Slice, n int) Slice {
 	if n > cap(slice) {
 		slice = slices.Grow(slice, n-len(slice))
 	}
-	return slice[:n]
+	res := make(Slice, n)
+	copy(res, slice[:n])
+	return res
 }
 
 // ResliceAndPopulateNil ensures a slice of pointers has atleast
