@@ -26,7 +26,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
@@ -39,39 +38,6 @@ import (
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
-)
-
-var (
-	errorRootPool = sync.Pool{
-		New: func() interface{} {
-			return &errorRoot{}
-		},
-	}
-	metadataRootPool = sync.Pool{
-		New: func() interface{} {
-			return &metadataRoot{}
-		},
-	}
-	metricsetRootPool = sync.Pool{
-		New: func() interface{} {
-			return &metricsetRoot{}
-		},
-	}
-	spanRootPool = sync.Pool{
-		New: func() interface{} {
-			return &spanRoot{}
-		},
-	}
-	transactionRootPool = sync.Pool{
-		New: func() interface{} {
-			return &transactionRoot{}
-		},
-	}
-	logRootPool = sync.Pool{
-		New: func() interface{} {
-			return &logRoot{}
-		},
-	}
 )
 
 var compressionStrategyText = map[string]modelpb.CompressionStrategy{
@@ -93,60 +59,6 @@ var (
 	reForServiceTargetExpr = regexp.MustCompile(`^([a-z0-9]+)(?:/(\w+))?$`)
 )
 
-func fetchErrorRoot() *errorRoot {
-	return errorRootPool.Get().(*errorRoot)
-}
-
-func releaseErrorRoot(root *errorRoot) {
-	root.Reset()
-	errorRootPool.Put(root)
-}
-
-func fetchMetadataRoot() *metadataRoot {
-	return metadataRootPool.Get().(*metadataRoot)
-}
-
-func releaseMetadataRoot(root *metadataRoot) {
-	root.Reset()
-	metadataRootPool.Put(root)
-}
-
-func fetchMetricsetRoot() *metricsetRoot {
-	return metricsetRootPool.Get().(*metricsetRoot)
-}
-
-func releaseMetricsetRoot(root *metricsetRoot) {
-	root.Reset()
-	metricsetRootPool.Put(root)
-}
-
-func fetchSpanRoot() *spanRoot {
-	return spanRootPool.Get().(*spanRoot)
-}
-
-func releaseSpanRoot(root *spanRoot) {
-	root.Reset()
-	spanRootPool.Put(root)
-}
-
-func fetchTransactionRoot() *transactionRoot {
-	return transactionRootPool.Get().(*transactionRoot)
-}
-
-func releaseTransactionRoot(root *transactionRoot) {
-	root.Reset()
-	transactionRootPool.Put(root)
-}
-
-func fetchLogRoot() *logRoot {
-	return logRootPool.Get().(*logRoot)
-}
-
-func releaseLogRoot(root *logRoot) {
-	root.Reset()
-	logRootPool.Put(root)
-}
-
 // DecodeMetadata decodes metadata from d, updating out.
 //
 // DecodeMetadata should be used when the the stream in the decoder does not contain the
@@ -166,8 +78,7 @@ func DecodeNestedMetadata(d decoder.Decoder, out *modelpb.APMEvent) error {
 //
 // DecodeNestedError should be used when the stream in the decoder contains the `error` key
 func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
-	root := fetchErrorRoot()
-	defer releaseErrorRoot(root)
+	root := &errorRoot{}
 	err := d.Decode(root)
 	if err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
@@ -185,8 +96,7 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *mode
 //
 // DecodeNestedMetricset should be used when the stream in the decoder contains the `metricset` key
 func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
-	root := fetchMetricsetRoot()
-	defer releaseMetricsetRoot(root)
+	root := &metricsetRoot{}
 	var err error
 	if err = d.Decode(root); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
@@ -205,8 +115,7 @@ func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, batch *
 //
 // DecodeNestedSpan should be used when the stream in the decoder contains the `span` key
 func DecodeNestedSpan(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
-	root := fetchSpanRoot()
-	defer releaseSpanRoot(root)
+	root := &spanRoot{}
 	var err error
 	if err = d.Decode(root); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
@@ -224,8 +133,7 @@ func DecodeNestedSpan(d decoder.Decoder, input *modeldecoder.Input, batch *model
 //
 // DecodeNestedTransaction should be used when the stream in the decoder contains the `transaction` key
 func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
-	root := fetchTransactionRoot()
-	defer releaseTransactionRoot(root)
+	root := &transactionRoot{}
 	var err error
 	if err = d.Decode(root); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
@@ -243,8 +151,7 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 //
 // DecodeNestedLog should be used when the stream in the decoder contains the `log` key
 func DecodeNestedLog(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
-	root := fetchLogRoot()
-	defer releaseLogRoot(root)
+	root := &logRoot{}
 	var err error
 	if err = d.Decode(root); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
@@ -263,8 +170,7 @@ func DecodeNestedLog(d decoder.Decoder, input *modeldecoder.Input, batch *modelp
 }
 
 func decodeMetadata(decFn func(d decoder.Decoder, m *metadataRoot) error, d decoder.Decoder, out *modelpb.APMEvent) error {
-	m := fetchMetadataRoot()
-	defer releaseMetadataRoot(m)
+	m := &metadataRoot{}
 	var err error
 	if err = decFn(d, m); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
@@ -311,7 +217,7 @@ func mapToFAASModel(from faas, faas *modelpb.Faas) {
 
 func mapToDroppedSpansModel(from []transactionDroppedSpanStats, tx *modelpb.Transaction) {
 	for _, f := range from {
-		to := modelpb.DroppedSpanStatsFromVTPool()
+		to := modelpb.DroppedSpanStats{}
 		if f.DestinationServiceResource.IsSet() {
 			to.DestinationServiceResource = f.DestinationServiceResource.Val
 		}
@@ -319,7 +225,7 @@ func mapToDroppedSpansModel(from []transactionDroppedSpanStats, tx *modelpb.Tran
 			to.Outcome = f.Outcome.Val
 		}
 		if f.Duration.IsSet() {
-			to.Duration = modelpb.AggregatedDurationFromVTPool()
+			to.Duration = &modelpb.AggregatedDuration{}
 			to.Duration.Count = uint64(f.Duration.Count.Val)
 			sum := f.Duration.Sum
 			if sum.IsSet() {
@@ -333,12 +239,12 @@ func mapToDroppedSpansModel(from []transactionDroppedSpanStats, tx *modelpb.Tran
 			to.ServiceTargetName = f.ServiceTargetName.Val
 		}
 
-		tx.DroppedSpansStats = append(tx.DroppedSpansStats, to)
+		tx.DroppedSpansStats = append(tx.DroppedSpansStats, &to)
 	}
 }
 
 func mapToCloudModel(from contextCloud, cloud *modelpb.Cloud) {
-	cloudOrigin := modelpb.CloudOriginFromVTPool()
+	cloudOrigin := modelpb.CloudOrigin{}
 	if from.Origin.Account.ID.IsSet() {
 		cloudOrigin.AccountId = from.Origin.Account.ID.Val
 	}
@@ -351,7 +257,7 @@ func mapToCloudModel(from contextCloud, cloud *modelpb.Cloud) {
 	if from.Origin.Service.Name.IsSet() {
 		cloudOrigin.ServiceName = from.Origin.Service.Name.Val
 	}
-	cloud.Origin = cloudOrigin
+	cloud.Origin = &cloudOrigin
 }
 
 func mapToClientModel(from contextRequest, source **modelpb.Source, client **modelpb.Client) {
@@ -360,7 +266,7 @@ func mapToClientModel(from contextRequest, source **modelpb.Source, client **mod
 		ip, port := netutil.SplitAddrPort(from.Socket.RemoteAddress.Val)
 		if ip.IsValid() {
 			if *source == nil {
-				*source = modelpb.SourceFromVTPool()
+				*source = &modelpb.Source{}
 			}
 			(*source).Ip, (*source).Port = modelpb.Addr2IP(ip), uint32(port)
 		}
@@ -368,24 +274,24 @@ func mapToClientModel(from contextRequest, source **modelpb.Source, client **mod
 	if (*client).GetIp() == nil {
 		if (*source).GetIp() != nil {
 			if *client == nil {
-				*client = modelpb.ClientFromVTPool()
+				*client = &modelpb.Client{}
 			}
 			(*client).Ip = (*source).Ip.CloneVT()
 		}
 		if addr, port := netutil.ClientAddrFromHeaders(from.Headers.Val); addr.IsValid() {
 			if (*source).GetIp() != nil {
-				(*source).Nat = modelpb.NATFromVTPool()
+				(*source).Nat = &modelpb.NAT{}
 				(*source).Nat.Ip = (*source).Ip.CloneVT()
 			}
 			if *client == nil {
-				*client = modelpb.ClientFromVTPool()
+				*client = &modelpb.Client{}
 			}
 			clientIp := modelpb.Addr2IP(addr)
 			sourceIp := clientIp.CloneVT()
 
 			(*client).Ip, (*client).Port = clientIp, uint32(port)
 			if *source == nil {
-				*source = modelpb.SourceFromVTPool()
+				*source = &modelpb.Source{}
 			}
 			(*source).Ip, (*source).Port = sourceIp, uint32(port)
 		}
@@ -393,8 +299,8 @@ func mapToClientModel(from contextRequest, source **modelpb.Source, client **mod
 }
 
 func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
-	out := modelpb.ErrorFromVTPool()
-	event.Error = out
+	out := modelpb.Error{}
+	event.Error = &out
 
 	// overwrite metadata with event specific information
 	mapToServiceModel(from.Context.Service, &event.Service)
@@ -411,9 +317,9 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 		}
 		if from.Context.Request.IsSet() {
 			if event.Http == nil {
-				event.Http = modelpb.HTTPFromVTPool()
+				event.Http = &modelpb.HTTP{}
 			}
-			event.Http.Request = modelpb.HTTPRequestFromVTPool()
+			event.Http.Request = &modelpb.HTTPRequest{}
 			mapToRequestModel(from.Context.Request, event.Http.Request)
 			if from.Context.Request.HTTPVersion.IsSet() {
 				event.Http.Version = from.Context.Request.HTTPVersion.Val
@@ -421,14 +327,14 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 		}
 		if from.Context.Response.IsSet() {
 			if event.Http == nil {
-				event.Http = modelpb.HTTPFromVTPool()
+				event.Http = &modelpb.HTTP{}
 			}
-			event.Http.Response = modelpb.HTTPResponseFromVTPool()
+			event.Http.Response = &modelpb.HTTPResponse{}
 			mapToResponseModel(from.Context.Response, event.Http.Response)
 		}
 		if from.Context.Request.URL.IsSet() {
 			if event.Url == nil {
-				event.Url = modelpb.URLFromVTPool()
+				event.Url = &modelpb.URL{}
 			}
 			mapToRequestURLModel(from.Context.Request.URL, event.Url)
 		}
@@ -438,10 +344,10 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			}
 			if from.Context.Page.Referer.IsSet() {
 				if event.Http == nil {
-					event.Http = modelpb.HTTPFromVTPool()
+					event.Http = &modelpb.HTTP{}
 				}
 				if event.Http.Request == nil {
-					event.Http.Request = modelpb.HTTPRequestFromVTPool()
+					event.Http.Request = &modelpb.HTTPRequest{}
 				}
 				if event.Http.Request.Referrer == "" {
 					event.Http.Request.Referrer = from.Context.Page.Referer.Val
@@ -456,14 +362,14 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 		out.Culprit = from.Culprit.Val
 	}
 	if from.Exception.IsSet() {
-		out.Exception = modelpb.ExceptionFromVTPool()
+		out.Exception = &modelpb.Exception{}
 		mapToExceptionModel(&from.Exception, out.Exception)
 	}
 	if from.ID.IsSet() {
 		out.Id = from.ID.Val
 	}
 	if from.Log.IsSet() {
-		log := modelpb.ErrorLogFromVTPool()
+		log := modelpb.ErrorLog{}
 		if from.Log.Level.IsSet() {
 			log.Level = from.Log.Level.Val
 		}
@@ -480,11 +386,11 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			log.Stacktrace = modeldecoderutil.ResliceAndPopulateNil(
 				log.Stacktrace,
 				len(from.Log.Stacktrace),
-				modelpb.StacktraceFrameFromVTPool,
+				modeldecoderutil.NewType[modelpb.StacktraceFrame],
 			)
 			mapToStracktraceModel(from.Log.Stacktrace, log.Stacktrace)
 		}
-		out.Log = log
+		out.Log = &log
 	}
 	if from.ParentID.IsSet() {
 		event.ParentId = from.ParentID.Val
@@ -493,15 +399,15 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 		event.Timestamp = modelpb.FromTime(from.Timestamp.Val)
 	}
 	if from.TraceID.IsSet() {
-		event.Trace = modelpb.TraceFromVTPool()
+		event.Trace = &modelpb.Trace{}
 		event.Trace.Id = from.TraceID.Val
 	}
 	if from.TransactionID.IsSet() || from.Transaction.IsSet() {
-		event.Transaction = modelpb.TransactionFromVTPool()
+		event.Transaction = &modelpb.Transaction{}
 	}
 	if from.TransactionID.IsSet() {
 		event.Transaction.Id = from.TransactionID.Val
-		event.Span = modelpb.SpanFromVTPool()
+		event.Span = &modelpb.Span{}
 		event.Span.Id = from.TransactionID.Val
 	}
 	if from.Transaction.IsSet() {
@@ -528,7 +434,7 @@ func mapToExceptionModel(from *errorException, out *modelpb.Exception) {
 		out.Cause = modeldecoderutil.ResliceAndPopulateNil(
 			out.Cause,
 			len(from.Cause),
-			modelpb.ExceptionFromVTPool,
+			modeldecoderutil.NewType[modelpb.Exception],
 		)
 		for i := 0; i < len(from.Cause); i++ {
 			mapToExceptionModel(&from.Cause[i], out.Cause[i])
@@ -548,7 +454,7 @@ func mapToExceptionModel(from *errorException, out *modelpb.Exception) {
 		out.Stacktrace = modeldecoderutil.ResliceAndPopulateNil(
 			out.Stacktrace,
 			len(from.Stacktrace),
-			modelpb.StacktraceFrameFromVTPool,
+			modeldecoderutil.NewType[modelpb.StacktraceFrame],
 		)
 		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
 	}
@@ -561,7 +467,7 @@ func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 	// Cloud
 	if from.Cloud.IsSet() {
 		if out.Cloud == nil {
-			out.Cloud = modelpb.CloudFromVTPool()
+			out.Cloud = &modelpb.Cloud{}
 		}
 		if from.Cloud.Account.ID.IsSet() {
 			out.Cloud.AccountId = from.Cloud.Account.ID.Val
@@ -606,26 +512,26 @@ func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 	// Process
 	if len(from.Process.Argv) > 0 {
 		if out.Process == nil {
-			out.Process = modelpb.ProcessFromVTPool()
+			out.Process = &modelpb.Process{}
 		}
 		out.Process.Argv = append(out.Process.Argv[:0], from.Process.Argv...)
 	}
 	if from.Process.Pid.IsSet() {
 		if out.Process == nil {
-			out.Process = modelpb.ProcessFromVTPool()
+			out.Process = &modelpb.Process{}
 		}
 		out.Process.Pid = uint32(from.Process.Pid.Val)
 	}
 	if from.Process.Ppid.IsSet() {
 		var pid = uint32(from.Process.Ppid.Val)
 		if out.Process == nil {
-			out.Process = modelpb.ProcessFromVTPool()
+			out.Process = &modelpb.Process{}
 		}
 		out.Process.Ppid = pid
 	}
 	if from.Process.Title.IsSet() {
 		if out.Process == nil {
-			out.Process = modelpb.ProcessFromVTPool()
+			out.Process = &modelpb.Process{}
 		}
 		out.Process.Title = from.Process.Title.Val
 	}
@@ -633,7 +539,7 @@ func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 	// Service
 	if from.Service.Agent.IsSet() {
 		if out.Agent == nil {
-			out.Agent = modelpb.AgentFromVTPool()
+			out.Agent = &modelpb.Agent{}
 		}
 		if from.Service.Agent.ActivationMethod.IsSet() {
 			out.Agent.ActivationMethod = from.Service.Agent.ActivationMethod.Val
@@ -650,14 +556,14 @@ func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 	}
 	if from.Service.IsSet() {
 		if out.Service == nil {
-			out.Service = modelpb.ServiceFromVTPool()
+			out.Service = &modelpb.Service{}
 		}
 		if from.Service.Environment.IsSet() {
 			out.Service.Environment = from.Service.Environment.Val
 		}
 		if from.Service.Framework.IsSet() {
 			if out.Service.Framework == nil {
-				out.Service.Framework = modelpb.FrameworkFromVTPool()
+				out.Service.Framework = &modelpb.Framework{}
 			}
 			if from.Service.Framework.Name.IsSet() {
 				out.Service.Framework.Name = from.Service.Framework.Name.Val
@@ -668,7 +574,7 @@ func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 		}
 		if from.Service.Language.IsSet() {
 			if out.Service.Language == nil {
-				out.Service.Language = modelpb.LanguageFromVTPool()
+				out.Service.Language = &modelpb.Language{}
 			}
 			if from.Service.Language.Name.IsSet() {
 				out.Service.Language.Name = from.Service.Language.Name.Val
@@ -682,13 +588,13 @@ func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 		}
 		if from.Service.Node.Name.IsSet() {
 			if out.Service.Node == nil {
-				out.Service.Node = modelpb.ServiceNodeFromVTPool()
+				out.Service.Node = &modelpb.ServiceNode{}
 			}
 			out.Service.Node.Name = from.Service.Node.Name.Val
 		}
 		if from.Service.Runtime.IsSet() {
 			if out.Service.Runtime == nil {
-				out.Service.Runtime = modelpb.RuntimeFromVTPool()
+				out.Service.Runtime = &modelpb.Runtime{}
 			}
 			if from.Service.Runtime.Name.IsSet() {
 				out.Service.Runtime.Name = from.Service.Runtime.Name.Val
@@ -705,71 +611,71 @@ func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 	// System
 	if from.System.Architecture.IsSet() {
 		if out.Host == nil {
-			out.Host = modelpb.HostFromVTPool()
+			out.Host = &modelpb.Host{}
 		}
 		out.Host.Architecture = from.System.Architecture.Val
 	}
 	if from.System.ConfiguredHostname.IsSet() {
 		if out.Host == nil {
-			out.Host = modelpb.HostFromVTPool()
+			out.Host = &modelpb.Host{}
 		}
 		out.Host.Name = from.System.ConfiguredHostname.Val
 	}
 	if from.System.Container.ID.IsSet() {
 		if out.Container == nil {
-			out.Container = modelpb.ContainerFromVTPool()
+			out.Container = &modelpb.Container{}
 		}
 		out.Container.Id = from.System.Container.ID.Val
 	}
 	if from.System.DetectedHostname.IsSet() {
 		if out.Host == nil {
-			out.Host = modelpb.HostFromVTPool()
+			out.Host = &modelpb.Host{}
 		}
 		out.Host.Hostname = from.System.DetectedHostname.Val
 	}
 	if from.System.HostID.IsSet() {
 		if out.Host == nil {
-			out.Host = modelpb.HostFromVTPool()
+			out.Host = &modelpb.Host{}
 		}
 		out.Host.Id = from.System.HostID.Val
 	}
 	if !from.System.ConfiguredHostname.IsSet() && !from.System.DetectedHostname.IsSet() &&
 		from.System.DeprecatedHostname.IsSet() {
 		if out.Host == nil {
-			out.Host = modelpb.HostFromVTPool()
+			out.Host = &modelpb.Host{}
 		}
 		out.Host.Hostname = from.System.DeprecatedHostname.Val
 	}
 	if from.System.Kubernetes.Namespace.IsSet() {
 		if out.Kubernetes == nil {
-			out.Kubernetes = modelpb.KubernetesFromVTPool()
+			out.Kubernetes = &modelpb.Kubernetes{}
 		}
 		out.Kubernetes.Namespace = from.System.Kubernetes.Namespace.Val
 	}
 	if from.System.Kubernetes.Node.Name.IsSet() {
 		if out.Kubernetes == nil {
-			out.Kubernetes = modelpb.KubernetesFromVTPool()
+			out.Kubernetes = &modelpb.Kubernetes{}
 		}
 		out.Kubernetes.NodeName = from.System.Kubernetes.Node.Name.Val
 	}
 	if from.System.Kubernetes.Pod.Name.IsSet() {
 		if out.Kubernetes == nil {
-			out.Kubernetes = modelpb.KubernetesFromVTPool()
+			out.Kubernetes = &modelpb.Kubernetes{}
 		}
 		out.Kubernetes.PodName = from.System.Kubernetes.Pod.Name.Val
 	}
 	if from.System.Kubernetes.Pod.UID.IsSet() {
 		if out.Kubernetes == nil {
-			out.Kubernetes = modelpb.KubernetesFromVTPool()
+			out.Kubernetes = &modelpb.Kubernetes{}
 		}
 		out.Kubernetes.PodUid = from.System.Kubernetes.Pod.UID.Val
 	}
 	if from.System.Platform.IsSet() {
 		if out.Host == nil {
-			out.Host = modelpb.HostFromVTPool()
+			out.Host = &modelpb.Host{}
 		}
 		if out.Host.Os == nil {
-			out.Host.Os = modelpb.OSFromVTPool()
+			out.Host.Os = &modelpb.OS{}
 		}
 		out.Host.Os.Platform = from.System.Platform.Val
 	}
@@ -777,25 +683,25 @@ func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 	// User
 	if from.User.Domain.IsSet() {
 		if out.User == nil {
-			out.User = modelpb.UserFromVTPool()
+			out.User = &modelpb.User{}
 		}
 		out.User.Domain = from.User.Domain.Val
 	}
 	if from.User.ID.IsSet() {
 		if out.User == nil {
-			out.User = modelpb.UserFromVTPool()
+			out.User = &modelpb.User{}
 		}
 		out.User.Id = fmt.Sprint(from.User.ID.Val)
 	}
 	if from.User.Email.IsSet() {
 		if out.User == nil {
-			out.User = modelpb.UserFromVTPool()
+			out.User = &modelpb.User{}
 		}
 		out.User.Email = from.User.Email.Val
 	}
 	if from.User.Name.IsSet() {
 		if out.User == nil {
-			out.User = modelpb.UserFromVTPool()
+			out.User = &modelpb.User{}
 		}
 		out.User.Name = from.User.Name.Val
 	}
@@ -803,17 +709,17 @@ func mapToMetadataModel(from *metadata, out *modelpb.APMEvent) {
 	// Network
 	if from.Network.Connection.Type.IsSet() {
 		if out.Network == nil {
-			out.Network = modelpb.NetworkFromVTPool()
+			out.Network = &modelpb.Network{}
 		}
 		if out.Network.Connection == nil {
-			out.Network.Connection = modelpb.NetworkConnectionFromVTPool()
+			out.Network.Connection = &modelpb.NetworkConnection{}
 		}
 		out.Network.Connection.Type = from.Network.Connection.Type.Val
 	}
 }
 
 func mapToMetricsetModel(from *metricset, event *modelpb.APMEvent) bool {
-	event.Metricset = modelpb.MetricsetFromVTPool()
+	event.Metricset = &modelpb.Metricset{}
 	event.Metricset.Name = "app"
 
 	if !from.Timestamp.Val.IsZero() {
@@ -824,13 +730,13 @@ func mapToMetricsetModel(from *metricset, event *modelpb.APMEvent) bool {
 		event.Metricset.Samples = modeldecoderutil.ResliceAndPopulateNil(
 			event.Metricset.Samples,
 			len(from.Samples),
-			modelpb.MetricsetSampleFromVTPool,
+			modeldecoderutil.NewType[modelpb.MetricsetSample],
 		)
 		i := 0
 		for name, sample := range from.Samples {
 			ms := event.Metricset.Samples[i]
 			if len(sample.Counts) != 0 || len(sample.Values) != 0 {
-				ms.Histogram = modelpb.HistogramFromVTPool()
+				ms.Histogram = &modelpb.Histogram{}
 				if n := len(sample.Values); n > 0 {
 					ms.Histogram.Values = modeldecoderutil.Reslice(ms.Histogram.Values, n)
 					copy(ms.Histogram.Values, sample.Values)
@@ -853,7 +759,7 @@ func mapToMetricsetModel(from *metricset, event *modelpb.APMEvent) bool {
 	}
 
 	if from.Span.IsSet() {
-		event.Span = modelpb.SpanFromVTPool()
+		event.Span = &modelpb.Span{}
 		if from.Span.Subtype.IsSet() {
 			event.Span.Subtype = from.Span.Subtype.Val
 		}
@@ -864,7 +770,7 @@ func mapToMetricsetModel(from *metricset, event *modelpb.APMEvent) bool {
 
 	ok := true
 	if from.Transaction.IsSet() {
-		event.Transaction = modelpb.TransactionFromVTPool()
+		event.Transaction = &modelpb.Transaction{}
 		if from.Transaction.Name.IsSet() {
 			event.Transaction.Name = from.Transaction.Name.Val
 		}
@@ -879,7 +785,7 @@ func mapToMetricsetModel(from *metricset, event *modelpb.APMEvent) bool {
 
 	if from.Service.Name.IsSet() {
 		if event.Service == nil {
-			event.Service = modelpb.ServiceFromVTPool()
+			event.Service = &modelpb.Service{}
 		}
 		event.Service.Name = from.Service.Name.Val
 		event.Service.Version = from.Service.Version.Val
@@ -887,7 +793,7 @@ func mapToMetricsetModel(from *metricset, event *modelpb.APMEvent) bool {
 
 	if from.FAAS.IsSet() {
 		if event.Faas == nil {
-			event.Faas = modelpb.FaasFromVTPool()
+			event.Faas = &modelpb.Faas{}
 		}
 		mapToFAASModel(from.FAAS, event.Faas)
 	}
@@ -976,7 +882,7 @@ func mapToResponseModel(from contextResponse, out *modelpb.HTTPResponse) {
 func mapToServiceModel(from contextService, outPtr **modelpb.Service) {
 	var out *modelpb.Service
 	if *outPtr == nil {
-		*outPtr = modelpb.ServiceFromVTPool()
+		*outPtr = &modelpb.Service{}
 	}
 	out = *outPtr
 	if from.Environment.IsSet() {
@@ -984,7 +890,7 @@ func mapToServiceModel(from contextService, outPtr **modelpb.Service) {
 	}
 	if from.Framework.IsSet() {
 		if out.Framework == nil {
-			out.Framework = modelpb.FrameworkFromVTPool()
+			out.Framework = &modelpb.Framework{}
 		}
 		if from.Framework.Name.IsSet() {
 			out.Framework.Name = from.Framework.Name.Val
@@ -995,7 +901,7 @@ func mapToServiceModel(from contextService, outPtr **modelpb.Service) {
 	}
 	if from.Language.IsSet() {
 		if out.Language == nil {
-			out.Language = modelpb.LanguageFromVTPool()
+			out.Language = &modelpb.Language{}
 		}
 		if from.Language.Name.IsSet() {
 			out.Language.Name = from.Language.Name.Val
@@ -1010,13 +916,13 @@ func mapToServiceModel(from contextService, outPtr **modelpb.Service) {
 	}
 	if from.Node.Name.IsSet() {
 		if out.Node == nil {
-			out.Node = modelpb.ServiceNodeFromVTPool()
+			out.Node = &modelpb.ServiceNode{}
 		}
 		out.Node.Name = from.Node.Name.Val
 	}
 	if from.Runtime.IsSet() {
 		if out.Runtime == nil {
-			out.Runtime = modelpb.RuntimeFromVTPool()
+			out.Runtime = &modelpb.Runtime{}
 		}
 		if from.Runtime.Name.IsSet() {
 			out.Runtime.Name = from.Runtime.Name.Val
@@ -1026,7 +932,7 @@ func mapToServiceModel(from contextService, outPtr **modelpb.Service) {
 		}
 	}
 	if from.Origin.IsSet() {
-		outOrigin := modelpb.ServiceOriginFromVTPool()
+		outOrigin := modelpb.ServiceOrigin{}
 		if from.Origin.ID.IsSet() {
 			outOrigin.Id = from.Origin.ID.Val
 		}
@@ -1036,23 +942,23 @@ func mapToServiceModel(from contextService, outPtr **modelpb.Service) {
 		if from.Origin.Version.IsSet() {
 			outOrigin.Version = from.Origin.Version.Val
 		}
-		out.Origin = outOrigin
+		out.Origin = &outOrigin
 	}
 	if from.Target.IsSet() {
-		outTarget := modelpb.ServiceTargetFromVTPool()
+		outTarget := modelpb.ServiceTarget{}
 		if from.Target.Name.IsSet() {
 			outTarget.Name = from.Target.Name.Val
 		}
 		if from.Target.Type.IsSet() {
 			outTarget.Type = from.Target.Type.Val
 		}
-		out.Target = outTarget
+		out.Target = &outTarget
 	}
 }
 
 func mapToAgentModel(from contextServiceAgent, out **modelpb.Agent) {
 	if *out == nil {
-		*out = modelpb.AgentFromVTPool()
+		*out = &modelpb.Agent{}
 	}
 	if from.Name.IsSet() {
 		(*out).Name = from.Name.Val
@@ -1066,8 +972,8 @@ func mapToAgentModel(from contextServiceAgent, out **modelpb.Agent) {
 }
 
 func mapToSpanModel(from *span, event *modelpb.APMEvent) {
-	out := modelpb.SpanFromVTPool()
-	event.Span = out
+	out := modelpb.Span{}
+	event.Span = &out
 
 	// map span specific data
 	if !from.Action.IsSet() && !from.Subtype.IsSet() {
@@ -1089,7 +995,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		}
 	}
 	if from.Composite.IsSet() {
-		composite := modelpb.CompositeFromVTPool()
+		composite := modelpb.Composite{}
 		if from.Composite.Count.IsSet() {
 			composite.Count = uint32(from.Composite.Count.Val)
 		}
@@ -1099,14 +1005,14 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		if strategy, ok := compressionStrategyText[from.Composite.CompressionStrategy.Val]; ok {
 			composite.CompressionStrategy = strategy
 		}
-		out.Composite = composite
+		out.Composite = &composite
 	}
 	if len(from.ChildIDs) > 0 {
 		event.ChildIds = modeldecoderutil.Reslice(event.ChildIds, len(from.ChildIDs))
 		copy(event.ChildIds, from.ChildIDs)
 	}
 	if from.Context.Database.IsSet() {
-		db := modelpb.DBFromVTPool()
+		db := modelpb.DB{}
 		if from.Context.Database.Instance.IsSet() {
 			db.Instance = from.Context.Database.Instance.Val
 		}
@@ -1126,24 +1032,24 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		if from.Context.Database.User.IsSet() {
 			db.UserName = from.Context.Database.User.Val
 		}
-		out.Db = db
+		out.Db = &db
 	}
 	if from.Context.Destination.Address.IsSet() || from.Context.Destination.Port.IsSet() {
 		if from.Context.Destination.Address.IsSet() {
 			if event.Destination == nil {
-				event.Destination = modelpb.DestinationFromVTPool()
+				event.Destination = &modelpb.Destination{}
 			}
 			event.Destination.Address = from.Context.Destination.Address.Val
 		}
 		if from.Context.Destination.Port.IsSet() {
 			if event.Destination == nil {
-				event.Destination = modelpb.DestinationFromVTPool()
+				event.Destination = &modelpb.Destination{}
 			}
 			event.Destination.Port = uint32(from.Context.Destination.Port.Val)
 		}
 	}
 	if from.Context.Destination.Service.IsSet() {
-		service := modelpb.DestinationServiceFromVTPool()
+		service := modelpb.DestinationService{}
 		if from.Context.Destination.Service.Name.IsSet() {
 			service.Name = from.Context.Destination.Service.Name.Val
 		}
@@ -1153,32 +1059,32 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		if from.Context.Destination.Service.Type.IsSet() {
 			service.Type = from.Context.Destination.Service.Type.Val
 		}
-		out.DestinationService = service
+		out.DestinationService = &service
 	}
 	if from.Context.HTTP.IsSet() {
 		if from.Context.HTTP.Method.IsSet() {
 			if event.Http == nil {
-				event.Http = modelpb.HTTPFromVTPool()
+				event.Http = &modelpb.HTTP{}
 			}
 			if event.Http.Request == nil {
-				event.Http.Request = modelpb.HTTPRequestFromVTPool()
+				event.Http.Request = &modelpb.HTTPRequest{}
 			}
 			event.Http.Request.Method = from.Context.HTTP.Method.Val
 		}
 		if from.Context.HTTP.Request.ID.IsSet() {
 			if event.Http == nil {
-				event.Http = modelpb.HTTPFromVTPool()
+				event.Http = &modelpb.HTTP{}
 			}
 			if event.Http.Request == nil {
-				event.Http.Request = modelpb.HTTPRequestFromVTPool()
+				event.Http.Request = &modelpb.HTTPRequest{}
 			}
 			event.Http.Request.Id = from.Context.HTTP.Request.ID.Val
 		}
 		if from.Context.HTTP.Response.IsSet() {
 			if event.Http == nil {
-				event.Http = modelpb.HTTPFromVTPool()
+				event.Http = &modelpb.HTTP{}
 			}
-			response := modelpb.HTTPResponseFromVTPool()
+			response := modelpb.HTTPResponse{}
 			if from.Context.HTTP.Response.DecodedBodySize.IsSet() {
 				val := uint64(from.Context.HTTP.Response.DecodedBodySize.Val)
 				response.DecodedBodySize = &val
@@ -1197,26 +1103,26 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 				val := uint64(from.Context.HTTP.Response.TransferSize.Val)
 				response.TransferSize = &val
 			}
-			event.Http.Response = response
+			event.Http.Response = &response
 		}
 		if from.Context.HTTP.StatusCode.IsSet() {
 			if event.Http == nil {
-				event.Http = modelpb.HTTPFromVTPool()
+				event.Http = &modelpb.HTTP{}
 			}
 			if event.Http.Response == nil {
-				event.Http.Response = modelpb.HTTPResponseFromVTPool()
+				event.Http.Response = &modelpb.HTTPResponse{}
 			}
 			event.Http.Response.StatusCode = uint32(from.Context.HTTP.StatusCode.Val)
 		}
 		if from.Context.HTTP.URL.IsSet() {
 			if event.Url == nil {
-				event.Url = modelpb.URLFromVTPool()
+				event.Url = &modelpb.URL{}
 			}
 			event.Url.Original = from.Context.HTTP.URL.Val
 		}
 	}
 	if from.Context.Message.IsSet() {
-		message := modelpb.MessageFromVTPool()
+		message := modelpb.Message{}
 		if from.Context.Message.Body.IsSet() {
 			message.Body = from.Context.Message.Body.Val
 		}
@@ -1233,7 +1139,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		if from.Context.Message.RoutingKey.IsSet() {
 			message.RoutingKey = from.Context.Message.RoutingKey.Val
 		}
-		out.Message = message
+		out.Message = &message
 	}
 	if from.Context.Service.IsSet() {
 		mapToServiceModel(from.Context.Service, &event.Service)
@@ -1241,7 +1147,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 	}
 	if !from.Context.Service.Target.Type.IsSet() && from.Context.Destination.Service.Resource.IsSet() {
 		if event.Service == nil {
-			event.Service = modelpb.ServiceFromVTPool()
+			event.Service = &modelpb.Service{}
 		}
 		outTarget := targetFromDestinationResource(from.Context.Destination.Service.Resource.Val)
 		event.Service.Target = outTarget
@@ -1251,7 +1157,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 	}
 	if from.Duration.IsSet() {
 		if event.Event == nil {
-			event.Event = modelpb.EventFromVTPool()
+			event.Event = &modelpb.Event{}
 		}
 		event.Event.Duration = uint64(from.Duration.Val * float64(time.Millisecond))
 	}
@@ -1262,7 +1168,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		out.Name = from.Name.Val
 	}
 	if event.Event == nil {
-		event.Event = modelpb.EventFromVTPool()
+		event.Event = &modelpb.Event{}
 	}
 	if from.Outcome.IsSet() {
 		event.Event.Outcome = from.Outcome.Val
@@ -1297,7 +1203,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		out.Stacktrace = modeldecoderutil.ResliceAndPopulateNil(
 			out.Stacktrace,
 			len(from.Stacktrace),
-			modelpb.StacktraceFrameFromVTPool,
+			modeldecoderutil.NewType[modelpb.StacktraceFrame],
 		)
 		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
 	}
@@ -1314,11 +1220,11 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		event.Timestamp += uint64(float64(time.Millisecond) * from.Start.Val)
 	}
 	if from.TraceID.IsSet() {
-		event.Trace = modelpb.TraceFromVTPool()
+		event.Trace = &modelpb.Trace{}
 		event.Trace.Id = from.TraceID.Val
 	}
 	if from.TransactionID.IsSet() {
-		event.Transaction = modelpb.TransactionFromVTPool()
+		event.Transaction = &modelpb.Transaction{}
 		event.Transaction.Id = from.TransactionID.Val
 	}
 	if from.OTel.IsSet() {
@@ -1328,7 +1234,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		out.Links = modeldecoderutil.ResliceAndPopulateNil(
 			out.Links,
 			len(from.Links),
-			modelpb.SpanLinkFromVTPool,
+			modeldecoderutil.NewType[modelpb.SpanLink],
 		)
 		mapSpanLinks(from.Links, out.Links)
 	}
@@ -1385,8 +1291,8 @@ func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFram
 }
 
 func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
-	out := modelpb.TransactionFromVTPool()
-	event.Transaction = out
+	out := modelpb.Transaction{}
+	event.Transaction = &out
 
 	// overwrite metadata with event specific information
 	mapToServiceModel(from.Context.Service, &event.Service)
@@ -1396,13 +1302,13 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	mapToClientModel(from.Context.Request, &event.Source, &event.Client)
 	if from.FAAS.IsSet() {
 		if event.Faas == nil {
-			event.Faas = modelpb.FaasFromVTPool()
+			event.Faas = &modelpb.Faas{}
 		}
 		mapToFAASModel(from.FAAS, event.Faas)
 	}
 	if from.Context.Cloud.IsSet() {
 		if event.Cloud == nil {
-			event.Cloud = modelpb.CloudFromVTPool()
+			event.Cloud = &modelpb.Cloud{}
 		}
 		mapToCloudModel(from.Context.Cloud, event.Cloud)
 	}
@@ -1418,7 +1324,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 			modeldecoderutil.MergeLabels(from.Context.Tags, event)
 		}
 		if from.Context.Message.IsSet() {
-			out.Message = modelpb.MessageFromVTPool()
+			out.Message = &modelpb.Message{}
 			if from.Context.Message.Age.IsSet() {
 				val := uint64(from.Context.Message.Age.Milliseconds.Val)
 				out.Message.AgeMillis = &val
@@ -1438,9 +1344,9 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 		}
 		if from.Context.Request.IsSet() {
 			if event.Http == nil {
-				event.Http = modelpb.HTTPFromVTPool()
+				event.Http = &modelpb.HTTP{}
 			}
-			event.Http.Request = modelpb.HTTPRequestFromVTPool()
+			event.Http.Request = &modelpb.HTTPRequest{}
 			mapToRequestModel(from.Context.Request, event.Http.Request)
 			if from.Context.Request.HTTPVersion.IsSet() {
 				event.Http.Version = from.Context.Request.HTTPVersion.Val
@@ -1448,15 +1354,15 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 		}
 		if from.Context.Request.URL.IsSet() {
 			if event.Url == nil {
-				event.Url = modelpb.URLFromVTPool()
+				event.Url = &modelpb.URL{}
 			}
 			mapToRequestURLModel(from.Context.Request.URL, event.Url)
 		}
 		if from.Context.Response.IsSet() {
 			if event.Http == nil {
-				event.Http = modelpb.HTTPFromVTPool()
+				event.Http = &modelpb.HTTP{}
 			}
-			event.Http.Response = modelpb.HTTPResponseFromVTPool()
+			event.Http.Response = &modelpb.HTTPResponse{}
 			mapToResponseModel(from.Context.Response, event.Http.Response)
 		}
 		if from.Context.Page.IsSet() {
@@ -1465,10 +1371,10 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 			}
 			if from.Context.Page.Referer.IsSet() {
 				if event.Http == nil {
-					event.Http = modelpb.HTTPFromVTPool()
+					event.Http = &modelpb.HTTP{}
 				}
 				if event.Http.Request == nil {
-					event.Http.Request = modelpb.HTTPRequestFromVTPool()
+					event.Http.Request = &modelpb.HTTPRequest{}
 				}
 				if event.Http.Request.Referrer == "" {
 					event.Http.Request.Referrer = from.Context.Page.Referer.Val
@@ -1478,22 +1384,22 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	}
 	if from.Duration.IsSet() {
 		if event.Event == nil {
-			event.Event = modelpb.EventFromVTPool()
+			event.Event = &modelpb.Event{}
 		}
 		event.Event.Duration = uint64(from.Duration.Val * float64(time.Millisecond))
 	}
 	if from.ID.IsSet() {
 		out.Id = from.ID.Val
-		event.Span = modelpb.SpanFromVTPool()
+		event.Span = &modelpb.Span{}
 		event.Span.Id = from.ID.Val
 	}
 	if from.Marks.IsSet() {
 		out.Marks = make(map[string]*modelpb.TransactionMark, len(from.Marks.Events))
 		for event, val := range from.Marks.Events {
 			if len(val.Measurements) > 0 {
-				tm := modelpb.TransactionMarkFromVTPool()
+				tm := modelpb.TransactionMark{}
 				tm.Measurements = val.Measurements
-				out.Marks[event] = tm
+				out.Marks[event] = &tm
 			}
 		}
 	}
@@ -1501,7 +1407,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 		out.Name = from.Name.Val
 	}
 	if event.Event == nil {
-		event.Event = modelpb.EventFromVTPool()
+		event.Event = &modelpb.Event{}
 	}
 	if from.Outcome.IsSet() {
 		event.Event.Outcome = from.Outcome.Val
@@ -1536,20 +1442,20 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 		out.RepresentativeCount = 1
 	}
 	if from.Session.ID.IsSet() {
-		event.Session = modelpb.SessionFromVTPool()
+		event.Session = &modelpb.Session{}
 		event.Session.Id = from.Session.ID.Val
 		event.Session.Sequence = uint64(from.Session.Sequence.Val)
 	}
 	if from.SpanCount.Dropped.IsSet() {
 		if out.SpanCount == nil {
-			out.SpanCount = modelpb.SpanCountFromVTPool()
+			out.SpanCount = &modelpb.SpanCount{}
 		}
 		dropped := uint32(from.SpanCount.Dropped.Val)
 		out.SpanCount.Dropped = &dropped
 	}
 	if from.SpanCount.Started.IsSet() {
 		if out.SpanCount == nil {
-			out.SpanCount = modelpb.SpanCountFromVTPool()
+			out.SpanCount = &modelpb.SpanCount{}
 		}
 		started := uint32(from.SpanCount.Started.Val)
 		out.SpanCount.Started = &started
@@ -1558,14 +1464,14 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 		event.Timestamp = modelpb.FromTime(from.Timestamp.Val)
 	}
 	if from.TraceID.IsSet() {
-		event.Trace = modelpb.TraceFromVTPool()
+		event.Trace = &modelpb.Trace{}
 		event.Trace.Id = from.TraceID.Val
 	}
 	if from.Type.IsSet() {
 		out.Type = from.Type.Val
 	}
 	if from.UserExperience.IsSet() {
-		out.UserExperience = modelpb.UserExperienceFromVTPool()
+		out.UserExperience = &modelpb.UserExperience{}
 		out.UserExperience.CumulativeLayoutShift = -1
 		out.UserExperience.FirstInputDelay = -1
 		out.UserExperience.TotalBlockingTime = -1
@@ -1581,7 +1487,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 			out.UserExperience.TotalBlockingTime = from.UserExperience.TotalBlockingTime.Val
 		}
 		if from.UserExperience.Longtask.IsSet() {
-			out.UserExperience.LongTask = modelpb.LongtaskMetricsFromVTPool()
+			out.UserExperience.LongTask = &modelpb.LongtaskMetrics{}
 			out.UserExperience.LongTask.Count = uint64(from.UserExperience.Longtask.Count.Val)
 			out.UserExperience.LongTask.Sum = from.UserExperience.Longtask.Sum.Val
 			out.UserExperience.LongTask.Max = from.UserExperience.Longtask.Max.Val
@@ -1590,19 +1496,19 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 
 	if from.OTel.IsSet() {
 		if event.Span == nil {
-			event.Span = modelpb.SpanFromVTPool()
+			event.Span = &modelpb.Span{}
 		}
 		mapOTelAttributesTransaction(from.OTel, event)
 	}
 
 	if len(from.Links) > 0 {
 		if event.Span == nil {
-			event.Span = modelpb.SpanFromVTPool()
+			event.Span = &modelpb.Span{}
 		}
 		event.Span.Links = modeldecoderutil.ResliceAndPopulateNil(
 			event.Span.Links,
 			len(from.Links),
-			modelpb.SpanLinkFromVTPool,
+			modeldecoderutil.NewType[modelpb.SpanLink],
 		)
 		mapSpanLinks(from.Links, event.Span.Links)
 	}
@@ -1614,7 +1520,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 func mapToLogModel(from *log, event *modelpb.APMEvent) {
 	if from.FAAS.IsSet() {
 		if event.Faas == nil {
-			event.Faas = modelpb.FaasFromVTPool()
+			event.Faas = &modelpb.Faas{}
 		}
 		mapToFAASModel(from.FAAS, event.Faas)
 	}
@@ -1622,17 +1528,17 @@ func mapToLogModel(from *log, event *modelpb.APMEvent) {
 		event.Timestamp = modelpb.FromTime(from.Timestamp.Val)
 	}
 	if from.TraceID.IsSet() {
-		event.Trace = modelpb.TraceFromVTPool()
+		event.Trace = &modelpb.Trace{}
 		event.Trace.Id = from.TraceID.Val
 	}
 	if from.TransactionID.IsSet() {
-		event.Transaction = modelpb.TransactionFromVTPool()
+		event.Transaction = &modelpb.Transaction{}
 		event.Transaction.Id = from.TransactionID.Val
-		event.Span = modelpb.SpanFromVTPool()
+		event.Span = &modelpb.Span{}
 		event.Span.Id = from.TransactionID.Val
 	}
 	if from.SpanID.IsSet() {
-		event.Span = modelpb.SpanFromVTPool()
+		event.Span = &modelpb.Span{}
 		event.Span.Id = from.SpanID.Val
 	}
 	if from.Message.IsSet() {
@@ -1640,96 +1546,96 @@ func mapToLogModel(from *log, event *modelpb.APMEvent) {
 	}
 	if from.Level.IsSet() {
 		if event.Log == nil {
-			event.Log = modelpb.LogFromVTPool()
+			event.Log = &modelpb.Log{}
 		}
 		event.Log.Level = from.Level.Val
 	}
 	if from.Logger.IsSet() {
 		if event.Log == nil {
-			event.Log = modelpb.LogFromVTPool()
+			event.Log = &modelpb.Log{}
 		}
 		event.Log.Logger = from.Logger.Val
 	}
 	if from.OriginFunction.IsSet() {
 		if event.Log == nil {
-			event.Log = modelpb.LogFromVTPool()
+			event.Log = &modelpb.Log{}
 		}
 		if event.Log.Origin == nil {
-			event.Log.Origin = modelpb.LogOriginFromVTPool()
+			event.Log.Origin = &modelpb.LogOrigin{}
 		}
 		event.Log.Origin.FunctionName = from.OriginFunction.Val
 	}
 	if from.OriginFileLine.IsSet() {
 		if event.Log == nil {
-			event.Log = modelpb.LogFromVTPool()
+			event.Log = &modelpb.Log{}
 		}
 		if event.Log.Origin == nil {
-			event.Log.Origin = modelpb.LogOriginFromVTPool()
+			event.Log.Origin = &modelpb.LogOrigin{}
 		}
 		if event.Log.Origin.File == nil {
-			event.Log.Origin.File = modelpb.LogOriginFileFromVTPool()
+			event.Log.Origin.File = &modelpb.LogOriginFile{}
 		}
 		event.Log.Origin.File.Line = uint32(from.OriginFileLine.Val)
 	}
 	if from.OriginFileName.IsSet() {
 		if event.Log == nil {
-			event.Log = modelpb.LogFromVTPool()
+			event.Log = &modelpb.Log{}
 		}
 		if event.Log.Origin == nil {
-			event.Log.Origin = modelpb.LogOriginFromVTPool()
+			event.Log.Origin = &modelpb.LogOrigin{}
 		}
 		if event.Log.Origin.File == nil {
-			event.Log.Origin.File = modelpb.LogOriginFileFromVTPool()
+			event.Log.Origin.File = &modelpb.LogOriginFile{}
 		}
 		event.Log.Origin.File.Name = from.OriginFileName.Val
 	}
 	if from.ErrorType.IsSet() ||
 		from.ErrorMessage.IsSet() ||
 		from.ErrorStacktrace.IsSet() {
-		event.Error = modelpb.ErrorFromVTPool()
+		event.Error = &modelpb.Error{}
 		event.Error.Message = from.ErrorMessage.Val
 		event.Error.Type = from.ErrorType.Val
 		event.Error.StackTrace = from.ErrorStacktrace.Val
 	}
 	if from.ServiceName.IsSet() {
 		if event.Service == nil {
-			event.Service = modelpb.ServiceFromVTPool()
+			event.Service = &modelpb.Service{}
 		}
 		event.Service.Name = from.ServiceName.Val
 	}
 	if from.ServiceVersion.IsSet() {
 		if event.Service == nil {
-			event.Service = modelpb.ServiceFromVTPool()
+			event.Service = &modelpb.Service{}
 		}
 		event.Service.Version = from.ServiceVersion.Val
 	}
 	if from.ServiceEnvironment.IsSet() {
 		if event.Service == nil {
-			event.Service = modelpb.ServiceFromVTPool()
+			event.Service = &modelpb.Service{}
 		}
 		event.Service.Environment = from.ServiceEnvironment.Val
 	}
 	if from.ServiceNodeName.IsSet() {
 		if event.Service == nil {
-			event.Service = modelpb.ServiceFromVTPool()
+			event.Service = &modelpb.Service{}
 		}
 		if event.Service.Node == nil {
-			event.Service.Node = modelpb.ServiceNodeFromVTPool()
+			event.Service.Node = &modelpb.ServiceNode{}
 		}
 		event.Service.Node.Name = from.ServiceNodeName.Val
 	}
 	if from.ProcessThreadName.IsSet() {
 		if event.Process == nil {
-			event.Process = modelpb.ProcessFromVTPool()
+			event.Process = &modelpb.Process{}
 		}
 		if event.Process.Thread == nil {
-			event.Process.Thread = modelpb.ProcessThreadFromVTPool()
+			event.Process.Thread = &modelpb.ProcessThread{}
 		}
 		event.Process.Thread.Name = from.ProcessThreadName.Val
 	}
 	if from.EventDataset.IsSet() {
 		if event.Event == nil {
-			event.Event = modelpb.EventFromVTPool()
+			event.Event = &modelpb.Event{}
 		}
 		event.Event.Dataset = from.EventDataset.Val
 	}
@@ -1738,7 +1644,7 @@ func mapToLogModel(from *log, event *modelpb.APMEvent) {
 	}
 	if event.Error == nil {
 		if event.Event == nil {
-			event.Event = modelpb.EventFromVTPool()
+			event.Event = &modelpb.Event{}
 		}
 		event.Event.Kind = "event"
 	}
@@ -1825,7 +1731,7 @@ func mapToUserAgentModel(from nullable.HTTPHeader, out **modelpb.UserAgent) {
 	if from.IsSet() {
 		if h := from.Val.Values(textproto.CanonicalMIMEHeaderKey("User-Agent")); len(h) > 0 {
 			if *out == nil {
-				*out = modelpb.UserAgentFromVTPool()
+				*out = &modelpb.UserAgent{}
 			}
 			(*out).Original = strings.Join(h, ", ")
 		}
@@ -1839,7 +1745,7 @@ func overwriteUserInMetadataModel(from user, out *modelpb.APMEvent) {
 	if !from.Domain.IsSet() && !from.ID.IsSet() && !from.Email.IsSet() && !from.Name.IsSet() {
 		return
 	}
-	out.User = modelpb.UserFromVTPool()
+	out.User = &modelpb.User{}
 	if from.Domain.IsSet() {
 		out.User.Domain = from.Domain.Val
 	}
@@ -1922,7 +1828,7 @@ func mapSpanLinks(from []spanLink, out []*modelpb.SpanLink) {
 }
 
 func targetFromDestinationResource(res string) *modelpb.ServiceTarget {
-	target := modelpb.ServiceTargetFromVTPool()
+	target := modelpb.ServiceTarget{}
 	submatch := reForServiceTargetExpr.FindStringSubmatch(res)
 	switch len(submatch) {
 	case 3:
@@ -1931,5 +1837,5 @@ func targetFromDestinationResource(res string) *modelpb.ServiceTarget {
 	default:
 		target.Name = res
 	}
-	return target
+	return &target
 }

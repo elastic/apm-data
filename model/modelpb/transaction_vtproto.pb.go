@@ -26,7 +26,6 @@ import (
 	fmt "fmt"
 	io "io"
 	math "math"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -44,7 +43,7 @@ func (m *Transaction) CloneVT() *Transaction {
 	if m == nil {
 		return (*Transaction)(nil)
 	}
-	r := TransactionFromVTPool()
+	r := new(Transaction)
 	r.SpanCount = m.SpanCount.CloneVT()
 	r.UserExperience = m.UserExperience.CloneVT()
 	r.Message = m.Message.CloneVT()
@@ -98,7 +97,7 @@ func (m *SpanCount) CloneVT() *SpanCount {
 	if m == nil {
 		return (*SpanCount)(nil)
 	}
-	r := SpanCountFromVTPool()
+	r := new(SpanCount)
 	if rhs := m.Dropped; rhs != nil {
 		tmpVal := *rhs
 		r.Dropped = &tmpVal
@@ -122,7 +121,7 @@ func (m *TransactionMark) CloneVT() *TransactionMark {
 	if m == nil {
 		return (*TransactionMark)(nil)
 	}
-	r := TransactionMarkFromVTPool()
+	r := new(TransactionMark)
 	if rhs := m.Measurements; rhs != nil {
 		tmpContainer := make(map[string]float64, len(rhs))
 		for k, v := range rhs {
@@ -145,7 +144,7 @@ func (m *DroppedSpanStats) CloneVT() *DroppedSpanStats {
 	if m == nil {
 		return (*DroppedSpanStats)(nil)
 	}
-	r := DroppedSpanStatsFromVTPool()
+	r := new(DroppedSpanStats)
 	r.DestinationServiceResource = m.DestinationServiceResource
 	r.ServiceTargetType = m.ServiceTargetType
 	r.ServiceTargetName = m.ServiceTargetName
@@ -521,107 +520,6 @@ func (m *DroppedSpanStats) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_Transaction = sync.Pool{
-	New: func() interface{} {
-		return &Transaction{}
-	},
-}
-
-func (m *Transaction) ResetVT() {
-	if m != nil {
-		m.SpanCount.ReturnToVTPool()
-		m.UserExperience.ReturnToVTPool()
-		for _, mm := range m.Custom {
-			mm.ResetVT()
-		}
-		f0 := m.Custom[:0]
-		m.Message.ReturnToVTPool()
-		m.DurationHistogram.ReturnToVTPool()
-		for _, mm := range m.DroppedSpansStats {
-			mm.ResetVT()
-		}
-		f1 := m.DroppedSpansStats[:0]
-		m.DurationSummary.ReturnToVTPool()
-		f2 := m.ProfilerStackTraceIds[:0]
-		m.Reset()
-		m.Custom = f0
-		m.DroppedSpansStats = f1
-		m.ProfilerStackTraceIds = f2
-	}
-}
-func (m *Transaction) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Transaction.Put(m)
-	}
-}
-func TransactionFromVTPool() *Transaction {
-	return vtprotoPool_Transaction.Get().(*Transaction)
-}
-
-var vtprotoPool_SpanCount = sync.Pool{
-	New: func() interface{} {
-		return &SpanCount{}
-	},
-}
-
-func (m *SpanCount) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *SpanCount) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_SpanCount.Put(m)
-	}
-}
-func SpanCountFromVTPool() *SpanCount {
-	return vtprotoPool_SpanCount.Get().(*SpanCount)
-}
-
-var vtprotoPool_TransactionMark = sync.Pool{
-	New: func() interface{} {
-		return &TransactionMark{}
-	},
-}
-
-func (m *TransactionMark) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *TransactionMark) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_TransactionMark.Put(m)
-	}
-}
-func TransactionMarkFromVTPool() *TransactionMark {
-	return vtprotoPool_TransactionMark.Get().(*TransactionMark)
-}
-
-var vtprotoPool_DroppedSpanStats = sync.Pool{
-	New: func() interface{} {
-		return &DroppedSpanStats{}
-	},
-}
-
-func (m *DroppedSpanStats) ResetVT() {
-	if m != nil {
-		m.Duration.ReturnToVTPool()
-		m.Reset()
-	}
-}
-func (m *DroppedSpanStats) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_DroppedSpanStats.Put(m)
-	}
-}
-func DroppedSpanStatsFromVTPool() *DroppedSpanStats {
-	return vtprotoPool_DroppedSpanStats.Get().(*DroppedSpanStats)
-}
 func (m *Transaction) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -831,7 +729,7 @@ func (m *Transaction) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.SpanCount == nil {
-				m.SpanCount = SpanCountFromVTPool()
+				m.SpanCount = &SpanCount{}
 			}
 			if err := m.SpanCount.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -867,7 +765,7 @@ func (m *Transaction) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.UserExperience == nil {
-				m.UserExperience = UserExperienceFromVTPool()
+				m.UserExperience = &UserExperience{}
 			}
 			if err := m.UserExperience.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -902,14 +800,7 @@ func (m *Transaction) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if len(m.Custom) == cap(m.Custom) {
-				m.Custom = append(m.Custom, &KeyValue{})
-			} else {
-				m.Custom = m.Custom[:len(m.Custom)+1]
-				if m.Custom[len(m.Custom)-1] == nil {
-					m.Custom[len(m.Custom)-1] = &KeyValue{}
-				}
-			}
+			m.Custom = append(m.Custom, &KeyValue{})
 			if err := m.Custom[len(m.Custom)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1073,7 +964,7 @@ func (m *Transaction) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Message == nil {
-				m.Message = MessageFromVTPool()
+				m.Message = &Message{}
 			}
 			if err := m.Message.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1237,7 +1128,7 @@ func (m *Transaction) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.DurationHistogram == nil {
-				m.DurationHistogram = HistogramFromVTPool()
+				m.DurationHistogram = &Histogram{}
 			}
 			if err := m.DurationHistogram.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1272,14 +1163,7 @@ func (m *Transaction) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if len(m.DroppedSpansStats) == cap(m.DroppedSpansStats) {
-				m.DroppedSpansStats = append(m.DroppedSpansStats, &DroppedSpanStats{})
-			} else {
-				m.DroppedSpansStats = m.DroppedSpansStats[:len(m.DroppedSpansStats)+1]
-				if m.DroppedSpansStats[len(m.DroppedSpansStats)-1] == nil {
-					m.DroppedSpansStats[len(m.DroppedSpansStats)-1] = &DroppedSpanStats{}
-				}
-			}
+			m.DroppedSpansStats = append(m.DroppedSpansStats, &DroppedSpanStats{})
 			if err := m.DroppedSpansStats[len(m.DroppedSpansStats)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1314,7 +1198,7 @@ func (m *Transaction) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.DurationSummary == nil {
-				m.DurationSummary = SummaryMetricFromVTPool()
+				m.DurationSummary = &SummaryMetric{}
 			}
 			if err := m.DurationSummary.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1860,7 +1744,7 @@ func (m *DroppedSpanStats) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Duration == nil {
-				m.Duration = AggregatedDurationFromVTPool()
+				m.Duration = &AggregatedDuration{}
 			}
 			if err := m.Duration.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err

@@ -24,7 +24,6 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -42,7 +41,7 @@ func (m *Faas) CloneVT() *Faas {
 	if m == nil {
 		return (*Faas)(nil)
 	}
-	r := FaasFromVTPool()
+	r := new(Faas)
 	r.Id = m.Id
 	r.Execution = m.Execution
 	r.TriggerType = m.TriggerType
@@ -149,26 +148,6 @@ func (m *Faas) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_Faas = sync.Pool{
-	New: func() interface{} {
-		return &Faas{}
-	},
-}
-
-func (m *Faas) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *Faas) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Faas.Put(m)
-	}
-}
-func FaasFromVTPool() *Faas {
-	return vtprotoPool_Faas.Get().(*Faas)
-}
 func (m *Faas) SizeVT() (n int) {
 	if m == nil {
 		return 0

@@ -26,7 +26,6 @@ import (
 	fmt "fmt"
 	io "io"
 	math "math"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -44,7 +43,7 @@ func (m *Span) CloneVT() *Span {
 	if m == nil {
 		return (*Span)(nil)
 	}
-	r := SpanFromVTPool()
+	r := new(Span)
 	r.Message = m.Message.CloneVT()
 	r.Composite = m.Composite.CloneVT()
 	r.DestinationService = m.DestinationService.CloneVT()
@@ -90,7 +89,7 @@ func (m *DB) CloneVT() *DB {
 	if m == nil {
 		return (*DB)(nil)
 	}
-	r := DBFromVTPool()
+	r := new(DB)
 	r.Instance = m.Instance
 	r.Statement = m.Statement
 	r.Type = m.Type
@@ -115,7 +114,7 @@ func (m *DestinationService) CloneVT() *DestinationService {
 	if m == nil {
 		return (*DestinationService)(nil)
 	}
-	r := DestinationServiceFromVTPool()
+	r := new(DestinationService)
 	r.Type = m.Type
 	r.Name = m.Name
 	r.Resource = m.Resource
@@ -135,7 +134,7 @@ func (m *Composite) CloneVT() *Composite {
 	if m == nil {
 		return (*Composite)(nil)
 	}
-	r := CompositeFromVTPool()
+	r := new(Composite)
 	r.CompressionStrategy = m.CompressionStrategy
 	r.Count = m.Count
 	r.Sum = m.Sum
@@ -154,7 +153,7 @@ func (m *SpanLink) CloneVT() *SpanLink {
 	if m == nil {
 		return (*SpanLink)(nil)
 	}
-	r := SpanLinkFromVTPool()
+	r := new(SpanLink)
 	r.TraceId = m.TraceId
 	r.SpanId = m.SpanId
 	if len(m.unknownFields) > 0 {
@@ -566,126 +565,6 @@ func (m *SpanLink) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_Span = sync.Pool{
-	New: func() interface{} {
-		return &Span{}
-	},
-}
-
-func (m *Span) ResetVT() {
-	if m != nil {
-		m.Message.ReturnToVTPool()
-		m.Composite.ReturnToVTPool()
-		m.DestinationService.ReturnToVTPool()
-		m.Db.ReturnToVTPool()
-		for _, mm := range m.Stacktrace {
-			mm.ResetVT()
-		}
-		f0 := m.Stacktrace[:0]
-		for _, mm := range m.Links {
-			mm.ResetVT()
-		}
-		f1 := m.Links[:0]
-		m.SelfTime.ReturnToVTPool()
-		m.Reset()
-		m.Stacktrace = f0
-		m.Links = f1
-	}
-}
-func (m *Span) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Span.Put(m)
-	}
-}
-func SpanFromVTPool() *Span {
-	return vtprotoPool_Span.Get().(*Span)
-}
-
-var vtprotoPool_DB = sync.Pool{
-	New: func() interface{} {
-		return &DB{}
-	},
-}
-
-func (m *DB) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *DB) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_DB.Put(m)
-	}
-}
-func DBFromVTPool() *DB {
-	return vtprotoPool_DB.Get().(*DB)
-}
-
-var vtprotoPool_DestinationService = sync.Pool{
-	New: func() interface{} {
-		return &DestinationService{}
-	},
-}
-
-func (m *DestinationService) ResetVT() {
-	if m != nil {
-		m.ResponseTime.ReturnToVTPool()
-		m.Reset()
-	}
-}
-func (m *DestinationService) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_DestinationService.Put(m)
-	}
-}
-func DestinationServiceFromVTPool() *DestinationService {
-	return vtprotoPool_DestinationService.Get().(*DestinationService)
-}
-
-var vtprotoPool_Composite = sync.Pool{
-	New: func() interface{} {
-		return &Composite{}
-	},
-}
-
-func (m *Composite) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *Composite) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Composite.Put(m)
-	}
-}
-func CompositeFromVTPool() *Composite {
-	return vtprotoPool_Composite.Get().(*Composite)
-}
-
-var vtprotoPool_SpanLink = sync.Pool{
-	New: func() interface{} {
-		return &SpanLink{}
-	},
-}
-
-func (m *SpanLink) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *SpanLink) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_SpanLink.Put(m)
-	}
-}
-func SpanLinkFromVTPool() *SpanLink {
-	return vtprotoPool_SpanLink.Get().(*SpanLink)
-}
 func (m *Span) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -913,7 +792,7 @@ func (m *Span) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Message == nil {
-				m.Message = MessageFromVTPool()
+				m.Message = &Message{}
 			}
 			if err := m.Message.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -949,7 +828,7 @@ func (m *Span) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Composite == nil {
-				m.Composite = CompositeFromVTPool()
+				m.Composite = &Composite{}
 			}
 			if err := m.Composite.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -985,7 +864,7 @@ func (m *Span) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.DestinationService == nil {
-				m.DestinationService = DestinationServiceFromVTPool()
+				m.DestinationService = &DestinationService{}
 			}
 			if err := m.DestinationService.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1021,7 +900,7 @@ func (m *Span) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Db == nil {
-				m.Db = DBFromVTPool()
+				m.Db = &DB{}
 			}
 			if err := m.Db.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1269,14 +1148,7 @@ func (m *Span) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if len(m.Stacktrace) == cap(m.Stacktrace) {
-				m.Stacktrace = append(m.Stacktrace, &StacktraceFrame{})
-			} else {
-				m.Stacktrace = m.Stacktrace[:len(m.Stacktrace)+1]
-				if m.Stacktrace[len(m.Stacktrace)-1] == nil {
-					m.Stacktrace[len(m.Stacktrace)-1] = &StacktraceFrame{}
-				}
-			}
+			m.Stacktrace = append(m.Stacktrace, &StacktraceFrame{})
 			if err := m.Stacktrace[len(m.Stacktrace)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1310,14 +1182,7 @@ func (m *Span) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if len(m.Links) == cap(m.Links) {
-				m.Links = append(m.Links, &SpanLink{})
-			} else {
-				m.Links = m.Links[:len(m.Links)+1]
-				if m.Links[len(m.Links)-1] == nil {
-					m.Links[len(m.Links)-1] = &SpanLink{}
-				}
-			}
+			m.Links = append(m.Links, &SpanLink{})
 			if err := m.Links[len(m.Links)-1].UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1352,7 +1217,7 @@ func (m *Span) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.SelfTime == nil {
-				m.SelfTime = AggregatedDurationFromVTPool()
+				m.SelfTime = &AggregatedDuration{}
 			}
 			if err := m.SelfTime.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1777,7 +1642,7 @@ func (m *DestinationService) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.ResponseTime == nil {
-				m.ResponseTime = AggregatedDurationFromVTPool()
+				m.ResponseTime = &AggregatedDuration{}
 			}
 			if err := m.ResponseTime.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err

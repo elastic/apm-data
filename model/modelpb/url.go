@@ -37,7 +37,7 @@ func ParseURL(original, defaultHostname, defaultScheme string) *URL {
 	if url.Host == "" {
 		url.Host = defaultHostname
 	}
-	out := URLFromVTPool()
+	var out URL
 	out.Original = original
 	out.Scheme = url.Scheme
 	out.Full = truncate(url.String())
@@ -50,7 +50,7 @@ func ParseURL(original, defaultHostname, defaultScheme string) *URL {
 			out.Port = uint32(intv)
 		}
 	}
-	return out
+	return &out
 }
 
 // truncate returns s truncated at n runes, and the number of runes in the resulting string (<= n).

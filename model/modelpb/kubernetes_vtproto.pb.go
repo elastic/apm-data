@@ -24,7 +24,6 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -42,7 +41,7 @@ func (m *Kubernetes) CloneVT() *Kubernetes {
 	if m == nil {
 		return (*Kubernetes)(nil)
 	}
-	r := KubernetesFromVTPool()
+	r := new(Kubernetes)
 	r.Namespace = m.Namespace
 	r.NodeName = m.NodeName
 	r.PodName = m.PodName
@@ -119,26 +118,6 @@ func (m *Kubernetes) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_Kubernetes = sync.Pool{
-	New: func() interface{} {
-		return &Kubernetes{}
-	},
-}
-
-func (m *Kubernetes) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *Kubernetes) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Kubernetes.Put(m)
-	}
-}
-func KubernetesFromVTPool() *Kubernetes {
-	return vtprotoPool_Kubernetes.Get().(*Kubernetes)
-}
 func (m *Kubernetes) SizeVT() (n int) {
 	if m == nil {
 		return 0

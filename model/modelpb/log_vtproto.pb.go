@@ -24,7 +24,6 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -42,7 +41,7 @@ func (m *Log) CloneVT() *Log {
 	if m == nil {
 		return (*Log)(nil)
 	}
-	r := LogFromVTPool()
+	r := new(Log)
 	r.Level = m.Level
 	r.Logger = m.Logger
 	r.Origin = m.Origin.CloneVT()
@@ -61,7 +60,7 @@ func (m *LogOrigin) CloneVT() *LogOrigin {
 	if m == nil {
 		return (*LogOrigin)(nil)
 	}
-	r := LogOriginFromVTPool()
+	r := new(LogOrigin)
 	r.FunctionName = m.FunctionName
 	r.File = m.File.CloneVT()
 	if len(m.unknownFields) > 0 {
@@ -79,7 +78,7 @@ func (m *LogOriginFile) CloneVT() *LogOriginFile {
 	if m == nil {
 		return (*LogOriginFile)(nil)
 	}
-	r := LogOriginFileFromVTPool()
+	r := new(LogOriginFile)
 	r.Name = m.Name
 	r.Line = m.Line
 	if len(m.unknownFields) > 0 {
@@ -245,70 +244,6 @@ func (m *LogOriginFile) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_Log = sync.Pool{
-	New: func() interface{} {
-		return &Log{}
-	},
-}
-
-func (m *Log) ResetVT() {
-	if m != nil {
-		m.Origin.ReturnToVTPool()
-		m.Reset()
-	}
-}
-func (m *Log) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Log.Put(m)
-	}
-}
-func LogFromVTPool() *Log {
-	return vtprotoPool_Log.Get().(*Log)
-}
-
-var vtprotoPool_LogOrigin = sync.Pool{
-	New: func() interface{} {
-		return &LogOrigin{}
-	},
-}
-
-func (m *LogOrigin) ResetVT() {
-	if m != nil {
-		m.File.ReturnToVTPool()
-		m.Reset()
-	}
-}
-func (m *LogOrigin) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_LogOrigin.Put(m)
-	}
-}
-func LogOriginFromVTPool() *LogOrigin {
-	return vtprotoPool_LogOrigin.Get().(*LogOrigin)
-}
-
-var vtprotoPool_LogOriginFile = sync.Pool{
-	New: func() interface{} {
-		return &LogOriginFile{}
-	},
-}
-
-func (m *LogOriginFile) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *LogOriginFile) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_LogOriginFile.Put(m)
-	}
-}
-func LogOriginFileFromVTPool() *LogOriginFile {
-	return vtprotoPool_LogOriginFile.Get().(*LogOriginFile)
-}
 func (m *Log) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -489,7 +424,7 @@ func (m *Log) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Origin == nil {
-				m.Origin = LogOriginFromVTPool()
+				m.Origin = &LogOrigin{}
 			}
 			if err := m.Origin.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -608,7 +543,7 @@ func (m *LogOrigin) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.File == nil {
-				m.File = LogOriginFileFromVTPool()
+				m.File = &LogOriginFile{}
 			}
 			if err := m.File.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err

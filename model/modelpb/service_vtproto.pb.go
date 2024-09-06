@@ -24,7 +24,6 @@ package modelpb
 import (
 	fmt "fmt"
 	io "io"
-	sync "sync"
 
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	proto "google.golang.org/protobuf/proto"
@@ -42,7 +41,7 @@ func (m *Service) CloneVT() *Service {
 	if m == nil {
 		return (*Service)(nil)
 	}
-	r := ServiceFromVTPool()
+	r := new(Service)
 	r.Origin = m.Origin.CloneVT()
 	r.Target = m.Target.CloneVT()
 	r.Language = m.Language.CloneVT()
@@ -67,7 +66,7 @@ func (m *ServiceOrigin) CloneVT() *ServiceOrigin {
 	if m == nil {
 		return (*ServiceOrigin)(nil)
 	}
-	r := ServiceOriginFromVTPool()
+	r := new(ServiceOrigin)
 	r.Id = m.Id
 	r.Name = m.Name
 	r.Version = m.Version
@@ -86,7 +85,7 @@ func (m *ServiceTarget) CloneVT() *ServiceTarget {
 	if m == nil {
 		return (*ServiceTarget)(nil)
 	}
-	r := ServiceTargetFromVTPool()
+	r := new(ServiceTarget)
 	r.Name = m.Name
 	r.Type = m.Type
 	if len(m.unknownFields) > 0 {
@@ -104,7 +103,7 @@ func (m *Language) CloneVT() *Language {
 	if m == nil {
 		return (*Language)(nil)
 	}
-	r := LanguageFromVTPool()
+	r := new(Language)
 	r.Name = m.Name
 	r.Version = m.Version
 	if len(m.unknownFields) > 0 {
@@ -122,7 +121,7 @@ func (m *Runtime) CloneVT() *Runtime {
 	if m == nil {
 		return (*Runtime)(nil)
 	}
-	r := RuntimeFromVTPool()
+	r := new(Runtime)
 	r.Name = m.Name
 	r.Version = m.Version
 	if len(m.unknownFields) > 0 {
@@ -140,7 +139,7 @@ func (m *Framework) CloneVT() *Framework {
 	if m == nil {
 		return (*Framework)(nil)
 	}
-	r := FrameworkFromVTPool()
+	r := new(Framework)
 	r.Name = m.Name
 	r.Version = m.Version
 	if len(m.unknownFields) > 0 {
@@ -158,7 +157,7 @@ func (m *ServiceNode) CloneVT() *ServiceNode {
 	if m == nil {
 		return (*ServiceNode)(nil)
 	}
-	r := ServiceNodeFromVTPool()
+	r := new(ServiceNode)
 	r.Name = m.Name
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
@@ -567,158 +566,6 @@ func (m *ServiceNode) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-var vtprotoPool_Service = sync.Pool{
-	New: func() interface{} {
-		return &Service{}
-	},
-}
-
-func (m *Service) ResetVT() {
-	if m != nil {
-		m.Origin.ReturnToVTPool()
-		m.Target.ReturnToVTPool()
-		m.Language.ReturnToVTPool()
-		m.Runtime.ReturnToVTPool()
-		m.Framework.ReturnToVTPool()
-		m.Node.ReturnToVTPool()
-		m.Reset()
-	}
-}
-func (m *Service) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Service.Put(m)
-	}
-}
-func ServiceFromVTPool() *Service {
-	return vtprotoPool_Service.Get().(*Service)
-}
-
-var vtprotoPool_ServiceOrigin = sync.Pool{
-	New: func() interface{} {
-		return &ServiceOrigin{}
-	},
-}
-
-func (m *ServiceOrigin) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *ServiceOrigin) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_ServiceOrigin.Put(m)
-	}
-}
-func ServiceOriginFromVTPool() *ServiceOrigin {
-	return vtprotoPool_ServiceOrigin.Get().(*ServiceOrigin)
-}
-
-var vtprotoPool_ServiceTarget = sync.Pool{
-	New: func() interface{} {
-		return &ServiceTarget{}
-	},
-}
-
-func (m *ServiceTarget) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *ServiceTarget) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_ServiceTarget.Put(m)
-	}
-}
-func ServiceTargetFromVTPool() *ServiceTarget {
-	return vtprotoPool_ServiceTarget.Get().(*ServiceTarget)
-}
-
-var vtprotoPool_Language = sync.Pool{
-	New: func() interface{} {
-		return &Language{}
-	},
-}
-
-func (m *Language) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *Language) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Language.Put(m)
-	}
-}
-func LanguageFromVTPool() *Language {
-	return vtprotoPool_Language.Get().(*Language)
-}
-
-var vtprotoPool_Runtime = sync.Pool{
-	New: func() interface{} {
-		return &Runtime{}
-	},
-}
-
-func (m *Runtime) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *Runtime) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Runtime.Put(m)
-	}
-}
-func RuntimeFromVTPool() *Runtime {
-	return vtprotoPool_Runtime.Get().(*Runtime)
-}
-
-var vtprotoPool_Framework = sync.Pool{
-	New: func() interface{} {
-		return &Framework{}
-	},
-}
-
-func (m *Framework) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *Framework) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_Framework.Put(m)
-	}
-}
-func FrameworkFromVTPool() *Framework {
-	return vtprotoPool_Framework.Get().(*Framework)
-}
-
-var vtprotoPool_ServiceNode = sync.Pool{
-	New: func() interface{} {
-		return &ServiceNode{}
-	},
-}
-
-func (m *ServiceNode) ResetVT() {
-	if m != nil {
-		m.Reset()
-	}
-}
-func (m *ServiceNode) ReturnToVTPool() {
-	if m != nil {
-		m.ResetVT()
-		vtprotoPool_ServiceNode.Put(m)
-	}
-}
-func ServiceNodeFromVTPool() *ServiceNode {
-	return vtprotoPool_ServiceNode.Get().(*ServiceNode)
-}
 func (m *Service) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -932,7 +779,7 @@ func (m *Service) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Origin == nil {
-				m.Origin = ServiceOriginFromVTPool()
+				m.Origin = &ServiceOrigin{}
 			}
 			if err := m.Origin.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -968,7 +815,7 @@ func (m *Service) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Target == nil {
-				m.Target = ServiceTargetFromVTPool()
+				m.Target = &ServiceTarget{}
 			}
 			if err := m.Target.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1004,7 +851,7 @@ func (m *Service) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Language == nil {
-				m.Language = LanguageFromVTPool()
+				m.Language = &Language{}
 			}
 			if err := m.Language.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1040,7 +887,7 @@ func (m *Service) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Runtime == nil {
-				m.Runtime = RuntimeFromVTPool()
+				m.Runtime = &Runtime{}
 			}
 			if err := m.Runtime.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1076,7 +923,7 @@ func (m *Service) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Framework == nil {
-				m.Framework = FrameworkFromVTPool()
+				m.Framework = &Framework{}
 			}
 			if err := m.Framework.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1208,7 +1055,7 @@ func (m *Service) UnmarshalVT(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Node == nil {
-				m.Node = ServiceNodeFromVTPool()
+				m.Node = &ServiceNode{}
 			}
 			if err := m.Node.UnmarshalVT(dAtA[iNdEx:postIndex]); err != nil {
 				return err

@@ -40,7 +40,7 @@ func setHostHostname(event *modelpb.APMEvent) {
 	switch {
 	case event.GetKubernetes().GetNodeName() != "":
 		if event.Host == nil {
-			event.Host = modelpb.HostFromVTPool()
+			event.Host = &modelpb.Host{}
 		}
 		// host.kubernetes.node.name is set: set host.hostname to its value.
 		event.Host.Hostname = event.Kubernetes.NodeName

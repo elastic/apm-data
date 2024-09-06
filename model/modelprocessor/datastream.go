@@ -51,7 +51,7 @@ type SetDataStream struct {
 func (s *SetDataStream) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	for i := range *b {
 		if (*b)[i].DataStream == nil {
-			(*b)[i].DataStream = modelpb.DataStreamFromVTPool()
+			(*b)[i].DataStream = &modelpb.DataStream{}
 		}
 		if (*b)[i].DataStream.Namespace == "" || isRUMAgentName((*b)[i].GetAgent().GetName()) {
 			// Only set namespace if
