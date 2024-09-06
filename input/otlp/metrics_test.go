@@ -869,7 +869,7 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 				metrics := pmetric.NewMetrics()
 				sm := metrics.ResourceMetrics().AppendEmpty().
 					ScopeMetrics().AppendEmpty()
-				sm.Scope().SetName("otelcol/hostmetricsreceiver/load")
+				sm.Scope().SetName("github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/loadscraper")
 
 				metric := sm.Metrics().AppendEmpty()
 				metric.SetName("system.cpu.load_average.1m")
@@ -884,7 +884,7 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 					Service: &modelpb.Service{
 						Name:      "unknown",
 						Language:  &modelpb.Language{Name: "unknown"},
-						Framework: &modelpb.Framework{Name: "otelcol/hostmetricsreceiver/load"},
+						Framework: &modelpb.Framework{Name: "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/loadscraper"},
 					},
 					Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
 					Timestamp: modelpb.FromTime(ts),
@@ -903,7 +903,7 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 					Service: &modelpb.Service{
 						Name:      "unknown",
 						Language:  &modelpb.Language{Name: "unknown"},
-						Framework: &modelpb.Framework{Name: "otelcol/hostmetricsreceiver/load"},
+						Framework: &modelpb.Framework{Name: "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/loadscraper"},
 					},
 					Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
 					Timestamp: modelpb.FromTime(ts),
@@ -943,7 +943,7 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 				rm.Resource().Attributes().PutStr("process.owner", "testowner")
 				rm.Resource().Attributes().PutStr("process.command_line", "testcmdline")
 				sm := rm.ScopeMetrics().AppendEmpty()
-				sm.Scope().SetName("otelcol/hostmetricsreceiver/process")
+				sm.Scope().SetName("github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/processscraper")
 
 				metric := sm.Metrics().AppendEmpty()
 				metric.SetName("process.memory.usage")
@@ -959,7 +959,7 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 					Service: &modelpb.Service{
 						Name:      "unknown",
 						Language:  &modelpb.Language{Name: "unknown"},
-						Framework: &modelpb.Framework{Name: "otelcol/hostmetricsreceiver/process"},
+						Framework: &modelpb.Framework{Name: "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/processscraper"},
 					},
 					Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
 					Timestamp: modelpb.FromTime(ts),
@@ -984,7 +984,7 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 					Service: &modelpb.Service{
 						Name:      "unknown",
 						Language:  &modelpb.Language{Name: "unknown"},
-						Framework: &modelpb.Framework{Name: "otelcol/hostmetricsreceiver/process"},
+						Framework: &modelpb.Framework{Name: "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/processscraper"},
 					},
 					Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
 					Timestamp: modelpb.FromTime(ts),
