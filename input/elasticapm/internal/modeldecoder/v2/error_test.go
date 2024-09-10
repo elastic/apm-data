@@ -51,7 +51,7 @@ func TestDecodeNestedError(t *testing.T) {
 		assert.Equal(t, modelpb.FromTime(time.Unix(1599996822, 281000000)), batch[0].Timestamp)
 		assert.Empty(t, cmp.Diff(&modelpb.Error{
 			Id:  "a-b-c",
-			Log: &modelpb.ErrorLog{Message: "abc"},
+			Log: &modelpb.ErrorLog{Level: "error", Message: "abc"},
 		}, batch[0].Error, protocmp.Transform()))
 
 		str = `{"error":{"id":"a-b-c","log":{"message":"abc"},"context":{"experimental":"exp"}}}`
@@ -244,5 +244,14 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		mapToErrorModel(&input, &out)
 		assert.Equal(t, "1234", out.Transaction.Id)
 		assert.Equal(t, "1234", out.Span.Id)
+	})
+
+	t.Run("log.level", func(t *testing.T) {
+		var input errorEvent
+		input.Log.Level.Set("warn")
+		var out modelpb.APMEvent
+		mapToErrorModel(&input, &out)
+		require.NotNil(t, out.Error.Log.Level)
+		assert.Equal(t, "warn", out.Error.Log.Level)
 	})
 }
