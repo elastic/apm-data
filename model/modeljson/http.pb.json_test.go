@@ -18,6 +18,7 @@
 package modeljson
 
 import (
+	"google.golang.org/protobuf/types/known/structpb"
 	"testing"
 
 	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
@@ -51,6 +52,7 @@ func TestHTTPToModelJSON(t *testing.T) {
 					Id:       "id",
 					Method:   "method",
 					Referrer: "referrer",
+					Body:     structpb.NewStringValue("request-body"),
 				},
 			},
 			expected: &modeljson.HTTP{
@@ -61,6 +63,9 @@ func TestHTTPToModelJSON(t *testing.T) {
 					ID:       "id",
 					Method:   "method",
 					Referrer: "referrer",
+					Body: &modeljson.HTTPRequestBody{
+						Original: "request-body",
+					},
 				},
 			},
 		},
