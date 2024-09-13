@@ -39,6 +39,7 @@ import (
 	"encoding/hex"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -256,7 +257,7 @@ func sanitizeDataStream(k string) string {
 	if k[0] == '_' || k[0] == '+' {
 		k = k[1:]
 	}
-	if len(k) > MaxDataStreamRunes {
+	if utf8.RuneCountInString(k) > MaxDataStreamRunes {
 		return string([]rune(k)[:MaxDataStreamRunes])
 	}
 	return k
