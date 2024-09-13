@@ -768,8 +768,8 @@ func TestConsumeMetricsDataStream(t *testing.T) {
 		{
 			resourceDataStreamDataset:   "Dataset" + otlp.DisallowedDataStreamRunes,
 			resourceDataStreamNamespace: "Namespace" + otlp.DisallowedDataStreamRunes,
-			expectedDataStreamDataset:   "dataset",
-			expectedDataStreamNamespace: "namespace",
+			expectedDataStreamDataset:   "dataset____________",
+			expectedDataStreamNamespace: "namespace____________",
 		},
 	} {
 		tcName := fmt.Sprintf("%s,%s", tc.expectedDataStreamDataset, tc.expectedDataStreamNamespace)

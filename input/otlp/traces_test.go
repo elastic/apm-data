@@ -912,8 +912,8 @@ func TestSpanDataStream(t *testing.T) {
 		{
 			resourceDataStreamDataset:   "Dataset" + otlp.DisallowedDataStreamRunes,
 			resourceDataStreamNamespace: "Namespace" + otlp.DisallowedDataStreamRunes,
-			expectedDataStreamDataset:   "dataset",
-			expectedDataStreamNamespace: "namespace",
+			expectedDataStreamDataset:   "dataset____________",
+			expectedDataStreamNamespace: "namespace____________",
 		},
 	} {
 		for _, isTxn := range []bool{false, true} {

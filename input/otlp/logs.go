@@ -249,7 +249,7 @@ func (c *Consumer) convertLogRecord(
 func sanitizeDataStream(k string) string {
 	k = strings.ToLower(k)
 	if strings.ContainsAny(k, DisallowedDataStreamRunes) {
-		k = strings.Map(removeRune, k)
+		k = strings.Map(replaceReservedRune, k)
 	}
 	// Cannot start with  _, +
 	// https://github.com/elastic/ecs/blob/main/rfcs/text/0009-data_stream-fields.md
@@ -262,10 +262,10 @@ func sanitizeDataStream(k string) string {
 	return k
 }
 
-func removeRune(r rune) rune {
+func replaceReservedRune(r rune) rune {
 	switch r {
 	case '-', '\\', '/', '*', '?', '"', '<', '>', '|', ' ', ',', '#':
-		return -1
+		return '_'
 	}
 	return r
 }
