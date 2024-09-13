@@ -569,8 +569,8 @@ func TestConsumerConsumeLogsDataStream(t *testing.T) {
 		},
 		// Test data sanitization: https://www.elastic.co/guide/en/ecs/current/ecs-data_stream.html
 		{
-			resourceDataStreamDataset:   "Dataset" + otlp.DisallowedDataStreamRunes,
-			resourceDataStreamNamespace: "Namespace" + otlp.DisallowedDataStreamRunes,
+			resourceDataStreamDataset:   "+Dataset" + otlp.DisallowedDataStreamRunes,
+			resourceDataStreamNamespace: "_Namespace" + otlp.DisallowedDataStreamRunes,
 			expectedDataStreamDataset:   "dataset",
 			expectedDataStreamNamespace: "namespace",
 		},

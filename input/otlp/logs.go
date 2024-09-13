@@ -251,6 +251,11 @@ func sanitizeDataStream(k string) string {
 	if strings.ContainsAny(k, DisallowedDataStreamRunes) {
 		k = strings.Map(removeRune, k)
 	}
+	// Cannot start with  _, +
+	// https://github.com/elastic/ecs/blob/main/rfcs/text/0009-data_stream-fields.md
+	if k[0] == '_' || k[0] == '+' {
+		k = k[1:]
+	}
 	if len(k) > MaxDataStreamRunes {
 		return string([]rune(k)[:MaxDataStreamRunes])
 	}
