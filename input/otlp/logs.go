@@ -48,6 +48,11 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
+const (
+	MaxDataStreamRunes        = 100
+	DisallowedDataStreamRunes = "-\\/*?\"<>| ,#"
+)
+
 // ConsumeLogsResult contains the number of rejected log records and error message for partial success response.
 type ConsumeLogsResult struct {
 	ErrorMessage       string
@@ -195,12 +200,12 @@ func (c *Consumer) convertLogRecord(
 			if event.DataStream == nil {
 				event.DataStream = &modelpb.DataStream{}
 			}
-			event.DataStream.Dataset = v.Str()
+			event.DataStream.Dataset = sanitizeDataStream(v.Str())
 		case attributeDataStreamNamespace:
 			if event.DataStream == nil {
 				event.DataStream = &modelpb.DataStream{}
 			}
-			event.DataStream.Namespace = v.Str()
+			event.DataStream.Namespace = sanitizeDataStream(v.Str())
 		default:
 			setLabel(replaceDots(k), event, v)
 		}
@@ -238,4 +243,24 @@ func (c *Consumer) convertLogRecord(
 	}
 
 	return event
+}
+
+// https://www.elastic.co/guide/en/ecs/current/ecs-data_stream.html
+func sanitizeDataStream(k string) string {
+	k = strings.ToLower(k)
+	if strings.ContainsAny(k, DisallowedDataStreamRunes) {
+		k = strings.Map(removeRune, k)
+	}
+	if len(k) > MaxDataStreamRunes {
+		return string([]rune(k)[:MaxDataStreamRunes])
+	}
+	return k
+}
+
+func removeRune(r rune) rune {
+	switch r {
+	case '-', '\\', '/', '*', '?', '"', '<', '>', '|', ' ', ',', '#':
+		return -1
+	}
+	return r
 }

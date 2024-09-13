@@ -316,12 +316,12 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			if out.DataStream == nil {
 				out.DataStream = &modelpb.DataStream{}
 			}
-			out.DataStream.Dataset = v.Str()
+			out.DataStream.Dataset = sanitizeDataStream(v.Str())
 		case attributeDataStreamNamespace:
 			if out.DataStream == nil {
 				out.DataStream = &modelpb.DataStream{}
 			}
-			out.DataStream.Namespace = v.Str()
+			out.DataStream.Namespace = sanitizeDataStream(v.Str())
 		default:
 			if out.Labels == nil {
 				out.Labels = make(modelpb.Labels)
@@ -459,12 +459,12 @@ func translateScopeMetadata(scope pcommon.InstrumentationScope, out *modelpb.APM
 			if out.DataStream == nil {
 				out.DataStream = &modelpb.DataStream{}
 			}
-			out.DataStream.Dataset = v.Str()
+			out.DataStream.Dataset = sanitizeDataStream(v.Str())
 		case attributeDataStreamNamespace:
 			if out.DataStream == nil {
 				out.DataStream = &modelpb.DataStream{}
 			}
-			out.DataStream.Namespace = v.Str()
+			out.DataStream.Namespace = sanitizeDataStream(v.Str())
 		}
 		return true
 	})

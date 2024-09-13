@@ -764,6 +764,13 @@ func TestConsumeMetricsDataStream(t *testing.T) {
 			expectedDataStreamDataset:   "1",
 			expectedDataStreamNamespace: "2",
 		},
+		// Test data sanitization: https://www.elastic.co/guide/en/ecs/current/ecs-data_stream.html
+		{
+			resourceDataStreamDataset:   "Dataset" + otlp.DisallowedDataStreamRunes,
+			resourceDataStreamNamespace: "Namespace" + otlp.DisallowedDataStreamRunes,
+			expectedDataStreamDataset:   "dataset",
+			expectedDataStreamNamespace: "namespace",
+		},
 	} {
 		tcName := fmt.Sprintf("%s,%s", tc.expectedDataStreamDataset, tc.expectedDataStreamNamespace)
 		t.Run(tcName, func(t *testing.T) {
