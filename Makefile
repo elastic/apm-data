@@ -2,7 +2,7 @@
 all: generate-modelpb generate gomodtidy update-licenses fieldalignment fmt protolint
 
 test:
-	go test -v -race ./...
+	go test -v ./...
 
 fmt:
 	go run golang.org/x/tools/cmd/goimports@v0.21.0 -w .

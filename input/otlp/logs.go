@@ -201,12 +201,12 @@ func (c *Consumer) convertLogRecord(
 			if event.DataStream == nil {
 				event.DataStream = &modelpb.DataStream{}
 			}
-			event.DataStream.Dataset = sanitizeDataStream(v.Str())
+			event.DataStream.Dataset = sanitizeDataStreamField(v.Str())
 		case attributeDataStreamNamespace:
 			if event.DataStream == nil {
 				event.DataStream = &modelpb.DataStream{}
 			}
-			event.DataStream.Namespace = sanitizeDataStream(v.Str())
+			event.DataStream.Namespace = sanitizeDataStreamField(v.Str())
 		default:
 			setLabel(replaceDots(k), event, v)
 		}
@@ -246,26 +246,24 @@ func (c *Consumer) convertLogRecord(
 	return event
 }
 
-// https://www.elastic.co/guide/en/ecs/current/ecs-data_stream.html
-func sanitizeDataStream(k string) string {
-	k = strings.ToLower(k)
-	if strings.ContainsAny(k, DisallowedDataStreamRunes) {
-		k = strings.Map(replaceReservedRune, k)
-	}
+// Sanitize the datastream fields (dataset, namespace) to apply restrictions
+// as outlined in https://www.elastic.co/guide/en/ecs/current/ecs-data_stream.html
+func sanitizeDataStreamField(field string) string {
+	field = strings.ToLower(field)
+	field = strings.Map(replaceReservedRune, field)
 	// Cannot start with  _, +
 	// https://github.com/elastic/ecs/blob/main/rfcs/text/0009-data_stream-fields.md
-	if k[0] == '_' || k[0] == '+' {
-		k = k[1:]
+	if field[0] == '_' || field[0] == '+' {
+		field = field[1:]
 	}
-	if utf8.RuneCountInString(k) > MaxDataStreamRunes {
-		return string([]rune(k)[:MaxDataStreamRunes])
+	if utf8.RuneCountInString(field) > MaxDataStreamRunes {
+		return string([]rune(field)[:MaxDataStreamRunes])
 	}
-	return k
+	return field
 }
 
 func replaceReservedRune(r rune) rune {
-	switch r {
-	case '-', '\\', '/', '*', '?', '"', '<', '>', '|', ' ', ',', '#':
+	if strings.ContainsRune(DisallowedDataStreamRunes, r) {
 		return '_'
 	}
 	return r
