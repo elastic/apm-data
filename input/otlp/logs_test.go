@@ -36,7 +36,9 @@ package otlp_test
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
+	"math/big"
 	"testing"
 	"time"
 
@@ -532,6 +534,10 @@ func processLogEvents(t *testing.T, logs plog.Logs) modelpb.Batch {
 }
 
 func TestConsumerConsumeLogsDataStream(t *testing.T) {
+	randomString, err := generateRandomString(otlp.MaxDataStreamBytes)
+	maxLen := len(randomString) - len(otlp.DisallowedDataStreamRunes)
+	assert.NoError(t, err)
+
 	for _, tc := range []struct {
 		resourceDataStreamDataset   string
 		resourceDataStreamNamespace string
@@ -568,11 +574,13 @@ func TestConsumerConsumeLogsDataStream(t *testing.T) {
 			expectedDataStreamNamespace: "2",
 		},
 		// Test data sanitization: https://www.elastic.co/guide/en/ecs/current/ecs-data_stream.html
+		// 1. Replace all disallowed runes with _
+		// 2. Datastream length should not exceed otlp.MaxDataStreamBytes
 		{
-			resourceDataStreamDataset:   "+Dataset" + otlp.DisallowedDataStreamRunes,
-			resourceDataStreamNamespace: "_Namespace" + otlp.DisallowedDataStreamRunes,
-			expectedDataStreamDataset:   "dataset____________",
-			expectedDataStreamNamespace: "namespace____________",
+			resourceDataStreamDataset:   otlp.DisallowedDataStreamRunes + randomString,
+			resourceDataStreamNamespace: otlp.DisallowedDataStreamRunes + randomString,
+			expectedDataStreamDataset:   "____________" + randomString[:maxLen],
+			expectedDataStreamNamespace: "____________" + randomString[:maxLen],
 		},
 	} {
 		tcName := fmt.Sprintf("%s,%s", tc.expectedDataStreamDataset, tc.expectedDataStreamNamespace)
@@ -837,4 +845,18 @@ func newLogRecord(body interface{}) plog.LogRecord {
 		// otelLogRecord.Body()
 	}
 	return otelLogRecord
+}
+
+const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+func generateRandomString(length int) (string, error) {
+	result := make([]byte, length)
+	for i := range result {
+		index, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		if err != nil {
+			return "", err
+		}
+		result[i] = charset[index.Int64()]
+	}
+	return string(result), nil
 }

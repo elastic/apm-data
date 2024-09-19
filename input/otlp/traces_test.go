@@ -873,6 +873,10 @@ func TestSpanNetworkAttributes(t *testing.T) {
 }
 
 func TestSpanDataStream(t *testing.T) {
+	randomString, err := generateRandomString(otlp.MaxDataStreamBytes)
+	maxLen := len(randomString) - len(otlp.DisallowedDataStreamRunes)
+	assert.NoError(t, err)
+
 	for _, tc := range []struct {
 		resourceDataStreamDataset   string
 		resourceDataStreamNamespace string
@@ -909,11 +913,13 @@ func TestSpanDataStream(t *testing.T) {
 			expectedDataStreamNamespace: "2",
 		},
 		// Test data sanitization: https://www.elastic.co/guide/en/ecs/current/ecs-data_stream.html
+		// 1. Replace all disallowed runes with _
+		// 2. Datastream length should not exceed otlp.MaxDataStreamBytes
 		{
-			resourceDataStreamDataset:   "Dataset" + otlp.DisallowedDataStreamRunes,
-			resourceDataStreamNamespace: "Namespace" + otlp.DisallowedDataStreamRunes,
-			expectedDataStreamDataset:   "dataset____________",
-			expectedDataStreamNamespace: "namespace____________",
+			resourceDataStreamDataset:   otlp.DisallowedDataStreamRunes + randomString,
+			resourceDataStreamNamespace: otlp.DisallowedDataStreamRunes + randomString,
+			expectedDataStreamDataset:   "____________" + randomString[:maxLen],
+			expectedDataStreamNamespace: "____________" + randomString[:maxLen],
 		},
 	} {
 		for _, isTxn := range []bool{false, true} {

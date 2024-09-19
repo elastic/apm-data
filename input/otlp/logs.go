@@ -39,7 +39,6 @@ import (
 	"encoding/hex"
 	"strings"
 	"time"
-	"unicode/utf8"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -50,7 +49,7 @@ import (
 )
 
 const (
-	MaxDataStreamRunes        = 100
+	MaxDataStreamBytes        = 100
 	DisallowedDataStreamRunes = "-\\/*?\"<>| ,#"
 )
 
@@ -251,13 +250,8 @@ func (c *Consumer) convertLogRecord(
 func sanitizeDataStreamField(field string) string {
 	field = strings.ToLower(field)
 	field = strings.Map(replaceReservedRune, field)
-	// Cannot start with  _, +
-	// https://github.com/elastic/ecs/blob/main/rfcs/text/0009-data_stream-fields.md
-	if field[0] == '_' || field[0] == '+' {
-		field = field[1:]
-	}
-	if utf8.RuneCountInString(field) > MaxDataStreamRunes {
-		return string([]rune(field)[:MaxDataStreamRunes])
+	if len(field) > MaxDataStreamBytes {
+		return field[:MaxDataStreamBytes]
 	}
 	return field
 }
