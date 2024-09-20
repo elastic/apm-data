@@ -180,7 +180,7 @@ func (c *Consumer) handleScopeMetrics(
 					if event.DataStream == nil {
 						event.DataStream = &modelpb.DataStream{}
 					}
-					event.DataStream.Dataset = v.Str()
+					event.DataStream.Dataset = sanitizeDataStreamField(v.Str())
 				case attributeDataStreamNamespace:
 					if event.DataStream == nil {
 						event.DataStream = &modelpb.DataStream{}

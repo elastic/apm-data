@@ -48,11 +48,6 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-const (
-	MaxDataStreamBytes        = 100
-	DisallowedDataStreamRunes = "-\\/*?\"<>| ,#"
-)
-
 // ConsumeLogsResult contains the number of rejected log records and error message for partial success response.
 type ConsumeLogsResult struct {
 	ErrorMessage       string
@@ -243,22 +238,4 @@ func (c *Consumer) convertLogRecord(
 	}
 
 	return event
-}
-
-// Sanitize the datastream fields (dataset, namespace) to apply restrictions
-// as outlined in https://www.elastic.co/guide/en/ecs/current/ecs-data_stream.html
-func sanitizeDataStreamField(field string) string {
-	field = strings.ToLower(field)
-	field = strings.Map(replaceReservedRune, field)
-	if len(field) > MaxDataStreamBytes {
-		return field[:MaxDataStreamBytes]
-	}
-	return field
-}
-
-func replaceReservedRune(r rune) rune {
-	if strings.ContainsRune(DisallowedDataStreamRunes, r) {
-		return '_'
-	}
-	return r
 }

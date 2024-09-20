@@ -30,7 +30,9 @@ import (
 )
 
 const (
-	AgentNameJaeger = "Jaeger"
+	AgentNameJaeger           = "Jaeger"
+	MaxDataStreamBytes        = 100
+	DisallowedDataStreamRunes = "-\\/*?\"<>| ,#:"
 )
 
 var (
@@ -544,4 +546,22 @@ func setLabel(key string, event *modelpb.APMEvent, v pcommon.Value) {
 			modelpb.NumericLabels(event.NumericLabels).SetSlice(key, result)
 		}
 	}
+}
+
+// Sanitize the datastream fields (dataset, namespace) to apply restrictions
+// as outlined in https://www.elastic.co/guide/en/ecs/current/ecs-data_stream.html
+func sanitizeDataStreamField(field string) string {
+	field = strings.ToLower(field)
+	field = strings.Map(replaceReservedRune, field)
+	if len(field) > MaxDataStreamBytes {
+		return field[:MaxDataStreamBytes]
+	}
+	return field
+}
+
+func replaceReservedRune(r rune) rune {
+	if strings.ContainsRune(DisallowedDataStreamRunes, r) {
+		return '_'
+	}
+	return r
 }

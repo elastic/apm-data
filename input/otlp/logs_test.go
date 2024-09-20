@@ -36,9 +36,7 @@ package otlp_test
 
 import (
 	"context"
-	"crypto/rand"
 	"fmt"
-	"math/big"
 	"testing"
 	"time"
 
@@ -579,8 +577,8 @@ func TestConsumerConsumeLogsDataStream(t *testing.T) {
 		{
 			resourceDataStreamDataset:   otlp.DisallowedDataStreamRunes + randomString,
 			resourceDataStreamNamespace: otlp.DisallowedDataStreamRunes + randomString,
-			expectedDataStreamDataset:   "____________" + randomString[:maxLen],
-			expectedDataStreamNamespace: "____________" + randomString[:maxLen],
+			expectedDataStreamDataset:   revertedString(otlp.DisallowedDataStreamRunes) + randomString[:maxLen],
+			expectedDataStreamNamespace: revertedString(otlp.DisallowedDataStreamRunes) + randomString[:maxLen],
 		},
 	} {
 		tcName := fmt.Sprintf("%s,%s", tc.expectedDataStreamDataset, tc.expectedDataStreamNamespace)
@@ -845,18 +843,4 @@ func newLogRecord(body interface{}) plog.LogRecord {
 		// otelLogRecord.Body()
 	}
 	return otelLogRecord
-}
-
-const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
-
-func generateRandomString(length int) (string, error) {
-	result := make([]byte, length)
-	for i := range result {
-		index, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
-		if err != nil {
-			return "", err
-		}
-		result[i] = charset[index.Int64()]
-	}
-	return string(result), nil
 }
