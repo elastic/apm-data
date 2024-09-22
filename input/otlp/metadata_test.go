@@ -18,8 +18,6 @@
 package otlp_test
 
 import (
-	"crypto/rand"
-	"math/big"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -396,27 +394,4 @@ func transformResourceMetadata(t *testing.T, resourceAttrs map[string]interface{
 	(*events)[0].Event = nil
 	(*events)[0].Timestamp = 0
 	return (*events)[0]
-}
-
-const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
-
-func generateRandomString(length int) (string, error) {
-	result := make([]byte, length)
-	for i := range result {
-		index, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
-		if err != nil {
-			return "", err
-		}
-		result[i] = charset[index.Int64()]
-	}
-	return string(result), nil
-}
-
-// Creates a string consistening of _ that equals the length of otlp.DisallowedDataStreamRunes
-func revertedString(s string) string {
-	var res []rune
-	for i := 0; i < len(s); i++ {
-		res = append(res, '_')
-	}
-	return string(res)
 }

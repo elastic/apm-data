@@ -873,9 +873,8 @@ func TestSpanNetworkAttributes(t *testing.T) {
 }
 
 func TestSpanDataStream(t *testing.T) {
-	randomString, err := generateRandomString(otlp.MaxDataStreamBytes)
-	maxLen := len(randomString) - len(otlp.DisallowedDataStreamRunes)
-	assert.NoError(t, err)
+	randomString := strings.Repeat("abcdefghijklmnopqrstuvwxyz0123456789", 10)
+	maxLen := otlp.MaxDataStreamBytes - len(otlp.DisallowedDataStreamRunes)
 
 	for _, tc := range []struct {
 		resourceDataStreamDataset   string
@@ -918,8 +917,8 @@ func TestSpanDataStream(t *testing.T) {
 		{
 			resourceDataStreamDataset:   otlp.DisallowedDataStreamRunes + randomString,
 			resourceDataStreamNamespace: otlp.DisallowedDataStreamRunes + randomString,
-			expectedDataStreamDataset:   revertedString(otlp.DisallowedDataStreamRunes) + randomString[:maxLen],
-			expectedDataStreamNamespace: revertedString(otlp.DisallowedDataStreamRunes) + randomString[:maxLen],
+			expectedDataStreamDataset:   strings.Repeat("_", len(otlp.DisallowedDataStreamRunes)) + randomString[:maxLen],
+			expectedDataStreamNamespace: strings.Repeat("_", len(otlp.DisallowedDataStreamRunes)) + randomString[:maxLen],
 		},
 	} {
 		for _, isTxn := range []bool{false, true} {

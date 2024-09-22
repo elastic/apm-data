@@ -22,6 +22,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	semconv "go.opentelemetry.io/collector/semconv/v1.25.0"
@@ -551,7 +552,6 @@ func setLabel(key string, event *modelpb.APMEvent, v pcommon.Value) {
 // Sanitize the datastream fields (dataset, namespace) to apply restrictions
 // as outlined in https://www.elastic.co/guide/en/ecs/current/ecs-data_stream.html
 func sanitizeDataStreamField(field string) string {
-	field = strings.ToLower(field)
 	field = strings.Map(replaceReservedRune, field)
 	if len(field) > MaxDataStreamBytes {
 		return field[:MaxDataStreamBytes]
@@ -563,5 +563,5 @@ func replaceReservedRune(r rune) rune {
 	if strings.ContainsRune(DisallowedDataStreamRunes, r) {
 		return '_'
 	}
-	return r
+	return unicode.ToLower(r)
 }
