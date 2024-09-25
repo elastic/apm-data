@@ -195,12 +195,12 @@ func (c *Consumer) convertLogRecord(
 			if event.DataStream == nil {
 				event.DataStream = &modelpb.DataStream{}
 			}
-			event.DataStream.Dataset = sanitizeDataStreamField(v.Str())
+			event.DataStream.Dataset = sanitizeDataStreamDataset(v.Str())
 		case attributeDataStreamNamespace:
 			if event.DataStream == nil {
 				event.DataStream = &modelpb.DataStream{}
 			}
-			event.DataStream.Namespace = sanitizeDataStreamField(v.Str())
+			event.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
 		default:
 			setLabel(replaceDots(k), event, v)
 		}

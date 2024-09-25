@@ -31,9 +31,10 @@ import (
 )
 
 const (
-	AgentNameJaeger           = "Jaeger"
-	MaxDataStreamBytes        = 100
-	DisallowedDataStreamRunes = "-\\/*?\"<>| ,#:"
+	AgentNameJaeger          = "Jaeger"
+	MaxDataStreamBytes       = 100
+	DisallowedNamespaceRunes = "\\/*?\"<>| ,#:"
+	DisallowedDatasetRunes   = "-\\/*?\"<>| ,#:"
 )
 
 var (
@@ -319,12 +320,12 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			if out.DataStream == nil {
 				out.DataStream = &modelpb.DataStream{}
 			}
-			out.DataStream.Dataset = sanitizeDataStreamField(v.Str())
+			out.DataStream.Dataset = sanitizeDataStreamDataset(v.Str())
 		case attributeDataStreamNamespace:
 			if out.DataStream == nil {
 				out.DataStream = &modelpb.DataStream{}
 			}
-			out.DataStream.Namespace = sanitizeDataStreamField(v.Str())
+			out.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
 		default:
 			if out.Labels == nil {
 				out.Labels = make(modelpb.Labels)
@@ -462,12 +463,12 @@ func translateScopeMetadata(scope pcommon.InstrumentationScope, out *modelpb.APM
 			if out.DataStream == nil {
 				out.DataStream = &modelpb.DataStream{}
 			}
-			out.DataStream.Dataset = sanitizeDataStreamField(v.Str())
+			out.DataStream.Dataset = sanitizeDataStreamDataset(v.Str())
 		case attributeDataStreamNamespace:
 			if out.DataStream == nil {
 				out.DataStream = &modelpb.DataStream{}
 			}
-			out.DataStream.Namespace = sanitizeDataStreamField(v.Str())
+			out.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
 		}
 		return true
 	})
@@ -551,17 +552,30 @@ func setLabel(key string, event *modelpb.APMEvent, v pcommon.Value) {
 
 // Sanitize the datastream fields (dataset, namespace) to apply restrictions
 // as outlined in https://www.elastic.co/guide/en/ecs/current/ecs-data_stream.html
-func sanitizeDataStreamField(field string) string {
-	field = strings.Map(replaceReservedRune, field)
+func sanitizeDataStreamDataset(field string) string {
+	field = strings.Map(replaceReservedRune(DisallowedDatasetRunes), field)
+	if len(field) > MaxDataStreamBytes {
+		return field[:MaxDataStreamBytes]
+	}
+
+	return field
+}
+
+// Sanitize the datastream fields (dataset, namespace) to apply restrictions
+// as outlined in https://www.elastic.co/guide/en/ecs/current/ecs-data_stream.html
+func sanitizeDataStreamNamespace(field string) string {
+	field = strings.Map(replaceReservedRune(DisallowedNamespaceRunes), field)
 	if len(field) > MaxDataStreamBytes {
 		return field[:MaxDataStreamBytes]
 	}
 	return field
 }
 
-func replaceReservedRune(r rune) rune {
-	if strings.ContainsRune(DisallowedDataStreamRunes, r) {
-		return '_'
+func replaceReservedRune(disallowedRunes string) func(r rune) rune {
+	return func(r rune) rune {
+		if strings.ContainsRune(disallowedRunes, r) {
+			return '_'
+		}
+		return unicode.ToLower(r)
 	}
-	return unicode.ToLower(r)
 }
