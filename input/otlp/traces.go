@@ -481,12 +481,12 @@ func TranslateTransaction(
 				if event.DataStream == nil {
 					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Dataset = stringval
+				event.DataStream.Dataset = sanitizeDataStreamDataset(stringval)
 			case attributeDataStreamNamespace:
 				if event.DataStream == nil {
 					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Namespace = stringval
+				event.DataStream.Namespace = sanitizeDataStreamNamespace(stringval)
 			default:
 				modelpb.Labels(event.Labels).Set(k, stringval)
 			}
@@ -824,12 +824,12 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				if event.DataStream == nil {
 					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Dataset = stringval
+				event.DataStream.Dataset = sanitizeDataStreamDataset(stringval)
 			case attributeDataStreamNamespace:
 				if event.DataStream == nil {
 					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Namespace = stringval
+				event.DataStream.Namespace = sanitizeDataStreamNamespace(stringval)
 			default:
 				setLabel(k, event, v)
 			}
@@ -1104,12 +1104,12 @@ func (c *Consumer) convertSpanEvent(
 				if event.DataStream == nil {
 					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Dataset = v.Str()
+				event.DataStream.Dataset = sanitizeDataStreamDataset(v.Str())
 			case attributeDataStreamNamespace:
 				if event.DataStream == nil {
 					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Namespace = v.Str()
+				event.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
 
 			default:
 				setLabel(replaceDots(k), event, v)
@@ -1145,12 +1145,12 @@ func (c *Consumer) convertSpanEvent(
 				if event.DataStream == nil {
 					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Dataset = v.Str()
+				event.DataStream.Dataset = sanitizeDataStreamDataset(v.Str())
 			case attributeDataStreamNamespace:
 				if event.DataStream == nil {
 					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Namespace = v.Str()
+				event.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
 			default:
 				k = replaceDots(k)
 				if isJaeger && k == "message" {
@@ -1203,12 +1203,12 @@ func (c *Consumer) convertJaegerErrorSpanEvent(event ptrace.SpanEvent, apmEvent 
 			if apmEvent.DataStream == nil {
 				apmEvent.DataStream = &modelpb.DataStream{}
 			}
-			apmEvent.DataStream.Dataset = v.Str()
+			apmEvent.DataStream.Dataset = sanitizeDataStreamDataset(v.Str())
 		case attributeDataStreamNamespace:
 			if apmEvent.DataStream == nil {
 				apmEvent.DataStream = &modelpb.DataStream{}
 			}
-			apmEvent.DataStream.Namespace = v.Str()
+			apmEvent.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
 
 		default:
 			setLabel(replaceDots(k), apmEvent, v)

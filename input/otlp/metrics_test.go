@@ -729,6 +729,10 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 }
 
 func TestConsumeMetricsDataStream(t *testing.T) {
+	randomString := strings.Repeat("abcdefghijklmnopqrstuvwxyz0123456789", 10)
+	maxLenNamespace := otlp.MaxDataStreamBytes - len(otlp.DisallowedNamespaceRunes)
+	maxLenDataset := otlp.MaxDataStreamBytes - len(otlp.DisallowedDatasetRunes)
+
 	for _, tc := range []struct {
 		resourceDataStreamDataset   string
 		resourceDataStreamNamespace string
@@ -763,6 +767,15 @@ func TestConsumeMetricsDataStream(t *testing.T) {
 			resourceDataStreamNamespace: "2",
 			expectedDataStreamDataset:   "1",
 			expectedDataStreamNamespace: "2",
+		},
+		// Test data sanitization: https://www.elastic.co/guide/en/ecs/current/ecs-data_stream.html
+		// 1. Replace all disallowed runes with _
+		// 2. Datastream length should not exceed otlp.MaxDataStreamBytes
+		{
+			resourceDataStreamDataset:   otlp.DisallowedDatasetRunes + randomString,
+			resourceDataStreamNamespace: otlp.DisallowedNamespaceRunes + randomString,
+			expectedDataStreamDataset:   strings.Repeat("_", len(otlp.DisallowedDatasetRunes)) + randomString[:maxLenDataset],
+			expectedDataStreamNamespace: strings.Repeat("_", len(otlp.DisallowedNamespaceRunes)) + randomString[:maxLenNamespace],
 		},
 	} {
 		tcName := fmt.Sprintf("%s,%s", tc.expectedDataStreamDataset, tc.expectedDataStreamNamespace)

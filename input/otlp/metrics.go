@@ -180,12 +180,12 @@ func (c *Consumer) handleScopeMetrics(
 					if event.DataStream == nil {
 						event.DataStream = &modelpb.DataStream{}
 					}
-					event.DataStream.Dataset = v.Str()
+					event.DataStream.Dataset = sanitizeDataStreamDataset(v.Str())
 				case attributeDataStreamNamespace:
 					if event.DataStream == nil {
 						event.DataStream = &modelpb.DataStream{}
 					}
-					event.DataStream.Namespace = v.Str()
+					event.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
 
 				// The below fields are required by the Processes tab of the
 				// curated Kibana's hostmetrics UI. These fields are
