@@ -60,12 +60,10 @@ func TestEncodeSpanEventsNonExceptions(t *testing.T) {
 		semconv.AttributeExceptionStacktrace, "stacktrace",
 	)
 
-	transactionEvent, events := transformTransactionSpanEvents(t, "java", nonExceptionEvent, incompleteExceptionEvent)
+	_, events := transformTransactionSpanEvents(t, "java", nonExceptionEvent, incompleteExceptionEvent)
 	require.Len(t, events, 2)
 	assert.Equal(t, modelpb.LogEventType, events[0].Type())
-	assert.Equal(t, transactionEvent.Transaction.Id, events[0].ParentId)
 	assert.Equal(t, modelpb.LogEventType, events[1].Type())
-	assert.Equal(t, transactionEvent.Transaction.Id, events[1].ParentId)
 }
 
 func TestEncodeSpanEventsJavaExceptions(t *testing.T) {

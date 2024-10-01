@@ -380,9 +380,6 @@
                 "isValid": "false"
             },
             "message": "baggage",
-            "parent": {
-                "id": "0000000041414646"
-            },
             "service": {
                 "language": {
                     "name": "unknown"
@@ -427,9 +424,6 @@
                 "level": "info"
             },
             "message": "retrying connection",
-            "parent": {
-                "id": "0000000041414646"
-            },
             "service": {
                 "language": {
                     "name": "unknown"
@@ -472,9 +466,6 @@
             },
             "labels": {
                 "level": "error"
-            },
-            "parent": {
-                "id": "0000000041414646"
             },
             "service": {
                 "language": {

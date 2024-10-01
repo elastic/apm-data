@@ -1073,6 +1073,7 @@ func (c *Consumer) convertSpanEvent(
 	initEventLabels(event)
 	event.Transaction = nil // populate fields as required from parent
 	event.Span = nil        // populate fields as required from parent
+	event.ParentId = ""     // populate fields as required from parent
 	event.Timestamp = modelpb.FromTime(spanEvent.Timestamp().AsTime().Add(timeDelta))
 
 	isJaeger := strings.HasPrefix(parent.Agent.Name, "Jaeger")
@@ -1265,12 +1266,10 @@ func setLogContext(out *modelpb.APMEvent, parent *modelpb.APMEvent) {
 		out.Transaction.Id = parent.Transaction.Id
 		out.Span = &modelpb.Span{}
 		out.Span.Id = parent.Transaction.Id
-		out.ParentId = parent.Transaction.Id
 	}
 	if parent.Span != nil {
 		out.Span = &modelpb.Span{}
 		out.Span.Id = parent.Span.Id
-		out.ParentId = parent.Span.Id
 	}
 }
 
