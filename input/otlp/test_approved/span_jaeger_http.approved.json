@@ -106,11 +106,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "target": {
-                    "name": "foo.bar.com:80",
-                    "type": "http"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -151,11 +147,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "target": {
-                    "name": "foo.bar.com:80",
-                    "type": "http"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -199,11 +191,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "target": {
-                    "name": "foo.bar.com:80",
-                    "type": "http"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -247,11 +235,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "target": {
-                    "name": "foo.bar.com:80",
-                    "type": "http"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -295,11 +279,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "target": {
-                    "name": "foo.bar.com:80",
-                    "type": "http"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -340,11 +320,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "target": {
-                    "name": "foo.bar.com:80",
-                    "type": "http"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -384,11 +360,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "target": {
-                    "name": "foo.bar.com:80",
-                    "type": "http"
-                }
+                "name": "unknown"
             },
             "span": {
                 "id": "0000000041414646"
@@ -428,11 +400,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "target": {
-                    "name": "foo.bar.com:80",
-                    "type": "http"
-                }
+                "name": "unknown"
             },
             "span": {
                 "id": "0000000041414646"
@@ -471,11 +439,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "target": {
-                    "name": "foo.bar.com:80",
-                    "type": "http"
-                }
+                "name": "unknown"
             },
             "span": {
                 "id": "0000000041414646"

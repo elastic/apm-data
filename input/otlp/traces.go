@@ -1074,6 +1074,13 @@ func (c *Consumer) convertSpanEvent(
 	event.Transaction = nil // populate fields as required from parent
 	event.Span = nil        // populate fields as required from parent
 	event.ParentId = ""     // populate fields as required from parent
+
+	// Remove unnecessary fields from span event
+	if event.Service != nil {
+		event.Service.Target = nil
+		event.Service.Origin = nil
+	}
+
 	event.Timestamp = modelpb.FromTime(spanEvent.Timestamp().AsTime().Add(timeDelta))
 
 	isJaeger := strings.HasPrefix(parent.Agent.Name, "Jaeger")
