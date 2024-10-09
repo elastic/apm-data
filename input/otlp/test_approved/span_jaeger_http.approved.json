@@ -106,11 +106,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "target": {
-                    "name": "foo.bar.com:80",
-                    "type": "http"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -151,11 +147,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "target": {
-                    "name": "foo.bar.com:80",
-                    "type": "http"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -199,11 +191,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "target": {
-                    "name": "foo.bar.com:80",
-                    "type": "http"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -247,11 +235,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "target": {
-                    "name": "foo.bar.com:80",
-                    "type": "http"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -295,11 +279,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "target": {
-                    "name": "foo.bar.com:80",
-                    "type": "http"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -340,11 +320,7 @@
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "target": {
-                    "name": "foo.bar.com:80",
-                    "type": "http"
-                }
+                "name": "unknown"
             },
             "timestamp": {
                 "us": 1576500418000768
@@ -380,18 +356,11 @@
                 "isValid": "false"
             },
             "message": "baggage",
-            "parent": {
-                "id": "0000000058585858"
-            },
             "service": {
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "target": {
-                    "name": "foo.bar.com:80",
-                    "type": "http"
-                }
+                "name": "unknown"
             },
             "span": {
                 "id": "0000000041414646"
@@ -427,18 +396,11 @@
                 "level": "info"
             },
             "message": "retrying connection",
-            "parent": {
-                "id": "0000000058585858"
-            },
             "service": {
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "target": {
-                    "name": "foo.bar.com:80",
-                    "type": "http"
-                }
+                "name": "unknown"
             },
             "span": {
                 "id": "0000000041414646"
@@ -473,18 +435,11 @@
             "labels": {
                 "level": "error"
             },
-            "parent": {
-                "id": "0000000058585858"
-            },
             "service": {
                 "language": {
                     "name": "unknown"
                 },
-                "name": "unknown",
-                "target": {
-                    "name": "foo.bar.com:80",
-                    "type": "http"
-                }
+                "name": "unknown"
             },
             "span": {
                 "id": "0000000041414646"
