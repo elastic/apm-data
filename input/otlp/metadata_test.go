@@ -43,12 +43,30 @@ func TestResourceConventions(t *testing.T) {
 			attrs:    nil,
 			expected: &modelpb.APMEvent{Agent: &defaultAgent, Service: &defaultService},
 		},
-		"service": {
+		"service with deprecated deployment.environment": {
 			attrs: map[string]interface{}{
 				"service.name":           "service_name",
 				"service.version":        "service_version",
 				"service.instance.id":    "service_node_name",
 				"deployment.environment": "service_environment",
+			},
+			expected: &modelpb.APMEvent{
+				Agent: &modelpb.Agent{Name: "otlp", Version: "unknown"},
+				Service: &modelpb.Service{
+					Name:        "service_name",
+					Version:     "service_version",
+					Environment: "service_environment",
+					Node:        &modelpb.ServiceNode{Name: "service_node_name"},
+					Language:    &modelpb.Language{Name: "unknown"},
+				},
+			},
+		},
+		"service": {
+			attrs: map[string]interface{}{
+				"service.name":                "service_name",
+				"service.version":             "service_version",
+				"service.instance.id":         "service_node_name",
+				"deployment.environment.name": "service_environment",
 			},
 			expected: &modelpb.APMEvent{
 				Agent: &modelpb.Agent{Name: "otlp", Version: "unknown"},

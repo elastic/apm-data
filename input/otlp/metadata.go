@@ -66,7 +66,8 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			out.Service.Node.Name = truncate(v.Str())
 
 		// deployment.*
-		case semconv.AttributeDeploymentEnvironment:
+		// deployment.environment is deprecated, use deployment.environment.name instead
+		case semconv.AttributeDeploymentEnvironment, "deployment.environment.name":
 			if out.Service == nil {
 				out.Service = &modelpb.Service{}
 			}
