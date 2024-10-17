@@ -1071,14 +1071,19 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 			}
 			event.Http.Request.Method = from.Context.HTTP.Method.Val
 		}
-		if from.Context.HTTP.Request.ID.IsSet() {
+		if from.Context.HTTP.Request.IsSet() {
 			if event.Http == nil {
 				event.Http = &modelpb.HTTP{}
 			}
 			if event.Http.Request == nil {
 				event.Http.Request = &modelpb.HTTPRequest{}
 			}
-			event.Http.Request.Id = from.Context.HTTP.Request.ID.Val
+			if from.Context.HTTP.Request.ID.IsSet() {
+				event.Http.Request.Id = from.Context.HTTP.Request.ID.Val
+			}
+			if from.Context.HTTP.Request.Body.IsSet() {
+				event.Http.Request.Body = modeldecoderutil.ToValue(from.Context.HTTP.Request.Body.Val)
+			}
 		}
 		if from.Context.HTTP.Response.IsSet() {
 			if event.Http == nil {
