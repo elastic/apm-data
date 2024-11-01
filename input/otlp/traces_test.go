@@ -41,6 +41,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -1168,8 +1169,15 @@ func TestConsumeTracesSemaphore(t *testing.T) {
 	traces := ptrace.NewTraces()
 	var batches []*modelpb.Batch
 
+	var once sync.Once
+	semAcquiredCh := make(chan struct{})
 	doneCh := make(chan struct{})
+
 	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+		// Ensure channel is only closed the first time
+		once.Do(func() {
+			close(semAcquiredCh)
+		})
 		<-doneCh
 		batchCopy := batch.Clone()
 		batches = append(batches, &batchCopy)
@@ -1180,20 +1188,25 @@ func TestConsumeTracesSemaphore(t *testing.T) {
 		Semaphore: semaphore.NewWeighted(1),
 	})
 
-	startCh := make(chan struct{})
 	go func() {
-		close(startCh)
+		// 1. Acquires the sem lock
 		_, err := consumer.ConsumeTracesWithResult(context.Background(), traces)
 		assert.NoError(t, err)
 	}()
 
-	<-startCh
+	// Wait until (1) has properly started.
+	<-semAcquiredCh
+
+	// 2. Cannot acquire the lock held by (1). Returns expected error.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
 	_, err := consumer.ConsumeTracesWithResult(ctx, traces)
 	assert.Equal(t, err.Error(), "context deadline exceeded")
+
+	// 3. Release the sem from (1) by finishing ProcessBatchFunc.
 	close(doneCh)
 
+	// 4. Acquires the lock to ensure is was properly released.
 	_, err = consumer.ConsumeTracesWithResult(context.Background(), traces)
 	assert.NoError(t, err)
 }

@@ -40,6 +40,7 @@ import (
 	"math"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -229,8 +230,15 @@ func TestConsumeMetricsSemaphore(t *testing.T) {
 	metrics := pmetric.NewMetrics()
 	var batches []*modelpb.Batch
 
+	var once sync.Once
+	semAcquiredCh := make(chan struct{})
 	doneCh := make(chan struct{})
+
 	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+		// Ensure channel is only closed the first time
+		once.Do(func() {
+			close(semAcquiredCh)
+		})
 		<-doneCh
 		batchCopy := batch.Clone()
 		batches = append(batches, &batchCopy)
@@ -241,20 +249,25 @@ func TestConsumeMetricsSemaphore(t *testing.T) {
 		Semaphore: semaphore.NewWeighted(1),
 	})
 
-	startCh := make(chan struct{})
 	go func() {
-		close(startCh)
+		// 1. Acquires the sem lock
 		_, err := consumer.ConsumeMetricsWithResult(context.Background(), metrics)
 		assert.NoError(t, err)
 	}()
 
-	<-startCh
+	// Wait until (1) has properly started.
+	<-semAcquiredCh
+
+	// 2. Cannot acquire the lock held by (1). Returns expected error.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
 	_, err := consumer.ConsumeMetricsWithResult(ctx, metrics)
 	assert.Equal(t, err.Error(), "context deadline exceeded")
+
+	// 3. Release the sem from (1) by finishing ProcessBatchFunc.
 	close(doneCh)
 
+	// 4. Acquires the lock to ensure is was properly released.
 	_, err = consumer.ConsumeMetricsWithResult(context.Background(), metrics)
 	assert.NoError(t, err)
 }
