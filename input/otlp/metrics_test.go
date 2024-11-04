@@ -228,7 +228,6 @@ func TestConsumeMetrics(t *testing.T) {
 
 func TestConsumeMetricsSemaphore(t *testing.T) {
 	metrics := pmetric.NewMetrics()
-	var batches []*modelpb.Batch
 
 	var once sync.Once
 	semAcquiredCh := make(chan struct{})
@@ -240,8 +239,6 @@ func TestConsumeMetricsSemaphore(t *testing.T) {
 			close(semAcquiredCh)
 		})
 		<-doneCh
-		batchCopy := batch.Clone()
-		batches = append(batches, &batchCopy)
 		return nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{

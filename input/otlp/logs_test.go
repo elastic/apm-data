@@ -226,7 +226,6 @@ func TestConsumerConsumeLogs(t *testing.T) {
 
 func TestConsumeLogsSemaphore(t *testing.T) {
 	logs := plog.NewLogs()
-	var batches []*modelpb.Batch
 
 	var once sync.Once
 	semAcquiredCh := make(chan struct{})
@@ -238,8 +237,6 @@ func TestConsumeLogsSemaphore(t *testing.T) {
 			close(semAcquiredCh)
 		})
 		<-doneCh
-		batchCopy := batch.Clone()
-		batches = append(batches, &batchCopy)
 		return nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{

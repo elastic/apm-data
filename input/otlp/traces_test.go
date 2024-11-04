@@ -1167,7 +1167,6 @@ func TestSpanLinks(t *testing.T) {
 
 func TestConsumeTracesSemaphore(t *testing.T) {
 	traces := ptrace.NewTraces()
-	var batches []*modelpb.Batch
 
 	var once sync.Once
 	semAcquiredCh := make(chan struct{})
@@ -1179,8 +1178,6 @@ func TestConsumeTracesSemaphore(t *testing.T) {
 			close(semAcquiredCh)
 		})
 		<-doneCh
-		batchCopy := batch.Clone()
-		batches = append(batches, &batchCopy)
 		return nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
