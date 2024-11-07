@@ -2,7 +2,6 @@
 
 TOOLS_DIR=$(dirname "$(readlink -f -- "$0")")
 
-STRUCTS=$(grep '^message' ./model/proto/*.proto | cut -d ' ' -f2)
 PATH="${TOOLS_DIR}/build/bin:${PATH}" protoc \
     --proto_path=./model/proto/ \
     --go_out=. \
