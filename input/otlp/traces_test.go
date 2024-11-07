@@ -41,7 +41,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -1168,16 +1167,11 @@ func TestSpanLinks(t *testing.T) {
 func TestConsumeTracesSemaphore(t *testing.T) {
 	traces := ptrace.NewTraces()
 
-	var once sync.Once
-	semAcquiredCh := make(chan struct{})
 	doneCh := make(chan struct{})
-
 	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
 		// Ensure channel is only closed the first time
-		once.Do(func() {
-			close(semAcquiredCh)
-		})
-		<-doneCh
+		doneCh <- struct{}{}
+		doneCh <- struct{}{}
 		return nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
@@ -1192,7 +1186,7 @@ func TestConsumeTracesSemaphore(t *testing.T) {
 	}()
 
 	// Wait until (1) has properly started.
-	<-semAcquiredCh
+	<-doneCh
 
 	// 2. Cannot acquire the lock held by (1). Returns expected error.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
@@ -1201,7 +1195,11 @@ func TestConsumeTracesSemaphore(t *testing.T) {
 	assert.Equal(t, err.Error(), "context deadline exceeded")
 
 	// 3. Release the sem from (1) by finishing ProcessBatchFunc.
-	close(doneCh)
+	<-doneCh
+
+	// Turn channel into sink.
+	// This trick gets rid of using sync.Once.
+	doneCh = make(chan struct{}, 2)
 
 	// 4. Acquires the lock to ensure is was properly released.
 	_, err = consumer.ConsumeTracesWithResult(context.Background(), traces)
