@@ -1,16 +1,17 @@
 #!/bin/sh
 
 PLATFORM=$(go env GOOS)
-PROTOBUF_VERSION="25.2"
+PROTOBUF_VERSION="28.3"
 PROTOC_GO_VERSION="v1.35.1"
 VTPROTOBUF_VERSION="v0.6.0"
+DOWNLOAD_URL="https://github.com/protocolbuffers/protobuf/releases/download"
 
 if [ "${PLATFORM}" = "darwin" ]; then
-	PROTOBUF_URL="https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-osx-x86_64.zip"
+	PROTOBUF_URL="${DOWNLOAD_URL}/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-osx-x86_64.zip"
 elif [ "${PLATFORM}" = "linux" ]; then 
-	PROTOBUF_URL="https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-linux-x86_64.zip"
+	PROTOBUF_URL="${DOWNLOAD_URL}/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-linux-x86_64.zip"
 elif [ "${PLATFORM}" = "windows" ]; then 
-	PROTOBUF_URL="https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-win64.zip"
+	PROTOBUF_URL="${DOWNLOAD_URL}/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-win64.zip"
 else
 	echo "Unsupported platform: ${PLATFORM}"
 	exit 1
