@@ -225,13 +225,12 @@ func TestConsumerConsumeLogs(t *testing.T) {
 
 func TestConsumeLogsSemaphore(t *testing.T) {
 	logs := plog.NewLogs()
-	var batches []*modelpb.Batch
 
 	doneCh := make(chan struct{})
 	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
-		<-doneCh
-		batchCopy := batch.Clone()
-		batches = append(batches, &batchCopy)
+		// Ensure channel is only closed the first time
+		doneCh <- struct{}{}
+		doneCh <- struct{}{}
 		return nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
@@ -239,20 +238,29 @@ func TestConsumeLogsSemaphore(t *testing.T) {
 		Semaphore: semaphore.NewWeighted(1),
 	})
 
-	startCh := make(chan struct{})
 	go func() {
-		close(startCh)
+		// 1. Acquires the sem lock
 		_, err := consumer.ConsumeLogsWithResult(context.Background(), logs)
 		assert.NoError(t, err)
 	}()
 
-	<-startCh
+	// Wait until (1) has properly started.
+	<-doneCh
+
+	// 2. Cannot acquire the lock held by (1). Returns expected error.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
 	_, err := consumer.ConsumeLogsWithResult(ctx, logs)
 	assert.Equal(t, err.Error(), "context deadline exceeded")
-	close(doneCh)
 
+	// 3. Release the sem from (1) by finishing ProcessBatchFunc.
+	<-doneCh
+
+	// Turn channel into sink.
+	// This trick gets rid of using sync.Once.
+	doneCh = make(chan struct{}, 2)
+
+	// 4. Acquires the lock to ensure is was properly released.
 	_, err = consumer.ConsumeLogsWithResult(context.Background(), logs)
 	assert.NoError(t, err)
 }
