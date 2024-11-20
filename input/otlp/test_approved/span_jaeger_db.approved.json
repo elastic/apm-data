@@ -45,7 +45,7 @@
                 "destination": {
                     "service": {
                         "name": "sql",
-                        "resource": "mysql://db:3306",
+                        "resource": "mysql/db01",
                         "type": "db"
                     }
                 },
