@@ -38,8 +38,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -1454,50 +1452,6 @@ func TestSpanEventsDataStream(t *testing.T) {
 				Namespace: "6",
 			}, events[0].DataStream)
 		})
-	}
-}
-
-// TODO(axw) don't use approval testing here. The input should only care about the
-// conversion to modelpb.APMEvent, not the final Elasticsearch document encoding.
-func approveEventDocs(t testing.TB, name string, docs [][]byte) {
-	t.Helper()
-
-	events := make([]any, len(docs))
-	for i, doc := range docs {
-		var m map[string]any
-		if err := json.Unmarshal(doc, &m); err != nil {
-			t.Fatal(err)
-		}
-
-		// Ignore the specific value for "event.received", as it is dynamic.
-		// All received events should have this.
-		require.Contains(t, m, "event")
-		event := m["event"].(map[string]any)
-		require.Contains(t, event, "received")
-		delete(event, "received")
-		if len(event) == 0 {
-			delete(m, "event")
-		}
-
-		if e, ok := m["error"].(map[string]any); ok {
-			if _, ok := e["id"]; ok {
-				e["id"] = "dynamic"
-			}
-		}
-
-		events[i] = m
-	}
-	received := map[string]any{"events": events}
-
-	var approved any
-	approvedData, err := os.ReadFile(filepath.Join("test_approved", name+".approved.json"))
-	require.NoError(t, err)
-	if err := json.Unmarshal(approvedData, &approved); err != nil {
-		t.Fatal(err)
-	}
-
-	if diff := cmp.Diff(approved, received); diff != "" {
-		t.Fatalf("%s\n", diff)
 	}
 }
 
