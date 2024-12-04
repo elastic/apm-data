@@ -28,7 +28,7 @@ func ToKv(m map[string]any, out []*modelpb.KeyValue) []*modelpb.KeyValue {
 		return nil
 	}
 
-	out = ResliceAndPopulateNil(out, len(m), modelpb.KeyValueFromVTPool)
+	out = ResliceAndPopulateNil(out, len(m), NewType[modelpb.KeyValue])
 
 	i := 0
 	for k, v := range m {

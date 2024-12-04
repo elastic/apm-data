@@ -29,37 +29,56 @@ import (
 
 func TestSetErrorMessage(t *testing.T) {
 	tests := []struct {
-		input   *modelpb.Error
-		message string
+		desc            string
+		input           *modelpb.APMEvent
+		expectedMessage string
 	}{{
-		input:   &modelpb.Error{},
-		message: "",
-	}, {
-		input:   &modelpb.Error{Log: &modelpb.ErrorLog{Message: "log_message"}},
-		message: "log_message",
-	}, {
-		input:   &modelpb.Error{Exception: &modelpb.Exception{Message: "exception_message"}},
-		message: "exception_message",
-	}, {
-		input: &modelpb.Error{
-			Log:       &modelpb.ErrorLog{},
-			Exception: &modelpb.Exception{Message: "exception_message"},
+		desc: "keep event message when no error",
+		input: &modelpb.APMEvent{
+			Error: &modelpb.Error{
+				Log:       &modelpb.ErrorLog{},
+				Exception: &modelpb.Exception{},
+			},
+			Message: "message",
 		},
-		message: "exception_message",
+		expectedMessage: "message",
 	}, {
-		input: &modelpb.Error{
-			Log:       &modelpb.ErrorLog{Message: "log_message"},
-			Exception: &modelpb.Exception{Message: "exception_message"},
+		desc: "keep event message when error",
+		input: &modelpb.APMEvent{
+			Error: &modelpb.Error{
+				Log:       &modelpb.ErrorLog{Message: "log_message"},
+				Exception: &modelpb.Exception{Message: "exception_message"},
+			},
+			Message: "message",
 		},
-		message: "log_message",
+		expectedMessage: "message",
+	}, {
+		desc: "propagate log error if event message empty",
+		input: &modelpb.APMEvent{
+			Error: &modelpb.Error{
+				Log:       &modelpb.ErrorLog{Message: "log_message"},
+				Exception: &modelpb.Exception{},
+			},
+			Message: "",
+		},
+		expectedMessage: "log_message",
+	}, {
+		desc: "propagate exception error if event message is empty",
+		input: &modelpb.APMEvent{
+			Error: &modelpb.Error{
+				Log:       &modelpb.ErrorLog{},
+				Exception: &modelpb.Exception{Message: "exception_message"},
+			},
+			Message: "",
+		},
+		expectedMessage: "exception_message",
 	}}
 
 	for _, test := range tests {
-		batch := modelpb.Batch{{Error: test.input}}
+		batch := modelpb.Batch{test.input}
 		processor := modelprocessor.SetErrorMessage{}
 		err := processor.ProcessBatch(context.Background(), &batch)
 		assert.NoError(t, err)
-		assert.Equal(t, test.message, batch[0].Message)
+		assert.Equal(t, test.expectedMessage, batch[0].Message)
 	}
-
 }

@@ -227,13 +227,12 @@ func TestConsumeMetrics(t *testing.T) {
 
 func TestConsumeMetricsSemaphore(t *testing.T) {
 	metrics := pmetric.NewMetrics()
-	var batches []*modelpb.Batch
 
 	doneCh := make(chan struct{})
 	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
-		<-doneCh
-		batchCopy := batch.Clone()
-		batches = append(batches, &batchCopy)
+		// Ensure channel is only closed the first time
+		doneCh <- struct{}{}
+		doneCh <- struct{}{}
 		return nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
@@ -241,20 +240,29 @@ func TestConsumeMetricsSemaphore(t *testing.T) {
 		Semaphore: semaphore.NewWeighted(1),
 	})
 
-	startCh := make(chan struct{})
 	go func() {
-		close(startCh)
+		// 1. Acquires the sem lock
 		_, err := consumer.ConsumeMetricsWithResult(context.Background(), metrics)
 		assert.NoError(t, err)
 	}()
 
-	<-startCh
+	// Wait until (1) has properly started.
+	<-doneCh
+
+	// 2. Cannot acquire the lock held by (1). Returns expected error.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
 	_, err := consumer.ConsumeMetricsWithResult(ctx, metrics)
 	assert.Equal(t, err.Error(), "context deadline exceeded")
-	close(doneCh)
 
+	// 3. Release the sem from (1) by finishing ProcessBatchFunc.
+	<-doneCh
+
+	// Turn channel into sink.
+	// This trick gets rid of using sync.Once.
+	doneCh = make(chan struct{}, 2)
+
+	// 4. Acquires the lock to ensure is was properly released.
 	_, err = consumer.ConsumeMetricsWithResult(context.Background(), metrics)
 	assert.NoError(t, err)
 }
@@ -729,6 +737,10 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 }
 
 func TestConsumeMetricsDataStream(t *testing.T) {
+	randomString := strings.Repeat("abcdefghijklmnopqrstuvwxyz0123456789", 10)
+	maxLenNamespace := otlp.MaxDataStreamBytes - len(otlp.DisallowedNamespaceRunes)
+	maxLenDataset := otlp.MaxDataStreamBytes - len(otlp.DisallowedDatasetRunes)
+
 	for _, tc := range []struct {
 		resourceDataStreamDataset   string
 		resourceDataStreamNamespace string
@@ -763,6 +775,15 @@ func TestConsumeMetricsDataStream(t *testing.T) {
 			resourceDataStreamNamespace: "2",
 			expectedDataStreamDataset:   "1",
 			expectedDataStreamNamespace: "2",
+		},
+		// Test data sanitization: https://www.elastic.co/guide/en/ecs/current/ecs-data_stream.html
+		// 1. Replace all disallowed runes with _
+		// 2. Datastream length should not exceed otlp.MaxDataStreamBytes
+		{
+			resourceDataStreamDataset:   otlp.DisallowedDatasetRunes + randomString,
+			resourceDataStreamNamespace: otlp.DisallowedNamespaceRunes + randomString,
+			expectedDataStreamDataset:   strings.Repeat("_", len(otlp.DisallowedDatasetRunes)) + randomString[:maxLenDataset],
+			expectedDataStreamNamespace: strings.Repeat("_", len(otlp.DisallowedNamespaceRunes)) + randomString[:maxLenNamespace],
 		},
 	} {
 		tcName := fmt.Sprintf("%s,%s", tc.expectedDataStreamDataset, tc.expectedDataStreamNamespace)
@@ -869,7 +890,7 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 				metrics := pmetric.NewMetrics()
 				sm := metrics.ResourceMetrics().AppendEmpty().
 					ScopeMetrics().AppendEmpty()
-				sm.Scope().SetName("otelcol/hostmetricsreceiver/load")
+				sm.Scope().SetName("github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/loadscraper")
 
 				metric := sm.Metrics().AppendEmpty()
 				metric.SetName("system.cpu.load_average.1m")
@@ -884,7 +905,7 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 					Service: &modelpb.Service{
 						Name:      "unknown",
 						Language:  &modelpb.Language{Name: "unknown"},
-						Framework: &modelpb.Framework{Name: "otelcol/hostmetricsreceiver/load"},
+						Framework: &modelpb.Framework{Name: "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/loadscraper"},
 					},
 					Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
 					Timestamp: modelpb.FromTime(ts),
@@ -903,7 +924,7 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 					Service: &modelpb.Service{
 						Name:      "unknown",
 						Language:  &modelpb.Language{Name: "unknown"},
-						Framework: &modelpb.Framework{Name: "otelcol/hostmetricsreceiver/load"},
+						Framework: &modelpb.Framework{Name: "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/loadscraper"},
 					},
 					Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
 					Timestamp: modelpb.FromTime(ts),
@@ -943,7 +964,7 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 				rm.Resource().Attributes().PutStr("process.owner", "testowner")
 				rm.Resource().Attributes().PutStr("process.command_line", "testcmdline")
 				sm := rm.ScopeMetrics().AppendEmpty()
-				sm.Scope().SetName("otelcol/hostmetricsreceiver/process")
+				sm.Scope().SetName("github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/processscraper")
 
 				metric := sm.Metrics().AppendEmpty()
 				metric.SetName("process.memory.usage")
@@ -959,7 +980,7 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 					Service: &modelpb.Service{
 						Name:      "unknown",
 						Language:  &modelpb.Language{Name: "unknown"},
-						Framework: &modelpb.Framework{Name: "otelcol/hostmetricsreceiver/process"},
+						Framework: &modelpb.Framework{Name: "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/processscraper"},
 					},
 					Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
 					Timestamp: modelpb.FromTime(ts),
@@ -984,7 +1005,7 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 					Service: &modelpb.Service{
 						Name:      "unknown",
 						Language:  &modelpb.Language{Name: "unknown"},
-						Framework: &modelpb.Framework{Name: "otelcol/hostmetricsreceiver/process"},
+						Framework: &modelpb.Framework{Name: "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/processscraper"},
 					},
 					Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
 					Timestamp: modelpb.FromTime(ts),
@@ -1129,6 +1150,14 @@ func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEven
 	result, err := consumer.ConsumeMetricsWithResult(context.Background(), metrics)
 	require.Len(t, batches, 1)
 	return *batches[0], consumer.Stats(), result, err
+}
+
+func batchRecorderBatchProcessor(out *[]*modelpb.Batch) modelpb.BatchProcessor {
+	return modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+		batchCopy := batch.Clone()
+		*out = append(*out, &batchCopy)
+		return nil
+	})
 }
 
 // eventsMatch aims to compare the expected and actual APMEvents however, it will

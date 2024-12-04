@@ -43,12 +43,30 @@ func TestResourceConventions(t *testing.T) {
 			attrs:    nil,
 			expected: &modelpb.APMEvent{Agent: &defaultAgent, Service: &defaultService},
 		},
-		"service": {
+		"service with deprecated deployment.environment": {
 			attrs: map[string]interface{}{
 				"service.name":           "service_name",
 				"service.version":        "service_version",
 				"service.instance.id":    "service_node_name",
 				"deployment.environment": "service_environment",
+			},
+			expected: &modelpb.APMEvent{
+				Agent: &modelpb.Agent{Name: "otlp", Version: "unknown"},
+				Service: &modelpb.Service{
+					Name:        "service_name",
+					Version:     "service_version",
+					Environment: "service_environment",
+					Node:        &modelpb.ServiceNode{Name: "service_node_name"},
+					Language:    &modelpb.Language{Name: "unknown"},
+				},
+			},
+		},
+		"service": {
+			attrs: map[string]interface{}{
+				"service.name":                "service_name",
+				"service.version":             "service_version",
+				"service.instance.id":         "service_node_name",
+				"deployment.environment.name": "service_environment",
 			},
 			expected: &modelpb.APMEvent{
 				Agent: &modelpb.Agent{Name: "otlp", Version: "unknown"},
@@ -329,16 +347,55 @@ func TestResourceConventions(t *testing.T) {
 	}
 }
 
+// This test ensures that the values are properly translated,
+// and that heterogeneous array elements are dropped without a panic.
 func TestResourceLabels(t *testing.T) {
 	metadata := transformResourceMetadata(t, map[string]interface{}{
-		"string_array": []interface{}{"abc", "def"},
-		"int_array":    []interface{}{123, 456},
+		"string_value": "abc",
+		"bool_value":   true,
+		"int_value":    123,
+		"float_value":  1.23,
+		"string_array": []interface{}{"abc", "def", true, 123, 1.23, nil},
+		"bool_array":   []interface{}{true, false, "true", 123, 1.23, nil},
+		"int_array":    []interface{}{123, 456, "abc", true, 1.23, nil},
+		"float_array":  []interface{}{1.23, 4.56, "abc", true, 123, nil},
+		"empty_array":  []interface{}{}, // Ensure that an empty array is ignored.
 	})
 	assert.Equal(t, modelpb.Labels{
-		"string_array": {Global: true, Values: []string{"abc", "def"}},
+		"string_value": {
+			Global: true,
+			Value:  "abc",
+		},
+		"bool_value": {
+			Global: true,
+			Value:  "true",
+		},
+		"string_array": {
+			Global: true,
+			Values: []string{"abc", "def"},
+		},
+		"bool_array": {
+			Global: true,
+			Values: []string{"true", "false"},
+		},
 	}, modelpb.Labels(metadata.Labels))
 	assert.Equal(t, modelpb.NumericLabels{
-		"int_array": {Global: true, Values: []float64{123, 456}},
+		"int_value": {
+			Global: true,
+			Value:  123,
+		},
+		"float_value": {
+			Global: true,
+			Value:  1.23,
+		},
+		"int_array": {
+			Global: true,
+			Values: []float64{123, 456},
+		},
+		"float_array": {
+			Global: true,
+			Values: []float64{1.23, 4.56},
+		},
 	}, modelpb.NumericLabels(metadata.NumericLabels))
 }
 

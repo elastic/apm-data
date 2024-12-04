@@ -52,10 +52,10 @@ func setServiceNodeName(event *modelpb.APMEvent) {
 		return
 	}
 	if event.Service == nil {
-		event.Service = modelpb.ServiceFromVTPool()
+		event.Service = &modelpb.Service{}
 	}
 	if event.Service.Node == nil {
-		event.Service.Node = modelpb.ServiceNodeFromVTPool()
+		event.Service.Node = &modelpb.ServiceNode{}
 	}
 	event.Service.Node.Name = nodeName
 }

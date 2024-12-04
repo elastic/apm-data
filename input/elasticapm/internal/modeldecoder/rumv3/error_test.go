@@ -35,15 +35,6 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-func TestResetErrorOnRelease(t *testing.T) {
-	inp := `{"e":{"id":"tr-a"}}`
-	root := fetchErrorRoot()
-	require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(inp)).Decode(root))
-	require.True(t, root.IsSet())
-	releaseErrorRoot(root)
-	assert.False(t, root.IsSet())
-}
-
 func TestDecodeNestedError(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		now := modelpb.FromTime(time.Now())
@@ -60,6 +51,7 @@ func TestDecodeNestedError(t *testing.T) {
 		assert.Empty(t, cmp.Diff(&modelpb.Error{
 			Id: "a-b-c",
 			Log: &modelpb.ErrorLog{
+				Level:      "error",
 				Message:    "abc",
 				LoggerName: "default",
 			},
@@ -198,6 +190,15 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		mapToErrorModel(&input, &out)
 		require.NotNil(t, out.Error.Log.LoggerName)
 		assert.Equal(t, "default", out.Error.Log.LoggerName)
+	})
+
+	t.Run("logLevel", func(t *testing.T) {
+		var input errorEvent
+		input.Log.Level.Set("warn")
+		var out modelpb.APMEvent
+		mapToErrorModel(&input, &out)
+		require.NotNil(t, out.Error.Log.Level)
+		assert.Equal(t, "warn", out.Error.Log.Level)
 	})
 
 	t.Run("http-headers", func(t *testing.T) {

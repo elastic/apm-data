@@ -124,18 +124,18 @@ func (c *Consumer) convertResourceSpans(
 	receiveTimestamp time.Time,
 	out *modelpb.Batch,
 ) {
-	baseEvent := modelpb.APMEventFromVTPool()
-	baseEvent.Event = modelpb.EventFromVTPool()
+	baseEvent := modelpb.APMEvent{}
+	baseEvent.Event = &modelpb.Event{}
 	baseEvent.Event.Received = modelpb.FromTime(receiveTimestamp)
 	var timeDelta time.Duration
 	resource := resourceSpans.Resource()
-	translateResourceMetadata(resource, baseEvent)
+	translateResourceMetadata(resource, &baseEvent)
 	if exportTimestamp, ok := exportTimestamp(resource); ok {
 		timeDelta = receiveTimestamp.Sub(exportTimestamp)
 	}
 	scopeSpans := resourceSpans.ScopeSpans()
 	for i := 0; i < scopeSpans.Len(); i++ {
-		c.convertScopeSpans(scopeSpans.At(i), baseEvent, timeDelta, out)
+		c.convertScopeSpans(scopeSpans.At(i), &baseEvent, timeDelta, out)
 	}
 }
 
@@ -183,11 +183,11 @@ func (c *Consumer) convertSpan(
 	initEventLabels(event)
 	event.Timestamp = modelpb.FromTime(startTime.Add(timeDelta))
 	if id := hexTraceID(otelSpan.TraceID()); id != "" {
-		event.Trace = modelpb.TraceFromVTPool()
+		event.Trace = &modelpb.Trace{}
 		event.Trace.Id = id
 	}
 	if event.Event == nil {
-		event.Event = modelpb.EventFromVTPool()
+		event.Event = &modelpb.Event{}
 	}
 	event.Event.Duration = uint64(duration)
 	event.Event.Outcome = spanStatusOutcome(otelSpan.Status())
@@ -195,19 +195,19 @@ func (c *Consumer) convertSpan(
 		event.ParentId = parentID
 	}
 	if root || otelSpan.Kind() == ptrace.SpanKindServer || otelSpan.Kind() == ptrace.SpanKindConsumer {
-		event.Transaction = modelpb.TransactionFromVTPool()
+		event.Transaction = &modelpb.Transaction{}
 		event.Transaction.Id = spanID
 		event.Transaction.Name = name
 		event.Transaction.Sampled = true
 		event.Transaction.RepresentativeCount = representativeCount
 		if spanID != "" {
-			event.Span = modelpb.SpanFromVTPool()
+			event.Span = &modelpb.Span{}
 			event.Span.Id = spanID
 		}
 
 		TranslateTransaction(otelSpan.Attributes(), otelSpan.Status(), otelLibrary, event)
 	} else {
-		event.Span = modelpb.SpanFromVTPool()
+		event.Span = &modelpb.Span{}
 		event.Span.Id = spanID
 		event.Span.Name = name
 		event.Span.RepresentativeCount = representativeCount
@@ -226,7 +226,7 @@ func (c *Consumer) convertSpan(
 	event = event.CloneVT()
 	event.Labels = baseEvent.Labels               // only copy common labels to span events
 	event.NumericLabels = baseEvent.NumericLabels // only copy common labels to span events
-	event.Event = modelpb.EventFromVTPool()
+	event.Event = &modelpb.Event{}
 	event.Event.Received = baseEvent.Event.Received // only copy event.received to span events
 	event.Destination = nil                         // don't set destination for span events
 	for i := 0; i < events.Len(); i++ {
@@ -291,12 +291,8 @@ func TranslateTransaction(
 					}
 				}
 			default:
-				setLabel(k, event, ifaceAttributeValue(v))
+				setLabel(k, event, v)
 			}
-		case pcommon.ValueTypeBool:
-			setLabel(k, event, ifaceAttributeValue(v))
-		case pcommon.ValueTypeDouble:
-			setLabel(k, event, ifaceAttributeValue(v))
 		case pcommon.ValueTypeInt:
 			switch kDots {
 			case semconv.AttributeHTTPStatusCode, attributeHttpResponseStatusCode:
@@ -305,7 +301,7 @@ func TranslateTransaction(
 				http.Response = &httpResponse
 			case semconv.AttributeNetPeerPort:
 				if event.Source == nil {
-					event.Source = modelpb.SourceFromVTPool()
+					event.Source = &modelpb.Source{}
 				}
 				event.Source.Port = uint32(v.Int())
 			case semconv.AttributeNetHostPort, attributeServerPort:
@@ -314,7 +310,7 @@ func TranslateTransaction(
 				isRPC = true
 				event.Transaction.Result = codes.Code(v.Int()).String()
 			default:
-				setLabel(k, event, ifaceAttributeValue(v))
+				setLabel(k, event, v)
 			}
 		case pcommon.ValueTypeMap:
 		case pcommon.ValueTypeStr:
@@ -363,77 +359,77 @@ func TranslateTransaction(
 			case semconv.AttributeHTTPClientIP:
 				if ip, err := modelpb.ParseIP(stringval); err == nil {
 					if event.Client == nil {
-						event.Client = modelpb.ClientFromVTPool()
+						event.Client = &modelpb.Client{}
 					}
 					event.Client.Ip = ip
 				}
 			case semconv.AttributeHTTPUserAgent, attributeUserAgentOriginal:
 				if event.UserAgent == nil {
-					event.UserAgent = modelpb.UserAgentFromVTPool()
+					event.UserAgent = &modelpb.UserAgent{}
 				}
 				event.UserAgent.Original = stringval
 
 			// net.*
 			case semconv.AttributeNetPeerIP:
 				if event.Source == nil {
-					event.Source = modelpb.SourceFromVTPool()
+					event.Source = &modelpb.Source{}
 				}
 				if ip, err := modelpb.ParseIP(stringval); err == nil {
 					event.Source.Ip = ip
 				}
 			case semconv.AttributeNetPeerName:
 				if event.Source == nil {
-					event.Source = modelpb.SourceFromVTPool()
+					event.Source = &modelpb.Source{}
 				}
 				event.Source.Domain = stringval
 			case semconv.AttributeNetHostName, attributeServerAddress:
 				netHostName = stringval
 			case attributeNetworkConnectionType:
 				if event.Network == nil {
-					event.Network = modelpb.NetworkFromVTPool()
+					event.Network = &modelpb.Network{}
 				}
 				if event.Network.Connection == nil {
-					event.Network.Connection = modelpb.NetworkConnectionFromVTPool()
+					event.Network.Connection = &modelpb.NetworkConnection{}
 				}
 				event.Network.Connection.Type = stringval
 			case attributeNetworkConnectionSubtype:
 				if event.Network == nil {
-					event.Network = modelpb.NetworkFromVTPool()
+					event.Network = &modelpb.Network{}
 				}
 				if event.Network.Connection == nil {
-					event.Network.Connection = modelpb.NetworkConnectionFromVTPool()
+					event.Network.Connection = &modelpb.NetworkConnection{}
 				}
 				event.Network.Connection.Subtype = stringval
 			case attributeNetworkMCC:
 				if event.Network == nil {
-					event.Network = modelpb.NetworkFromVTPool()
+					event.Network = &modelpb.Network{}
 				}
 				if event.Network.Carrier == nil {
-					event.Network.Carrier = modelpb.NetworkCarrierFromVTPool()
+					event.Network.Carrier = &modelpb.NetworkCarrier{}
 				}
 				event.Network.Carrier.Mcc = stringval
 			case attributeNetworkMNC:
 				if event.Network == nil {
-					event.Network = modelpb.NetworkFromVTPool()
+					event.Network = &modelpb.Network{}
 				}
 				if event.Network.Carrier == nil {
-					event.Network.Carrier = modelpb.NetworkCarrierFromVTPool()
+					event.Network.Carrier = &modelpb.NetworkCarrier{}
 				}
 				event.Network.Carrier.Mnc = stringval
 			case attributeNetworkCarrierName:
 				if event.Network == nil {
-					event.Network = modelpb.NetworkFromVTPool()
+					event.Network = &modelpb.Network{}
 				}
 				if event.Network.Carrier == nil {
-					event.Network.Carrier = modelpb.NetworkCarrierFromVTPool()
+					event.Network.Carrier = &modelpb.NetworkCarrier{}
 				}
 				event.Network.Carrier.Name = stringval
 			case attributeNetworkICC:
 				if event.Network == nil {
-					event.Network = modelpb.NetworkFromVTPool()
+					event.Network = &modelpb.Network{}
 				}
 				if event.Network.Carrier == nil {
-					event.Network.Carrier = modelpb.NetworkCarrierFromVTPool()
+					event.Network.Carrier = &modelpb.NetworkCarrier{}
 				}
 				event.Network.Carrier.Icc = stringval
 
@@ -469,7 +465,7 @@ func TranslateTransaction(
 				event.Transaction.Type = stringval
 			case "session.id":
 				if event.Session == nil {
-					event.Session = modelpb.SessionFromVTPool()
+					event.Session = &modelpb.Session{}
 				}
 				event.Session.Id = stringval
 			case semconv.AttributeServiceVersion:
@@ -482,18 +478,19 @@ func TranslateTransaction(
 			// data_stream.*
 			case attributeDataStreamDataset:
 				if event.DataStream == nil {
-					event.DataStream = modelpb.DataStreamFromVTPool()
+					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Dataset = stringval
+				event.DataStream.Dataset = sanitizeDataStreamDataset(stringval)
 			case attributeDataStreamNamespace:
 				if event.DataStream == nil {
-					event.DataStream = modelpb.DataStreamFromVTPool()
+					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Namespace = stringval
-
+				event.DataStream.Namespace = sanitizeDataStreamNamespace(stringval)
 			default:
 				modelpb.Labels(event.Labels).Set(k, stringval)
 			}
+		default:
+			setLabel(k, event, v)
 		}
 		return true
 	})
@@ -555,13 +552,13 @@ func TranslateTransaction(
 		// Overwrite existing event.Transaction.Message
 		event.Transaction.Message = nil
 		if messagingQueueName != "" {
-			event.Transaction.Message = modelpb.MessageFromVTPool()
+			event.Transaction.Message = &modelpb.Message{}
 			event.Transaction.Message.QueueName = messagingQueueName
 		}
 	}
 
 	if event.Client == nil && event.Source != nil {
-		event.Client = modelpb.ClientFromVTPool()
+		event.Client = &modelpb.Client{}
 		event.Client.Ip = event.Source.Ip
 		event.Client.Port = event.Source.Port
 		event.Client.Domain = event.Source.Domain
@@ -642,18 +639,14 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 
 		k := replaceDots(kDots)
 		switch v.Type() {
-		case pcommon.ValueTypeSlice:
-			setLabel(k, event, ifaceAttributeValueSlice(v.Slice()))
 		case pcommon.ValueTypeBool:
 			switch kDots {
 			case semconv.AttributeMessagingTempDestination:
 				messageTempDestination = v.Bool()
 				fallthrough
 			default:
-				setLabel(k, event, strconv.FormatBool(v.Bool()))
+				setLabel(k, event, v)
 			}
-		case pcommon.ValueTypeDouble:
-			setLabel(k, event, v.Double())
 		case pcommon.ValueTypeInt:
 			switch kDots {
 			case "http.status_code", attributeHttpResponseStatusCode:
@@ -666,7 +659,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				rpcSystem = "grpc"
 				isRPC = true
 			default:
-				setLabel(k, event, v.Int())
+				setLabel(k, event, v)
 			}
 		case pcommon.ValueTypeStr:
 			stringval := truncate(v.Str())
@@ -719,50 +712,50 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				peerAddress = stringval
 			case attributeNetworkConnectionType:
 				if event.Network == nil {
-					event.Network = modelpb.NetworkFromVTPool()
+					event.Network = &modelpb.Network{}
 				}
 				if event.Network.Connection == nil {
-					event.Network.Connection = modelpb.NetworkConnectionFromVTPool()
+					event.Network.Connection = &modelpb.NetworkConnection{}
 				}
 				event.Network.Connection.Type = stringval
 			case attributeNetworkConnectionSubtype:
 				if event.Network == nil {
-					event.Network = modelpb.NetworkFromVTPool()
+					event.Network = &modelpb.Network{}
 				}
 				if event.Network.Connection == nil {
-					event.Network.Connection = modelpb.NetworkConnectionFromVTPool()
+					event.Network.Connection = &modelpb.NetworkConnection{}
 				}
 				event.Network.Connection.Subtype = stringval
 			case attributeNetworkMCC:
 				if event.Network == nil {
-					event.Network = modelpb.NetworkFromVTPool()
+					event.Network = &modelpb.Network{}
 				}
 				if event.Network.Carrier == nil {
-					event.Network.Carrier = modelpb.NetworkCarrierFromVTPool()
+					event.Network.Carrier = &modelpb.NetworkCarrier{}
 				}
 				event.Network.Carrier.Mcc = stringval
 			case attributeNetworkMNC:
 				if event.Network == nil {
-					event.Network = modelpb.NetworkFromVTPool()
+					event.Network = &modelpb.Network{}
 				}
 				if event.Network.Carrier == nil {
-					event.Network.Carrier = modelpb.NetworkCarrierFromVTPool()
+					event.Network.Carrier = &modelpb.NetworkCarrier{}
 				}
 				event.Network.Carrier.Mnc = stringval
 			case attributeNetworkCarrierName:
 				if event.Network == nil {
-					event.Network = modelpb.NetworkFromVTPool()
+					event.Network = &modelpb.Network{}
 				}
 				if event.Network.Carrier == nil {
-					event.Network.Carrier = modelpb.NetworkCarrierFromVTPool()
+					event.Network.Carrier = &modelpb.NetworkCarrier{}
 				}
 				event.Network.Carrier.Name = stringval
 			case attributeNetworkICC:
 				if event.Network == nil {
-					event.Network = modelpb.NetworkFromVTPool()
+					event.Network = &modelpb.Network{}
 				}
 				if event.Network.Carrier == nil {
-					event.Network.Carrier = modelpb.NetworkCarrierFromVTPool()
+					event.Network.Carrier = &modelpb.NetworkCarrier{}
 				}
 				event.Network.Carrier.Icc = stringval
 
@@ -773,7 +766,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 			// session.*
 			case "session.id":
 				if event.Session == nil {
-					event.Session = modelpb.SessionFromVTPool()
+					event.Session = &modelpb.Session{}
 				}
 				event.Session.Id = stringval
 
@@ -815,7 +808,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 
 			case attributeStackTrace:
 				if event.Code == nil {
-					event.Code = modelpb.CodeFromVTPool()
+					event.Code = &modelpb.Code{}
 				}
 				// stacktrace is expected to be large thus un-truncated value is needed
 				event.Code.Stacktrace = v.Str()
@@ -828,18 +821,19 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 			// data_stream.*
 			case attributeDataStreamDataset:
 				if event.DataStream == nil {
-					event.DataStream = modelpb.DataStreamFromVTPool()
+					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Dataset = stringval
+				event.DataStream.Dataset = sanitizeDataStreamDataset(stringval)
 			case attributeDataStreamNamespace:
 				if event.DataStream == nil {
-					event.DataStream = modelpb.DataStreamFromVTPool()
+					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Namespace = stringval
-
+				event.DataStream.Namespace = sanitizeDataStreamNamespace(stringval)
 			default:
-				modelpb.Labels(event.Labels).Set(k, stringval)
+				setLabel(k, event, v)
 			}
+		default:
+			setLabel(k, event, v)
 		}
 		return true
 	})
@@ -909,7 +903,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 			event.Http = &http
 		}
 		if event.Url == nil {
-			event.Url = modelpb.URLFromVTPool()
+			event.Url = &modelpb.URL{}
 		}
 		event.Url.Original = httpURL
 	}
@@ -1012,9 +1006,10 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 	}
 
 	if destAddr != "" {
-		event.Destination = modelpb.DestinationFromVTPool()
-		event.Destination.Address = destAddr
-		event.Destination.Port = uint32(destPort)
+		event.Destination = &modelpb.Destination{
+			Address: destAddr,
+			Port:    uint32(destPort),
+		}
 	}
 	if destinationService.SizeVT() != 0 {
 		if destinationService.Type == "" {
@@ -1077,6 +1072,14 @@ func (c *Consumer) convertSpanEvent(
 	initEventLabels(event)
 	event.Transaction = nil // populate fields as required from parent
 	event.Span = nil        // populate fields as required from parent
+	event.ParentId = ""     // populate fields as required from parent
+
+	// Remove unnecessary fields from span event
+	if event.Service != nil {
+		event.Service.Target = nil
+		event.Service.Origin = nil
+	}
+
 	event.Timestamp = modelpb.FromTime(spanEvent.Timestamp().AsTime().Add(timeDelta))
 
 	isJaeger := strings.HasPrefix(parent.Agent.Name, "Jaeger")
@@ -1105,17 +1108,17 @@ func (c *Consumer) convertSpanEvent(
 			// Note: fields are parsed but dataset will be overridden by SetDataStream because it is an error
 			case attributeDataStreamDataset:
 				if event.DataStream == nil {
-					event.DataStream = modelpb.DataStreamFromVTPool()
+					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Dataset = v.Str()
+				event.DataStream.Dataset = sanitizeDataStreamDataset(v.Str())
 			case attributeDataStreamNamespace:
 				if event.DataStream == nil {
-					event.DataStream = modelpb.DataStreamFromVTPool()
+					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Namespace = v.Str()
+				event.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
 
 			default:
-				setLabel(replaceDots(k), event, ifaceAttributeValue(v))
+				setLabel(replaceDots(k), event, v)
 			}
 			return true
 		})
@@ -1136,7 +1139,7 @@ func (c *Consumer) convertSpanEvent(
 	} else {
 		// Set "event.kind" to indicate this is a log event.
 		if event.Event == nil {
-			event.Event = modelpb.EventFromVTPool()
+			event.Event = &modelpb.Event{}
 		}
 		event.Event.Kind = "event"
 		event.Message = spanEvent.Name()
@@ -1146,21 +1149,21 @@ func (c *Consumer) convertSpanEvent(
 			// data_stream.*
 			case attributeDataStreamDataset:
 				if event.DataStream == nil {
-					event.DataStream = modelpb.DataStreamFromVTPool()
+					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Dataset = v.Str()
+				event.DataStream.Dataset = sanitizeDataStreamDataset(v.Str())
 			case attributeDataStreamNamespace:
 				if event.DataStream == nil {
-					event.DataStream = modelpb.DataStreamFromVTPool()
+					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Namespace = v.Str()
+				event.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
 			default:
 				k = replaceDots(k)
 				if isJaeger && k == "message" {
 					event.Message = truncate(v.Str())
 					return true
 				}
-				setLabel(k, event, ifaceAttributeValue(v))
+				setLabel(k, event, v)
 			}
 			return true
 		})
@@ -1204,17 +1207,17 @@ func (c *Consumer) convertJaegerErrorSpanEvent(event ptrace.SpanEvent, apmEvent 
 		// Note: fields are parsed but dataset will be overridden by SetDataStream because it is an error
 		case attributeDataStreamDataset:
 			if apmEvent.DataStream == nil {
-				apmEvent.DataStream = modelpb.DataStreamFromVTPool()
+				apmEvent.DataStream = &modelpb.DataStream{}
 			}
-			apmEvent.DataStream.Dataset = v.Str()
+			apmEvent.DataStream.Dataset = sanitizeDataStreamDataset(v.Str())
 		case attributeDataStreamNamespace:
 			if apmEvent.DataStream == nil {
-				apmEvent.DataStream = modelpb.DataStreamFromVTPool()
+				apmEvent.DataStream = &modelpb.DataStream{}
 			}
-			apmEvent.DataStream.Namespace = v.Str()
+			apmEvent.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
 
 		default:
-			setLabel(replaceDots(k), apmEvent, ifaceAttributeValue(v))
+			setLabel(replaceDots(k), apmEvent, v)
 		}
 		return true
 	})
@@ -1228,20 +1231,20 @@ func (c *Consumer) convertJaegerErrorSpanEvent(event ptrace.SpanEvent, apmEvent 
 		)
 		return nil
 	}
-	e := modelpb.ErrorFromVTPool()
+	e := modelpb.Error{}
 	if logMessage != "" {
-		e.Log = modelpb.ErrorLogFromVTPool()
+		e.Log = &modelpb.ErrorLog{}
 		e.Log.Message = logMessage
 	}
 	if exMessage != "" || exType != "" {
-		e.Exception = modelpb.ExceptionFromVTPool()
+		e.Exception = &modelpb.Exception{}
 		e.Exception.Message = exMessage
 		e.Exception.Type = exType
 		if id, err := newUniqueID(); err == nil {
 			e.Id = id
 		}
 	}
-	return e
+	return &e
 }
 
 func setErrorContext(out *modelpb.APMEvent, parent *modelpb.APMEvent) {
@@ -1249,11 +1252,11 @@ func setErrorContext(out *modelpb.APMEvent, parent *modelpb.APMEvent) {
 	out.Http = parent.Http
 	out.Url = parent.Url
 	if parent.Transaction != nil {
-		out.Transaction = modelpb.TransactionFromVTPool()
+		out.Transaction = &modelpb.Transaction{}
 		out.Transaction.Id = parent.Transaction.Id
 		out.Transaction.Sampled = parent.Transaction.Sampled
 		out.Transaction.Type = parent.Transaction.Type
-		out.Span = modelpb.SpanFromVTPool()
+		out.Span = &modelpb.Span{}
 		out.Span.Id = parent.Transaction.Id
 		out.Error.Custom = parent.Transaction.Custom
 		out.ParentId = parent.Transaction.Id
@@ -1265,13 +1268,13 @@ func setErrorContext(out *modelpb.APMEvent, parent *modelpb.APMEvent) {
 
 func setLogContext(out *modelpb.APMEvent, parent *modelpb.APMEvent) {
 	if parent.Transaction != nil {
-		out.Transaction = modelpb.TransactionFromVTPool()
+		out.Transaction = &modelpb.Transaction{}
 		out.Transaction.Id = parent.Transaction.Id
-		out.Span = modelpb.SpanFromVTPool()
+		out.Span = &modelpb.Span{}
 		out.Span.Id = parent.Transaction.Id
 	}
 	if parent.Span != nil {
-		out.Span = modelpb.SpanFromVTPool()
+		out.Span = &modelpb.Span{}
 		out.Span.Id = parent.Span.Id
 	}
 }
@@ -1282,7 +1285,7 @@ func translateSpanLinks(out *modelpb.APMEvent, in ptrace.SpanLinkSlice) {
 		return
 	}
 	if out.Span == nil {
-		out.Span = modelpb.SpanFromVTPool()
+		out.Span = &modelpb.Span{}
 	}
 	out.Span.Links = make([]*modelpb.SpanLink, 0, n)
 	for i := 0; i < n; i++ {
@@ -1294,10 +1297,10 @@ func translateSpanLinks(out *modelpb.APMEvent, in ptrace.SpanLinkSlice) {
 		if (elChildAttribPresent && elChildAttribVal.Bool()) || (childAttribPresent && childAttribVal.Bool()) {
 			out.ChildIds = append(out.ChildIds, hexSpanID(link.SpanID()))
 		} else {
-			sl := modelpb.SpanLinkFromVTPool()
+			sl := modelpb.SpanLink{}
 			sl.SpanId = hexSpanID(link.SpanID())
 			sl.TraceId = hexTraceID(link.TraceID())
-			out.Span.Links = append(out.Span.Links, sl)
+			out.Span.Links = append(out.Span.Links, &sl)
 		}
 	}
 }
