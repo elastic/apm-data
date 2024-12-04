@@ -1152,6 +1152,14 @@ func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEven
 	return *batches[0], consumer.Stats(), result, err
 }
 
+func batchRecorderBatchProcessor(out *[]*modelpb.Batch) modelpb.BatchProcessor {
+	return modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+		batchCopy := batch.Clone()
+		*out = append(*out, &batchCopy)
+		return nil
+	})
+}
+
 // eventsMatch aims to compare the expected and actual APMEvents however, it will
 // be indeterministic for more than one samples and more than one APMEvents
 func eventsMatch(t *testing.T, expected []*modelpb.APMEvent, actual []*modelpb.APMEvent) {
