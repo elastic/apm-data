@@ -122,7 +122,7 @@ func setJavaExceptionStacktrace(s string, out *modelpb.Exception) error {
 	current := Exception{out, nil, 0}
 	stack := []Exception{}
 	scanner := bufio.NewScanner(strings.NewReader(s))
-	for scanner.Scan() {
+	for j := 0; scanner.Scan(); j++ {
 		if first {
 			// Ignore the first line, we only care about the locations.
 			first = false
@@ -140,25 +140,28 @@ func setJavaExceptionStacktrace(s string, out *modelpb.Exception) error {
 		}
 		switch {
 		case strings.HasPrefix(line, "at "):
-			if err := parseJavaStacktraceFrame(line, current.Exception); err != nil {
-				return err
+			submatch := javaStacktraceAtRegexp.FindStringSubmatch(line)
+			if submatch == nil {
+				return fmt.Errorf("failed to parse stacktrace at line %d", j)
 			}
+
+			parseJavaStacktraceFrame(submatch, current.Exception)
 		case strings.HasPrefix(line, "..."):
 			// "... N more" lines indicate that the last N frames from the enclosing
 			// exception's stacktrace are common to this exception.
 			if current.enclosing == nil {
-				return fmt.Errorf("no enclosing exception preceding line %q", line)
+				return fmt.Errorf("no enclosing exception preceding at line %d", j)
 			}
 			submatch := javaStacktraceMoreRegexp.FindStringSubmatch(line)
 			if submatch == nil {
-				return fmt.Errorf("failed to parse stacktrace line %q", line)
+				return fmt.Errorf("failed to parse stacktrace at line %d", j)
 			}
 			if n, err := strconv.Atoi(submatch[1]); err == nil {
 				enclosing := current.enclosing
 				if len(enclosing.Stacktrace) < n {
 					return fmt.Errorf(
-						"enclosing exception stacktrace has %d frames, cannot satisfy %q",
-						len(enclosing.Stacktrace), line,
+						"enclosing exception stacktrace has %d frames, cannot satisfy line %d",
+						len(enclosing.Stacktrace), j,
 					)
 				}
 				m := len(enclosing.Stacktrace)
@@ -184,17 +187,13 @@ func setJavaExceptionStacktrace(s string, out *modelpb.Exception) error {
 			current.Exception = &modelpb.Exception{}
 			current.indent = indent
 		default:
-			return fmt.Errorf("unexpected line %q", line)
+			return fmt.Errorf("unexpected value at line %d", j)
 		}
 	}
 	return scanner.Err()
 }
 
-func parseJavaStacktraceFrame(s string, out *modelpb.Exception) error {
-	submatch := javaStacktraceAtRegexp.FindStringSubmatch(s)
-	if submatch == nil {
-		return fmt.Errorf("failed to parse stacktrace line %q", s)
-	}
+func parseJavaStacktraceFrame(submatch []string, out *modelpb.Exception) {
 	var module string
 	function := submatch[1]
 	if slash := strings.IndexRune(function, '/'); slash >= 0 {
@@ -226,7 +225,6 @@ func parseJavaStacktraceFrame(s string, out *modelpb.Exception) error {
 	sf.Filename = file
 	sf.Lineno = lineno
 	out.Stacktrace = append(out.Stacktrace, &sf)
-	return nil
 }
 
 func isNotTab(r rune) bool {

@@ -1121,23 +1121,6 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 	}
 }
 
-/* TODO
-func TestMetricsLogging(t *testing.T) {
-	for _, level := range []logp.Level{logp.InfoLevel, logp.DebugLevel} {
-		t.Run(level.String(), func(t *testing.T) {
-			logp.DevelopmentSetup(logp.ToObserverOutput(), logp.WithLevel(level))
-			transformMetrics(t, pmetric.NewMetrics())
-			logs := logp.ObserverLogs().TakeAll()
-			if level == logp.InfoLevel {
-				assert.Empty(t, logs)
-			} else {
-				assert.NotEmpty(t, logs)
-			}
-		})
-	}
-}
-*/
-
 func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEvent, otlp.ConsumerStats, otlp.ConsumeMetricsResult, error) {
 	var batches []*modelpb.Batch
 	recorder := batchRecorderBatchProcessor(&batches)
