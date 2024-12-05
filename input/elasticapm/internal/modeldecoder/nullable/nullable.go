@@ -136,12 +136,12 @@ func init() {
 						case string:
 							h.Add(key, entry)
 						default:
-							iter.Error = fmt.Errorf("invalid input for HTTPHeader: %v", v)
+							iter.Error = fmt.Errorf("invalid input for HTTPHeader slice value type: %T", entry)
 							return
 						}
 					}
 				default:
-					iter.Error = fmt.Errorf("invalid input for HTTPHeader: %v", v)
+					iter.Error = fmt.Errorf("invalid input for HTTPHeader value type: %T", v)
 					return
 				}
 			}

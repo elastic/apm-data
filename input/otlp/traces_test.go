@@ -1200,23 +1200,6 @@ func TestConsumeTracesSemaphore(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-/* TODO
-func TestTracesLogging(t *testing.T) {
-	for _, level := range []logp.Level{logp.InfoLevel, logp.DebugLevel} {
-		t.Run(level.String(), func(t *testing.T) {
-			logp.DevelopmentSetup(logp.ToObserverOutput(), logp.WithLevel(level))
-			transformTraces(t, ptrace.NewTraces())
-			logs := logp.ObserverLogs().TakeAll()
-			if level == logp.InfoLevel {
-				assert.Empty(t, logs)
-			} else {
-				assert.NotEmpty(t, logs)
-			}
-		})
-	}
-}
-*/
-
 func TestServiceTarget(t *testing.T) {
 	test := func(t *testing.T, expected *modelpb.ServiceTarget, input map[string]interface{}) {
 		t.Helper()

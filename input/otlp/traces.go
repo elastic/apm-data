@@ -49,7 +49,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
-	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -107,7 +106,6 @@ func (c *Consumer) ConsumeTracesWithResult(ctx context.Context, traces ptrace.Tr
 	defer c.sem.Release(1)
 
 	receiveTimestamp := time.Now()
-	c.config.Logger.Debug("consuming traces", zap.Stringer("traces", tracesStringer(traces)))
 
 	resourceSpans := traces.ResourceSpans()
 	batch := make(modelpb.Batch, 0, resourceSpans.Len())
@@ -1226,10 +1224,6 @@ func (c *Consumer) convertJaegerErrorSpanEvent(event ptrace.SpanEvent, apmEvent 
 		return nil
 	}
 	if logMessage == "" && exMessage == "" && exType == "" {
-		c.config.Logger.Debug(
-			"cannot convert span event into Elastic APM error",
-			zap.String("name", event.Name()),
-		)
 		return nil
 	}
 	e := modelpb.Error{}
