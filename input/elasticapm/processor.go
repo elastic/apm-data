@@ -198,12 +198,16 @@ func (p *Processor) readBatch(
 			err = v2.DecodeNestedError(reader, &input, batch)
 		case metricsetEventType:
 			err = v2.DecodeNestedMetricset(reader, &input, batch)
+			result.MetricAccepted++
 		case spanEventType:
 			err = v2.DecodeNestedSpan(reader, &input, batch)
+			result.SpanAccepted++
 		case transactionEventType:
 			err = v2.DecodeNestedTransaction(reader, &input, batch)
+			result.TransactionAccepted++
 		case logEventType:
 			err = v2.DecodeNestedLog(reader, &input, batch)
+			result.LogAccepted++
 		case rumv3ErrorEventType:
 			err = rumv3.DecodeNestedError(reader, &input, batch)
 		case rumv3TransactionEventType:
@@ -296,7 +300,6 @@ func (p *Processor) handleStream(
 	if n == 0 {
 		return readErr
 	}
-
 	if err := p.processBatch(ctx, processor, batch); err != nil {
 		return fmt.Errorf("cannot process batch: %w", err)
 	}
