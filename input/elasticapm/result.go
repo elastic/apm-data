@@ -23,18 +23,34 @@ import (
 
 type Result struct {
 	errorsSpace [5]error
+
 	// Errors holds a limited number of errors that occurred while
 	// processing the event stream. If the limit is reached, the
 	// counters above are still incremented.
 	Errors []error
+
 	// Accepted holds the number of valid events accepted.
-	Accepted int
+	Accepted            int
+	SpanAccepted        int
+	TransactionAccepted int
+	MetricAccepted      int
+	LogAccepted         int
+
 	// TooLarge holds the number of events that were rejected due
 	// to exceeding the event size limit.
-	TooLarge int
+	TooLarge            int
+	SpanTooLarge        int
+	TransactionTooLarge int
+	MetricTooLarge      int
+	LogTooLarge         int
+
 	// Invalid holds the number of events that were rejected due
 	// to being invalid, excluding those that are counted by TooLarge.
-	Invalid int
+	Invalid            int
+	SpanInvalid        int
+	TransactionInvalid int
+	MetricInvalid      int
+	LogInvalid         int
 }
 
 func (r *Result) addError(err error) {
