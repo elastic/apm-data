@@ -35,6 +35,7 @@ import (
 
 func TestHandleStreamReaderError(t *testing.T) {
 	readErr := errors.New("read failed")
+	cnt := 5
 	var calls int
 	var reader readerFunc = func(p []byte) (int, error) {
 		calls++
@@ -43,7 +44,7 @@ func TestHandleStreamReaderError(t *testing.T) {
 		}
 		buf := bytes.NewBuffer(nil)
 		buf.WriteString(validMetadata + "\n")
-		for i := 0; i < 5; i++ {
+		for i := 0; i < cnt; i++ {
 			buf.WriteString(validTransaction + "\n")
 		}
 		return copy(p, buf.Bytes()), nil
@@ -60,7 +61,10 @@ func TestHandleStreamReaderError(t *testing.T) {
 		reader, 10, nopBatchProcessor{}, &actualResult,
 	)
 	assert.ErrorIs(t, err, readErr)
-	assert.Equal(t, Result{Accepted: 5}, actualResult)
+	assert.Equal(t, Result{
+		Accepted:            cnt,
+		TransactionAccepted: cnt,
+	}, actualResult)
 }
 
 type readerFunc func([]byte) (int, error)
