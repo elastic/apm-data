@@ -188,6 +188,13 @@
                 "object"
               ],
               "properties": {
+                "body": {
+                  "description": "The http request body as a string",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
                 "id": {
                   "description": "ID holds the unique identifier for the http request.",
                   "type": [
