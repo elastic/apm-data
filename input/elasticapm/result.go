@@ -30,27 +30,25 @@ type Result struct {
 	Errors []error
 
 	// Accepted holds the number of valid events accepted.
-	Accepted            int
-	SpanAccepted        int
-	TransactionAccepted int
-	MetricAccepted      int
-	LogAccepted         int
+	Accepted        int
+	AcceptedDetails ProcessedDetail
 
 	// TooLarge holds the number of events that were rejected due
 	// to exceeding the event size limit.
-	TooLarge            int
-	SpanTooLarge        int
-	TransactionTooLarge int
-	MetricTooLarge      int
-	LogTooLarge         int
+	TooLarge int
 
 	// Invalid holds the number of events that were rejected due
 	// to being invalid, excluding those that are counted by TooLarge.
-	Invalid            int
-	SpanInvalid        int
-	TransactionInvalid int
-	MetricInvalid      int
-	LogInvalid         int
+	Invalid int
+}
+
+// ProcessedDetail holds the number of events processed for each type.
+type ProcessedDetail struct {
+	Transaction int
+	Span        int
+	Metric      int
+	Log         int
+	Error       int
 }
 
 func (r *Result) addError(err error) {

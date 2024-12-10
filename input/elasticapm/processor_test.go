@@ -33,6 +33,14 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
+const batchSize = 10
+
+type readerFunc func([]byte) (int, error)
+
+func (f readerFunc) Read(p []byte) (int, error) {
+	return f(p)
+}
+
 func TestHandleStreamReaderError(t *testing.T) {
 	readErr := errors.New("read failed")
 	cnt := 5
@@ -57,20 +65,20 @@ func TestHandleStreamReaderError(t *testing.T) {
 
 	var actualResult Result
 	err := sp.HandleStream(
-		context.Background(), &modelpb.APMEvent{},
-		reader, 10, nopBatchProcessor{}, &actualResult,
+		context.Background(),
+		&modelpb.APMEvent{},
+		reader,
+		batchSize,
+		nopBatchProcessor{},
+		&actualResult,
 	)
 	assert.ErrorIs(t, err, readErr)
 	assert.Equal(t, Result{
-		Accepted:            cnt,
-		TransactionAccepted: cnt,
+		Accepted: cnt,
+		AcceptedDetails: ProcessedDetail{
+			Transaction: cnt,
+		},
 	}, actualResult)
-}
-
-type readerFunc func([]byte) (int, error)
-
-func (f readerFunc) Read(p []byte) (int, error) {
-	return f(p)
 }
 
 func TestHandleStreamBatchProcessorError(t *testing.T) {
@@ -89,11 +97,14 @@ func TestHandleStreamBatchProcessorError(t *testing.T) {
 		processor := modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
 			return test.err
 		})
-
 		var actualResult Result
 		err := sp.HandleStream(
-			context.Background(), &modelpb.APMEvent{},
-			strings.NewReader(payload), 10, processor, &actualResult,
+			context.Background(),
+			&modelpb.APMEvent{},
+			strings.NewReader(payload),
+			batchSize,
+			processor,
+			&actualResult,
 		)
 		assert.ErrorIs(t, err, test.err)
 		assert.Zero(t, actualResult)
@@ -190,9 +201,12 @@ func TestHandleStreamErrors(t *testing.T) {
 				Semaphore:    semaphore.NewWeighted(1),
 			})
 			err := p.HandleStream(
-				context.Background(), &modelpb.APMEvent{},
-				strings.NewReader(test.payload), 10,
-				nopBatchProcessor{}, &actualResult,
+				context.Background(),
+				&modelpb.APMEvent{},
+				strings.NewReader(test.payload),
+				batchSize,
+				nopBatchProcessor{},
+				&actualResult,
 			)
 			assert.Equal(t, test.err, err)
 			assert.Zero(t, actualResult.Accepted)
@@ -224,13 +238,31 @@ func TestHandleStream(t *testing.T) {
 		MaxEventSize: 100 * 1024,
 		Semaphore:    semaphore.NewWeighted(1),
 	})
+
+	var actualResult Result
 	err := p.HandleStream(
-		context.Background(), &modelpb.APMEvent{},
-		strings.NewReader(payload), 10, batchProcessor,
-		&Result{},
+		context.Background(),
+		&modelpb.APMEvent{},
+		strings.NewReader(payload),
+		batchSize,
+		batchProcessor,
+		&actualResult,
 	)
 	require.NoError(t, err)
 
+	// Assert that batch result is properly populated.
+	assert.Equal(t, Result{
+		Accepted: 5,
+		AcceptedDetails: ProcessedDetail{
+			Transaction: 1,
+			Span:        1,
+			Metric:      1,
+			Log:         1,
+			Error:       1,
+		},
+	}, actualResult)
+
+	// Assert that processor is properly executed.
 	processors := make([]modelpb.APMEventType, len(events))
 	for i, event := range events {
 		processors[i] = event.Type()
@@ -264,8 +296,11 @@ func TestHandleStreamRUMv3(t *testing.T) {
 	})
 	var result Result
 	err := p.HandleStream(
-		context.Background(), &modelpb.APMEvent{},
-		strings.NewReader(payload), 10, batchProcessor,
+		context.Background(),
+		&modelpb.APMEvent{},
+		strings.NewReader(payload),
+		batchSize,
+		batchProcessor,
 		&result,
 	)
 	require.NoError(t, err)
@@ -315,8 +350,11 @@ func TestHandleStreamBaseEvent(t *testing.T) {
 		Semaphore:    semaphore.NewWeighted(1),
 	})
 	err := p.HandleStream(
-		context.Background(), &baseEvent,
-		strings.NewReader(payload), 10, batchProcessor,
+		context.Background(),
+		&baseEvent,
+		strings.NewReader(payload),
+		batchSize,
+		batchProcessor,
 		&Result{},
 	)
 	require.NoError(t, err)
@@ -351,12 +389,18 @@ func TestLabelLeak(t *testing.T) {
 		MaxEventSize: 100 * 1024,
 		Semaphore:    semaphore.NewWeighted(1),
 	})
-	var actualResult Result
-	err := p.HandleStream(context.Background(), baseEvent, strings.NewReader(payload), 10, batchProcessor, &actualResult)
+	err := p.HandleStream(
+		context.Background(),
+		baseEvent,
+		strings.NewReader(payload),
+		batchSize,
+		batchProcessor,
+		&Result{})
 	require.NoError(t, err)
 
 	txs := processed
 	assert.Len(t, txs, 2)
+
 	// Assert first tx
 	assert.Equal(t, modelpb.NumericLabels{
 		"time_set": {Value: 1652185276},
@@ -369,8 +413,12 @@ func TestLabelLeak(t *testing.T) {
 	}, modelpb.Labels(txs[0].Labels))
 
 	// Assert second tx
-	assert.Equal(t, modelpb.NumericLabels{"numeric": {Global: true, Value: 1}}, modelpb.NumericLabels(txs[1].NumericLabels))
-	assert.Equal(t, modelpb.Labels{"ci_commit": {Global: true, Value: "unknown"}}, modelpb.Labels(txs[1].Labels))
+	assert.Equal(t, modelpb.NumericLabels{
+		"numeric": {Global: true, Value: 1},
+	}, modelpb.NumericLabels(txs[1].NumericLabels))
+	assert.Equal(t, modelpb.Labels{
+		"ci_commit": {Global: true, Value: "unknown"},
+	}, modelpb.Labels(txs[1].Labels))
 }
 
 type nopBatchProcessor struct{}

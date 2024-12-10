@@ -301,14 +301,16 @@ func (p *Processor) handleStream(
 	}
 	for _, v := range *batch {
 		switch v.Type() {
+		case modelpb.ErrorEventType:
+			result.AcceptedDetails.Error++
 		case modelpb.SpanEventType:
-			result.SpanAccepted++
+			result.AcceptedDetails.Span++
 		case modelpb.TransactionEventType:
-			result.TransactionAccepted++
+			result.AcceptedDetails.Transaction++
 		case modelpb.MetricEventType:
-			result.MetricAccepted++
+			result.AcceptedDetails.Metric++
 		case modelpb.LogEventType:
-			result.LogAccepted++
+			result.AcceptedDetails.Log++
 		}
 	}
 	result.Accepted += n
