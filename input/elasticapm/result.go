@@ -29,8 +29,11 @@ type Result struct {
 	// counters above are still incremented.
 	Errors []error
 
-	// Accepted holds the number of valid events accepted.
-	Accepted        int
+	// Accepted holds the total number of valid events accepted.
+	Accepted int
+
+	// AcceptedDetails provides a detailed breakdown of the count
+	// of valid events categorized by signal type.
 	AcceptedDetails ProcessedDetail
 
 	// TooLarge holds the number of events that were rejected due
