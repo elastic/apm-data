@@ -75,7 +75,7 @@ func TestHandleStreamReaderError(t *testing.T) {
 	assert.ErrorIs(t, err, readErr)
 	assert.Equal(t, Result{
 		Accepted: cnt,
-		AcceptedDetails: ProcessedDetail{
+		AcceptedDetails: AcceptedDetails{
 			Transaction: cnt,
 		},
 	}, actualResult)
@@ -253,7 +253,7 @@ func TestHandleStream(t *testing.T) {
 	// Assert that batch result is properly populated.
 	assert.Equal(t, Result{
 		Accepted: 5,
-		AcceptedDetails: ProcessedDetail{
+		AcceptedDetails: AcceptedDetails{
 			Transaction: 1,
 			Span:        1,
 			Metric:      1,

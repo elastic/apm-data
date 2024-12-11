@@ -34,7 +34,7 @@ type Result struct {
 
 	// AcceptedDetails provides a detailed breakdown of the count
 	// of valid events categorized by signal type.
-	AcceptedDetails ProcessedDetail
+	AcceptedDetails AcceptedDetails
 
 	// TooLarge holds the number of events that were rejected due
 	// to exceeding the event size limit.
@@ -46,7 +46,7 @@ type Result struct {
 }
 
 // ProcessedDetail holds the number of events processed for each type.
-type ProcessedDetail struct {
+type AcceptedDetails struct {
 	Transaction int
 	Span        int
 	Metric      int
