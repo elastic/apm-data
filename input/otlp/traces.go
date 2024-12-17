@@ -615,6 +615,10 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 		rpcService string
 	)
 
+	var (
+		genAiSystem string
+	)
+
 	var http modelpb.HTTP
 	var httpRequest modelpb.HTTPRequest
 	var httpResponse modelpb.HTTPResponse
@@ -622,7 +626,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 	var db modelpb.DB
 	var destinationService modelpb.DestinationService
 	var serviceTarget modelpb.ServiceTarget
-	var isHTTP, isDatabase, isRPC, isMessaging bool
+	var isHTTP, isDatabase, isRPC, isMessaging, isGenAi bool
 	var samplerType, samplerParam pcommon.Value
 	attributes.Range(func(kDots string, v pcommon.Value) bool {
 		if isJaeger {
@@ -812,6 +816,11 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				// stacktrace is expected to be large thus un-truncated value is needed
 				event.Code.Stacktrace = v.Str()
 
+			// gen_ai.*
+			case "gen_ai.system":
+				genAiSystem = stringval
+				isGenAi = true
+
 			// miscellaneous
 			case "span.kind": // filter out
 			case semconv.AttributePeerService:
@@ -991,6 +1000,10 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				destinationService.Resource = resource
 			}
 		}
+	case isGenAi:
+		event.Span.Type = "genai"
+		event.Span.Subtype = genAiSystem
+		serviceTarget.Type = event.Span.Type
 	default:
 		// Only set event.Span.Type if not already set
 		if event.Span.Type == "" {
