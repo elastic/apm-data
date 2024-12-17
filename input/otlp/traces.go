@@ -82,6 +82,7 @@ const (
 	attributeStackTrace                 = "code.stacktrace" // semconv 1.24 or later
 	attributeDataStreamDataset          = "data_stream.dataset"
 	attributeDataStreamNamespace        = "data_stream.namespace"
+	attributeGenAiSystem                = "gen_ai.system"
 )
 
 // ConsumeTracesResult contains the number of rejected spans and error message for partial success response.
@@ -817,7 +818,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				event.Code.Stacktrace = v.Str()
 
 			// gen_ai.*
-			case "gen_ai.system":
+			case attributeGenAiSystem:
 				genAiSystem = stringval
 				isGenAi = true
 
