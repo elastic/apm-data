@@ -2500,10 +2500,11 @@ func (val *spanContextHTTP) processNestedSource() error {
 }
 
 func (val *spanContextHTTPRequest) IsSet() bool {
-	return val.ID.IsSet()
+	return val.Body.IsSet() || val.ID.IsSet()
 }
 
 func (val *spanContextHTTPRequest) Reset() {
+	val.Body.Reset()
 	val.ID.Reset()
 }
 

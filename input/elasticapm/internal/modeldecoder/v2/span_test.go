@@ -25,6 +25,8 @@ import (
 	"testing"
 	"time"
 
+	"google.golang.org/protobuf/types/known/structpb"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -258,12 +260,20 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		}
 	})
 
-	t.Run("http-request", func(t *testing.T) {
+	t.Run("http-request-id", func(t *testing.T) {
 		var input span
 		input.Context.HTTP.Request.ID.Set("some-request-id")
 		var out modelpb.APMEvent
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, "some-request-id", out.Http.Request.Id)
+	})
+
+	t.Run("http-request-body", func(t *testing.T) {
+		var input span
+		input.Context.HTTP.Request.Body.Set("some-request-body")
+		var out modelpb.APMEvent
+		mapToSpanModel(&input, &out)
+		assert.Equal(t, structpb.NewStringValue("some-request-body"), out.Http.Request.Body)
 	})
 
 	t.Run("http-headers", func(t *testing.T) {
