@@ -119,7 +119,7 @@ func (c *Consumer) convertLogRecord(
 	event := baseEvent.CloneVT()
 	initEventLabels(event)
 
-	translateScopeMetadata(scope, event)
+	translateLogScopeMetadata(scope, event)
 
 	if record.Timestamp() == 0 {
 		event.Timestamp = modelpb.FromTime(record.ObservedTimestamp().AsTime().Add(timeDelta))
