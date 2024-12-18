@@ -227,13 +227,12 @@ func TestConsumeMetrics(t *testing.T) {
 
 func TestConsumeMetricsSemaphore(t *testing.T) {
 	metrics := pmetric.NewMetrics()
-	var batches []*modelpb.Batch
 
 	doneCh := make(chan struct{})
 	recorder := modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
-		<-doneCh
-		batchCopy := batch.Clone()
-		batches = append(batches, &batchCopy)
+		// Ensure channel is only closed the first time
+		doneCh <- struct{}{}
+		doneCh <- struct{}{}
 		return nil
 	})
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
@@ -241,20 +240,29 @@ func TestConsumeMetricsSemaphore(t *testing.T) {
 		Semaphore: semaphore.NewWeighted(1),
 	})
 
-	startCh := make(chan struct{})
 	go func() {
-		close(startCh)
+		// 1. Acquires the sem lock
 		_, err := consumer.ConsumeMetricsWithResult(context.Background(), metrics)
 		assert.NoError(t, err)
 	}()
 
-	<-startCh
+	// Wait until (1) has properly started.
+	<-doneCh
+
+	// 2. Cannot acquire the lock held by (1). Returns expected error.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
 	_, err := consumer.ConsumeMetricsWithResult(ctx, metrics)
 	assert.Equal(t, err.Error(), "context deadline exceeded")
-	close(doneCh)
 
+	// 3. Release the sem from (1) by finishing ProcessBatchFunc.
+	<-doneCh
+
+	// Turn channel into sink.
+	// This trick gets rid of using sync.Once.
+	doneCh = make(chan struct{}, 2)
+
+	// 4. Acquires the lock to ensure is was properly released.
 	_, err = consumer.ConsumeMetricsWithResult(context.Background(), metrics)
 	assert.NoError(t, err)
 }
@@ -729,6 +737,10 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 }
 
 func TestConsumeMetricsDataStream(t *testing.T) {
+	randomString := strings.Repeat("abcdefghijklmnopqrstuvwxyz0123456789", 10)
+	maxLenNamespace := otlp.MaxDataStreamBytes - len(otlp.DisallowedNamespaceRunes)
+	maxLenDataset := otlp.MaxDataStreamBytes - len(otlp.DisallowedDatasetRunes)
+
 	for _, tc := range []struct {
 		resourceDataStreamDataset   string
 		resourceDataStreamNamespace string
@@ -763,6 +775,15 @@ func TestConsumeMetricsDataStream(t *testing.T) {
 			resourceDataStreamNamespace: "2",
 			expectedDataStreamDataset:   "1",
 			expectedDataStreamNamespace: "2",
+		},
+		// Test data sanitization: https://www.elastic.co/guide/en/ecs/current/ecs-data_stream.html
+		// 1. Replace all disallowed runes with _
+		// 2. Datastream length should not exceed otlp.MaxDataStreamBytes
+		{
+			resourceDataStreamDataset:   otlp.DisallowedDatasetRunes + randomString,
+			resourceDataStreamNamespace: otlp.DisallowedNamespaceRunes + randomString,
+			expectedDataStreamDataset:   strings.Repeat("_", len(otlp.DisallowedDatasetRunes)) + randomString[:maxLenDataset],
+			expectedDataStreamNamespace: strings.Repeat("_", len(otlp.DisallowedNamespaceRunes)) + randomString[:maxLenNamespace],
 		},
 	} {
 		tcName := fmt.Sprintf("%s,%s", tc.expectedDataStreamDataset, tc.expectedDataStreamNamespace)
@@ -1100,23 +1121,6 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 	}
 }
 
-/* TODO
-func TestMetricsLogging(t *testing.T) {
-	for _, level := range []logp.Level{logp.InfoLevel, logp.DebugLevel} {
-		t.Run(level.String(), func(t *testing.T) {
-			logp.DevelopmentSetup(logp.ToObserverOutput(), logp.WithLevel(level))
-			transformMetrics(t, pmetric.NewMetrics())
-			logs := logp.ObserverLogs().TakeAll()
-			if level == logp.InfoLevel {
-				assert.Empty(t, logs)
-			} else {
-				assert.NotEmpty(t, logs)
-			}
-		})
-	}
-}
-*/
-
 func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEvent, otlp.ConsumerStats, otlp.ConsumeMetricsResult, error) {
 	var batches []*modelpb.Batch
 	recorder := batchRecorderBatchProcessor(&batches)
@@ -1129,6 +1133,14 @@ func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEven
 	result, err := consumer.ConsumeMetricsWithResult(context.Background(), metrics)
 	require.Len(t, batches, 1)
 	return *batches[0], consumer.Stats(), result, err
+}
+
+func batchRecorderBatchProcessor(out *[]*modelpb.Batch) modelpb.BatchProcessor {
+	return modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+		batchCopy := batch.Clone()
+		*out = append(*out, &batchCopy)
+		return nil
+	})
 }
 
 // eventsMatch aims to compare the expected and actual APMEvents however, it will

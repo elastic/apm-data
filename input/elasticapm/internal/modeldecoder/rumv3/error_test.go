@@ -51,6 +51,7 @@ func TestDecodeNestedError(t *testing.T) {
 		assert.Empty(t, cmp.Diff(&modelpb.Error{
 			Id: "a-b-c",
 			Log: &modelpb.ErrorLog{
+				Level:      "error",
 				Message:    "abc",
 				LoggerName: "default",
 			},
@@ -189,6 +190,15 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		mapToErrorModel(&input, &out)
 		require.NotNil(t, out.Error.Log.LoggerName)
 		assert.Equal(t, "default", out.Error.Log.LoggerName)
+	})
+
+	t.Run("logLevel", func(t *testing.T) {
+		var input errorEvent
+		input.Log.Level.Set("warn")
+		var out modelpb.APMEvent
+		mapToErrorModel(&input, &out)
+		require.NotNil(t, out.Error.Log.Level)
+		assert.Equal(t, "warn", out.Error.Log.Level)
 	})
 
 	t.Run("http-headers", func(t *testing.T) {

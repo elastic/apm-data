@@ -49,7 +49,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
-	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -107,7 +106,6 @@ func (c *Consumer) ConsumeTracesWithResult(ctx context.Context, traces ptrace.Tr
 	defer c.sem.Release(1)
 
 	receiveTimestamp := time.Now()
-	c.config.Logger.Debug("consuming traces", zap.Stringer("traces", tracesStringer(traces)))
 
 	resourceSpans := traces.ResourceSpans()
 	batch := make(modelpb.Batch, 0, resourceSpans.Len())
@@ -481,12 +479,12 @@ func TranslateTransaction(
 				if event.DataStream == nil {
 					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Dataset = stringval
+				event.DataStream.Dataset = sanitizeDataStreamDataset(stringval)
 			case attributeDataStreamNamespace:
 				if event.DataStream == nil {
 					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Namespace = stringval
+				event.DataStream.Namespace = sanitizeDataStreamNamespace(stringval)
 			default:
 				modelpb.Labels(event.Labels).Set(k, stringval)
 			}
@@ -824,12 +822,12 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				if event.DataStream == nil {
 					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Dataset = stringval
+				event.DataStream.Dataset = sanitizeDataStreamDataset(stringval)
 			case attributeDataStreamNamespace:
 				if event.DataStream == nil {
 					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Namespace = stringval
+				event.DataStream.Namespace = sanitizeDataStreamNamespace(stringval)
 			default:
 				setLabel(k, event, v)
 			}
@@ -1073,6 +1071,14 @@ func (c *Consumer) convertSpanEvent(
 	initEventLabels(event)
 	event.Transaction = nil // populate fields as required from parent
 	event.Span = nil        // populate fields as required from parent
+	event.ParentId = ""     // populate fields as required from parent
+
+	// Remove unnecessary fields from span event
+	if event.Service != nil {
+		event.Service.Target = nil
+		event.Service.Origin = nil
+	}
+
 	event.Timestamp = modelpb.FromTime(spanEvent.Timestamp().AsTime().Add(timeDelta))
 
 	isJaeger := strings.HasPrefix(parent.Agent.Name, "Jaeger")
@@ -1103,12 +1109,12 @@ func (c *Consumer) convertSpanEvent(
 				if event.DataStream == nil {
 					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Dataset = v.Str()
+				event.DataStream.Dataset = sanitizeDataStreamDataset(v.Str())
 			case attributeDataStreamNamespace:
 				if event.DataStream == nil {
 					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Namespace = v.Str()
+				event.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
 
 			default:
 				setLabel(replaceDots(k), event, v)
@@ -1144,12 +1150,12 @@ func (c *Consumer) convertSpanEvent(
 				if event.DataStream == nil {
 					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Dataset = v.Str()
+				event.DataStream.Dataset = sanitizeDataStreamDataset(v.Str())
 			case attributeDataStreamNamespace:
 				if event.DataStream == nil {
 					event.DataStream = &modelpb.DataStream{}
 				}
-				event.DataStream.Namespace = v.Str()
+				event.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
 			default:
 				k = replaceDots(k)
 				if isJaeger && k == "message" {
@@ -1202,12 +1208,12 @@ func (c *Consumer) convertJaegerErrorSpanEvent(event ptrace.SpanEvent, apmEvent 
 			if apmEvent.DataStream == nil {
 				apmEvent.DataStream = &modelpb.DataStream{}
 			}
-			apmEvent.DataStream.Dataset = v.Str()
+			apmEvent.DataStream.Dataset = sanitizeDataStreamDataset(v.Str())
 		case attributeDataStreamNamespace:
 			if apmEvent.DataStream == nil {
 				apmEvent.DataStream = &modelpb.DataStream{}
 			}
-			apmEvent.DataStream.Namespace = v.Str()
+			apmEvent.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
 
 		default:
 			setLabel(replaceDots(k), apmEvent, v)
@@ -1218,10 +1224,6 @@ func (c *Consumer) convertJaegerErrorSpanEvent(event ptrace.SpanEvent, apmEvent 
 		return nil
 	}
 	if logMessage == "" && exMessage == "" && exType == "" {
-		c.config.Logger.Debug(
-			"cannot convert span event into Elastic APM error",
-			zap.String("name", event.Name()),
-		)
 		return nil
 	}
 	e := modelpb.Error{}

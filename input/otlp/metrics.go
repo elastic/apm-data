@@ -43,7 +43,6 @@ import (
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
-	"go.uber.org/zap"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -74,7 +73,6 @@ func (c *Consumer) ConsumeMetricsWithResult(ctx context.Context, metrics pmetric
 	remainingDataPoints := totalDataPoints
 	remainingMetrics := totalMetrics
 	receiveTimestamp := time.Now()
-	c.config.Logger.Debug("consuming metrics", zap.Stringer("metrics", metricsStringer(metrics)))
 	batch := c.handleMetrics(metrics, receiveTimestamp, &remainingDataPoints, &remainingMetrics)
 	if remainingMetrics > 0 {
 		// Some metrics remained after conversion, meaning that they were dropped.
@@ -180,12 +178,12 @@ func (c *Consumer) handleScopeMetrics(
 					if event.DataStream == nil {
 						event.DataStream = &modelpb.DataStream{}
 					}
-					event.DataStream.Dataset = v.Str()
+					event.DataStream.Dataset = sanitizeDataStreamDataset(v.Str())
 				case attributeDataStreamNamespace:
 					if event.DataStream == nil {
 						event.DataStream = &modelpb.DataStream{}
 					}
-					event.DataStream.Namespace = v.Str()
+					event.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
 
 				// The below fields are required by the Processes tab of the
 				// curated Kibana's hostmetrics UI. These fields are

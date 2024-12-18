@@ -296,17 +296,25 @@ func (p *Processor) handleStream(
 	if n == 0 {
 		return readErr
 	}
-
-	if err := p.processBatch(ctx, processor, batch); err != nil {
+	if err := processor.ProcessBatch(ctx, batch); err != nil {
 		return fmt.Errorf("cannot process batch: %w", err)
+	}
+	for _, v := range *batch {
+		switch v.Type() {
+		case modelpb.ErrorEventType:
+			result.AcceptedDetails.Error++
+		case modelpb.SpanEventType:
+			result.AcceptedDetails.Span++
+		case modelpb.TransactionEventType:
+			result.AcceptedDetails.Transaction++
+		case modelpb.MetricEventType:
+			result.AcceptedDetails.Metric++
+		case modelpb.LogEventType:
+			result.AcceptedDetails.Log++
+		}
 	}
 	result.Accepted += n
 	return readErr
-}
-
-// processBatch processes the batch and returns the events to the pool after it's been processed.
-func (p *Processor) processBatch(ctx context.Context, processor modelpb.BatchProcessor, batch *modelpb.Batch) error {
-	return processor.ProcessBatch(ctx, batch)
 }
 
 // getStreamReader returns a streamReader that reads ND-JSON lines from r.

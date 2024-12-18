@@ -22,6 +22,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	semconv "go.opentelemetry.io/collector/semconv/v1.25.0"
@@ -30,7 +31,10 @@ import (
 )
 
 const (
-	AgentNameJaeger = "Jaeger"
+	AgentNameJaeger          = "Jaeger"
+	MaxDataStreamBytes       = 100
+	DisallowedNamespaceRunes = "\\/*?\"<>| ,#:"
+	DisallowedDatasetRunes   = "-\\/*?\"<>| ,#:"
 )
 
 var (
@@ -62,7 +66,8 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			out.Service.Node.Name = truncate(v.Str())
 
 		// deployment.*
-		case semconv.AttributeDeploymentEnvironment:
+		// deployment.environment is deprecated, use deployment.environment.name instead
+		case semconv.AttributeDeploymentEnvironment, "deployment.environment.name":
 			if out.Service == nil {
 				out.Service = &modelpb.Service{}
 			}
@@ -316,12 +321,12 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			if out.DataStream == nil {
 				out.DataStream = &modelpb.DataStream{}
 			}
-			out.DataStream.Dataset = v.Str()
+			out.DataStream.Dataset = sanitizeDataStreamDataset(v.Str())
 		case attributeDataStreamNamespace:
 			if out.DataStream == nil {
 				out.DataStream = &modelpb.DataStream{}
 			}
-			out.DataStream.Namespace = v.Str()
+			out.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
 		default:
 			if out.Labels == nil {
 				out.Labels = make(modelpb.Labels)
@@ -459,12 +464,12 @@ func translateScopeMetadata(scope pcommon.InstrumentationScope, out *modelpb.APM
 			if out.DataStream == nil {
 				out.DataStream = &modelpb.DataStream{}
 			}
-			out.DataStream.Dataset = v.Str()
+			out.DataStream.Dataset = sanitizeDataStreamDataset(v.Str())
 		case attributeDataStreamNamespace:
 			if out.DataStream == nil {
 				out.DataStream = &modelpb.DataStream{}
 			}
-			out.DataStream.Namespace = v.Str()
+			out.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
 		}
 		return true
 	})
@@ -543,5 +548,35 @@ func setLabel(key string, event *modelpb.APMEvent, v pcommon.Value) {
 			}
 			modelpb.NumericLabels(event.NumericLabels).SetSlice(key, result)
 		}
+	}
+}
+
+// Sanitize the datastream fields (dataset, namespace) to apply restrictions
+// as outlined in https://www.elastic.co/guide/en/ecs/current/ecs-data_stream.html
+func sanitizeDataStreamDataset(field string) string {
+	field = strings.Map(replaceReservedRune(DisallowedDatasetRunes), field)
+	if len(field) > MaxDataStreamBytes {
+		return field[:MaxDataStreamBytes]
+	}
+
+	return field
+}
+
+// Sanitize the datastream fields (dataset, namespace) to apply restrictions
+// as outlined in https://www.elastic.co/guide/en/ecs/current/ecs-data_stream.html
+func sanitizeDataStreamNamespace(field string) string {
+	field = strings.Map(replaceReservedRune(DisallowedNamespaceRunes), field)
+	if len(field) > MaxDataStreamBytes {
+		return field[:MaxDataStreamBytes]
+	}
+	return field
+}
+
+func replaceReservedRune(disallowedRunes string) func(r rune) rune {
+	return func(r rune) rune {
+		if strings.ContainsRune(disallowedRunes, r) {
+			return '_'
+		}
+		return unicode.ToLower(r)
 	}
 }

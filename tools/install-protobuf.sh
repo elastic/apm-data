@@ -1,17 +1,15 @@
 #!/bin/sh
 
 PLATFORM=$(go env GOOS)
-PROTOBUF_VERSION="25.2"
-PROTOC_GO_VERSION="v1.32.0"
-VTPROTOBUF_VERSION="v0.6.0"
-
+PROTOBUF_VERSION="28.3"
+DOWNLOAD_URL="https://github.com/protocolbuffers/protobuf/releases/download"
 
 if [ "${PLATFORM}" = "darwin" ]; then
-	PROTOBUF_URL="https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-osx-x86_64.zip"
+	PROTOBUF_URL="${DOWNLOAD_URL}/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-osx-x86_64.zip"
 elif [ "${PLATFORM}" = "linux" ]; then 
-	PROTOBUF_URL="https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-linux-x86_64.zip"
+	PROTOBUF_URL="${DOWNLOAD_URL}/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-linux-x86_64.zip"
 elif [ "${PLATFORM}" = "windows" ]; then 
-	PROTOBUF_URL="https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-win64.zip"
+	PROTOBUF_URL="${DOWNLOAD_URL}/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-win64.zip"
 else
 	echo "Unsupported platform: ${PLATFORM}"
 	exit 1
@@ -33,5 +31,5 @@ if ! PATH="${BUILD_DIR}/bin" protoc --version; then
 	exit 1
 fi
 
-GOBIN="${BUILD_DIR}/bin" go install "google.golang.org/protobuf/cmd/protoc-gen-go@${PROTOC_GO_VERSION}"
-GOBIN="${BUILD_DIR}/bin" go install "github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto@${VTPROTOBUF_VERSION}"
+GOBIN="${BUILD_DIR}/bin" go install "google.golang.org/protobuf/cmd/protoc-gen-go"
+GOBIN="${BUILD_DIR}/bin" go install "github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto"
