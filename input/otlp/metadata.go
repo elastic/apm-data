@@ -456,7 +456,7 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 	}
 }
 
-func translateScopeMetadata(scope pcommon.InstrumentationScope, out *modelpb.APMEvent) {
+func translateScopeCommonMetadata(scope pcommon.InstrumentationScope, out *modelpb.APMEvent) {
 	scope.Attributes().Range(func(k string, v pcommon.Value) bool {
 		switch k {
 		// data_stream.*
@@ -473,7 +473,9 @@ func translateScopeMetadata(scope pcommon.InstrumentationScope, out *modelpb.APM
 		}
 		return true
 	})
+}
 
+func translateScopeFrameworkMetadata(scope pcommon.InstrumentationScope, out *modelpb.APMEvent) {
 	if name := scope.Name(); name != "" {
 		if out.Service == nil {
 			out.Service = &modelpb.Service{}
@@ -483,6 +485,32 @@ func translateScopeMetadata(scope pcommon.InstrumentationScope, out *modelpb.APM
 			Version: scope.Version(),
 		}
 	}
+}
+
+func translateLogScopeMetadata(scope pcommon.InstrumentationScope, out *modelpb.APMEvent) {
+	translateScopeCommonMetadata(scope, out)
+	if version := scope.Version(); version != "" {
+		// If the version is set, we assume the name is an instrumentation library name
+		translateScopeFrameworkMetadata(scope, out)
+	} else {
+		// If the version is not set, we assume the name is a logger name
+		if name := scope.Name(); name != "" {
+			if out.Log == nil {
+				out.Log = &modelpb.Log{}
+			}
+			out.Log.Logger = name
+		}
+	}
+}
+
+func translateSpanScopeMetadata(scope pcommon.InstrumentationScope, out *modelpb.APMEvent) {
+	translateScopeCommonMetadata(scope, out)
+	translateScopeFrameworkMetadata(scope, out)
+}
+
+func translateMetricsScopeMetadata(scope pcommon.InstrumentationScope, out *modelpb.APMEvent) {
+	translateScopeCommonMetadata(scope, out)
+	translateScopeFrameworkMetadata(scope, out)
 }
 
 func cleanServiceName(name string) string {

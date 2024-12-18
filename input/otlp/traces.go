@@ -178,7 +178,7 @@ func (c *Consumer) convertSpan(
 	representativeCount := getRepresentativeCountFromTracestateHeader(otelSpan.TraceState().AsRaw())
 	event := baseEvent.CloneVT()
 
-	translateScopeMetadata(otelLibrary, event)
+	translateSpanScopeMetadata(otelLibrary, event)
 
 	initEventLabels(event)
 	event.Timestamp = modelpb.FromTime(startTime.Add(timeDelta))
