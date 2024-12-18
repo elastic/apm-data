@@ -1438,6 +1438,16 @@ func TestSpanEventsDataStream(t *testing.T) {
 	}
 }
 
+func TestGenAiSpan(t *testing.T) {
+	event := transformSpanWithAttributes(t, map[string]interface{}{
+		"gen_ai.system": "openai",
+	})
+
+	assert.Equal(t, "genai", event.Span.Type)
+	assert.Equal(t, "openai", event.Span.Subtype)
+	assert.Equal(t, "", event.Span.Action)
+}
+
 func transformTransactionWithAttributes(t *testing.T, attrs map[string]interface{}, configFns ...func(ptrace.Span)) *modelpb.APMEvent {
 	traces, spans := newTracesSpans()
 	otelSpan := spans.Spans().AppendEmpty()
