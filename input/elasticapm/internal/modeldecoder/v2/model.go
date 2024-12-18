@@ -845,8 +845,8 @@ type spanContextHTTP struct {
 type spanContextHTTPRequest struct {
 	// ID holds the unique identifier for the http request.
 	ID nullable.String `json:"id"`
-	// The http request body as a string
-	Body nullable.String `json:"body"`
+	// The http request body usually as a string, but may be a dictionary for multipart/form-data content
+	Body nullable.Interface `json:"body"`
 }
 
 type spanContextHTTPResponse struct {

@@ -189,11 +189,7 @@
               ],
               "properties": {
                 "body": {
-                  "description": "The http request body as a string",
-                  "type": [
-                    "null",
-                    "string"
-                  ]
+                  "description": "The http request body usually as a string, but may be a dictionary for multipart/form-data content"
                 },
                 "id": {
                   "description": "ID holds the unique identifier for the http request.",
