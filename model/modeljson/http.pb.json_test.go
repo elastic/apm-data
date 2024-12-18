@@ -18,8 +18,9 @@
 package modeljson
 
 import (
-	"google.golang.org/protobuf/types/known/structpb"
 	"testing"
+
+	"google.golang.org/protobuf/types/known/structpb"
 
 	modeljson "github.com/elastic/apm-data/model/modeljson/internal"
 	"github.com/elastic/apm-data/model/modelpb"

@@ -19,12 +19,13 @@ package v2
 
 import (
 	"encoding/json"
-	"google.golang.org/protobuf/types/known/structpb"
 	"net/http"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
