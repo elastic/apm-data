@@ -240,7 +240,7 @@ func (p *Processor) HandleStream(
 	processor modelpb.BatchProcessor,
 	result *Result,
 ) error {
-	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
+	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter.TODO")
 	defer sp.End()
 	// Limit the number of concurrent batch decodes.
 	//
