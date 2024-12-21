@@ -159,7 +159,7 @@ func (c *Consumer) handleScopeMetrics(
 	for key, ms := range ms {
 		event := baseEvent.CloneVT()
 
-		translateScopeMetadata(in.Scope(), event)
+		translateMetricsScopeMetadata(in.Scope(), event)
 
 		event.Timestamp = modelpb.FromTime(key.timestamp.Add(timeDelta))
 		metrs := make([]*modelpb.MetricsetSample, 0, len(ms.samples))
