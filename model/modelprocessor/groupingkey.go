@@ -19,7 +19,6 @@ package modelprocessor
 
 import (
 	"context"
-	"crypto/md5"
 	"encoding/hex"
 	"hash"
 	"io"
@@ -29,7 +28,9 @@ import (
 
 // SetGroupingKey is a modelpb.BatchProcessor that sets the grouping key for errors
 // by hashing their stack frames.
-type SetGroupingKey struct{}
+type SetGroupingKey struct {
+	NewHash func() hash.Hash
+}
 
 // ProcessBatch sets the grouping key for errors.
 func (s SetGroupingKey) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
@@ -42,7 +43,7 @@ func (s SetGroupingKey) ProcessBatch(ctx context.Context, b *modelpb.Batch) erro
 }
 
 func (s SetGroupingKey) processError(ctx context.Context, event *modelpb.Error) {
-	hash := md5.New()
+	hash := s.NewHash()
 	var updated bool
 	if event.Exception != nil {
 		if s.hashExceptionTree(event.Exception, hash, s.hashExceptionType) {
