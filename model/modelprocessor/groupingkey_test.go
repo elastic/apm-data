@@ -18,9 +18,11 @@
 package modelprocessor_test
 
 import (
+	"bytes"
 	"context"
-	"crypto/md5"
 	"encoding/hex"
+	"hash"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -36,7 +38,7 @@ func TestSetGroupingKey(t *testing.T) {
 	}{
 		"empty": {
 			input:       &modelpb.Error{},
-			groupingKey: hashStrings( /*empty*/ ),
+			groupingKey: "",
 		},
 		"exception_type_log_parammessage": {
 			input: &modelpb.Error{
@@ -47,7 +49,7 @@ func TestSetGroupingKey(t *testing.T) {
 					ParamMessage: "log_parammessage",
 				},
 			},
-			groupingKey: hashStrings("exception_type", "log_parammessage"),
+			groupingKey: hexifyStrings("exception_type", "log_parammessage"),
 		},
 		"exception_stacktrace": {
 			input: &modelpb.Error{
@@ -74,7 +76,7 @@ func TestSetGroupingKey(t *testing.T) {
 				},
 				Log: &modelpb.ErrorLog{Stacktrace: []*modelpb.StacktraceFrame{{Filename: "abc"}}}, // ignored
 			},
-			groupingKey: hashStrings(
+			groupingKey: hexifyStrings(
 				"module", "func_1", "filename", "func_2", "classname", "func_4", "func_5", "func_6",
 			),
 		},
@@ -84,7 +86,7 @@ func TestSetGroupingKey(t *testing.T) {
 					Stacktrace: []*modelpb.StacktraceFrame{{Function: "function"}},
 				},
 			},
-			groupingKey: hashStrings("function"),
+			groupingKey: hexifyStrings("function"),
 		},
 		"exception_message": {
 			input: &modelpb.Error{
@@ -101,13 +103,13 @@ func TestSetGroupingKey(t *testing.T) {
 				},
 				Log: &modelpb.ErrorLog{Message: "log_message"}, // ignored
 			},
-			groupingKey: hashStrings("message_1", "message_2", "message_3", "message_4"),
+			groupingKey: hexifyStrings("message_1", "message_2", "message_3", "message_4"),
 		},
 		"log_message": {
 			input: &modelpb.Error{
 				Log: &modelpb.ErrorLog{Message: "log_message"}, // ignored
 			},
-			groupingKey: hashStrings("log_message"),
+			groupingKey: hexifyStrings("log_message"),
 		},
 	}
 
@@ -116,7 +118,7 @@ func TestSetGroupingKey(t *testing.T) {
 			batch := modelpb.Batch{{
 				Error: test.input,
 			}}
-			processor := modelprocessor.SetGroupingKey{}
+			processor := modelprocessor.SetGroupingKey{NewHash: func() hash.Hash { return &fakeHash{} }}
 			err := processor.ProcessBatch(context.Background(), &batch)
 			assert.NoError(t, err)
 			assert.Equal(t, test.groupingKey, batch[0].Error.GroupingKey)
@@ -125,10 +127,24 @@ func TestSetGroupingKey(t *testing.T) {
 
 }
 
-func hashStrings(s ...string) string {
-	md5 := md5.New()
-	for _, s := range s {
-		md5.Write([]byte(s))
-	}
-	return hex.EncodeToString(md5.Sum(nil))
+// fakeHash is a hash.Hash that just accumulates the written data
+// to a buffer, and returns it exactly as written.
+type fakeHash struct {
+	bytes.Buffer
+}
+
+func (f *fakeHash) Sum(b []byte) []byte {
+	return append(b, f.Buffer.Bytes()...)
+}
+
+func (f *fakeHash) Size() int {
+	return f.Buffer.Len()
+}
+
+func (f *fakeHash) BlockSize() int {
+	return 1
+}
+
+func hexifyStrings(s ...string) string {
+	return hex.EncodeToString([]byte(strings.Join(s, "")))
 }

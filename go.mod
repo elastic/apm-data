@@ -12,7 +12,7 @@ require (
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10
 	github.com/stretchr/testify v1.10.0
 	github.com/xeipuuv/gojsonschema v1.2.0
-	go.elastic.co/apm/v2 v2.6.2
+	go.elastic.co/apm/v2 v2.6.3
 	go.elastic.co/fastjson v1.4.0
 	go.opentelemetry.io/collector/consumer v1.23.0
 	go.opentelemetry.io/collector/pdata v1.23.0
@@ -25,7 +25,7 @@ require (
 	go.uber.org/zap v1.27.0
 	golang.org/x/sync v0.10.0
 	golang.org/x/tools v0.29.0
-	google.golang.org/grpc v1.69.2
+	google.golang.org/grpc v1.69.4
 	google.golang.org/protobuf v1.36.2
 )
 
