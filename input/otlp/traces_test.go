@@ -48,7 +48,7 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
-	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
+	semconv "go.opentelemetry.io/collector/semconv/v1.27.0"
 	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -179,6 +179,22 @@ func TestHTTPTransactionURL(t *testing.T) {
 			"http.target":      "/foo?bar",
 		})
 	})
+	t.Run("scheme_servername_serverport_target", func(t *testing.T) {
+		test(t, &modelpb.URL{
+			Scheme:   "https",
+			Original: "/foo?bar",
+			Full:     "https://testing.invalid:80/foo?bar",
+			Path:     "/foo",
+			Query:    "bar",
+			Domain:   "testing.invalid",
+			Port:     80,
+		}, map[string]interface{}{
+			"http.scheme":      "https",
+			"http.server_name": "testing.invalid",
+			"server.port":      80,
+			"http.target":      "/foo?bar",
+		})
+	})
 	t.Run("scheme_nethostname_nethostport_target", func(t *testing.T) {
 		test(t, &modelpb.URL{
 			Scheme:   "https",
@@ -191,8 +207,24 @@ func TestHTTPTransactionURL(t *testing.T) {
 		}, map[string]interface{}{
 			"http.scheme":   "https",
 			"net.host.name": "testing.invalid",
-			"net.host.port": 80,
+			"server.port":   80,
 			"http.target":   "/foo?bar",
+		})
+	})
+	t.Run("scheme_server_address_nethostport_target", func(t *testing.T) {
+		test(t, &modelpb.URL{
+			Scheme:   "https",
+			Original: "/foo?bar",
+			Full:     "https://testing.invalid:80/foo?bar",
+			Path:     "/foo",
+			Query:    "bar",
+			Domain:   "testing.invalid",
+			Port:     80,
+		}, map[string]interface{}{
+			"http.scheme":    "https",
+			"server.address": "testing.invalid",
+			"server.port":    80,
+			"http.target":    "/foo?bar",
 		})
 	})
 	t.Run("http.url", func(t *testing.T) {
@@ -206,6 +238,59 @@ func TestHTTPTransactionURL(t *testing.T) {
 			Port:     80,
 		}, map[string]interface{}{
 			"http.url": "https://testing.invalid:80/foo?bar",
+		})
+	})
+	t.Run("url.full", func(t *testing.T) {
+		test(t, &modelpb.URL{
+			Scheme:   "https",
+			Original: "https://testing.invalid:80/foo?bar",
+			Full:     "https://testing.invalid:80/foo?bar",
+			Path:     "/foo",
+			Query:    "bar",
+			Domain:   "testing.invalid",
+			Port:     80,
+		}, map[string]interface{}{
+			"url.full": "https://testing.invalid:80/foo?bar",
+		})
+	})
+	t.Run("http.target", func(t *testing.T) {
+		test(t, &modelpb.URL{
+			Scheme:   "https",
+			Original: "https://testing.invalid:80/foo?bar",
+			Full:     "https://testing.invalid:80/foo?bar",
+			Path:     "/foo",
+			Query:    "bar",
+			Domain:   "testing.invalid",
+			Port:     80,
+		}, map[string]interface{}{
+			"http.target": "https://testing.invalid:80/foo?bar",
+		})
+	})
+	t.Run("url.path and url.query", func(t *testing.T) {
+		test(t, &modelpb.URL{
+			Scheme:   "https",
+			Original: "https://testing.invalid:80/foo?bar",
+			Full:     "https://testing.invalid:80/foo?bar",
+			Path:     "/foo",
+			Query:    "bar",
+			Domain:   "testing.invalid",
+			Port:     80,
+		}, map[string]interface{}{
+			"url.path":  "https://testing.invalid:80/foo",
+			"url.query": "bar",
+		})
+	})
+	t.Run("http.path", func(t *testing.T) {
+		test(t, &modelpb.URL{
+			Scheme:   "https",
+			Original: "https://testing.invalid:80/foo?bar",
+			Full:     "https://testing.invalid:80/foo?bar",
+			Path:     "/foo",
+			Query:    "bar",
+			Domain:   "testing.invalid",
+			Port:     80,
+		}, map[string]interface{}{
+			"http.path": "https://testing.invalid:80/foo?bar",
 		})
 	})
 	t.Run("host_no_port", func(t *testing.T) {
@@ -342,6 +427,18 @@ func TestHTTPSpanDestination(t *testing.T) {
 			"http.url": "https://testing.invalid:443/foo?bar",
 		})
 	})
+	t.Run("url_default_port_specified", func(t *testing.T) {
+		test(t, &modelpb.Destination{
+			Address: "testing.invalid",
+			Port:    443,
+		}, &modelpb.DestinationService{
+			Type:     "external",
+			Name:     "https://testing.invalid",
+			Resource: "testing.invalid:443",
+		}, map[string]interface{}{
+			"http.url": "https://testing.invalid:443/foo?bar",
+		})
+	})
 	t.Run("url_port_scheme", func(t *testing.T) {
 		test(t, &modelpb.Destination{
 			Address: "testing.invalid",
@@ -422,6 +519,12 @@ func TestHTTPTransactionSource(t *testing.T) {
 		test(t, "", "192.168.0.1", 1234, map[string]interface{}{
 			"net.peer.ip":   "192.168.0.1",
 			"net.peer.port": 1234,
+		})
+	})
+	t.Run("client.port", func(t *testing.T) {
+		test(t, "", "192.168.0.1", 1234, map[string]interface{}{
+			"net.peer.ip": "192.168.0.1",
+			"client.port": 1234,
 		})
 	})
 	t.Run("net.peer.ip", func(t *testing.T) {
@@ -648,6 +751,24 @@ func TestMessagingTransaction(t *testing.T) {
 			},
 			expectedLabels: map[string]*modelpb.LabelValue{
 				"messaging_operation": {Value: "publish"},
+			},
+			expectedTxnMessage: nil,
+		},
+		{
+			attrs: map[string]interface{}{
+				"messaging.operation.type": "publish",
+			},
+			expectedLabels: map[string]*modelpb.LabelValue{
+				"messaging_operation_type": {Value: "publish"},
+			},
+			expectedTxnMessage: nil,
+		},
+		{
+			attrs: map[string]interface{}{
+				"messaging.operation.name": "ack",
+			},
+			expectedLabels: map[string]*modelpb.LabelValue{
+				"messaging_operation_name": {Value: "ack"},
 			},
 			expectedTxnMessage: nil,
 		},

@@ -25,7 +25,8 @@ import (
 	"unicode"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
-	semconv "go.opentelemetry.io/collector/semconv/v1.25.0"
+	semconv26 "go.opentelemetry.io/collector/semconv/v1.26.0"
+	semconv "go.opentelemetry.io/collector/semconv/v1.27.0"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -66,8 +67,7 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			out.Service.Node.Name = truncate(v.Str())
 
 		// deployment.*
-		// deployment.environment is deprecated, use deployment.environment.name instead
-		case semconv.AttributeDeploymentEnvironment, "deployment.environment.name":
+		case semconv26.AttributeDeploymentEnvironment, semconv.AttributeDeploymentEnvironmentName:
 			if out.Service == nil {
 				out.Service = &modelpb.Service{}
 			}
