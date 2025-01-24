@@ -540,6 +540,43 @@ func processLogEvents(t *testing.T, logs plog.Logs) modelpb.Batch {
 	return processed
 }
 
+func TestConsumeLogsUserFields(t *testing.T) {
+	for _, tc := range userFieldsTestCases() {
+		t.Run(tc.name, func(t *testing.T) {
+			// Setup logs
+			logs := plog.NewLogs()
+			resourceLogs := logs.ResourceLogs().AppendEmpty()
+			scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
+			// Add process owner in resource metadata attributes
+			if tc.processOwner != "" {
+				resourceLogs.Resource().Attributes().PutStr(semconv.AttributeProcessOwner, tc.processOwner)
+			}
+			// Add attributes
+			logRecord := newLogRecord("foobar")
+			if tc.input.userID != "" {
+				logRecord.Attributes().PutStr("user.id", tc.input.userID)
+			}
+			if tc.input.userName != "" {
+				logRecord.Attributes().PutStr("user.name", tc.input.userName)
+			}
+			if tc.input.userEmail != "" {
+				logRecord.Attributes().PutStr("user.email", tc.input.userEmail)
+			}
+			// Copy log record
+			logRecord.CopyTo(scopeLogs.LogRecords().AppendEmpty())
+
+			processed := processLogEvents(t, logs)
+			expectedUser := &modelpb.User{
+				Id:    tc.expected.userID,
+				Email: tc.expected.userEmail,
+				Name:  tc.expected.userName,
+			}
+			assert.Len(t, processed, 1)
+			assert.EqualValues(t, expectedUser, processed[0].User)
+		})
+	}
+}
+
 func TestConsumerConsumeLogsDataStream(t *testing.T) {
 	randomString := strings.Repeat("abcdefghijklmnopqrstuvwxyz0123456789", 10)
 	maxLenNamespace := otlp.MaxDataStreamBytes - len(otlp.DisallowedNamespaceRunes)

@@ -580,3 +580,19 @@ func replaceReservedRune(disallowedRunes string) func(r rune) rune {
 		return unicode.ToLower(r)
 	}
 }
+
+// NOTE: This will overwrite user fields set by `user.name=process.owner` from `otlp/metadata.go:translateResourceMetadata`.
+func addUserFields(attrKey string, attrVal pcommon.Value, updateEvent *modelpb.APMEvent) {
+	if updateEvent.User == nil {
+		updateEvent.User = &modelpb.User{}
+	}
+
+	switch attrKey {
+	case attributeUserID:
+		updateEvent.User.Id = truncate(attrVal.Str())
+	case attributeUserName:
+		updateEvent.User.Name = truncate(attrVal.Str())
+	case attributeUserEmail:
+		updateEvent.User.Email = truncate(attrVal.Str())
+	}
+}

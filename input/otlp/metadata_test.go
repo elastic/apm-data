@@ -18,6 +18,7 @@
 package otlp_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -412,4 +413,76 @@ func transformResourceMetadata(t *testing.T, resourceAttrs map[string]interface{
 	(*events)[0].Event = nil
 	(*events)[0].Timestamp = 0
 	return (*events)[0]
+}
+
+type userField struct {
+	userID    string
+	userName  string
+	userEmail string
+}
+
+type userFieldsTestCase struct {
+	name         string
+	processOwner string
+	input        userField
+	expected     userField
+}
+
+func userFieldsTestCases() []userFieldsTestCase {
+	return []userFieldsTestCase{
+		{
+			name: "default",
+			input: userField{
+				userID:    "123",
+				userName:  "hello",
+				userEmail: "hello@example.com",
+			},
+			expected: userField{
+				userID:    "123",
+				userName:  "hello",
+				userEmail: "hello@example.com",
+			},
+		},
+		{
+			name:         "process owner not overwritten",
+			processOwner: "i-am-the-owner",
+			input: userField{
+				userID:    "123",
+				userName:  "",
+				userEmail: "hello@example.com",
+			},
+			expected: userField{
+				userID:    "123",
+				userName:  "i-am-the-owner",
+				userEmail: "hello@example.com",
+			},
+		},
+		{
+			name:         "overwrite process owner",
+			processOwner: "i-am-the-owner",
+			input: userField{
+				userID:    "123",
+				userName:  "hello",
+				userEmail: "hello@example.com",
+			},
+			expected: userField{
+				userID:    "123",
+				userName:  "hello",
+				userEmail: "hello@example.com",
+			},
+		},
+		{
+			name: "truncate",
+			input: userField{
+				userID:    strings.Repeat("a", 2000),
+				userName:  strings.Repeat("b", 2000),
+				userEmail: strings.Repeat("c", 2000),
+			},
+			expected: userField{
+				userID:    strings.Repeat("a", 1024),
+				userName:  strings.Repeat("b", 1024),
+				userEmail: strings.Repeat("c", 1024),
+			},
+		},
+	}
 }

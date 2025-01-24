@@ -83,6 +83,11 @@ const (
 	attributeDataStreamDataset          = "data_stream.dataset"
 	attributeDataStreamNamespace        = "data_stream.namespace"
 	attributeGenAiSystem                = "gen_ai.system"
+	// User fields, refer to https://github.com/elastic/apm-server/issues/15254.
+	// There are other user fields in OTel, but they don't have 1-to-1 mapping to `APMEvent.User`.
+	attributeUserName  = "user.name"
+	attributeUserID    = "user.id"
+	attributeUserEmail = "user.email"
 )
 
 // ConsumeTracesResult contains the number of rejected spans and error message for partial success response.
@@ -1170,6 +1175,11 @@ func (c *Consumer) convertSpanEvent(
 					event.DataStream = &modelpb.DataStream{}
 				}
 				event.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
+
+			// user.*
+			case attributeUserID, attributeUserName, attributeUserEmail:
+				addUserFields(k, v, event)
+
 			default:
 				k = replaceDots(k)
 				if isJaeger && k == "message" {
