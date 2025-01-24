@@ -242,6 +242,8 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			}
 			out.User.Name = truncate(v.Str())
 
+		// TODO(eric): Check if `user.*` fields are considered resource metadata?
+
 		// os.*
 		case semconv.AttributeOSType:
 			if out.Host == nil {
@@ -471,6 +473,9 @@ func translateScopeMetadata(scope pcommon.InstrumentationScope, out *modelpb.APM
 			}
 			out.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
 		}
+
+		// TODO(eric): Check if `user.*` fields are considered scope metadata?
+
 		return true
 	})
 
