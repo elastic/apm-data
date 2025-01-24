@@ -82,7 +82,7 @@ func (val *metadata) validate() error {
 		switch t := v.(type) {
 		case nil:
 		case string:
-			if utf8.RuneCountInString(t) > 1024 {
+			if enableFieldMaxLength && utf8.RuneCountInString(t) > 1024 {
 				return fmt.Errorf("'labels': validation rule 'maxLengthVals(1024)' violated")
 			}
 		case bool:
@@ -174,7 +174,7 @@ func (val *metadataService) validate() error {
 	if !val.Agent.IsSet() {
 		return fmt.Errorf("'agent' required")
 	}
-	if val.Environment.IsSet() && utf8.RuneCountInString(val.Environment.Val) > 1024 {
+	if val.Environment.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Environment.Val) > 1024 {
 		return fmt.Errorf("'environment': validation rule 'maxLength(1024)' violated")
 	}
 	if val.Framework.IsSet() {
@@ -187,7 +187,7 @@ func (val *metadataService) validate() error {
 			return errors.Wrapf(err, "language")
 		}
 	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
 	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) < 1 {
@@ -209,7 +209,7 @@ func (val *metadataService) validate() error {
 			return errors.Wrapf(err, "runtime")
 		}
 	}
-	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
+	if val.Version.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -246,13 +246,13 @@ func (val *metadataServiceAgent) Reset() {
 }
 
 func (val *metadataServiceAgent) validate() error {
-	if val.ActivationMethod.IsSet() && utf8.RuneCountInString(val.ActivationMethod.Val) > 1024 {
+	if val.ActivationMethod.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ActivationMethod.Val) > 1024 {
 		return fmt.Errorf("'activation_method': validation rule 'maxLength(1024)' violated")
 	}
-	if val.EphemeralID.IsSet() && utf8.RuneCountInString(val.EphemeralID.Val) > 1024 {
+	if val.EphemeralID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.EphemeralID.Val) > 1024 {
 		return fmt.Errorf("'ephemeral_id': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
 	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) < 1 {
@@ -261,7 +261,7 @@ func (val *metadataServiceAgent) validate() error {
 	if !val.Name.IsSet() {
 		return fmt.Errorf("'name' required")
 	}
-	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
+	if val.Version.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Version.IsSet() {
@@ -284,10 +284,10 @@ func (val *metadataServiceFramework) Reset() {
 }
 
 func (val *metadataServiceFramework) validate() error {
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
+	if val.Version.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -307,13 +307,13 @@ func (val *metadataServiceLanguage) Reset() {
 }
 
 func (val *metadataServiceLanguage) validate() error {
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Name.IsSet() {
 		return fmt.Errorf("'name' required")
 	}
-	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
+	if val.Version.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -332,7 +332,7 @@ func (val *metadataServiceNode) Reset() {
 }
 
 func (val *metadataServiceNode) validate() error {
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'configured_name': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -352,13 +352,13 @@ func (val *metadataServiceRuntime) Reset() {
 }
 
 func (val *metadataServiceRuntime) validate() error {
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Name.IsSet() {
 		return fmt.Errorf("'name' required")
 	}
-	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
+	if val.Version.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Version.IsSet() {
@@ -392,7 +392,7 @@ func (val *metadataCloud) validate() error {
 			return errors.Wrapf(err, "account")
 		}
 	}
-	if val.AvailabilityZone.IsSet() && utf8.RuneCountInString(val.AvailabilityZone.Val) > 1024 {
+	if val.AvailabilityZone.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.AvailabilityZone.Val) > 1024 {
 		return fmt.Errorf("'availability_zone': validation rule 'maxLength(1024)' violated")
 	}
 	if val.Instance.IsSet() {
@@ -410,13 +410,13 @@ func (val *metadataCloud) validate() error {
 			return errors.Wrapf(err, "project")
 		}
 	}
-	if val.Provider.IsSet() && utf8.RuneCountInString(val.Provider.Val) > 1024 {
+	if val.Provider.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Provider.Val) > 1024 {
 		return fmt.Errorf("'provider': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Provider.IsSet() {
 		return fmt.Errorf("'provider' required")
 	}
-	if val.Region.IsSet() && utf8.RuneCountInString(val.Region.Val) > 1024 {
+	if val.Region.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Region.Val) > 1024 {
 		return fmt.Errorf("'region': validation rule 'maxLength(1024)' violated")
 	}
 	if val.Service.IsSet() {
@@ -456,10 +456,10 @@ func (val *metadataCloudAccount) Reset() {
 }
 
 func (val *metadataCloudAccount) validate() error {
-	if val.ID.IsSet() && utf8.RuneCountInString(val.ID.Val) > 1024 {
+	if val.ID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ID.Val) > 1024 {
 		return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -479,10 +479,10 @@ func (val *metadataCloudInstance) Reset() {
 }
 
 func (val *metadataCloudInstance) validate() error {
-	if val.ID.IsSet() && utf8.RuneCountInString(val.ID.Val) > 1024 {
+	if val.ID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ID.Val) > 1024 {
 		return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -501,7 +501,7 @@ func (val *metadataCloudMachine) Reset() {
 }
 
 func (val *metadataCloudMachine) validate() error {
-	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
+	if val.Type.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Type.Val) > 1024 {
 		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -521,10 +521,10 @@ func (val *metadataCloudProject) Reset() {
 }
 
 func (val *metadataCloudProject) validate() error {
-	if val.ID.IsSet() && utf8.RuneCountInString(val.ID.Val) > 1024 {
+	if val.ID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ID.Val) > 1024 {
 		return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -543,7 +543,7 @@ func (val *metadataCloudService) Reset() {
 }
 
 func (val *metadataCloudService) validate() error {
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -569,10 +569,10 @@ func (val *metadataSystem) Reset() {
 }
 
 func (val *metadataSystem) validate() error {
-	if val.Architecture.IsSet() && utf8.RuneCountInString(val.Architecture.Val) > 1024 {
+	if val.Architecture.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Architecture.Val) > 1024 {
 		return fmt.Errorf("'architecture': validation rule 'maxLength(1024)' violated")
 	}
-	if val.ConfiguredHostname.IsSet() && utf8.RuneCountInString(val.ConfiguredHostname.Val) > 1024 {
+	if val.ConfiguredHostname.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ConfiguredHostname.Val) > 1024 {
 		return fmt.Errorf("'configured_hostname': validation rule 'maxLength(1024)' violated")
 	}
 	if val.Container.IsSet() {
@@ -580,10 +580,10 @@ func (val *metadataSystem) validate() error {
 			return errors.Wrapf(err, "container")
 		}
 	}
-	if val.DetectedHostname.IsSet() && utf8.RuneCountInString(val.DetectedHostname.Val) > 1024 {
+	if val.DetectedHostname.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.DetectedHostname.Val) > 1024 {
 		return fmt.Errorf("'detected_hostname': validation rule 'maxLength(1024)' violated")
 	}
-	if val.DeprecatedHostname.IsSet() && utf8.RuneCountInString(val.DeprecatedHostname.Val) > 1024 {
+	if val.DeprecatedHostname.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.DeprecatedHostname.Val) > 1024 {
 		return fmt.Errorf("'hostname': validation rule 'maxLength(1024)' violated")
 	}
 	if val.Kubernetes.IsSet() {
@@ -591,10 +591,10 @@ func (val *metadataSystem) validate() error {
 			return errors.Wrapf(err, "kubernetes")
 		}
 	}
-	if val.Platform.IsSet() && utf8.RuneCountInString(val.Platform.Val) > 1024 {
+	if val.Platform.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Platform.Val) > 1024 {
 		return fmt.Errorf("'platform': validation rule 'maxLength(1024)' violated")
 	}
-	if val.HostID.IsSet() && utf8.RuneCountInString(val.HostID.Val) > 1024 {
+	if val.HostID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.HostID.Val) > 1024 {
 		return fmt.Errorf("'host_id': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -619,7 +619,7 @@ func (val *metadataSystemContainer) Reset() {
 }
 
 func (val *metadataSystemContainer) validate() error {
-	if val.ID.IsSet() && utf8.RuneCountInString(val.ID.Val) > 1024 {
+	if val.ID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ID.Val) > 1024 {
 		return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -640,7 +640,7 @@ func (val *metadataSystemKubernetes) Reset() {
 }
 
 func (val *metadataSystemKubernetes) validate() error {
-	if val.Namespace.IsSet() && utf8.RuneCountInString(val.Namespace.Val) > 1024 {
+	if val.Namespace.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Namespace.Val) > 1024 {
 		return fmt.Errorf("'namespace': validation rule 'maxLength(1024)' violated")
 	}
 	if val.Node.IsSet() {
@@ -675,7 +675,7 @@ func (val *metadataSystemKubernetesNode) Reset() {
 }
 
 func (val *metadataSystemKubernetesNode) validate() error {
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -695,10 +695,10 @@ func (val *metadataSystemKubernetesPod) Reset() {
 }
 
 func (val *metadataSystemKubernetesPod) validate() error {
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
-	if val.UID.IsSet() && utf8.RuneCountInString(val.UID.Val) > 1024 {
+	if val.UID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.UID.Val) > 1024 {
 		return fmt.Errorf("'uid': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -720,12 +720,12 @@ func (val *user) Reset() {
 }
 
 func (val *user) validate() error {
-	if val.Domain.IsSet() && utf8.RuneCountInString(val.Domain.Val) > 1024 {
+	if val.Domain.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Domain.Val) > 1024 {
 		return fmt.Errorf("'domain': validation rule 'maxLength(1024)' violated")
 	}
 	switch t := val.ID.Val.(type) {
 	case string:
-		if utf8.RuneCountInString(t) > 1024 {
+		if enableFieldMaxLength && utf8.RuneCountInString(t) > 1024 {
 			return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
 		}
 	case int:
@@ -737,10 +737,10 @@ func (val *user) validate() error {
 	default:
 		return fmt.Errorf("'id': validation rule 'inputTypes(string;int)' violated ")
 	}
-	if val.Email.IsSet() && utf8.RuneCountInString(val.Email.Val) > 1024 {
+	if val.Email.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Email.Val) > 1024 {
 		return fmt.Errorf("'email': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'username': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -783,7 +783,7 @@ func (val *networkConnection) Reset() {
 }
 
 func (val *networkConnection) validate() error {
-	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
+	if val.Type.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Type.Val) > 1024 {
 		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -805,7 +805,7 @@ func (val *metadataProcess) Reset() {
 }
 
 func (val *metadataProcess) validate() error {
-	if val.Title.IsSet() && utf8.RuneCountInString(val.Title.Val) > 1024 {
+	if val.Title.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Title.Val) > 1024 {
 		return fmt.Errorf("'title': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Pid.IsSet() {
@@ -871,16 +871,16 @@ func (val *errorEvent) validate() error {
 			return errors.Wrapf(err, "log")
 		}
 	}
-	if val.Culprit.IsSet() && utf8.RuneCountInString(val.Culprit.Val) > 1024 {
+	if val.Culprit.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Culprit.Val) > 1024 {
 		return fmt.Errorf("'culprit': validation rule 'maxLength(1024)' violated")
 	}
-	if val.ID.IsSet() && utf8.RuneCountInString(val.ID.Val) > 1024 {
+	if val.ID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ID.Val) > 1024 {
 		return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.ID.IsSet() {
 		return fmt.Errorf("'id' required")
 	}
-	if val.ParentID.IsSet() && utf8.RuneCountInString(val.ParentID.Val) > 1024 {
+	if val.ParentID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ParentID.Val) > 1024 {
 		return fmt.Errorf("'parent_id': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.ParentID.IsSet() {
@@ -891,7 +891,7 @@ func (val *errorEvent) validate() error {
 			return fmt.Errorf("'parent_id' required when 'trace_id' is set")
 		}
 	}
-	if val.TraceID.IsSet() && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
+	if val.TraceID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
 		return fmt.Errorf("'trace_id': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.TraceID.IsSet() {
@@ -902,7 +902,7 @@ func (val *errorEvent) validate() error {
 			return fmt.Errorf("'trace_id' required when 'parent_id' is set")
 		}
 	}
-	if val.TransactionID.IsSet() && utf8.RuneCountInString(val.TransactionID.Val) > 1024 {
+	if val.TransactionID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.TransactionID.Val) > 1024 {
 		return fmt.Errorf("'transaction_id': validation rule 'maxLength(1024)' violated")
 	}
 	if val.Exception.IsSet() {
@@ -955,16 +955,16 @@ func (val *errorLog) Reset() {
 }
 
 func (val *errorLog) validate() error {
-	if val.Level.IsSet() && utf8.RuneCountInString(val.Level.Val) > 1024 {
+	if val.Level.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Level.Val) > 1024 {
 		return fmt.Errorf("'level': validation rule 'maxLength(1024)' violated")
 	}
-	if val.LoggerName.IsSet() && utf8.RuneCountInString(val.LoggerName.Val) > 1024 {
+	if val.LoggerName.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.LoggerName.Val) > 1024 {
 		return fmt.Errorf("'logger_name': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Message.IsSet() {
 		return fmt.Errorf("'message' required")
 	}
-	if val.ParamMessage.IsSet() && utf8.RuneCountInString(val.ParamMessage.Val) > 1024 {
+	if val.ParamMessage.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ParamMessage.Val) > 1024 {
 		return fmt.Errorf("'param_message': validation rule 'maxLength(1024)' violated")
 	}
 	for _, elem := range val.Stacktrace {
@@ -1043,7 +1043,7 @@ func (val *errorException) validate() error {
 	}
 	switch t := val.Code.Val.(type) {
 	case string:
-		if utf8.RuneCountInString(t) > 1024 {
+		if enableFieldMaxLength && utf8.RuneCountInString(t) > 1024 {
 			return fmt.Errorf("'code': validation rule 'maxLength(1024)' violated")
 		}
 	case int:
@@ -1071,10 +1071,10 @@ func (val *errorException) validate() error {
 			return errors.Wrapf(err, "stacktrace")
 		}
 	}
-	if val.Module.IsSet() && utf8.RuneCountInString(val.Module.Val) > 1024 {
+	if val.Module.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Module.Val) > 1024 {
 		return fmt.Errorf("'module': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
+	if val.Type.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Type.Val) > 1024 {
 		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -1095,10 +1095,10 @@ func (val *errorTransactionRef) Reset() {
 }
 
 func (val *errorTransactionRef) validate() error {
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
+	if val.Type.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Type.Val) > 1024 {
 		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -1133,7 +1133,7 @@ func (val *context) validate() error {
 		switch t := v.(type) {
 		case nil:
 		case string:
-			if utf8.RuneCountInString(t) > 1024 {
+			if enableFieldMaxLength && utf8.RuneCountInString(t) > 1024 {
 				return fmt.Errorf("'tags': validation rule 'maxLengthVals(1024)' violated")
 			}
 		case bool:
@@ -1229,7 +1229,7 @@ func (val *contextService) validate() error {
 			return errors.Wrapf(err, "agent")
 		}
 	}
-	if val.Environment.IsSet() && utf8.RuneCountInString(val.Environment.Val) > 1024 {
+	if val.Environment.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Environment.Val) > 1024 {
 		return fmt.Errorf("'environment': validation rule 'maxLength(1024)' violated")
 	}
 	if val.Framework.IsSet() {
@@ -1242,7 +1242,7 @@ func (val *contextService) validate() error {
 			return errors.Wrapf(err, "language")
 		}
 	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
 	if val.Name.Val != "" && !patternAlphaNumericExtRegexp.MatchString(val.Name.Val) {
@@ -1268,7 +1268,7 @@ func (val *contextService) validate() error {
 			return errors.Wrapf(err, "target")
 		}
 	}
-	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
+	if val.Version.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -1310,13 +1310,13 @@ func (val *contextServiceAgent) Reset() {
 }
 
 func (val *contextServiceAgent) validate() error {
-	if val.EphemeralID.IsSet() && utf8.RuneCountInString(val.EphemeralID.Val) > 1024 {
+	if val.EphemeralID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.EphemeralID.Val) > 1024 {
 		return fmt.Errorf("'ephemeral_id': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
+	if val.Version.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -1336,10 +1336,10 @@ func (val *contextServiceFramework) Reset() {
 }
 
 func (val *contextServiceFramework) validate() error {
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
+	if val.Version.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -1359,10 +1359,10 @@ func (val *contextServiceLanguage) Reset() {
 }
 
 func (val *contextServiceLanguage) validate() error {
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
+	if val.Version.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -1381,7 +1381,7 @@ func (val *contextServiceNode) Reset() {
 }
 
 func (val *contextServiceNode) validate() error {
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'configured_name': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -1419,10 +1419,10 @@ func (val *contextServiceRuntime) Reset() {
 }
 
 func (val *contextServiceRuntime) validate() error {
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
+	if val.Version.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -1592,10 +1592,10 @@ func (val *contextRequest) validate() error {
 			return errors.Wrapf(err, "url")
 		}
 	}
-	if val.HTTPVersion.IsSet() && utf8.RuneCountInString(val.HTTPVersion.Val) > 1024 {
+	if val.HTTPVersion.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.HTTPVersion.Val) > 1024 {
 		return fmt.Errorf("'http_version': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Method.IsSet() && utf8.RuneCountInString(val.Method.Val) > 1024 {
+	if val.Method.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Method.Val) > 1024 {
 		return fmt.Errorf("'method': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Method.IsSet() {
@@ -1637,7 +1637,7 @@ func (val *contextRequestURL) Reset() {
 func (val *contextRequestURL) validate() error {
 	switch t := val.Port.Val.(type) {
 	case string:
-		if utf8.RuneCountInString(t) > 1024 {
+		if enableFieldMaxLength && utf8.RuneCountInString(t) > 1024 {
 			return fmt.Errorf("'port': validation rule 'maxLength(1024)' violated")
 		}
 		if _, err := strconv.Atoi(t); err != nil {
@@ -1652,25 +1652,25 @@ func (val *contextRequestURL) validate() error {
 	default:
 		return fmt.Errorf("'port': validation rule 'inputTypes(string;int)' violated ")
 	}
-	if val.Full.IsSet() && utf8.RuneCountInString(val.Full.Val) > 1024 {
+	if val.Full.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Full.Val) > 1024 {
 		return fmt.Errorf("'full': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Hash.IsSet() && utf8.RuneCountInString(val.Hash.Val) > 1024 {
+	if val.Hash.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Hash.Val) > 1024 {
 		return fmt.Errorf("'hash': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Hostname.IsSet() && utf8.RuneCountInString(val.Hostname.Val) > 1024 {
+	if val.Hostname.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Hostname.Val) > 1024 {
 		return fmt.Errorf("'hostname': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Path.IsSet() && utf8.RuneCountInString(val.Path.Val) > 1024 {
+	if val.Path.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Path.Val) > 1024 {
 		return fmt.Errorf("'pathname': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Protocol.IsSet() && utf8.RuneCountInString(val.Protocol.Val) > 1024 {
+	if val.Protocol.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Protocol.Val) > 1024 {
 		return fmt.Errorf("'protocol': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Raw.IsSet() && utf8.RuneCountInString(val.Raw.Val) > 1024 {
+	if val.Raw.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Raw.Val) > 1024 {
 		return fmt.Errorf("'raw': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Search.IsSet() && utf8.RuneCountInString(val.Search.Val) > 1024 {
+	if val.Search.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Search.Val) > 1024 {
 		return fmt.Errorf("'search': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -1742,7 +1742,7 @@ func (val *contextMessageQueue) Reset() {
 }
 
 func (val *contextMessageQueue) validate() error {
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -1856,7 +1856,7 @@ func (val *metricset) validate() error {
 		switch t := v.(type) {
 		case nil:
 		case string:
-			if utf8.RuneCountInString(t) > 1024 {
+			if enableFieldMaxLength && utf8.RuneCountInString(t) > 1024 {
 				return fmt.Errorf("'tags': validation rule 'maxLengthVals(1024)' violated")
 			}
 		case bool:
@@ -1942,10 +1942,10 @@ func (val *metricsetSpanRef) Reset() {
 }
 
 func (val *metricsetSpanRef) validate() error {
-	if val.Subtype.IsSet() && utf8.RuneCountInString(val.Subtype.Val) > 1024 {
+	if val.Subtype.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Subtype.Val) > 1024 {
 		return fmt.Errorf("'subtype': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
+	if val.Type.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Type.Val) > 1024 {
 		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -1965,10 +1965,10 @@ func (val *metricsetTransactionRef) Reset() {
 }
 
 func (val *metricsetTransactionRef) validate() error {
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
+	if val.Type.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Type.Val) > 1024 {
 		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -1988,10 +1988,10 @@ func (val *metricsetServiceRef) Reset() {
 }
 
 func (val *metricsetServiceRef) validate() error {
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
+	if val.Version.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Version.Val) > 1024 {
 		return fmt.Errorf("'version': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -2116,22 +2116,22 @@ func (val *span) validate() error {
 			return errors.Wrapf(err, "otel")
 		}
 	}
-	if val.ID.IsSet() && utf8.RuneCountInString(val.ID.Val) > 1024 {
+	if val.ID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ID.Val) > 1024 {
 		return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.ID.IsSet() {
 		return fmt.Errorf("'id' required")
 	}
-	if val.TraceID.IsSet() && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
+	if val.TraceID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
 		return fmt.Errorf("'trace_id': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.TraceID.IsSet() {
 		return fmt.Errorf("'trace_id' required")
 	}
-	if val.Action.IsSet() && utf8.RuneCountInString(val.Action.Val) > 1024 {
+	if val.Action.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Action.Val) > 1024 {
 		return fmt.Errorf("'action': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Name.IsSet() {
@@ -2150,11 +2150,11 @@ func (val *span) validate() error {
 		}
 	}
 	for _, elem := range val.ChildIDs {
-		if utf8.RuneCountInString(elem) > 1024 {
+		if enableFieldMaxLength && utf8.RuneCountInString(elem) > 1024 {
 			return fmt.Errorf("'child_ids': validation rule 'maxLength(1024)' violated")
 		}
 	}
-	if val.ParentID.IsSet() && utf8.RuneCountInString(val.ParentID.Val) > 1024 {
+	if val.ParentID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ParentID.Val) > 1024 {
 		return fmt.Errorf("'parent_id': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.ParentID.IsSet() {
@@ -2176,16 +2176,16 @@ func (val *span) validate() error {
 			return errors.Wrapf(err, "stacktrace")
 		}
 	}
-	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
+	if val.Type.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Type.Val) > 1024 {
 		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Type.IsSet() {
 		return fmt.Errorf("'type' required")
 	}
-	if val.Subtype.IsSet() && utf8.RuneCountInString(val.Subtype.Val) > 1024 {
+	if val.Subtype.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Subtype.Val) > 1024 {
 		return fmt.Errorf("'subtype': validation rule 'maxLength(1024)' violated")
 	}
-	if val.TransactionID.IsSet() && utf8.RuneCountInString(val.TransactionID.Val) > 1024 {
+	if val.TransactionID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.TransactionID.Val) > 1024 {
 		return fmt.Errorf("'transaction_id': validation rule 'maxLength(1024)' violated")
 	}
 	if val.Composite.IsSet() {
@@ -2249,13 +2249,13 @@ func (val *spanLink) Reset() {
 }
 
 func (val *spanLink) validate() error {
-	if val.SpanID.IsSet() && utf8.RuneCountInString(val.SpanID.Val) > 1024 {
+	if val.SpanID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.SpanID.Val) > 1024 {
 		return fmt.Errorf("'span_id': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.SpanID.IsSet() {
 		return fmt.Errorf("'span_id' required")
 	}
-	if val.TraceID.IsSet() && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
+	if val.TraceID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
 		return fmt.Errorf("'trace_id': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.TraceID.IsSet() {
@@ -2321,7 +2321,7 @@ func (val *spanContext) validate() error {
 		switch t := v.(type) {
 		case nil:
 		case string:
-			if utf8.RuneCountInString(t) > 1024 {
+			if enableFieldMaxLength && utf8.RuneCountInString(t) > 1024 {
 				return fmt.Errorf("'tags': validation rule 'maxLengthVals(1024)' violated")
 			}
 		case bool:
@@ -2391,7 +2391,7 @@ func (val *spanContextDatabase) Reset() {
 }
 
 func (val *spanContextDatabase) validate() error {
-	if val.Link.IsSet() && utf8.RuneCountInString(val.Link.Val) > 1024 {
+	if val.Link.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Link.Val) > 1024 {
 		return fmt.Errorf("'link': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -2417,7 +2417,7 @@ func (val *spanContextDestination) validate() error {
 			return errors.Wrapf(err, "service")
 		}
 	}
-	if val.Address.IsSet() && utf8.RuneCountInString(val.Address.Val) > 1024 {
+	if val.Address.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Address.Val) > 1024 {
 		return fmt.Errorf("'address': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -2441,16 +2441,16 @@ func (val *spanContextDestinationService) Reset() {
 }
 
 func (val *spanContextDestinationService) validate() error {
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Resource.IsSet() && utf8.RuneCountInString(val.Resource.Val) > 1024 {
+	if val.Resource.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Resource.Val) > 1024 {
 		return fmt.Errorf("'resource': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Resource.IsSet() {
 		return fmt.Errorf("'resource' required")
 	}
-	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
+	if val.Type.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Type.Val) > 1024 {
 		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -2478,7 +2478,7 @@ func (val *spanContextHTTP) validate() error {
 			return errors.Wrapf(err, "request")
 		}
 	}
-	if val.Method.IsSet() && utf8.RuneCountInString(val.Method.Val) > 1024 {
+	if val.Method.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Method.Val) > 1024 {
 		return fmt.Errorf("'method': validation rule 'maxLength(1024)' violated")
 	}
 	if val.Response.IsSet() {
@@ -2615,31 +2615,31 @@ func (val *transaction) validate() error {
 			return errors.Wrapf(err, "links")
 		}
 	}
-	if val.TraceID.IsSet() && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
+	if val.TraceID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
 		return fmt.Errorf("'trace_id': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.TraceID.IsSet() {
 		return fmt.Errorf("'trace_id' required")
 	}
-	if val.ID.IsSet() && utf8.RuneCountInString(val.ID.Val) > 1024 {
+	if val.ID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ID.Val) > 1024 {
 		return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.ID.IsSet() {
 		return fmt.Errorf("'id' required")
 	}
-	if val.ParentID.IsSet() && utf8.RuneCountInString(val.ParentID.Val) > 1024 {
+	if val.ParentID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ParentID.Val) > 1024 {
 		return fmt.Errorf("'parent_id': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
+	if val.Name.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Name.Val) > 1024 {
 		return fmt.Errorf("'name': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
+	if val.Type.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Type.Val) > 1024 {
 		return fmt.Errorf("'type': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.Type.IsSet() {
 		return fmt.Errorf("'type' required")
 	}
-	if val.Result.IsSet() && utf8.RuneCountInString(val.Result.Val) > 1024 {
+	if val.Result.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Result.Val) > 1024 {
 		return fmt.Errorf("'result': validation rule 'maxLength(1024)' violated")
 	}
 	for _, elem := range val.DroppedSpanStats {
@@ -2773,13 +2773,13 @@ func (val *transactionDroppedSpanStats) Reset() {
 }
 
 func (val *transactionDroppedSpanStats) validate() error {
-	if val.DestinationServiceResource.IsSet() && utf8.RuneCountInString(val.DestinationServiceResource.Val) > 1024 {
+	if val.DestinationServiceResource.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.DestinationServiceResource.Val) > 1024 {
 		return fmt.Errorf("'destination_service_resource': validation rule 'maxLength(1024)' violated")
 	}
-	if val.ServiceTargetType.IsSet() && utf8.RuneCountInString(val.ServiceTargetType.Val) > 512 {
+	if val.ServiceTargetType.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ServiceTargetType.Val) > 512 {
 		return fmt.Errorf("'service_target_type': validation rule 'maxLength(512)' violated")
 	}
-	if val.ServiceTargetName.IsSet() && utf8.RuneCountInString(val.ServiceTargetName.Val) > 512 {
+	if val.ServiceTargetName.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ServiceTargetName.Val) > 512 {
 		return fmt.Errorf("'service_target_name': validation rule 'maxLength(512)' violated")
 	}
 	if val.Outcome.Val != "" {
@@ -2866,7 +2866,7 @@ func (val *transactionSession) Reset() {
 }
 
 func (val *transactionSession) validate() error {
-	if val.ID.IsSet() && utf8.RuneCountInString(val.ID.Val) > 1024 {
+	if val.ID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ID.Val) > 1024 {
 		return fmt.Errorf("'id': validation rule 'maxLength(1024)' violated")
 	}
 	if !val.ID.IsSet() {
@@ -3027,7 +3027,7 @@ func (val *log) validate() error {
 		switch t := v.(type) {
 		case nil:
 		case string:
-			if utf8.RuneCountInString(t) > 1024 {
+			if enableFieldMaxLength && utf8.RuneCountInString(t) > 1024 {
 				return fmt.Errorf("'labels': validation rule 'maxLengthVals(1024)' violated")
 			}
 		case bool:
@@ -3056,13 +3056,13 @@ func (val *log) validate() error {
 			return errors.Wrapf(err, "ecslogprocessfields")
 		}
 	}
-	if val.TraceID.IsSet() && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
+	if val.TraceID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
 		return fmt.Errorf("'trace.id': validation rule 'maxLength(1024)' violated")
 	}
-	if val.TransactionID.IsSet() && utf8.RuneCountInString(val.TransactionID.Val) > 1024 {
+	if val.TransactionID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.TransactionID.Val) > 1024 {
 		return fmt.Errorf("'transaction.id': validation rule 'maxLength(1024)' violated")
 	}
-	if val.SpanID.IsSet() && utf8.RuneCountInString(val.SpanID.Val) > 1024 {
+	if val.SpanID.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.SpanID.Val) > 1024 {
 		return fmt.Errorf("'span.id': validation rule 'maxLength(1024)' violated")
 	}
 	if val.FAAS.IsSet() {
@@ -3115,16 +3115,16 @@ func (val *EcsLogServiceFields) Reset() {
 }
 
 func (val *EcsLogServiceFields) validate() error {
-	if val.ServiceName.IsSet() && utf8.RuneCountInString(val.ServiceName.Val) > 1024 {
+	if val.ServiceName.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ServiceName.Val) > 1024 {
 		return fmt.Errorf("'service.name': validation rule 'maxLength(1024)' violated")
 	}
-	if val.ServiceVersion.IsSet() && utf8.RuneCountInString(val.ServiceVersion.Val) > 1024 {
+	if val.ServiceVersion.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ServiceVersion.Val) > 1024 {
 		return fmt.Errorf("'service.version': validation rule 'maxLength(1024)' violated")
 	}
-	if val.ServiceEnvironment.IsSet() && utf8.RuneCountInString(val.ServiceEnvironment.Val) > 1024 {
+	if val.ServiceEnvironment.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ServiceEnvironment.Val) > 1024 {
 		return fmt.Errorf("'service.environment': validation rule 'maxLength(1024)' violated")
 	}
-	if val.ServiceNodeName.IsSet() && utf8.RuneCountInString(val.ServiceNodeName.Val) > 1024 {
+	if val.ServiceNodeName.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ServiceNodeName.Val) > 1024 {
 		return fmt.Errorf("'service.node.name': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -3196,7 +3196,7 @@ func (val *EcsLogEventFields) Reset() {
 }
 
 func (val *EcsLogEventFields) validate() error {
-	if val.EventDataset.IsSet() && utf8.RuneCountInString(val.EventDataset.Val) > 1024 {
+	if val.EventDataset.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.EventDataset.Val) > 1024 {
 		return fmt.Errorf("'event.dataset': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -3224,7 +3224,7 @@ func (val *EcsLogProcessFields) Reset() {
 }
 
 func (val *EcsLogProcessFields) validate() error {
-	if val.ProcessThreadName.IsSet() && utf8.RuneCountInString(val.ProcessThreadName.Val) > 1024 {
+	if val.ProcessThreadName.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.ProcessThreadName.Val) > 1024 {
 		return fmt.Errorf("'process.thread.name': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
@@ -3258,13 +3258,13 @@ func (val *EcsLogLogFields) Reset() {
 }
 
 func (val *EcsLogLogFields) validate() error {
-	if val.Level.IsSet() && utf8.RuneCountInString(val.Level.Val) > 1024 {
+	if val.Level.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Level.Val) > 1024 {
 		return fmt.Errorf("'log.level': validation rule 'maxLength(1024)' violated")
 	}
-	if val.Logger.IsSet() && utf8.RuneCountInString(val.Logger.Val) > 1024 {
+	if val.Logger.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.Logger.Val) > 1024 {
 		return fmt.Errorf("'log.logger': validation rule 'maxLength(1024)' violated")
 	}
-	if val.OriginFileName.IsSet() && utf8.RuneCountInString(val.OriginFileName.Val) > 1024 {
+	if val.OriginFileName.IsSet() && enableFieldMaxLength && utf8.RuneCountInString(val.OriginFileName.Val) > 1024 {
 		return fmt.Errorf("'log.origin.file.name': validation rule 'maxLength(1024)' violated")
 	}
 	return nil
