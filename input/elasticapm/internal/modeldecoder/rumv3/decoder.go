@@ -32,6 +32,14 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
+var (
+	enableFieldMaxLength = true
+)
+
+func SetFieldMaxLength(flag bool) {
+	enableFieldMaxLength = flag
+}
+
 // DecodeNestedMetadata decodes metadata from d, updating out.
 func DecodeNestedMetadata(d decoder.Decoder, out *modelpb.APMEvent) error {
 	root := &metadataRoot{}

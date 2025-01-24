@@ -55,9 +55,8 @@ import (
 )
 
 const (
-	keywordLength = 1024
-	dot           = "."
-	underscore    = "_"
+	dot        = "."
+	underscore = "_"
 
 	outcomeSuccess = "success"
 	outcomeFailure = "failure"
@@ -83,6 +82,10 @@ const (
 	attributeDataStreamDataset          = "data_stream.dataset"
 	attributeDataStreamNamespace        = "data_stream.namespace"
 	attributeGenAiSystem                = "gen_ai.system"
+)
+
+var (
+	keywordLength = 1024
 )
 
 // ConsumeTracesResult contains the number of rejected spans and error message for partial success response.
@@ -1395,6 +1398,9 @@ func clientHTTPStatusCodeOutcome(statusCode int) string {
 
 // truncate returns s truncated at n runes, and the number of runes in the resulting string (<= n).
 func truncate(s string) string {
+	if keywordLength == 0 {
+		return s
+	}
 	var j int
 	for i := range s {
 		if j == keywordLength {
