@@ -33,6 +33,7 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/rumv3"
 	v2 "github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/v2"
 	"github.com/elastic/apm-data/model/modelpb"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var (
@@ -234,6 +235,7 @@ func (p *Processor) readBatch(
 // Callers must not access result concurrently with HandleStream.
 func (p *Processor) HandleStream(
 	ctx context.Context,
+	tp trace.TracerProvider,
 	baseEvent *modelpb.APMEvent,
 	reader io.Reader,
 	batchSize int,
@@ -246,7 +248,7 @@ func (p *Processor) HandleStream(
 	//
 	// The semaphore defaults to 200 (N), only allowing N requests to read
 	// an cache Y events (determined by batchSize) from the batch.
-	if err := p.semAcquire(ctx); err != nil {
+	if err := p.semAcquire(ctx, tp); err != nil {
 		return fmt.Errorf("unable to service request: %w", err)
 	}
 	sr := p.getStreamReader(reader)
@@ -325,9 +327,10 @@ func (p *Processor) getStreamReader(r io.Reader) *streamReader {
 	}
 }
 
-func (p *Processor) semAcquire(ctx context.Context) error {
-	sp, ctx := apm.StartSpan(ctx, "Semaphore.Acquire", "Reporter")
-	defer sp.End()
+func (p *Processor) semAcquire(ctx context.Context, tp trace.TracerProvider) error {
+	tracer := tp.Tracer("internal/server/http/elastic")
+	ctx, span := tracer.Start(ctx, "Semaphore.Acquire")
+	defer span.End()
 
 	return p.sem.Acquire(ctx, 1)
 }
