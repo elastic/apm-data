@@ -96,7 +96,7 @@ case %s:
 `[1:], typ)
 			if maxLengthRule != (validationRule{}) {
 				fmt.Fprintf(w, `
-if utf8.RuneCountInString(t) %s %s{
+if enableFieldMaxLength && utf8.RuneCountInString(t) %s %s{
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 }
 `[1:], ruleMinMaxOperator(maxLengthRule.name), maxLengthRule.value, jsonName(f), maxLengthRule.name, maxLengthRule.value)

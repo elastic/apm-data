@@ -148,7 +148,7 @@ if k != "" && !%sRegexp.MatchString(k){
 
 func mapRuleMaxVals(w io.Writer, f structField, rule validationRule) {
 	fmt.Fprintf(w, `
-if utf8.RuneCountInString(t) > %s{
+if enableFieldMaxLength && utf8.RuneCountInString(t) > %s{
 	return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 }
 `[1:], rule.value, jsonName(f), rule.name, rule.value)

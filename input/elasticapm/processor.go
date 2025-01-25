@@ -75,6 +75,8 @@ type Config struct {
 	Logger *zap.Logger
 	// MaxEventSize holds the maximum event size, in bytes.
 	MaxEventSize int
+	// DisableFieldMaxLength disables truncating certain field values.
+	DisableFieldMaxLength bool
 }
 
 // StreamHandler is an interface for handling an Elastic APM agent ND-JSON event
@@ -96,6 +98,8 @@ func NewProcessor(cfg Config) *Processor {
 	if cfg.Logger == nil {
 		cfg.Logger = zap.NewNop()
 	}
+	v2.SetFieldMaxLength(!cfg.DisableFieldMaxLength)
+	rumv3.SetFieldMaxLength(!cfg.DisableFieldMaxLength)
 	return &Processor{
 		MaxEventSize: cfg.MaxEventSize,
 		sem:          cfg.Semaphore,

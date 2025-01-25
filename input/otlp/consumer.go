@@ -51,6 +51,9 @@ type ConsumerConfig struct {
 	// RemapOTelMetrics remaps certain OpenTelemetry metrics to elastic metrics.
 	// Note that both, OTel and Elastic, metrics would be published.
 	RemapOTelMetrics bool
+
+	// DisableFieldMaxLength disables truncating certain field values.
+	DisableFieldMaxLength bool
 }
 
 // Consumer transforms OpenTelemetry data to the Elastic APM data model,
@@ -75,6 +78,11 @@ func NewConsumer(config ConsumerConfig) *Consumer {
 			hostmetrics.NewRemapper(config.Logger),
 			kubernetesmetrics.NewRemapper(config.Logger),
 		}
+	}
+	if config.DisableFieldMaxLength {
+		keywordLength = 0
+	} else {
+		keywordLength = 1024
 	}
 	return &Consumer{
 		config:    config,

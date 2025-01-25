@@ -76,7 +76,7 @@ func sliceRuleMinMaxLength(w io.Writer, f structField, rule validationRule) erro
 		if basic.Kind() == types.String {
 			fmt.Fprintf(w, `
 for _, elem := range val.%s{
-	if utf8.RuneCountInString(elem) %s %s{
+	if enableFieldMaxLength && utf8.RuneCountInString(elem) %s %s{
 			return fmt.Errorf("'%s': validation rule '%s(%s)' violated")
 	}
 }

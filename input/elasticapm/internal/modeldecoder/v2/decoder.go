@@ -57,7 +57,13 @@ var (
 	// Service target type comprises of only lowercase alphabets
 	// Service target name comprises of all word characters
 	reForServiceTargetExpr = regexp.MustCompile(`^([a-z0-9]+)(?:/(\w+))?$`)
+
+	enableFieldMaxLength = true
 )
+
+func SetFieldMaxLength(flag bool) {
+	enableFieldMaxLength = flag
+}
 
 // DecodeMetadata decodes metadata from d, updating out.
 //

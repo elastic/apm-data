@@ -790,7 +790,7 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
 
 	record1 := newLogRecord("whatever")
-	record1.Attributes().PutStr("key1", "one")
+	record1.Attributes().PutStr("key1", strings.Repeat("1", 2000))
 	record1.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
 	record2 := newLogRecord("andever")
@@ -821,12 +821,64 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 	assert.Equal(t, otlp.ConsumeLogsResult{}, result)
 
 	assert.Len(t, processed, 3)
-	assert.Equal(t, modelpb.Labels{"key0": {Global: true, Value: "zero"}, "key1": {Value: "one"}}, modelpb.Labels(processed[0].Labels))
+	// label is truncated
+	assert.Equal(t, modelpb.Labels{"key0": {Global: true, Value: "zero"}, "key1": {Value: strings.Repeat("1", 1024)}}, modelpb.Labels(processed[0].Labels))
 	assert.Empty(t, processed[0].NumericLabels)
 	assert.Equal(t, modelpb.Labels{"key0": {Global: true, Value: "zero"}}, modelpb.Labels(processed[1].Labels))
 	assert.Equal(t, modelpb.NumericLabels{"key2": {Value: 2}}, modelpb.NumericLabels(processed[1].NumericLabels))
 	assert.Equal(t, modelpb.Labels{"key0": {Global: true, Value: "zero"}, "key3": {Value: "three"}}, modelpb.Labels(processed[2].Labels))
 	assert.Equal(t, modelpb.NumericLabels{"key4": {Value: 4}}, modelpb.NumericLabels(processed[2].NumericLabels))
+}
+
+func TestConsumerConsumeLogsLabelsNotTruncated(t *testing.T) {
+	logs := plog.NewLogs()
+	resourceLogs := logs.ResourceLogs().AppendEmpty()
+	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
+	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKLanguage, "go")
+	resourceAttrs.PutStr("key0", "zero")
+	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
+
+	record1 := newLogRecord("whatever")
+	record1.Attributes().PutStr("key1", strings.Repeat("1", 2000))
+	record1.CopyTo(scopeLogs.LogRecords().AppendEmpty())
+
+	record2 := newLogRecord("andever")
+	record2.Attributes().PutDouble("key2", 2)
+	record2.CopyTo(scopeLogs.LogRecords().AppendEmpty())
+
+	record3 := newLogRecord("amen")
+	record3.Attributes().PutStr("key3", "three")
+	record3.Attributes().PutInt("key4", 4)
+	record3.CopyTo(scopeLogs.LogRecords().AppendEmpty())
+
+	var processed modelpb.Batch
+	var processor modelpb.ProcessBatchFunc = func(_ context.Context, batch *modelpb.Batch) error {
+		if processed != nil {
+			panic("already processes batch")
+		}
+		processed = batch.Clone()
+		assert.NotZero(t, processed[0].Timestamp)
+		processed[0].Timestamp = 0
+		return nil
+	}
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor:             processor,
+		Semaphore:             semaphore.NewWeighted(100),
+		DisableFieldMaxLength: true,
+	})
+	result, err := consumer.ConsumeLogsWithResult(context.Background(), logs)
+	assert.NoError(t, err)
+	assert.Equal(t, otlp.ConsumeLogsResult{}, result)
+
+	assert.Len(t, processed, 3)
+	// label is not truncated
+	assert.Equal(t, modelpb.Labels{"key0": {Global: true, Value: "zero"}, "key1": {Value: strings.Repeat("1", 2000)}}, modelpb.Labels(processed[0].Labels))
+	assert.Empty(t, processed[0].NumericLabels)
+	assert.Equal(t, modelpb.Labels{"key0": {Global: true, Value: "zero"}}, modelpb.Labels(processed[1].Labels))
+	assert.Equal(t, modelpb.NumericLabels{"key2": {Value: 2}}, modelpb.NumericLabels(processed[1].NumericLabels))
+	assert.Equal(t, modelpb.Labels{"key0": {Global: true, Value: "zero"}, "key3": {Value: "three"}}, modelpb.Labels(processed[2].Labels))
+	assert.Equal(t, modelpb.NumericLabels{"key4": {Value: 4}}, modelpb.NumericLabels(processed[2].NumericLabels))
+
 }
 
 func newLogRecord(body interface{}) plog.LogRecord {
