@@ -49,6 +49,7 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 	"golang.org/x/sync/semaphore"
 	"google.golang.org/protobuf/testing/protocmp"
 
@@ -733,6 +734,61 @@ func TestConsumeMetricsExportTimestamp(t *testing.T) {
 	for _, e := range events {
 		// telemetry.sdk.elastic_export_timestamp should not be sent as a label.
 		assert.Empty(t, e.NumericLabels)
+	}
+}
+
+func TestConsumeMetricsUserFields(t *testing.T) {
+	for _, tc := range userFieldsTestCases() {
+		t.Run(tc.name, func(t *testing.T) {
+			// Setup metric
+			metrics := pmetric.NewMetrics()
+			resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
+			scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
+			metric := scopeMetrics.Metrics().AppendEmpty()
+			metric.SetName("test_sum")
+			// Add data point
+			timestamp := time.Unix(123456789, 0).UTC()
+			dp := metric.SetEmptySum().DataPoints().AppendEmpty()
+			dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
+			dp.SetIntValue(42)
+			// Add process owner in resource metadata attributes
+			if tc.processOwner != "" {
+				resourceMetrics.Resource().Attributes().PutStr(semconv.AttributeProcessOwner, tc.processOwner)
+			}
+			// Add attributes
+			if tc.input.userID != "" {
+				dp.Attributes().PutStr("user.id", tc.input.userID)
+			}
+			if tc.input.userName != "" {
+				dp.Attributes().PutStr("user.name", tc.input.userName)
+			}
+			if tc.input.userEmail != "" {
+				dp.Attributes().PutStr("user.email", tc.input.userEmail)
+			}
+
+			events, _, result, err := transformMetrics(t, metrics)
+			assert.NoError(t, err)
+			assert.Equal(t, otlp.ConsumeMetricsResult{}, result)
+
+			expected := []*modelpb.APMEvent{{
+				Agent:     &modelpb.Agent{Name: "otlp", Version: "unknown"},
+				Service:   &modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}},
+				Timestamp: modelpb.FromTime(timestamp),
+				Metricset: &modelpb.Metricset{
+					Name: "app",
+					Samples: []*modelpb.MetricsetSample{
+						{Name: "test_sum", Value: 42, Type: modelpb.MetricType_METRIC_TYPE_COUNTER},
+					},
+				},
+				User: &modelpb.User{
+					Id:    tc.expected.userID,
+					Name:  tc.expected.userName,
+					Email: tc.expected.userEmail,
+				},
+			}}
+
+			eventsMatch(t, expected, events)
+		})
 	}
 }
 

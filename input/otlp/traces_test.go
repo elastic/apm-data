@@ -1401,6 +1401,45 @@ func TestSpanCodeStacktrace(t *testing.T) {
 	})
 }
 
+func TestConsumeTracesUserFields(t *testing.T) {
+	for _, tc := range userFieldsTestCases() {
+		t.Run(tc.name, func(t *testing.T) {
+			// Setup span
+			traces, spans := newTracesSpans()
+			otelSpan := spans.Spans().AppendEmpty()
+			otelSpan.SetTraceID(pcommon.TraceID{111})
+			otelSpan.SetSpanID(pcommon.SpanID{222})
+			// Add process owner in resource metadata attributes
+			if tc.processOwner != "" {
+				traces.ResourceSpans().At(0).Resource().Attributes().PutStr(semconv.AttributeProcessOwner, tc.processOwner)
+			}
+			// Add attributes
+			timestamp := time.Unix(123456789, 0).UTC()
+			spanEvent := otelSpan.Events().AppendEmpty()
+			spanEvent.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
+			if tc.input.userID != "" {
+				spanEvent.Attributes().PutStr("user.id", tc.input.userID)
+			}
+			if tc.input.userName != "" {
+				spanEvent.Attributes().PutStr("user.name", tc.input.userName)
+			}
+			if tc.input.userEmail != "" {
+				spanEvent.Attributes().PutStr("user.email", tc.input.userEmail)
+			}
+
+			allEvents := transformTraces(t, traces)
+			events := (*allEvents)[1:]
+			expectedUser := &modelpb.User{
+				Id:    tc.expected.userID,
+				Email: tc.expected.userEmail,
+				Name:  tc.expected.userName,
+			}
+			assert.Len(t, events, 1)
+			assert.EqualValues(t, expectedUser, events[0].User)
+		})
+	}
+}
+
 func TestSpanEventsDataStream(t *testing.T) {
 	for _, isException := range []bool{false, true} {
 		t.Run(fmt.Sprintf("isException=%v", isException), func(t *testing.T) {

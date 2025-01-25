@@ -243,11 +243,11 @@ func (c *Consumer) handleScopeMetrics(
 						event.Event = &modelpb.Event{}
 					}
 					event.Event.Module = v.Str()
-				case "user.name":
-					if event.User == nil {
-						event.User = &modelpb.User{}
-					}
-					event.User.Name = truncate(v.Str())
+
+				// user.*
+				case attributeUserID, attributeUserName, attributeUserEmail:
+					addUserFields(k, v, event)
+
 				default:
 					setLabel(k, event, v)
 				}

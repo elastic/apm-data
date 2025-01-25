@@ -199,6 +199,11 @@ func (c *Consumer) convertLogRecord(
 				event.DataStream = &modelpb.DataStream{}
 			}
 			event.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
+
+		// user.*
+		case attributeUserID, attributeUserName, attributeUserEmail:
+			addUserFields(k, v, event)
+
 		default:
 			setLabel(replaceDots(k), event, v)
 		}
