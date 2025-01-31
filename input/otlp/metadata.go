@@ -587,7 +587,7 @@ func replaceReservedRune(disallowedRunes string) func(r rune) rune {
 }
 
 // NOTE: This will overwrite user fields set by `user.name=process.owner` from `otlp/metadata.go:translateResourceMetadata`.
-func addUserFields(attrKey string, attrVal pcommon.Value, updateEvent *modelpb.APMEvent) {
+func addUserFields(attrKey string, attrVal pcommon.Value, event *modelpb.APMEvent) {
 	if updateEvent.User == nil {
 		updateEvent.User = &modelpb.User{}
 	}
