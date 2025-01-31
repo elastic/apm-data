@@ -242,8 +242,6 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			}
 			out.User.Name = truncate(v.Str())
 
-		// TODO(eric): Check if `user.*` fields are considered resource metadata?
-
 		// os.*
 		case semconv.AttributeOSType:
 			if out.Host == nil {
@@ -474,8 +472,6 @@ func translateScopeMetadata(scope pcommon.InstrumentationScope, out *modelpb.APM
 			out.DataStream.Namespace = sanitizeDataStreamNamespace(v.Str())
 		}
 
-		// TODO(eric): Check if `user.*` fields are considered scope metadata?
-
 		return true
 	})
 
@@ -588,16 +584,16 @@ func replaceReservedRune(disallowedRunes string) func(r rune) rune {
 
 // NOTE: This will overwrite user fields set by `user.name=process.owner` from `otlp/metadata.go:translateResourceMetadata`.
 func addUserFields(attrKey string, attrVal pcommon.Value, event *modelpb.APMEvent) {
-	if updateEvent.User == nil {
-		updateEvent.User = &modelpb.User{}
+	if event.User == nil {
+		event.User = &modelpb.User{}
 	}
 
 	switch attrKey {
 	case attributeUserID:
-		updateEvent.User.Id = truncate(attrVal.Str())
+		event.User.Id = truncate(attrVal.Str())
 	case attributeUserName:
-		updateEvent.User.Name = truncate(attrVal.Str())
+		event.User.Name = truncate(attrVal.Str())
 	case attributeUserEmail:
-		updateEvent.User.Email = truncate(attrVal.Str())
+		event.User.Email = truncate(attrVal.Str())
 	}
 }

@@ -491,6 +491,11 @@ func TranslateTransaction(
 					event.DataStream = &modelpb.DataStream{}
 				}
 				event.DataStream.Namespace = sanitizeDataStreamNamespace(stringval)
+
+			// user.*
+			case attributeUserID, attributeUserName, attributeUserEmail:
+				addUserFields(k, v, event)
+
 			default:
 				modelpb.Labels(event.Labels).Set(k, stringval)
 			}
@@ -843,6 +848,11 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 					event.DataStream = &modelpb.DataStream{}
 				}
 				event.DataStream.Namespace = sanitizeDataStreamNamespace(stringval)
+
+			// user.*
+			case attributeUserID, attributeUserName, attributeUserEmail:
+				addUserFields(k, v, event)
+
 			default:
 				setLabel(k, event, v)
 			}
