@@ -516,7 +516,7 @@ func setLabel(key string, event *modelpb.APMEvent, v pcommon.Value) {
 			for i := 0; i < s.Len(); i++ {
 				r := s.At(i)
 				if r.Type() == pcommon.ValueTypeStr {
-					result = append(result, r.Str())
+					result = append(result, truncate(r.Str()))
 				}
 			}
 			modelpb.Labels(event.Labels).SetSlice(key, result)
