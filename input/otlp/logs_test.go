@@ -46,7 +46,7 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
-	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
+	semconv "go.opentelemetry.io/collector/semconv/v1.27.0"
 	"golang.org/x/sync/semaphore"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -280,6 +280,7 @@ func TestConsumerConsumeLogsException(t *testing.T) {
 	record2 := newLogRecord("bar")
 	record2.Attributes().PutStr("event.name", "crash")
 	record2.Attributes().PutStr("event.domain", "device")
+	record2.Attributes().PutBool("exception.escaped", true)
 	record2.Attributes().PutStr("exception.type", "HighLevelException")
 	record2.Attributes().PutStr("exception.message", "MidLevelException: LowLevelException")
 	record2.Attributes().PutStr("exception.stacktrace", `
@@ -359,7 +360,7 @@ Caused by: LowLevelException
 			Exception: &modelpb.Exception{
 				Type:    "HighLevelException",
 				Message: "MidLevelException: LowLevelException",
-				Handled: newBool(true),
+				Handled: newBool(false),
 				Stacktrace: []*modelpb.StacktraceFrame{{
 					Classname: "Junk",
 					Function:  "a",
@@ -373,7 +374,7 @@ Caused by: LowLevelException
 				}},
 				Cause: []*modelpb.Exception{{
 					Message: "MidLevelException: LowLevelException",
-					Handled: newBool(true),
+					Handled: newBool(false),
 					Stacktrace: []*modelpb.StacktraceFrame{{
 						Classname: "Junk",
 						Function:  "c",
@@ -397,7 +398,7 @@ Caused by: LowLevelException
 					}},
 					Cause: []*modelpb.Exception{{
 						Message: "LowLevelException",
-						Handled: newBool(true),
+						Handled: newBool(false),
 						Stacktrace: []*modelpb.StacktraceFrame{{
 							Classname: "Junk",
 							Function:  "e",

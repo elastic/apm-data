@@ -42,7 +42,7 @@ import (
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
-	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
+	semconv "go.opentelemetry.io/collector/semconv/v1.27.0"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -180,7 +180,7 @@ func (c *Consumer) convertLogRecord(
 				event.Session = &modelpb.Session{}
 			}
 			event.Session.Id = v.Str()
-		case attributeNetworkConnectionType:
+		case semconv.AttributeNetworkConnectionType:
 			if event.Network == nil {
 				event.Network = &modelpb.Network{}
 			}
