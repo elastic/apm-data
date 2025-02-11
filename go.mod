@@ -3,7 +3,7 @@ module github.com/elastic/apm-data
 go 1.22.7
 
 require (
-	github.com/elastic/opentelemetry-lib v0.14.0
+	github.com/elastic/opentelemetry-lib v0.14.1
 	github.com/google/go-cmp v0.6.0
 	github.com/jaegertracing/jaeger v1.64.0
 	github.com/json-iterator/go v1.1.12
@@ -15,8 +15,8 @@ require (
 	go.elastic.co/apm/v2 v2.6.3
 	go.elastic.co/fastjson v1.4.0
 	go.opentelemetry.io/collector/consumer v1.22.0
-	go.opentelemetry.io/collector/pdata v1.22.0
-	go.opentelemetry.io/collector/semconv v0.116.0
+	go.opentelemetry.io/collector/pdata v1.23.0
+	go.opentelemetry.io/collector/semconv v0.117.0
 	go.opentelemetry.io/otel v1.33.0
 	go.opentelemetry.io/otel/metric v1.33.0
 	go.opentelemetry.io/otel/sdk v1.33.0
@@ -26,7 +26,7 @@ require (
 	golang.org/x/sync v0.11.0
 	golang.org/x/tools v0.30.0
 	google.golang.org/grpc v1.70.0
-	google.golang.org/protobuf v1.36.0
+	google.golang.org/protobuf v1.36.2
 )
 
 require (
@@ -53,7 +53,7 @@ require (
 	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20241202173237-19429a94021a // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250102185135-69823020774d // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	howett.net/plist v1.0.0 // indirect
 )
