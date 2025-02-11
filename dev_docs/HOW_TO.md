@@ -30,6 +30,7 @@ Adding a new intake field requires changes to both apm-data and apm-server repos
 
          go mod edit -replace=github.com/elastic/apm-data=/path/to/your/apm-data
          make update
+2. Update the [`apm-data` plugin](https://github.com/elastic/elasticsearch/tree/main/x-pack/plugin/apm-data) accordingly.
 
 ### 3. Test your changes with system test (in apm-server)
 
