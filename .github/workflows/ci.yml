@@ -16,7 +16,7 @@ jobs:
     - run: make all
     - uses: dominikh/staticcheck-action@v1.3.1
       with:
-        version: "2023.1.7"
+        version: "2025.1"
         install-go: false
     - name: Verify repo is up-to-date
       run: |
