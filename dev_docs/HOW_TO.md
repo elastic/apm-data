@@ -170,7 +170,7 @@ Once you have merged your PR into the main branch, you will need add a tag so th
 2. Copy the commit SHA (1e73b0c... from above example) and checkout using `git checkout 1e73b0c...`.
 3. Run `git tag <new_version>`. If you need to input a message, simply put something like `Tag <new_version> release`.
    1. For fixes / patches, increment the patch version e.g. to `v1.17.1`.
-   2. For any changes that introduce new features / minor changes in behavior, increment the minor version e.g. to `v1.18.0`.
+   2. For new features / minor changes in behavior, increment the minor version e.g. to `v1.18.0`.
    3. For major changes / breaking changes, increment the major version e.g. to `v2.0.0`. Consult with the team first before doing this!!
 4. Run `git push upstream tag <new_version>` to push the tag to upstream. Note that this assumes you named the Elastic remote Git URL as `upstream`.
 5. Go to the [GitHub releases page](https://github.com/elastic/apm-data/releases) and click *"Draft a new release"*.
