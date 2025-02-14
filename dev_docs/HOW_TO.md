@@ -166,9 +166,9 @@ will map the protobuf model to an internal format compatible with Elasticsearch 
 
 Once you have merged your PR into the main branch, you will need add a tag so that you can use it for your subsequent PR in `apm-server` or even [MIS](https://docs.elastic.dev/mis).
 
-1. Find out the commits that you want tagged. E.g. in this [compare](https://github.com/elastic/apm-data/compare/v1.17.0...main), I want to tag up to the [`Update support for semconv versions up to semconv 1.27.0` commit](https://github.com/elastic/apm-data/commit/1e73b0cbd06208a4239e502cd5d512e9d0c0264d).
+1. Find out the commits that you want tagged. E.g. in this [compare from v1.17.0](https://github.com/elastic/apm-data/compare/v1.17.0...main), I want to tag up to the [`Update support for semconv versions up to semconv 1.27.0` commit](https://github.com/elastic/apm-data/commit/1e73b0cbd06208a4239e502cd5d512e9d0c0264d).
 2. Copy the commit SHA (1e73b0c... from above example) and checkout using `git checkout 1e73b0c...`.
-3. Run `git tag <new_version>` which in our example is `v1.17.0`. If you need to input a message, simply put something like `Tag <new_version> release`.
+3. Run `git tag <new_version>`. If you need to input a message, simply put something like `Tag <new_version> release`.
    1. For fixes / patches, increment the patch version e.g. to `v1.17.1`.
    2. For any changes that introduce new features / minor changes in behavior, increment the minor version e.g. to `v1.18.0`.
    3. For major changes / breaking changes, increment the major version e.g. to `v2.0.0`. Consult with the team first before doing this!!
