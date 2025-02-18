@@ -164,7 +164,7 @@ will map the protobuf model to an internal format compatible with Elasticsearch 
 
 ## How to release new `apm-data` version
 
-Once you have merged your PR into the main branch, you will need add a tag so that you can use it for your subsequent PR in `apm-server` or even [MIS](https://docs.elastic.dev/mis).
+Once you have merged your PR into the main branch, you will need add a tag so that you can use it for your subsequent PR in `apm-server`.
 
 1. Find out the commits that you want tagged. E.g. in this [compare from v1.17.0](https://github.com/elastic/apm-data/compare/v1.17.0...main), I want to tag up to the [`Update support for semconv versions up to semconv 1.27.0` commit](https://github.com/elastic/apm-data/commit/1e73b0cbd06208a4239e502cd5d512e9d0c0264d).
 2. Go to the [GitHub releases page](https://github.com/elastic/apm-data/releases) and click *"Draft a new release"*.
