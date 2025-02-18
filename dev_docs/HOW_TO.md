@@ -172,7 +172,7 @@ Once you have merged your PR into the main branch, you will need add a tag so th
 
    <img src="./images/github-find-commit.png" alt="Find commit" width="300"/>
 
-4. Type in the new tag version under *"Choose a tag"* and click *"Create a new tag"*.
+4. Type in the new tag version under *"Choose a tag"* and click *"Create a new tag"*. It should follow [Semantic Versioning](https://semver.org/).
    1. For fixes / patches, increment the patch version e.g. to `v1.17.1`.
    2. For small new features / minor changes in behavior, increment the minor version e.g. to `v1.18.0`.
    3. For major changes / breaking changes, increment the major version e.g. to `v2.0.0`. Consult with the team first before doing this!!
