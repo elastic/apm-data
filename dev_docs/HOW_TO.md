@@ -161,3 +161,25 @@ be used for sending and receiving protobuf models internally, they are not compa
 by Elasticsearch.
 If you need to encode to JSON an APM event to send it to Elasticsearch, you need to use `MarshalFastJSON`: this method
 will map the protobuf model to an internal format compatible with Elasticsearch expected document and encode it to JSON.
+
+## How to release new `apm-data` version
+
+Once you have merged your PR into the main branch, you will need add a tag so that you can use it for your subsequent PR in `apm-server`.
+
+1. Find out the commits that you want tagged. E.g. in this [compare from v1.17.0](https://github.com/elastic/apm-data/compare/v1.17.0...main), I want to tag up to the [`Update support for semconv versions up to semconv 1.27.0` commit](https://github.com/elastic/apm-data/commit/1e73b0cbd06208a4239e502cd5d512e9d0c0264d).
+2. Go to the [GitHub releases page](https://github.com/elastic/apm-data/releases) and click *"Draft a new release"*.
+3. Select the commit from *"Recent Commits"* tab in *"Target"*.
+
+   <img src="./images/github-find-commit.png" alt="Find commit" width="300"/>
+
+4. Type in the new tag version under *"Choose a tag"* and click *"Create a new tag"*. It should follow [Semantic Versioning](https://semver.org/).
+   1. For fixes / patches, increment the patch version e.g. to `v1.17.1`.
+   2. For small new features / minor changes in behavior, increment the minor version e.g. to `v1.18.0`.
+   3. For major changes / breaking changes, increment the major version e.g. to `v2.0.0`. Consult with the team first before doing this!!
+
+   <img src="./images/github-create-tag.png" alt="Find commit" width="300"/>
+   
+   Note: The above image uses `v1.18.1` instead of `v1.18.0` since we already released `v1.18.0` at the point of writing this.
+
+5. Click *"Generate release notes"*.
+6. Finally, click *"Publish release"* and you have now released a new `apm-data` version!
