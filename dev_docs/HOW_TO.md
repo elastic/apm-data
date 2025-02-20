@@ -57,17 +57,17 @@ See [apm-server TESTING.md](https://github.com/elastic/apm-server/blob/main/dev_
 
 1. If you have modified the `apm-data` plugin on ES, have that PR reviewed and merged first.
 2. Create a PR in apm-data, and have it reviewed and merged.
-2. In apm-server, bump apm-data dependency (and ES image if applicable).
+3. In apm-server, bump apm-data dependency (plus ES image if applicable) and create a PR. Note that usually, the bots will bump them automatically, so there's no need for you to do it, but this is included here for reference.
    - Run
 
          go mod edit -dropreplace=github.com/elastic/apm-data
          go get github.com/elastic/apm-data@main
          make update
-3. Create a PR in apm-server.
 
-### Example set of PRs to add an intake field:
-- [apm-data PR](https://github.com/elastic/apm-data/pull/3)
-- [apm-server PR](https://github.com/elastic/apm-server/pull/9850)
+### Example set of PRs:
+- [ES plugin PR](https://github.com/elastic/elasticsearch/pull/112440)
+- [apm-data PR](https://github.com/elastic/apm-data/pull/362)
+- apm-server does not have PR since it's bumped by bots 
 
 ## How to map an OTel field
 
