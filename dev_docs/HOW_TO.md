@@ -32,7 +32,7 @@ Adding a new intake field requires changes to both apm-data and apm-server repos
          make update
 2. Modify the [`apm-data` plugin](https://github.com/elastic/elasticsearch/tree/main/x-pack/plugin/apm-data) to add the field to Elasticsearch mapping. Note that since the default mappings is [dynamic](https://github.com/elastic/elasticsearch/blob/main/x-pack/plugin/apm-data/src/main/resources/component-templates/apm%40mappings.yaml#L8), you may not even need to update the plugin if the field can be mapped dynamically.
    1. Find the corresponding data stream directory in `src/main/resources/component-templates/`. If the field applies to multiple data streams (e.g. `processor.event`), make sure all the corresponding data streams are updated. 
-   2. Add the field to the YAML file in the data stream fields directory, e.g. `src/main/resources/component-templates/traces-apm@mappings.yaml`.
+   2. Add the field to the YAML file for the data stream, e.g. `src/main/resources/component-templates/traces-apm@mappings.yaml`.
    3. In case any changes to ingest pipelines and ILM policies are needed, they are inside `src/main/resources/ingest-pipelines/` and `src/main/resources/lifecycle-policies/` respectively.
    4. Finally, you will need to build ES docker image in local ES repo with `./gradlew buildDockerImage` and reference it in apm-server `docker-compose.yml`.
 
