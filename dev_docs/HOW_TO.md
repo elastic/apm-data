@@ -30,14 +30,11 @@ Adding a new intake field requires changes to both apm-data and apm-server repos
 
          go mod edit -replace=github.com/elastic/apm-data=/path/to/your/apm-data
          make update
-2. Modify [apmpackage](https://github.com/elastic/apm-server/tree/main/apmpackage) to add the field to Elasticsearch mapping.
-   1. Find the corresponding data stream directory in `apmpackage/apm/data_stream/`. If the field applies to multiple data streams (e.g. field `service.name`), make sure all the corresponding data streams are updated. 
-   2. Add the field to the YAML file in the data stream fields directory, e.g. `apmpackage/apm/data_stream/traces/fields/`.
-        - Modify `ecs.yml`, if the field is defined in [ECS](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html).
-        - Otherwise, modify `fields.yml`.
-   3. In case any changes to ingest pipelines and ILM policies are needed, they are inside the `apmpackage/apm/data_stream/<data_stream_name>/elasticsearch/` directory.
-        - The common pipelines are defined in [apmpackage/cmd/genpackage/pipelines.go](https://github.com/elastic/apm-server/blob/main/apmpackage/cmd/genpackage/pipelines.go) and injected at package build (`make build-package`) time.
-   4. Update apmpackage changelog `apmpackage/apm/changelog.yml`.
+2. Modify the [`apm-data` plugin](https://github.com/elastic/elasticsearch/tree/main/x-pack/plugin/apm-data) to add the field to Elasticsearch mapping. Note that since the default mappings is [dynamic](https://github.com/elastic/elasticsearch/blob/main/x-pack/plugin/apm-data/src/main/resources/component-templates/apm%40mappings.yaml#L8), you may not even need to update the plugin if the field can be mapped dynamically.
+   1. Find the corresponding data stream directory in `src/main/resources/component-templates/`. If the field applies to multiple data streams (e.g. `processor.event`), make sure all the corresponding data streams are updated. 
+   2. Add the field to the YAML file in the data stream fields directory, e.g. `src/main/resources/component-templates/traces-apm@mappings.yaml`.
+   3. In case any changes to ingest pipelines and ILM policies are needed, they are inside `src/main/resources/ingest-pipelines/` and `src/main/resources/lifecycle-policies/` respectively.
+   4. Finally, you will need to build ES docker image in local ES repo with `./gradlew buildDockerImage` and reference it in apm-server `docker-compose.yml`.
 
 ### 3. Test your changes with system test (in apm-server)
 
@@ -58,8 +55,9 @@ See [apm-server TESTING.md](https://github.com/elastic/apm-server/blob/main/dev_
 
 ### 5. Finalize PRs
 
-1. Create a PR in apm-data, and have it reviewed and merged.
-2. In apm-server, bump apm-data dependency.
+1. If you have modified the `apm-data` plugin on ES, have that PR reviewed and merged first.
+2. Create a PR in apm-data, and have it reviewed and merged.
+2. In apm-server, bump apm-data dependency (and ES image if applicable).
    - Run
 
          go mod edit -dropreplace=github.com/elastic/apm-data
