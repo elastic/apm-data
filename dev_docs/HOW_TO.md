@@ -55,7 +55,7 @@ See [apm-server TESTING.md](https://github.com/elastic/apm-server/blob/main/dev_
 
 ### 5. Finalize PRs
 
-1. If you have modified the `apm-data` plugin on ES, have that PR reviewed and merged first.
+1. If you have modified the `apm-data` plugin in ES, have that PR reviewed and merged first. Wait for a new ES build, and wait for [apm-server automation](https://github.com/elastic/apm-server/blob/main/.github/workflows/bump-elastic-stack.yml) to bump stack version.
 2. Create a PR in apm-data, and have it reviewed and merged.
 3. In apm-server, bump apm-data dependency (plus ES image if applicable) and create a PR. Note that usually, the bots will bump them automatically, so there's no need for you to do it, but this is included here for reference.
    - Run
