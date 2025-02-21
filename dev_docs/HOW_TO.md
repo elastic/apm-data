@@ -58,6 +58,7 @@ See [apm-server TESTING.md](https://github.com/elastic/apm-server/blob/main/dev_
 1. If you have modified the ES plugin, have that PR reviewed and merged first. Wait for a new ES build, and wait for [apm-server automation](https://github.com/elastic/apm-server/blob/main/.github/workflows/bump-elastic-stack.yml) to bump stack version.
 2. Create a PR in apm-data, and have it reviewed and merged. Follow the [instructions to release a new version](#how-to-release-new-apm-data-version), otherwise apm-server automation to bump apm-data version won't work.
 3. In apm-server, bump apm-data dependency and create a PR. Note that usually, the bots will bump them automatically, so there's no need for you to do it, but this is included here for reference.
+   - Revert local ES version in `docker-compose.yml` if it was changed
    - Run
 
          go mod edit -dropreplace=github.com/elastic/apm-data
@@ -67,7 +68,7 @@ See [apm-server TESTING.md](https://github.com/elastic/apm-server/blob/main/dev_
 ### Example set of PRs:
 - [ES plugin PR](https://github.com/elastic/elasticsearch/pull/112440)
 - [apm-data PR](https://github.com/elastic/apm-data/pull/362)
-- apm-server does not have PR since it's bumped by bots 
+- apm-server did not have PR since it's bumped by bots 
 
 ## How to map an OTel field
 
