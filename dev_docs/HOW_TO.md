@@ -23,31 +23,31 @@ Adding a new intake field requires changes to both apm-data and apm-server repos
    - RUM v3: [input/elasticapm/internal/modeldecoder/rumv3/decoder.go](/input/elasticapm/internal/modeldecoder/rumv3/decoder.go)
 7. Run `make test`
 
-### 2. Make changes in [apm-server](https://github.com/elastic/apm-server/)
+### 2. Make changes in Elasticsearch [apm-data plugin](https://github.com/elastic/elasticsearch/tree/main/x-pack/plugin/apm-data)
 
-1. Use the modified apm-data by replacing the apm-data dependency with the local one.
+1. Modify the ES plugin to add the field to Elasticsearch mapping. Note that since the default mappings is [dynamic](https://github.com/elastic/elasticsearch/blob/main/x-pack/plugin/apm-data/src/main/resources/component-templates/apm%40mappings.yaml#L8), you may not even need to update the plugin if the field can be mapped dynamically.
+   1. Find the corresponding data stream directory in `src/main/resources/component-templates/`. If the field applies to multiple data streams (e.g. `processor.event`), make sure all the corresponding data streams are updated. 
+   2. Add the field to the YAML file for the data stream, e.g. `src/main/resources/component-templates/traces-apm@mappings.yaml`.
+   3. In case any changes to ingest pipelines and ILM policies are needed, they are inside `src/main/resources/ingest-pipelines/` and `src/main/resources/lifecycle-policies/` respectively.
+
+### 3. Test your changes with system test (in [apm-server](https://github.com/elastic/apm-server/))
+
+Modify apm-server system test to ensure the field works end-to-end.
+
+1. If you have modified the ES plugin above, build ES docker image in local ES repo with `./gradlew buildDockerImage` and reference it in apm-server `docker-compose.yml`.
+2. Use the modified apm-data by replacing the apm-data dependency with the local one.
    - Run
 
          go mod edit -replace=github.com/elastic/apm-data=/path/to/your/apm-data
          make update
-2. Modify the [`apm-data` plugin](https://github.com/elastic/elasticsearch/tree/main/x-pack/plugin/apm-data) to add the field to Elasticsearch mapping. Note that since the default mappings is [dynamic](https://github.com/elastic/elasticsearch/blob/main/x-pack/plugin/apm-data/src/main/resources/component-templates/apm%40mappings.yaml#L8), you may not even need to update the plugin if the field can be mapped dynamically.
-   1. Find the corresponding data stream directory in `src/main/resources/component-templates/`. If the field applies to multiple data streams (e.g. `processor.event`), make sure all the corresponding data streams are updated. 
-   2. Add the field to the YAML file for the data stream, e.g. `src/main/resources/component-templates/traces-apm@mappings.yaml`.
-   3. In case any changes to ingest pipelines and ILM policies are needed, they are inside `src/main/resources/ingest-pipelines/` and `src/main/resources/lifecycle-policies/` respectively.
-   4. Finally, you will need to build ES docker image in local ES repo with `./gradlew buildDockerImage` and reference it in apm-server `docker-compose.yml`.
-
-### 3. Test your changes with system test (in apm-server)
-
-Modify apm-server system test to ensure the field works end-to-end.
-
-1. Modify the input of the system test.
+2. Modify the input of the system test.
    - Intake v2: [`testdata/intake-v2/events.ndjson`](https://github.com/elastic/apm-server/blob/main/testdata/intake-v2/events.ndjson)
    - RUM v3: [`testdata/intake-v3/rum_events.ndjson`](https://github.com/elastic/apm-server/blob/main/testdata/intake-v3/rum_events.ndjson)
-2. Run `make system-test` or only the specific tests.
+3. Run `make system-test` or only the specific tests.
     - Intake v2: [`systemtest/intake_test.go`](https://github.com/elastic/apm-server/blob/main/systemtest/intake_test.go)
     - RUM v3: [`systemtest/rum_test.go`](https://github.com/elastic/apm-server/blob/main/systemtest/rum_test.go)
-3. System tests should fail as the received Elasticsearch documents do not match the expected documents because of the new field. If it doesn't fail, check the code.
-4. Run `make update check-approvals` to review and accept the changes in the Elasticsearch documents.
+4. System tests should fail as the received Elasticsearch documents do not match the expected documents because of the new field. If it doesn't fail, check the code.
+5. Run `make update check-approvals` to review and accept the changes in the Elasticsearch documents.
 
 ### 4. Test your changes manually
 
@@ -55,9 +55,9 @@ See [apm-server TESTING.md](https://github.com/elastic/apm-server/blob/main/dev_
 
 ### 5. Finalize PRs
 
-1. If you have modified the `apm-data` plugin in ES, have that PR reviewed and merged first. Wait for a new ES build, and wait for [apm-server automation](https://github.com/elastic/apm-server/blob/main/.github/workflows/bump-elastic-stack.yml) to bump stack version.
-2. Create a PR in apm-data, and have it reviewed and merged.
-3. In apm-server, bump apm-data dependency (plus ES image if applicable) and create a PR. Note that usually, the bots will bump them automatically, so there's no need for you to do it, but this is included here for reference.
+1. If you have modified the ES plugin, have that PR reviewed and merged first. Wait for a new ES build, and wait for [apm-server automation](https://github.com/elastic/apm-server/blob/main/.github/workflows/bump-elastic-stack.yml) to bump stack version.
+2. Create a PR in apm-data, and have it reviewed and merged. Follow the [instructions to release a new version](#how-to-release-new-apm-data-version), otherwise apm-server automation to bump apm-data version won't work.
+3. In apm-server, bump apm-data dependency and create a PR. Note that usually, the bots will bump them automatically, so there's no need for you to do it, but this is included here for reference.
    - Run
 
          go mod edit -dropreplace=github.com/elastic/apm-data
@@ -160,7 +160,7 @@ by Elasticsearch.
 If you need to encode to JSON an APM event to send it to Elasticsearch, you need to use `MarshalFastJSON`: this method
 will map the protobuf model to an internal format compatible with Elasticsearch expected document and encode it to JSON.
 
-## How to release new `apm-data` version
+## How to release new apm-data version
 
 Once you have merged your PR into the main branch, you will need add a tag so that you can use it for your subsequent PR in `apm-server`.
 
