@@ -68,7 +68,9 @@ See [apm-server TESTING.md](https://github.com/elastic/apm-server/blob/main/dev_
 ### Example set of PRs:
 - [ES plugin PR](https://github.com/elastic/elasticsearch/pull/112440)
 - [apm-data PR](https://github.com/elastic/apm-data/pull/362)
-- apm-server did not have PR since it's bumped by bots 
+- apm-server dependency bump PRs from automation:
+   - [apm-data bump](https://github.com/elastic/apm-server/pull/15702)
+   - [ES image bump](https://github.com/elastic/apm-server/pull/15813)
 
 ## How to map an OTel field
 
