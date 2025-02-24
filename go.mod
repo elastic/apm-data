@@ -4,7 +4,7 @@ go 1.23
 
 require (
 	github.com/elastic/opentelemetry-lib v0.14.0
-	github.com/google/go-cmp v0.6.0
+	github.com/google/go-cmp v0.7.0
 	github.com/jaegertracing/jaeger v1.66.0
 	github.com/json-iterator/go v1.1.12
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.119.0
