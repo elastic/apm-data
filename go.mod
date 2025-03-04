@@ -1,6 +1,6 @@
 module github.com/elastic/apm-data
 
-go 1.23
+go 1.23.6
 
 require (
 	github.com/elastic/opentelemetry-lib v0.14.0
