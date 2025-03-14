@@ -1,11 +1,11 @@
 module github.com/elastic/apm-data
 
-go 1.23.6
+go 1.24.1
 
 require (
 	github.com/elastic/opentelemetry-lib v0.16.1
 	github.com/google/go-cmp v0.7.0
-	github.com/jaegertracing/jaeger v1.66.0
+	github.com/jaegertracing/jaeger v1.67.0
 	github.com/json-iterator/go v1.1.12
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.121.0
 	github.com/pkg/errors v0.9.1
@@ -54,7 +54,7 @@ require (
 	golang.org/x/net v0.37.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250207221924-e9438ea467c6 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	howett.net/plist v1.0.1 // indirect
 )
