@@ -1,7 +1,6 @@
 module github.com/elastic/apm-data
 
 go 1.24.1
-
 require (
 	github.com/elastic/opentelemetry-lib v0.16.1
 	github.com/google/go-cmp v0.7.0
@@ -25,7 +24,7 @@ require (
 	go.uber.org/zap v1.27.0
 	golang.org/x/sync v0.12.0
 	golang.org/x/tools v0.31.0
-	google.golang.org/grpc v1.71.0
+	google.golang.org/grpc v1.71.1
 	google.golang.org/protobuf v1.36.5
 )
 
