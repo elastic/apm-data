@@ -166,6 +166,8 @@ func TestFloat64(t *testing.T) {
 		{name: "null", input: `{"f":null}`, isSet: false},
 		{name: "missing", input: `{}`},
 		{name: "invalid", input: `{"f":"1.0.1"}`, fail: true},
+		{name: "ignore", input: `{"f":NaN}`, fail: false, isSet: false},
+		{name: "invalid", input: `{"f":NaaN}`, fail: true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			dec := json.NewDecoder(strings.NewReader(tc.input))
