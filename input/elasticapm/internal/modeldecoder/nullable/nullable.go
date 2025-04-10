@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 	"unsafe"
 
@@ -67,6 +68,26 @@ func init() {
 		switch iter.WhatIsNext() {
 		case jsoniter.NilValue:
 			iter.ReadNil()
+		case jsoniter.InvalidValue:
+			iter.Skip()
+			originalError := iter.Error
+			if !strings.HasPrefix(iter.Error.Error(), "Skip: do not know how to skip: 78,") {
+				return
+			}
+			iter.Error = nil
+			iter.Skip()
+			if !strings.HasPrefix(iter.Error.Error(), "Skip: do not know how to skip: 97,") {
+				iter.Error = originalError
+				return
+			}
+			iter.Error = nil
+			iter.Skip()
+			if !strings.HasPrefix(iter.Error.Error(), "Skip: do not know how to skip: 78,") {
+				iter.Error = originalError
+				return
+			}
+			// ignore NaN as a float value even though it is not valid json
+			iter.Error = nil
 		default:
 			(*((*Float64)(ptr))).Val = iter.ReadFloat64()
 			(*((*Float64)(ptr))).isSet = true
