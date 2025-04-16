@@ -10,8 +10,8 @@ github.com/elastic/go-sysinfo v1.15.0 h1:54pRFlAYUlVNQ2HbXzLVZlV+fxS7Eax49stzg95
 github.com/elastic/go-sysinfo v1.15.0/go.mod h1:jPSuTgXG+dhhh0GKIyI2Cso+w5lPJ5PvVqKlL8LV/Hk=
 github.com/elastic/go-windows v1.0.2 h1:yoLLsAsV5cfg9FLhZ9EXZ2n2sQFKeDYrHenkcivY4vI=
 github.com/elastic/go-windows v1.0.2/go.mod h1:bGcDpBzXgYSqM0Gx3DM4+UxFj300SZLixie9u9ixLM8=
-github.com/elastic/opentelemetry-lib v0.17.0 h1:IRxQuGJV8Y0gvEWHFWxdh6QCjsjQljPZRzMMnQA9bus=
-github.com/elastic/opentelemetry-lib v0.17.0/go.mod h1:SbaZpFXer0X0UQrApyOfAIaGzM3Pm66f+p1rMhY5eco=
+github.com/elastic/opentelemetry-lib v0.17.1 h1:ZNYIJBvdtEcRBCGufVtTNh2+jaizJXDsrIRz65UQzqg=
+github.com/elastic/opentelemetry-lib v0.17.1/go.mod h1:SbaZpFXer0X0UQrApyOfAIaGzM3Pm66f+p1rMhY5eco=
 github.com/go-logr/logr v1.2.2/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
 github.com/go-logr/logr v1.4.2 h1:6pFjapn8bFcIbiKo3XT4j/BhANplGihG6tvd+8rYgrY=
 github.com/go-logr/logr v1.4.2/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
