@@ -9,7 +9,7 @@ updates:
       otel:
         patterns:
         - "go.opentelemetry.io/*"
-        - "github.com/jaegertracing/jaeger"
+        - "github.com/jaegertracing/jaeger-idl"
         - "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
       golang.org/x/:
         patterns:
