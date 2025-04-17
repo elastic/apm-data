@@ -26,16 +26,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/apm-data/input/otlp"
-	"github.com/elastic/apm-data/model/modeljson"
-	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/google/go-cmp/cmp"
-	jaegermodel "github.com/jaegertracing/jaeger/model"
+	jaegermodel "github.com/jaegertracing/jaeger-idl/model/v1"
 	jaegertranslator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/fastjson"
 	"golang.org/x/sync/semaphore"
+
+	"github.com/elastic/apm-data/input/otlp"
+	"github.com/elastic/apm-data/model/modeljson"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 func TestConsumer_JaegerMetadata(t *testing.T) {
