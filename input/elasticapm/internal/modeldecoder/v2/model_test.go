@@ -30,9 +30,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
-	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 )
 
 //
@@ -158,111 +156,6 @@ func TestURLValidationRules(t *testing.T) {
 			data: `{"request":{"method":"get","url":{"port":{"val":8200}}}}`},
 	}
 	testValidation(t, "transaction", testcases, "context")
-}
-
-//
-// Test Reset()
-//
-
-func TestReset(t *testing.T) {
-	addStr := func(s string) nullable.String {
-		ns := nullable.String{}
-		ns.Set(s)
-		return ns
-	}
-	decode := func(t *testing.T, inp string, out interface{}) {
-		require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(inp)).Decode(&out))
-	}
-	t.Run("struct", func(t *testing.T) {
-		var out metadataServiceNode
-		inputs := []string{`{"configured_name":"a"}`, `{"configured_name":"b"}`, `{}`}
-		expected := []metadataServiceNode{{Name: addStr("a")}, {Name: addStr("b")}, {}}
-		for i := 0; i < len(inputs); i++ {
-			out.Reset()
-			decode(t, inputs[i], &out)
-			assert.Equal(t, expected[i], out)
-		}
-	})
-	t.Run("map", func(t *testing.T) {
-		var out metadata
-		inputs := []string{
-			`{"labels":{"a":"1","b":"s","c":true}}}`,
-			`{"labels":{"a":"new"}}}`,
-			`{}`}
-		expected := []metadata{
-			{Labels: map[string]any{"a": "1", "b": "s", "c": true}},
-			{Labels: map[string]any{"a": "new"}},
-			{Labels: map[string]any{}}}
-		for i := 0; i < len(inputs); i++ {
-			out.Reset()
-			decode(t, inputs[i], &out)
-			assert.Equal(t, expected[i], out)
-		}
-	})
-	t.Run("map-structs", func(t *testing.T) {
-		var out transaction
-		inputs := []string{
-			`{"marks":{"group1":{"meas1":43.5,"meas2":23.5},"group2":{"a":1,"b":14}}}`,
-			`{"marks":{"group1":{"meas1":14}}}`,
-			`{}`,
-		}
-		expected := []transaction{
-			{Marks: transactionMarks{Events: map[string]transactionMarkEvents{
-				"group1": {Measurements: map[string]float64{"meas1": 43.5, "meas2": 23.5}},
-				"group2": {Measurements: map[string]float64{"a": 1, "b": 14}}}}},
-			{Marks: transactionMarks{Events: map[string]transactionMarkEvents{
-				"group1": {Measurements: map[string]float64{"meas1": 14}}}}},
-			{Marks: transactionMarks{Events: map[string]transactionMarkEvents{}}}}
-		for i := 0; i < len(inputs); i++ {
-			out.Reset()
-			decode(t, inputs[i], &out)
-			assert.Equal(t, expected[i], out)
-		}
-	})
-	t.Run("slice", func(t *testing.T) {
-		var out metadataProcess
-		inputs := []string{
-			`{"argv":["a","b"]}`,
-			`{"argv":["c"]}`,
-			`{}`}
-		expected := []metadataProcess{
-			{Argv: []string{"a", "b"}},
-			{Argv: []string{"c"}},
-			{Argv: []string{}}}
-		for i := 0; i < len(inputs); i++ {
-			out.Reset()
-			decode(t, inputs[i], &out)
-			assert.Equal(t, expected[i], out)
-		}
-	})
-	t.Run("slice-structs", func(t *testing.T) {
-		var out errorEvent
-		inputs := []string{
-			`{"exception":{"message":"bang","cause":[{"message":"a","type":"runtime ex","cause":[{"message":"inner"}]},{"message":"b"}]},"log":{"message":"boom","stacktrace":[{"classname":"User::Common","filename":"a","post_context":["line4","line5"]},{"classname":"ABC","filename":"b"}]}}`,
-			`{"exception":{"message":"boom","cause":[{"message":"c","cause":[{"type":"a"}]}]},"log":{"message":"boom","stacktrace":[{"filename":"b"}]}}`,
-			`{}`}
-		expected := []errorEvent{
-			{Exception: errorException{
-				Message: addStr("bang"),
-				Cause: []errorException{
-					{Message: addStr("a"), Type: addStr("runtime ex"), Cause: []errorException{{Message: addStr("inner")}}},
-					{Message: addStr("b")}}},
-				Log: errorLog{Message: addStr("boom"), Stacktrace: []stacktraceFrame{
-					{Classname: addStr("User::Common"), Filename: addStr("a"), PostContext: []string{"line4", "line5"}},
-					{Classname: addStr("ABC"), Filename: addStr("b")}}}},
-			{Exception: errorException{
-				Message: addStr("boom"),
-				Cause: []errorException{
-					{Message: addStr("c"), Cause: []errorException{{Type: addStr("a")}}}}},
-				Log: errorLog{Message: addStr("boom"), Stacktrace: []stacktraceFrame{
-					{Filename: addStr("b"), PostContext: []string{}}}}},
-			{Exception: errorException{Cause: []errorException{}}, Log: errorLog{Stacktrace: []stacktraceFrame{}}}}
-		for i := 0; i < len(inputs); i++ {
-			out.Reset()
-			decode(t, inputs[i], &out)
-			assert.Equal(t, expected[i], out)
-		}
-	})
 }
 
 //
@@ -588,7 +481,7 @@ func assertRequiredFn(t *testing.T, keys map[string]interface{}, validate func()
 }
 
 //
-// Test Set() and Reset()
+// Test Set()
 //
 
 func TestResetIsSet(t *testing.T) {
@@ -601,18 +494,15 @@ func TestResetIsSet(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			r := testdataReader(t, testFileName(name))
+			assert.False(t, root.IsSet())
 			modeldecodertest.DecodeData(t, r, name, &root)
 			require.True(t, root.IsSet())
-			// call Reset and ensure initial state, except for array capacity
-			root.Reset()
-			assert.False(t, root.IsSet())
 		})
 	}
 }
 
 type setter interface {
 	IsSet() bool
-	Reset()
 }
 
 type validator interface {

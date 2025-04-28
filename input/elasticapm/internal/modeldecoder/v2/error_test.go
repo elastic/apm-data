@@ -87,7 +87,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, otherVal)
 		input.Exception.Cause = nil
 		mapToErrorModel(&input, out)
-		input.Reset()
+		input = errorEvent{}
 
 		// ensure event Metadata are updated where expected
 		userAgent := strings.Join(otherVal.HTTPHeader.Values("User-Agent"), ", ")
@@ -156,7 +156,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		input.Exception.Cause = nil
 		mapToErrorModel(&input, &out1)
-		input.Reset()
+		input = errorEvent{}
 		modeldecodertest.AssertStructValues(t, out1.Error, exceptions, defaultVal)
 
 		// reuse input model for different event

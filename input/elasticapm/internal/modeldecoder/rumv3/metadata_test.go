@@ -217,7 +217,7 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 
 		// map an empty modeldecoder metadata to the model
 		// and assert values are unchanged
-		input.Reset()
+		input = metadata{}
 		modeldecodertest.SetZeroStructValues(&input)
 		mapToMetadataModel(&input, out)
 		assert.Equal(t, expected(otherVal.Str, otherVal.IP, otherVal.N), out)
@@ -243,7 +243,7 @@ func TestDecodeMetadataMappingToModel(t *testing.T) {
 		// overwrite model metadata with specified Values
 		// then iterate through model and assert values are overwritten
 		otherVal := modeldecodertest.NonDefaultValues()
-		input.Reset()
+		input = metadata{}
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, &out2)
 		out2.UserAgent = &modelpb.UserAgent{Name: "init", Original: "init"}

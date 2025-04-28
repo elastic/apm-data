@@ -130,18 +130,18 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		var out1, out2 modelpb.APMEvent
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		input.OTel.Reset()
+		input.OTel = otel{}
 		mapToSpanModel(&input, &out1)
-		input.Reset()
+		input = span{}
 		modeldecodertest.AssertStructValues(t, out1.Span, exceptions, defaultVal)
 
 		// reuse input model for different event
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		input.OTel.Reset()
+		input.OTel = otel{}
 		mapToSpanModel(&input, &out2)
-		input.Reset()
+		input = span{}
 		modeldecodertest.AssertStructValues(t, out2.Span, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, out1.Span, exceptions, defaultVal)
 	})
@@ -156,25 +156,25 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, "failure", out.Event.Outcome)
 		// derive from other fields - success
-		input.Outcome.Reset()
+		input.Outcome = nullable.String{}
 		input.Context.HTTP.StatusCode.Set(http.StatusPermanentRedirect)
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, "success", out.Event.Outcome)
 		// derive from other fields - failure
-		input.Outcome.Reset()
+		input.Outcome = nullable.String{}
 		input.Context.HTTP.StatusCode.Set(http.StatusBadRequest)
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, "failure", out.Event.Outcome)
 		// derive from other fields - unknown
-		input.Outcome.Reset()
-		input.OTel.Reset()
-		input.Context.HTTP.StatusCode.Reset()
+		input.Outcome = nullable.String{}
+		input.OTel = otel{}
+		input.Context.HTTP.StatusCode = nullable.Int{}
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, "unknown", out.Event.Outcome)
 		// outcome is success when not assigned and it's otel
-		input.Outcome.Reset()
+		input.Outcome = nullable.String{}
 		input.OTel.SpanKind.Set(spanKindInternal)
-		input.Context.HTTP.StatusCode.Reset()
+		input.Context.HTTP.StatusCode = nullable.Int{}
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, "success", out.Event.Outcome)
 	})
@@ -192,7 +192,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 
 		// leave base event timestamp unmodified if neither event timestamp nor start is specified
 		out = modelpb.APMEvent{Timestamp: modelpb.FromTime(reqTime)}
-		input.Start.Reset()
+		input.Start = nullable.Float64{}
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, modelpb.FromTime(reqTime), out.Timestamp)
 	})
@@ -201,14 +201,14 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		var input span
 		var out modelpb.APMEvent
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-		input.OTel.Reset()
+		input.OTel = otel{}
 		// sample rate is set to > 0
 		input.SampleRate.Set(0.25)
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, 4.0, out.Span.RepresentativeCount)
 		// sample rate is not set, default representative count should be 1
 		out.Span.RepresentativeCount = 0.0
-		input.SampleRate.Reset()
+		input.SampleRate = nullable.Float64{}
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, 1.0, out.Span.RepresentativeCount)
 		// sample rate is set to 0
@@ -244,12 +244,12 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				if tc.inputSubtype != "" {
 					input.Subtype.Set(tc.inputSubtype)
 				} else {
-					input.Subtype.Reset()
+					input.Subtype = nullable.String{}
 				}
 				if tc.inputAction != "" {
 					input.Action.Set(tc.inputAction)
 				} else {
-					input.Action.Reset()
+					input.Action = nullable.String{}
 				}
 				var out modelpb.APMEvent
 				mapToSpanModel(&input, &out)
@@ -305,8 +305,8 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			var event modelpb.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 			input.OTel.Attributes = attrs
-			input.OTel.SpanKind.Reset()
-			input.Type.Reset()
+			input.OTel.SpanKind = nullable.String{}
+			input.Type = nullable.String{}
 
 			mapToSpanModel(&input, &event)
 			assert.Equal(t, &expected, event.Url)
@@ -335,8 +335,8 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			var event modelpb.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 			input.OTel.Attributes = attrs
-			input.OTel.SpanKind.Reset()
-			input.Type.Reset()
+			input.OTel.SpanKind = nullable.String{}
+			input.Type = nullable.String{}
 
 			mapToSpanModel(&input, &event)
 			assert.Equal(t, &expectedDestination, event.Destination)
@@ -366,9 +366,9 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			var event modelpb.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 			input.OTel.Attributes = attrs
-			input.OTel.SpanKind.Reset()
-			input.Type.Reset()
-			input.Action.Reset()
+			input.OTel.SpanKind = nullable.String{}
+			input.Type = nullable.String{}
+			input.Action = nullable.String{}
 			mapToSpanModel(&input, &event)
 
 			assert.Equal(t, "db", event.Span.Type)
@@ -401,9 +401,9 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			var event modelpb.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 			input.OTel.Attributes = attrs
-			input.OTel.SpanKind.Reset()
-			input.Type.Reset()
-			input.Action.Reset()
+			input.OTel.SpanKind = nullable.String{}
+			input.Type = nullable.String{}
+			input.Action = nullable.String{}
 			mapToSpanModel(&input, &event)
 
 			assert.Equal(t, "external", event.Span.Type)
@@ -445,7 +445,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 				input.OTel.Attributes = attrs
 				input.OTel.SpanKind.Set("PRODUCER")
-				input.Type.Reset()
+				input.Type = nullable.String{}
 				mapToSpanModel(&input, &event)
 
 				assert.Equal(t, "messaging", event.Span.Type)
@@ -481,7 +481,7 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 			var event modelpb.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 			input.OTel.Attributes = attrs
-			input.Type.Reset()
+			input.Type = nullable.String{}
 			mapToSpanModel(&input, &event)
 
 			expected := &modelpb.Network{
@@ -591,17 +591,17 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 				if tc.inTargetType != "" {
 					input.Context.Service.Target.Type.Set(tc.inTargetType)
 				} else {
-					input.Context.Service.Target.Type.Reset()
+					input.Context.Service.Target.Type = nullable.String{}
 				}
 				if tc.inTargetName != "" {
 					input.Context.Service.Target.Name.Set(tc.inTargetName)
 				} else {
-					input.Context.Service.Target.Name.Reset()
+					input.Context.Service.Target.Name = nullable.String{}
 				}
 				if tc.resource != "" {
 					input.Context.Destination.Service.Resource.Set(tc.resource)
 				} else {
-					input.Context.Destination.Service.Resource.Reset()
+					input.Context.Destination.Service.Resource = nullable.String{}
 				}
 				var out modelpb.APMEvent
 				mapToSpanModel(&input, &out)

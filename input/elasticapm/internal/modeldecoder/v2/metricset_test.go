@@ -117,10 +117,10 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		var out1, out2 modelpb.APMEvent
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		input.Transaction.Reset() // tested by TestDecodeMetricsetInternal
+		input.Transaction = metricsetTransactionRef{} // tested by TestDecodeMetricsetInternal
 
 		mapToMetricsetModel(&input, &out1)
-		input.Reset()
+		input = metricset{}
 		modeldecodertest.AssertStructValues(t, out1.Metricset, exceptions, defaultVal)
 		defaultSamples := []*modelpb.MetricsetSample{
 			{
@@ -164,7 +164,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		// ensure memory is not shared by reusing input model
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		input.Transaction.Reset()
+		input.Transaction = metricsetTransactionRef{}
 		mapToMetricsetModel(&input, &out2)
 		modeldecodertest.AssertStructValues(t, out2.Metricset, exceptions, otherVal)
 		otherSamples := []*modelpb.MetricsetSample{

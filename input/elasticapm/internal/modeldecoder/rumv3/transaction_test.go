@@ -32,6 +32,7 @@ import (
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
+	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -210,7 +211,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToTransactionModel(&input, &out1)
-		input.Reset()
+		input = transaction{}
 		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
@@ -262,7 +263,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToSpanModel(&input, &out1)
-		input.Reset()
+		input = span{}
 		modeldecodertest.AssertStructValues(t, out1.Span, exceptions, defaultVal)
 
 		// ensure memory is not shared by reusing input model
@@ -284,18 +285,18 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, "failure", out.Event.Outcome)
 		// derive from span fields - success
-		input.Outcome.Reset()
+		input.Outcome = nullable.String{}
 		input.Context.HTTP.StatusCode.Set(http.StatusPermanentRedirect)
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, "success", out.Event.Outcome)
 		// derive from span fields - failure
-		input.Outcome.Reset()
+		input.Outcome = nullable.String{}
 		input.Context.HTTP.StatusCode.Set(http.StatusBadRequest)
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, "failure", out.Event.Outcome)
 		// derive from span fields - unknown
-		input.Outcome.Reset()
-		input.Context.HTTP.StatusCode.Reset()
+		input.Outcome = nullable.String{}
+		input.Context.HTTP.StatusCode = nullable.Int{}
 		mapToSpanModel(&input, &out)
 		assert.Equal(t, "unknown", out.Event.Outcome)
 	})
@@ -310,18 +311,18 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "failure", out.Event.Outcome)
 		// derive from span fields - success
-		input.Outcome.Reset()
+		input.Outcome = nullable.String{}
 		input.Context.Response.StatusCode.Set(http.StatusBadRequest)
 		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "success", out.Event.Outcome)
 		// derive from span fields - failure
-		input.Outcome.Reset()
+		input.Outcome = nullable.String{}
 		input.Context.Response.StatusCode.Set(http.StatusInternalServerError)
 		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "failure", out.Event.Outcome)
 		// derive from span fields - unknown
-		input.Outcome.Reset()
-		input.Context.Response.StatusCode.Reset()
+		input.Outcome = nullable.String{}
+		input.Context.Response.StatusCode = nullable.Int{}
 		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "unknown", out.Event.Outcome)
 	})
@@ -375,7 +376,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var input transaction
 		var out modelpb.APMEvent
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-		input.Session.ID.Reset()
+		input.Session.ID = nullable.String{}
 		mapToTransactionModel(&input, &out)
 		assert.Empty(t, &modelpb.Session{}, out.Session)
 

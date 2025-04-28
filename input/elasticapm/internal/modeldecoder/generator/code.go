@@ -36,7 +36,6 @@ const (
 // CodeGenerator creates following struct methods
 //
 // `IsSet() bool`
-// `Reset()`
 // `validate() error`
 // `validate() error`
 // `processNestedSource() error`
@@ -124,9 +123,6 @@ func (g *CodeGenerator) generate(st structType, key string) error {
 	if err := g.generateIsSet(st, key); err != nil {
 		return err
 	}
-	if err := g.generateReset(st, key); err != nil {
-		return err
-	}
 	if err := g.generateValidation(st, key); err != nil {
 		return err
 	}
@@ -197,64 +193,6 @@ func generateIsSet(w io.Writer, field structField, fieldSelectorPrefix string) e
 	default:
 		return fmt.Errorf("unhandled type %T generating IsSet() for '%s'", typ, jsonName(field))
 	}
-}
-
-// generateReset creates `Reset` methods for struct fields setting them to
-// their zero values or calling their `Reset` methods
-// it only considers exported fields
-func (g *CodeGenerator) generateReset(structTyp structType, key string) error {
-	fmt.Fprintf(&g.buf, `
-func (val *%s) Reset() {
-`, structTyp.name)
-	if key != "" {
-		key += "."
-	}
-	for _, f := range structTyp.fields {
-		if !f.Exported() {
-			continue
-		}
-		switch t := f.Type().Underlying().(type) {
-		case *types.Slice:
-			// the slice len is set to zero, not returning the underlying
-			// memory to the garbage collector; when the size of slices differs
-			// this potentially leads to keeping more memory allocated than required;
-
-			// if slice type is a model struct,
-			// call its Reset() function
-			if _, ok := g.customStruct(t.Elem()); ok {
-				fmt.Fprintf(&g.buf, `
-for i := range val.%s{
-	val.%s[i].Reset()
-}
-`[1:], f.Name(), f.Name())
-			}
-			// then reset size of slice to 0
-			fmt.Fprintf(&g.buf, `
-val.%s = val.%s[:0]
-`[1:], f.Name(), f.Name())
-
-		case *types.Map:
-			// the map is cleared, not returning the underlying memory to
-			// the garbage collector; when map size differs this potentially
-			// leads to keeping more memory allocated than required
-			fmt.Fprintf(&g.buf, `
-for k := range val.%s {
-	delete(val.%s, k)
-}
-`[1:], f.Name(), f.Name())
-
-		case *types.Struct:
-			fmt.Fprintf(&g.buf, `
-val.%s.Reset()
-`[1:], f.Name())
-		default:
-			return fmt.Errorf("unhandled type %T for Reset() for '%s%s'", t, key, jsonName(f))
-		}
-	}
-	fmt.Fprint(&g.buf, `
-}
-`[1:])
-	return nil
 }
 
 // generateNestedSourceProcessor generates code for processing fully nested map of fields

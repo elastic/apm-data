@@ -27,6 +27,7 @@ import (
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
 	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/modeldecodertest"
+	"github.com/elastic/apm-data/input/elasticapm/internal/modeldecoder/nullable"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -266,14 +267,14 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		// System.IP and Client.IP are not set by decoder,
 		// therefore their values are not updated
 		otherVal.Update(defaultVal.IP)
-		input.Reset()
+		input = metadata{}
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, out)
 		modeldecodertest.AssertStructValues(t, &out, isMetadataException, otherVal)
 
 		// map an empty modeldecoder metadata to the model
 		// and assert values are unchanged
-		input.Reset()
+		input = metadata{}
 		modeldecodertest.SetZeroStructValues(&input)
 		mapToMetadataModel(&input, out)
 		modeldecodertest.AssertStructValues(t, &out, isMetadataException, otherVal)
@@ -293,7 +294,7 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		// System.IP and Client.IP are not set by decoder,
 		// therefore their values are not updated
 		otherVal.Update(defaultVal.IP)
-		input.Reset()
+		input = metadata{}
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToMetadataModel(&input, &out2)
 		out2.Host.Ip = []*modelpb.IP{defaultVal.IP}
@@ -324,19 +325,19 @@ func TestDecodeMapToMetadataModel(t *testing.T) {
 		assert.Equal(t, "host-id", out.Host.Id)
 		// no detected-host information
 		out = modelpb.APMEvent{}
-		input.System.DetectedHostname.Reset()
+		input.System.DetectedHostname = nullable.String{}
 		mapToMetadataModel(&input, &out)
 		assert.Equal(t, "configured-host", out.Host.Name)
 		assert.Empty(t, out.Host.Hostname)
 		// no configured-host information
 		out = modelpb.APMEvent{}
-		input.System.ConfiguredHostname.Reset()
+		input.System.ConfiguredHostname = nullable.String{}
 		mapToMetadataModel(&input, &out)
 		assert.Empty(t, out.Host.Name)
 		assert.Equal(t, "deprecated-host", out.Host.Hostname)
 		// no host information given
 		out = modelpb.APMEvent{}
-		input.System.DeprecatedHostname.Reset()
+		input.System.DeprecatedHostname = nullable.String{}
 		assert.Empty(t, out.GetHost().GetName())
 		assert.Empty(t, out.GetHost().GetHostname())
 	})
