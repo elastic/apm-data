@@ -484,7 +484,7 @@ func assertRequiredFn(t *testing.T, keys map[string]interface{}, validate func()
 // Test Set()
 //
 
-func TestResetIsSet(t *testing.T) {
+func TestIsSet(t *testing.T) {
 	for name, root := range map[string]setter{
 		"error":       &errorRoot{},
 		"metadata":    &metadataRoot{},
