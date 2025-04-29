@@ -67,7 +67,7 @@ func TestString(t *testing.T) {
 				assert.Equal(t, tc.val, testStruct.S.Val)
 			}
 
-			testStruct.S.Reset()
+			testStruct.S = String{}
 			assert.False(t, testStruct.S.IsSet())
 			assert.Empty(t, testStruct.S.Val)
 
@@ -104,7 +104,7 @@ func TestInt(t *testing.T) {
 				assert.Equal(t, tc.val, testStruct.I.Val)
 			}
 
-			testStruct.I.Reset()
+			testStruct.I = Int{}
 			assert.False(t, testStruct.I.IsSet())
 			assert.Empty(t, testStruct.I.Val)
 
@@ -141,7 +141,7 @@ func TestInt64(t *testing.T) {
 				assert.Equal(t, tc.val, testStruct.I64.Val)
 			}
 
-			testStruct.I64.Reset()
+			testStruct.I64 = Int64{}
 			assert.False(t, testStruct.I64.IsSet())
 			assert.Empty(t, testStruct.I64.Val)
 
@@ -179,7 +179,7 @@ func TestFloat64(t *testing.T) {
 				assert.Equal(t, tc.val, testStruct.F.Val)
 			}
 
-			testStruct.F.Reset()
+			testStruct.F = Float64{}
 			assert.False(t, testStruct.F.IsSet())
 			assert.Empty(t, testStruct.F.Val)
 
@@ -217,7 +217,7 @@ func TestBool(t *testing.T) {
 				assert.Equal(t, tc.val, testStruct.B.Val)
 			}
 
-			testStruct.B.Reset()
+			testStruct.B = Bool{}
 			assert.False(t, testStruct.B.IsSet())
 			assert.Empty(t, testStruct.B.Val)
 
@@ -255,7 +255,7 @@ func TestInterface(t *testing.T) {
 				assert.Equal(t, tc.val, testStruct.V.Val)
 			}
 
-			testStruct.V.Reset()
+			testStruct.V = Interface{}
 			assert.False(t, testStruct.V.IsSet())
 			assert.Empty(t, testStruct.V.Val)
 		})
@@ -299,7 +299,7 @@ func TestTimeMicrosUnix(t *testing.T) {
 				assert.Equal(t, tc.val, testStruct.Tms.Val.String())
 			}
 
-			testStruct.Tms.Reset()
+			testStruct.Tms = TimeMicrosUnix{}
 			assert.False(t, testStruct.Tms.IsSet())
 			assert.Zero(t, testStruct.Tms.Val)
 
@@ -347,7 +347,7 @@ func TestHTTPHeader(t *testing.T) {
 				}
 			}
 
-			testStruct.H.Reset()
+			testStruct.H = HTTPHeader{}
 			assert.False(t, testStruct.H.IsSet())
 			assert.Empty(t, testStruct.H.Val)
 

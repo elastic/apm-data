@@ -88,7 +88,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, otherVal)
 		input.Exception.Cause = nil
 		mapToErrorModel(&input, out)
-		input.Reset()
+		input = errorEvent{}
 
 		// ensure event Metadata are updated where expected
 		otherVal = modeldecodertest.NonDefaultValues()
@@ -146,7 +146,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		input.Exception.Cause = nil
 		mapToErrorModel(&input, &out1)
-		input.Reset()
+		input = errorEvent{}
 		modeldecodertest.AssertStructValues(t, out1.Error, exceptions, defaultVal)
 
 		// leave event timestamp unmodified if eventTime is zero
@@ -154,7 +154,7 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		input.Exception.Cause = nil
 		mapToErrorModel(&input, &out1)
-		input.Reset()
+		input = errorEvent{}
 		modeldecodertest.AssertStructValues(t, out1.Error, exceptions, defaultVal)
 
 		// reuse input model for different event

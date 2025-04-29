@@ -169,13 +169,6 @@ func (v *String) IsSet() bool {
 	return v.isSet
 }
 
-// Reset sets the String to it's initial state
-// where it is not set and has no value
-func (v *String) Reset() {
-	v.Val = ""
-	v.isSet = false
-}
-
 // Int stores an int value and the
 // information if the value has been set
 type Int struct {
@@ -192,13 +185,6 @@ func (v *Int) Set(val int) {
 // IsSet is true when decode was called
 func (v *Int) IsSet() bool {
 	return v.isSet
-}
-
-// Reset sets the Int to it's initial state
-// where it is not set and has no value
-func (v *Int) Reset() {
-	v.Val = 0
-	v.isSet = false
 }
 
 // Int64 stores an int64 value and the
@@ -219,13 +205,6 @@ func (v *Int64) IsSet() bool {
 	return v.isSet
 }
 
-// Reset sets the Int64 to it's initial state
-// where it is not set and has no value
-func (v *Int64) Reset() {
-	v.Val = 0
-	v.isSet = false
-}
-
 // Float64 stores a float64 value and the
 // information if the value has been set
 type Float64 struct {
@@ -244,13 +223,6 @@ func (v *Float64) IsSet() bool {
 	return v.isSet
 }
 
-// Reset sets the Int to it's initial state
-// where it is not set and has no value
-func (v *Float64) Reset() {
-	v.Val = 0.0
-	v.isSet = false
-}
-
 // Bool stores a bool value and the
 // information if the value has been set
 type Bool struct {
@@ -267,13 +239,6 @@ func (v *Bool) Set(val bool) {
 // IsSet is true when decode was called
 func (v *Bool) IsSet() bool {
 	return v.isSet
-}
-
-// Reset sets the Int to it's initial state
-// where it is not set and has no value
-func (v *Bool) Reset() {
-	v.Val = false
-	v.isSet = false
 }
 
 // Interface stores an interface{} value and the
@@ -296,13 +261,6 @@ func (v *Interface) IsSet() bool {
 	return v.isSet
 }
 
-// Reset sets the Interface to it's initial state
-// where it is not set and has no value
-func (v *Interface) Reset() {
-	v.Val = nil
-	v.isSet = false
-}
-
 type TimeMicrosUnix struct {
 	Val   time.Time
 	isSet bool
@@ -319,13 +277,6 @@ func (v *TimeMicrosUnix) IsSet() bool {
 	return v.isSet
 }
 
-// Reset sets the Interface to it's initial state
-// where it is not set and has no value
-func (v *TimeMicrosUnix) Reset() {
-	v.Val = time.Time{}
-	v.isSet = false
-}
-
 type HTTPHeader struct {
 	Val   http.Header
 	isSet bool
@@ -340,13 +291,4 @@ func (v *HTTPHeader) Set(val http.Header) {
 // IsSet is true when decode was called
 func (v *HTTPHeader) IsSet() bool {
 	return v.isSet
-}
-
-// Reset sets the Interface to it's initial state
-// where it is not set and has no value
-func (v *HTTPHeader) Reset() {
-	for k := range v.Val {
-		delete(v.Val, k)
-	}
-	v.isSet = false
 }

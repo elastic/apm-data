@@ -86,7 +86,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
 		mapToTransactionModel(&input, out)
-		input.Reset()
+		input = transaction{}
 
 		// ensure event Metadata are updated where expected
 		otherVal = modeldecodertest.NonDefaultValues()
@@ -291,25 +291,25 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		out1.Timestamp = reqTime
 		defaultVal := modeldecodertest.DefaultValues()
 		modeldecodertest.SetStructValues(&input, defaultVal)
-		input.OTel.Reset()
+		input.OTel = otel{}
 		mapToTransactionModel(&input, &out1)
-		input.Reset()
+		input = transaction{}
 		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
 
 		// leave base event timestamp unmodified if event timestamp is unspecified
 		out1.Timestamp = reqTime
 		mapToTransactionModel(&input, &out1)
 		assert.Equal(t, reqTime, out1.Timestamp)
-		input.Reset()
+		input = transaction{}
 
 		// ensure memory is not shared by reusing input model
 		out2.Timestamp = reqTime
 		modeldecodertest.SetStructValues(&input, defaultVal)
 		mapToTransactionModel(&input, &out1)
-		input.Reset()
+		input = transaction{}
 		otherVal := modeldecodertest.NonDefaultValues()
 		modeldecodertest.SetStructValues(&input, otherVal)
-		input.OTel.Reset()
+		input.OTel = otel{}
 		mapToTransactionModel(&input, &out2)
 		modeldecodertest.AssertStructValues(t, out2.Transaction, exceptions, otherVal)
 		modeldecodertest.AssertStructValues(t, out1.Transaction, exceptions, defaultVal)
@@ -378,14 +378,14 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var input transaction
 		var out modelpb.APMEvent
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-		input.OTel.Reset()
+		input.OTel = otel{}
 		// sample rate is set to > 0
 		input.SampleRate.Set(0.25)
 		mapToTransactionModel(&input, &out)
 		assert.Equal(t, 4.0, out.Transaction.RepresentativeCount)
 		// sample rate is not set -> Representative Count should be 1 by default
 		out.Transaction.RepresentativeCount = 0.0 //reset to zero value
-		input.SampleRate.Reset()
+		input.SampleRate = nullable.Float64{}
 		mapToTransactionModel(&input, &out)
 		assert.Equal(t, 1.0, out.Transaction.RepresentativeCount)
 		// sample rate is set to 0
@@ -405,25 +405,25 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "failure", out.Event.Outcome)
 		// derive from other fields - success
-		input.Outcome.Reset()
+		input.Outcome = nullable.String{}
 		input.Context.Response.StatusCode.Set(http.StatusBadRequest)
 		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "success", out.Event.Outcome)
 		// derive from other fields - failure
-		input.Outcome.Reset()
+		input.Outcome = nullable.String{}
 		input.Context.Response.StatusCode.Set(http.StatusInternalServerError)
 		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "failure", out.Event.Outcome)
 		// derive from other fields - unknown
-		input.Outcome.Reset()
-		input.OTel.Reset()
-		input.Context.Response.StatusCode.Reset()
+		input.Outcome = nullable.String{}
+		input.OTel = otel{}
+		input.Context.Response.StatusCode = nullable.Int{}
 		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "unknown", out.Event.Outcome)
 		// outcome is success when not assigned and it's otel
-		input.Outcome.Reset()
+		input.Outcome = nullable.String{}
 		input.OTel.SpanKind.Set(spanKindInternal)
-		input.Context.Response.StatusCode.Reset()
+		input.Context.Response.StatusCode = nullable.Int{}
 		mapToTransactionModel(&input, &out)
 		assert.Equal(t, "success", out.Event.Outcome)
 	})
@@ -432,7 +432,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		var input transaction
 		var out modelpb.APMEvent
 		modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-		input.Session.ID.Reset()
+		input.Session.ID = nullable.String{}
 		mapToTransactionModel(&input, &out)
 		assert.Nil(t, out.Session)
 
@@ -469,8 +469,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			var event modelpb.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 			input.OTel.Attributes = attrs
-			input.OTel.SpanKind.Reset()
-			input.Type.Reset()
+			input.OTel.SpanKind = nullable.String{}
+			input.Type = nullable.String{}
 
 			mapToTransactionModel(&input, &event)
 			assert.Equal(t, &expected, event.Url)
@@ -491,7 +491,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			var event modelpb.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 			input.OTel.Attributes = attrs
-			input.OTel.SpanKind.Reset()
+			input.OTel.SpanKind = nullable.String{}
 			mapToTransactionModel(&input, &event)
 
 			require.NotNil(t, event.Http)
@@ -521,8 +521,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"net.peer.port":        json.Number("123"),
 			}
 			input.OTel.Attributes = attrs
-			input.OTel.SpanKind.Reset()
-			input.Type.Reset()
+			input.OTel.SpanKind = nullable.String{}
+			input.Type = nullable.String{}
 
 			mapToTransactionModel(&input, &event)
 			assert.Equal(t, "request", event.Transaction.Type)
@@ -539,12 +539,12 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			var input transaction
 			var event modelpb.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-			input.Type.Reset()
+			input.Type = nullable.String{}
 			attrs := map[string]interface{}{
 				"message_bus.destination": "myQueue",
 			}
 			input.OTel.Attributes = attrs
-			input.OTel.SpanKind.Reset()
+			input.OTel.SpanKind = nullable.String{}
 
 			mapToTransactionModel(&input, &event)
 			assert.Equal(t, "messaging", event.Transaction.Type)
@@ -558,13 +558,13 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			var input transaction
 			var event modelpb.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
-			input.Type.Reset()
+			input.Type = nullable.String{}
 			attrs := map[string]interface{}{
 				"messaging.system":    "kafka",
 				"messaging.operation": "publish",
 			}
 			input.OTel.Attributes = attrs
-			input.OTel.SpanKind.Reset()
+			input.OTel.SpanKind = nullable.String{}
 
 			mapToTransactionModel(&input, &event)
 			assert.Equal(t, "messaging", event.Transaction.Type)
@@ -585,7 +585,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			var event modelpb.APMEvent
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 			input.OTel.Attributes = attrs
-			input.OTel.SpanKind.Reset()
+			input.OTel.SpanKind = nullable.String{}
 			mapToTransactionModel(&input, &event)
 
 			expected := modelpb.Network{
@@ -613,7 +613,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 			modeldecodertest.SetStructValues(&input, modeldecodertest.DefaultValues())
 			input.Context.Tags = make(map[string]any)
 			input.OTel.Attributes = attrs
-			input.Type.Reset()
+			input.Type = nullable.String{}
 
 			mapToTransactionModel(&input, &event)
 			assert.Equal(t, modelpb.Labels{}, modelpb.Labels(event.Labels))

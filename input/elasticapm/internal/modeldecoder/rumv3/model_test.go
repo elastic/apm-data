@@ -371,10 +371,10 @@ func assertRequiredFn(t *testing.T, keys map[string]interface{}, validate func()
 }
 
 //
-// Test Set() and Reset()
+// Test Set()
 //
 
-func TestResetIsSet(t *testing.T) {
+func TestIsSet(t *testing.T) {
 	for name, root := range map[string]setter{
 		"e": &errorRoot{},
 		"m": &metadataRoot{},
@@ -382,11 +382,9 @@ func TestResetIsSet(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			r := testdataReader(t, testFileName(name))
+			assert.False(t, root.IsSet())
 			modeldecodertest.DecodeData(t, r, name, &root)
 			require.True(t, root.IsSet())
-			// call Reset and ensure initial state, except for array capacity
-			root.Reset()
-			assert.False(t, root.IsSet())
 		})
 	}
 }
@@ -399,7 +397,6 @@ type testcase struct {
 
 type setter interface {
 	IsSet() bool
-	Reset()
 }
 
 type validator interface {
