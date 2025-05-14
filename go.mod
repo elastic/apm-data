@@ -14,9 +14,9 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	go.elastic.co/apm/v2 v2.7.0
 	go.elastic.co/fastjson v1.5.0
-	go.opentelemetry.io/collector/consumer v1.31.0
-	go.opentelemetry.io/collector/pdata v1.31.0
-	go.opentelemetry.io/collector/semconv v0.125.0
+	go.opentelemetry.io/collector/consumer v1.32.0
+	go.opentelemetry.io/collector/pdata v1.32.0
+	go.opentelemetry.io/collector/semconv v0.126.0
 	go.opentelemetry.io/otel v1.35.0
 	go.opentelemetry.io/otel/metric v1.35.0
 	go.opentelemetry.io/otel/sdk v1.35.0
