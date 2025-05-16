@@ -20,7 +20,15 @@
 package modeljson
 
 import (
+	"errors"
+	"math"
+
 	"go.elastic.co/fastjson"
+)
+
+var (
+	_ = errors.New
+	_ = math.IsNaN
 )
 
 func (v *Agent) MarshalFastJSON(w *fastjson.Writer) error {
@@ -1152,8 +1160,20 @@ func (v *LongtaskMetrics) MarshalFastJSON(w *fastjson.Writer) error {
 	w.RawString("\"count\":")
 	w.Int64(int64(v.Count))
 	w.RawString(",\"max\":")
+	if math.IsNaN(v.Max) {
+		return errors.New("json: 'v.Max': unsupported value: NaN")
+	}
+	if math.IsInf(v.Max, 0) {
+		return errors.New("json: 'v.Max': unsupported value: Inf")
+	}
 	w.Float64(v.Max)
 	w.RawString(",\"sum\":")
+	if math.IsNaN(v.Sum) {
+		return errors.New("json: 'v.Sum': unsupported value: NaN")
+	}
+	if math.IsInf(v.Sum, 0) {
+		return errors.New("json: 'v.Sum': unsupported value: Inf")
+	}
 	w.Float64(v.Sum)
 	w.RawByte('}')
 	return nil
@@ -1878,6 +1898,12 @@ func (v *Histogram) MarshalFastJSON(w *fastjson.Writer) error {
 			if i != 0 {
 				w.RawByte(',')
 			}
+			if math.IsNaN(v) {
+				return errors.New("json: 'v': unsupported value: NaN")
+			}
+			if math.IsInf(v, 0) {
+				return errors.New("json: 'v': unsupported value: Inf")
+			}
 			w.Float64(v)
 		}
 		w.RawByte(']')
@@ -1889,6 +1915,12 @@ func (v *Histogram) MarshalFastJSON(w *fastjson.Writer) error {
 func (v *SummaryMetric) MarshalFastJSON(w *fastjson.Writer) error {
 	w.RawByte('{')
 	w.RawString("\"sum\":")
+	if math.IsNaN(v.Sum) {
+		return errors.New("json: 'v.Sum': unsupported value: NaN")
+	}
+	if math.IsInf(v.Sum, 0) {
+		return errors.New("json: 'v.Sum': unsupported value: Inf")
+	}
 	w.Float64(v.Sum)
 	w.RawString(",\"value_count\":")
 	w.Uint64(v.Count)
@@ -2688,6 +2720,12 @@ func (v *Span) MarshalFastJSON(w *fastjson.Writer) error {
 		} else {
 			w.RawString(prefix)
 		}
+		if math.IsNaN(v.RepresentativeCount) {
+			return errors.New("json: 'v.RepresentativeCount': unsupported value: NaN")
+		}
+		if math.IsInf(v.RepresentativeCount, 0) {
+			return errors.New("json: 'v.RepresentativeCount': unsupported value: Inf")
+		}
 		w.Float64(v.RepresentativeCount)
 	}
 	if !v.SelfTime.isZero() {
@@ -3443,6 +3481,12 @@ func (v *Transaction) MarshalFastJSON(w *fastjson.Writer) error {
 						}
 						w.String(k)
 						w.RawByte(':')
+						if math.IsNaN(v) {
+							return errors.New("json: 'v': unsupported value: NaN")
+						}
+						if math.IsInf(v, 0) {
+							return errors.New("json: 'v': unsupported value: Inf")
+						}
 						w.Float64(v)
 					}
 				}
@@ -3497,6 +3541,12 @@ func (v *Transaction) MarshalFastJSON(w *fastjson.Writer) error {
 			w.RawString(prefix[1:])
 		} else {
 			w.RawString(prefix)
+		}
+		if math.IsNaN(v.RepresentativeCount) {
+			return errors.New("json: 'v.RepresentativeCount': unsupported value: NaN")
+		}
+		if math.IsInf(v.RepresentativeCount, 0) {
+			return errors.New("json: 'v.RepresentativeCount': unsupported value: Inf")
 		}
 		w.Float64(v.RepresentativeCount)
 	}
