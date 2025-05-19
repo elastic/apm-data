@@ -73,8 +73,8 @@ github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9de
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 go.elastic.co/apm/v2 v2.7.0 h1:fbsy3BmTTedIbj7+1Ay9Zpdfuztd8RUk7Dm0JvxRW/M=
 go.elastic.co/apm/v2 v2.7.0/go.mod h1:f1Sr3rVJju5winTjsJtKzofdU32L7+Mw/c23cVcn3Io=
-go.elastic.co/fastjson v1.5.0 h1:XAQ7wrNObNnDiXC8qQKblkmLwh0vJjX3Z/jEj6/08SI=
-go.elastic.co/fastjson v1.5.0/go.mod h1:WtvH5wz8z9pDOPqNYSYKoLLv/9zCWZLeejHWuvdL/EM=
+go.elastic.co/fastjson v1.5.1 h1:zeh1xHrFH79aQ6Xsw7YxixvnOdAl3OSv0xch/jRDzko=
+go.elastic.co/fastjson v1.5.1/go.mod h1:WtvH5wz8z9pDOPqNYSYKoLLv/9zCWZLeejHWuvdL/EM=
 go.opentelemetry.io/auto/sdk v1.1.0 h1:cH53jehLUN6UFLY71z+NDOiNJqDdPRaXzTel0sJySYA=
 go.opentelemetry.io/auto/sdk v1.1.0/go.mod h1:3wSPjt5PWp2RhlCcmmOial7AvC4DQqZb7a7wCow3W8A=
 go.opentelemetry.io/collector/consumer v1.32.0 h1:pMRa/i3z+Z4MD+hmr60Fr3DZ7vyffPcjqXl/uSWJm3g=
