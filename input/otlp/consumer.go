@@ -27,6 +27,8 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 )
 
@@ -51,6 +53,9 @@ type ConsumerConfig struct {
 	// RemapOTelMetrics remaps certain OpenTelemetry metrics to elastic metrics.
 	// Note that both, OTel and Elastic, metrics would be published.
 	RemapOTelMetrics bool
+
+	// TraceProvider holds the trace provider
+	TraceProvider trace.TracerProvider
 }
 
 // Consumer transforms OpenTelemetry data to the Elastic APM data model,
@@ -59,6 +64,7 @@ type Consumer struct {
 	config    ConsumerConfig
 	sem       input.Semaphore
 	remappers []remapper
+	tracer    trace.Tracer
 	stats     consumerStats
 }
 
@@ -68,6 +74,9 @@ func NewConsumer(config ConsumerConfig) *Consumer {
 		config.Logger = zap.NewNop()
 	} else {
 		config.Logger = config.Logger.Named("otel")
+	}
+	if config.TraceProvider == nil {
+		config.TraceProvider = noop.NewTracerProvider()
 	}
 	var remappers []remapper
 	if config.RemapOTelMetrics {
@@ -80,6 +89,7 @@ func NewConsumer(config ConsumerConfig) *Consumer {
 		config:    config,
 		sem:       config.Semaphore,
 		remappers: remappers,
+		tracer:    config.TraceProvider.Tracer("github.com/elastic/apm-data/input/otlp/consumer"),
 	}
 }
 

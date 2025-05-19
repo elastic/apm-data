@@ -24,7 +24,8 @@ import (
 	"fmt"
 	"io"
 
-	"go.elastic.co/apm/v2"
+	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 
 	"github.com/elastic/apm-data/input"
@@ -62,6 +63,7 @@ const (
 type Processor struct {
 	sem          input.Semaphore
 	logger       *zap.Logger
+	tracer       trace.Tracer
 	MaxEventSize int
 }
 
@@ -75,6 +77,8 @@ type Config struct {
 	Logger *zap.Logger
 	// MaxEventSize holds the maximum event size, in bytes.
 	MaxEventSize int
+	// TraceProvider holds the trace provider
+	TraceProvider trace.TracerProvider
 }
 
 // StreamHandler is an interface for handling an Elastic APM agent ND-JSON event
@@ -96,10 +100,14 @@ func NewProcessor(cfg Config) *Processor {
 	if cfg.Logger == nil {
 		cfg.Logger = zap.NewNop()
 	}
+	if cfg.TraceProvider == nil {
+		cfg.TraceProvider = noop.NewTracerProvider()
+	}
 	return &Processor{
 		MaxEventSize: cfg.MaxEventSize,
 		sem:          cfg.Semaphore,
 		logger:       cfg.Logger,
+		tracer:       cfg.TraceProvider.Tracer("github.com/elastic/apm-data/input/elasticapm"),
 	}
 }
 
@@ -240,7 +248,7 @@ func (p *Processor) HandleStream(
 	processor modelpb.BatchProcessor,
 	result *Result,
 ) error {
-	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
+	ctx, sp := p.tracer.Start(ctx, "Stream")
 	defer sp.End()
 	// Limit the number of concurrent batch decodes.
 	//
@@ -326,7 +334,7 @@ func (p *Processor) getStreamReader(r io.Reader) *streamReader {
 }
 
 func (p *Processor) semAcquire(ctx context.Context) error {
-	sp, ctx := apm.StartSpan(ctx, "Semaphore.Acquire", "Reporter")
+	ctx, sp := p.tracer.Start(ctx, "Semaphore.Acquire")
 	defer sp.End()
 
 	return p.sem.Acquire(ctx, 1)

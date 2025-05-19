@@ -65,7 +65,7 @@ func (c *Consumer) ConsumeMetrics(ctx context.Context, metrics pmetric.Metrics) 
 func (c *Consumer) ConsumeMetricsWithResult(ctx context.Context, metrics pmetric.Metrics) (ConsumeMetricsResult, error) {
 	totalDataPoints := int64(metrics.DataPointCount())
 	totalMetrics := int64(metrics.MetricCount())
-	if err := semAcquire(ctx, c.sem, 1); err != nil {
+	if err := semAcquire(ctx, c.tracer, c.sem, 1); err != nil {
 		return ConsumeMetricsResult{}, err
 	}
 	defer c.sem.Release(1)
