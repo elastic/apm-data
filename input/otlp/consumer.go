@@ -50,12 +50,12 @@ type ConsumerConfig struct {
 	// token before proceeding, to limit concurrency.
 	Semaphore input.Semaphore
 
+	// TraceProvider holds the trace provider
+	TraceProvider trace.TracerProvider
+
 	// RemapOTelMetrics remaps certain OpenTelemetry metrics to elastic metrics.
 	// Note that both, OTel and Elastic, metrics would be published.
 	RemapOTelMetrics bool
-
-	// TraceProvider holds the trace provider
-	TraceProvider trace.TracerProvider
 }
 
 // Consumer transforms OpenTelemetry data to the Elastic APM data model,
@@ -63,8 +63,8 @@ type ConsumerConfig struct {
 type Consumer struct {
 	config    ConsumerConfig
 	sem       input.Semaphore
-	remappers []remapper
 	tracer    trace.Tracer
+	remappers []remapper
 	stats     consumerStats
 }
 

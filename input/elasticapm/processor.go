@@ -75,10 +75,10 @@ type Config struct {
 	// Logger holds a logger for the processor. If Logger is nil,
 	// then no logging will be performed.
 	Logger *zap.Logger
-	// MaxEventSize holds the maximum event size, in bytes.
-	MaxEventSize int
 	// TraceProvider holds the trace provider
 	TraceProvider trace.TracerProvider
+	// MaxEventSize holds the maximum event size, in bytes.
+	MaxEventSize int
 }
 
 // StreamHandler is an interface for handling an Elastic APM agent ND-JSON event
