@@ -20,13 +20,13 @@ package otlp
 import (
 	"context"
 
-	"go.elastic.co/apm/v2"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/elastic/apm-data/input"
 )
 
-func semAcquire(ctx context.Context, sem input.Semaphore, i int64) error {
-	sp, ctx := apm.StartSpan(ctx, "Semaphore.Acquire", "Reporter")
+func semAcquire(ctx context.Context, tracer trace.Tracer, sem input.Semaphore, i int64) error {
+	ctx, sp := tracer.Start(ctx, "Semaphore.Acquire")
 	defer sp.End()
 
 	return sem.Acquire(ctx, i)

@@ -63,7 +63,7 @@ func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
 // ConsumeLogsWithResult consumes OpenTelemetry log data, converting into
 // the Elastic APM log model and sending to the reporter.
 func (c *Consumer) ConsumeLogsWithResult(ctx context.Context, logs plog.Logs) (ConsumeLogsResult, error) {
-	if err := semAcquire(ctx, c.sem, 1); err != nil {
+	if err := semAcquire(ctx, c.tracer, c.sem, 1); err != nil {
 		return ConsumeLogsResult{}, err
 	}
 	defer c.sem.Release(1)
