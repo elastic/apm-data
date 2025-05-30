@@ -179,7 +179,7 @@ func (p *Processor) readBatch(
 	reader *streamReader,
 	result *Result,
 ) (int, error) {
-	ctx, sp := p.tracer.Start(ctx, "readBatch")
+	_, sp := p.tracer.Start(ctx, "readBatch")
 	defer sp.End()
 
 	// input events are decoded and appended to the batch
