@@ -42,7 +42,7 @@ import (
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
-	semconv "go.opentelemetry.io/collector/semconv/v1.27.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -163,13 +163,13 @@ func (c *Consumer) convertLogRecord(
 	var eventDomain string
 	attrs.Range(func(k string, v pcommon.Value) bool {
 		switch k {
-		case semconv.AttributeExceptionMessage:
+		case string(semconv.ExceptionMessageKey):
 			exceptionMessage = v.Str()
-		case semconv.AttributeExceptionStacktrace:
+		case string(semconv.ExceptionStacktraceKey):
 			exceptionStacktrace = v.Str()
-		case semconv.AttributeExceptionType:
+		case string(semconv.ExceptionTypeKey):
 			exceptionType = v.Str()
-		case semconv.AttributeExceptionEscaped:
+		case string(semconv.ExceptionEscapedKey):
 			exceptionEscaped = v.Bool()
 		case "event.name":
 			eventName = v.Str()
@@ -180,7 +180,7 @@ func (c *Consumer) convertLogRecord(
 				event.Session = &modelpb.Session{}
 			}
 			event.Session.Id = v.Str()
-		case semconv.AttributeNetworkConnectionType:
+		case string(semconv.NetworkConnectionTypeKey):
 			if event.Network == nil {
 				event.Network = &modelpb.Network{}
 			}
