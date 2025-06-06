@@ -48,11 +48,11 @@ import (
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
-	semconv12 "go.opentelemetry.io/collector/semconv/v1.12.0"
-	semconv16 "go.opentelemetry.io/collector/semconv/v1.16.0"
-	semconv18 "go.opentelemetry.io/collector/semconv/v1.18.0"
-	semconv25 "go.opentelemetry.io/collector/semconv/v1.25.0"
-	semconv "go.opentelemetry.io/collector/semconv/v1.27.0"
+	semconv12 "go.opentelemetry.io/otel/semconv/v1.12.0"
+	semconv16 "go.opentelemetry.io/otel/semconv/v1.16.0"
+	semconv18 "go.opentelemetry.io/otel/semconv/v1.18.0"
+	semconv25 "go.opentelemetry.io/otel/semconv/v1.25.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 	"google.golang.org/grpc/codes"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -283,18 +283,18 @@ func TranslateTransaction(
 			}
 		case pcommon.ValueTypeInt:
 			switch kDots {
-			case semconv25.AttributeHTTPStatusCode, semconv.AttributeHTTPResponseStatusCode:
+			case string(semconv25.HTTPStatusCodeKey), string(semconv.HTTPResponseStatusCodeKey):
 				isHTTP = true
 				httpResponse.StatusCode = uint32(v.Int())
 				http.Response = &httpResponse
-			case semconv25.AttributeNetPeerPort, semconv.AttributeClientPort:
+			case string(semconv25.NetPeerPortKey), string(semconv.ClientPortKey):
 				if event.Source == nil {
 					event.Source = &modelpb.Source{}
 				}
 				event.Source.Port = uint32(v.Int())
-			case semconv25.AttributeNetHostPort, semconv.AttributeServerPort:
+			case string(semconv25.NetHostPortKey), string(semconv.ServerPortKey):
 				netHostPort = int(v.Int())
-			case semconv.AttributeRPCGRPCStatusCode:
+			case string(semconv.RPCGRPCStatusCodeKey):
 				isRPC = true
 				event.Transaction.Result = codes.Code(v.Int()).String()
 			default:
@@ -305,26 +305,26 @@ func TranslateTransaction(
 			stringval := truncate(v.Str())
 			switch kDots {
 			// http.*
-			case semconv25.AttributeHTTPMethod, semconv.AttributeHTTPRequestMethod:
+			case string(semconv25.HTTPMethodKey), string(semconv.HTTPRequestMethodKey):
 				isHTTP = true
 				httpRequest.Method = stringval
 				http.Request = &httpRequest
-			case semconv25.AttributeHTTPURL, semconv.AttributeURLFull, semconv25.AttributeHTTPTarget, attributeHTTPPath:
+			case string(semconv25.HTTPURLKey), string(semconv.URLFullKey), string(semconv25.HTTPTargetKey), attributeHTTPPath:
 				isHTTP = true
 				httpURL = stringval
-			case semconv.AttributeURLPath:
+			case string(semconv.URLPathKey):
 				isHTTP = true
 				urlPath = stringval
-			case semconv.AttributeURLQuery:
+			case string(semconv.URLQueryKey):
 				isHTTP = true
 				urlQuery = stringval
-			case semconv12.AttributeHTTPHost: //removed after 1.12 (stable)
+			case string(semconv12.HTTPHostKey): //removed after 1.12 (stable)
 				isHTTP = true
 				httpHost = stringval
-			case semconv25.AttributeHTTPScheme, semconv.AttributeURLScheme:
+			case string(semconv25.HTTPSchemeKey), string(semconv.URLSchemeKey):
 				isHTTP = true
 				httpScheme = stringval
-			case semconv25.AttributeHTTPStatusCode, semconv.AttributeHTTPResponseStatusCode:
+			case string(semconv25.HTTPStatusCodeKey), string(semconv.HTTPResponseStatusCodeKey):
 				if intv, err := strconv.Atoi(stringval); err == nil {
 					isHTTP = true
 					httpResponse.StatusCode = uint32(intv)
@@ -338,41 +338,41 @@ func TranslateTransaction(
 				}
 				stringval = strings.TrimPrefix(stringval, "HTTP/")
 				fallthrough
-			case semconv25.AttributeHTTPFlavor: //removed after 1.25 (experimental)
+			case string(semconv25.HTTPFlavorKey): //removed after 1.25 (experimental)
 				isHTTP = true
 				http.Version = stringval
-			case semconv12.AttributeHTTPServerName: //removed after 1.12 (stable)
+			case string(semconv12.HTTPServerNameKey): //removed after 1.12 (stable)
 				isHTTP = true
 				httpServerName = stringval
-			case semconv18.AttributeHTTPClientIP: //removed after 1.18 (stable)
+			case string(semconv18.HTTPClientIPKey): //removed after 1.18 (stable)
 				if ip, err := modelpb.ParseIP(stringval); err == nil {
 					if event.Client == nil {
 						event.Client = &modelpb.Client{}
 					}
 					event.Client.Ip = ip
 				}
-			case semconv25.AttributeHTTPUserAgent, semconv.AttributeUserAgentOriginal:
+			case string(semconv25.HTTPUserAgentKey), string(semconv.UserAgentOriginalKey):
 				if event.UserAgent == nil {
 					event.UserAgent = &modelpb.UserAgent{}
 				}
 				event.UserAgent.Original = stringval
 
 			// net.*
-			case semconv12.AttributeNetPeerIP, semconv25.AttributeNetSockPeerAddr:
+			case string(semconv12.NetPeerIPKey), string(semconv25.NetSockPeerAddrKey):
 				if event.Source == nil {
 					event.Source = &modelpb.Source{}
 				}
 				if ip, err := modelpb.ParseIP(stringval); err == nil {
 					event.Source.Ip = ip
 				}
-			case semconv25.AttributeNetPeerName, semconv.AttributeClientAddress:
+			case string(semconv25.NetPeerNameKey), string(semconv.ClientAddressKey):
 				if event.Source == nil {
 					event.Source = &modelpb.Source{}
 				}
 				event.Source.Domain = stringval
-			case semconv25.AttributeNetHostName, semconv.AttributeServerAddress:
+			case string(semconv25.NetHostNameKey), string(semconv.ServerAddressKey):
 				netHostName = stringval
-			case semconv.AttributeNetworkConnectionType:
+			case string(semconv.NetworkConnectionTypeKey):
 				if event.Network == nil {
 					event.Network = &modelpb.Network{}
 				}
@@ -380,7 +380,7 @@ func TranslateTransaction(
 					event.Network.Connection = &modelpb.NetworkConnection{}
 				}
 				event.Network.Connection.Type = stringval
-			case semconv.AttributeNetworkConnectionSubtype:
+			case string(semconv.NetworkConnectionSubtypeKey):
 				if event.Network == nil {
 					event.Network = &modelpb.Network{}
 				}
@@ -388,7 +388,7 @@ func TranslateTransaction(
 					event.Network.Connection = &modelpb.NetworkConnection{}
 				}
 				event.Network.Connection.Subtype = stringval
-			case semconv.AttributeNetworkCarrierMcc:
+			case string(semconv.NetworkCarrierMccKey):
 				if event.Network == nil {
 					event.Network = &modelpb.Network{}
 				}
@@ -396,7 +396,7 @@ func TranslateTransaction(
 					event.Network.Carrier = &modelpb.NetworkCarrier{}
 				}
 				event.Network.Carrier.Mcc = stringval
-			case semconv.AttributeNetworkCarrierMnc:
+			case string(semconv.NetworkCarrierMncKey):
 				if event.Network == nil {
 					event.Network = &modelpb.Network{}
 				}
@@ -404,7 +404,7 @@ func TranslateTransaction(
 					event.Network.Carrier = &modelpb.NetworkCarrier{}
 				}
 				event.Network.Carrier.Mnc = stringval
-			case semconv.AttributeNetworkCarrierName:
+			case string(semconv.NetworkCarrierNameKey):
 				if event.Network == nil {
 					event.Network = &modelpb.Network{}
 				}
@@ -412,7 +412,7 @@ func TranslateTransaction(
 					event.Network.Carrier = &modelpb.NetworkCarrier{}
 				}
 				event.Network.Carrier.Name = stringval
-			case semconv.AttributeNetworkCarrierIcc:
+			case string(semconv.NetworkCarrierIccKey):
 				if event.Network == nil {
 					event.Network = &modelpb.Network{}
 				}
@@ -426,13 +426,13 @@ func TranslateTransaction(
 			// messaging.destination is now called messaging.destination.name in the latest semconv
 			// https://opentelemetry.io/docs/specs/semconv/attributes-registry/messaging
 			// keep both of them for the backward compatibility
-			case semconv16.AttributeMessagingDestination, semconv.AttributeMessagingDestinationName, "message_bus.destination":
+			case string(semconv16.MessagingDestinationKey), string(semconv.MessagingDestinationNameKey), "message_bus.destination":
 				isMessaging = true
 				messagingQueueName = stringval
-			case semconv.AttributeMessagingSystem:
+			case string(semconv.MessagingSystemKey):
 				isMessaging = true
 				modelpb.Labels(event.Labels).Set(k, stringval)
-			case semconv25.AttributeMessagingOperation, semconv.AttributeMessagingOperationType, semconv.AttributeMessagingOperationName:
+			case string(semconv25.MessagingOperationKey), string(semconv.MessagingOperationTypeKey), string(semconv.MessagingOperationNameKey):
 				isMessaging = true
 				modelpb.Labels(event.Labels).Set(k, stringval)
 
@@ -441,12 +441,12 @@ func TranslateTransaction(
 			// TODO(axw) add RPC fieldset to ECS? Currently we drop these
 			// attributes, and rely on the operation name like we do with
 			// Elastic APM agents.
-			case semconv.AttributeRPCSystem:
+			case string(semconv.RPCSystemKey):
 				isRPC = true
-			case semconv.AttributeRPCGRPCStatusCode:
+			case string(semconv.RPCGRPCStatusCodeKey):
 				isRPC = true
-			case semconv.AttributeRPCService:
-			case semconv.AttributeRPCMethod:
+			case string(semconv.RPCServiceKey):
+			case string(semconv.RPCMethodKey):
 
 			// miscellaneous
 			case "type":
@@ -456,7 +456,7 @@ func TranslateTransaction(
 					event.Session = &modelpb.Session{}
 				}
 				event.Session.Id = stringval
-			case semconv.AttributeServiceVersion:
+			case string(semconv.ServiceVersionKey):
 				// NOTE support for sending service.version as a span tag
 				// is deprecated, and will be removed in 8.0. Instrumentation
 				// should set this as a resource attribute (OTel) or tracer
@@ -635,7 +635,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 		switch v.Type() {
 		case pcommon.ValueTypeBool:
 			switch kDots {
-			case semconv16.AttributeMessagingTempDestination, semconv.AttributeMessagingDestinationTemporary:
+			case string(semconv16.MessagingTempDestinationKey), string(semconv.MessagingDestinationTemporaryKey):
 				messageTempDestination = v.Bool()
 				fallthrough
 			default:
@@ -643,13 +643,13 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 			}
 		case pcommon.ValueTypeInt:
 			switch kDots {
-			case semconv25.AttributeHTTPStatusCode, semconv.AttributeHTTPResponseStatusCode:
+			case string(semconv25.HTTPStatusCodeKey), string(semconv.HTTPResponseStatusCodeKey):
 				httpResponse.StatusCode = uint32(v.Int())
 				http.Response = &httpResponse
 				isHTTP = true
-			case semconv25.AttributeNetPeerPort, semconv.AttributeServerPort, "peer.port":
+			case string(semconv25.NetPeerPortKey), string(semconv.ServerPortKey), "peer.port":
 				netPeerPort = int(v.Int())
-			case semconv.AttributeRPCGRPCStatusCode:
+			case string(semconv.RPCGRPCStatusCodeKey):
 				rpcSystem = "grpc"
 				isRPC = true
 			default:
@@ -660,25 +660,25 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 
 			switch kDots {
 			// http.*
-			case semconv12.AttributeHTTPHost: //removed after 1.12 (stable)
+			case string(semconv12.HTTPHostKey): //removed after 1.12 (stable)
 				httpHost = stringval
 				isHTTP = true
-			case semconv25.AttributeHTTPScheme, semconv.AttributeURLScheme:
+			case string(semconv25.HTTPSchemeKey), string(semconv.URLSchemeKey):
 				httpScheme = stringval
 				isHTTP = true
-			case semconv25.AttributeHTTPTarget:
+			case string(semconv25.HTTPTargetKey):
 				httpTarget = stringval
 				isHTTP = true
-			case semconv.AttributeURLPath:
+			case string(semconv.URLPathKey):
 				httpURLPath = stringval
 				isHTTP = true
-			case semconv.AttributeURLQuery:
+			case string(semconv.URLQueryKey):
 				httpURLQuery = stringval
 				isHTTP = true
-			case semconv25.AttributeHTTPURL, semconv.AttributeURLFull:
+			case string(semconv25.HTTPURLKey), string(semconv.URLFullKey):
 				httpURL = stringval
 				isHTTP = true
-			case semconv25.AttributeHTTPMethod, semconv.AttributeHTTPRequestMethod:
+			case string(semconv25.HTTPMethodKey), string(semconv.HTTPRequestMethodKey):
 				httpRequest.Method = stringval
 				http.Request = &httpRequest
 				isHTTP = true
@@ -689,28 +689,28 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 					db.Type = "sql"
 				}
 				fallthrough
-			case semconv25.AttributeDBStatement, semconv.AttributeDBQueryText:
+			case string(semconv25.DBStatementKey), string(semconv.DBQueryTextKey):
 				// Statement should not be truncated, use original string value.
 				db.Statement = v.Str()
 				isDatabase = true
-			case semconv25.AttributeDBName, semconv.AttributeDBNamespace, "db.instance", attributeDbElasticsearchClusterName:
+			case string(semconv25.DBNameKey), string(semconv.DBNamespaceKey), "db.instance", attributeDbElasticsearchClusterName:
 				db.Instance = stringval
 				isDatabase = true
-			case semconv.AttributeDBSystem, "db.type":
+			case string(semconv.DBSystemKey), "db.type":
 				db.Type = stringval
 				isDatabase = true
-			case semconv25.AttributeDBUser: //removed after 1.25 (experimental)
+			case string(semconv25.DBUserKey): //removed after 1.25 (experimental)
 				db.UserName = stringval
 				isDatabase = true
 
 			// net.*
-			case semconv25.AttributeNetPeerName, "peer.hostname", semconv.AttributeServerAddress:
+			case string(semconv25.NetPeerNameKey), "peer.hostname", string(semconv.ServerAddressKey):
 				netPeerName = stringval
-			case semconv12.AttributeNetPeerIP, semconv25.AttributeNetSockPeerAddr, semconv.AttributeNetworkPeerAddress, "peer.ipv4", "peer.ipv6":
+			case string(semconv12.NetPeerIPKey), string(semconv25.NetSockPeerAddrKey), string(semconv.NetworkPeerAddressKey), "peer.ipv4", "peer.ipv6":
 				netPeerIP = stringval
 			case "peer.address":
 				peerAddress = stringval
-			case semconv.AttributeNetworkConnectionType:
+			case string(semconv.NetworkConnectionTypeKey):
 				if event.Network == nil {
 					event.Network = &modelpb.Network{}
 				}
@@ -718,7 +718,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 					event.Network.Connection = &modelpb.NetworkConnection{}
 				}
 				event.Network.Connection.Type = stringval
-			case semconv.AttributeNetworkConnectionSubtype:
+			case string(semconv.NetworkConnectionSubtypeKey):
 				if event.Network == nil {
 					event.Network = &modelpb.Network{}
 				}
@@ -726,7 +726,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 					event.Network.Connection = &modelpb.NetworkConnection{}
 				}
 				event.Network.Connection.Subtype = stringval
-			case semconv.AttributeNetworkCarrierMcc:
+			case string(semconv.NetworkCarrierMccKey):
 				if event.Network == nil {
 					event.Network = &modelpb.Network{}
 				}
@@ -734,7 +734,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 					event.Network.Carrier = &modelpb.NetworkCarrier{}
 				}
 				event.Network.Carrier.Mcc = stringval
-			case semconv.AttributeNetworkCarrierMnc:
+			case string(semconv.NetworkCarrierMncKey):
 				if event.Network == nil {
 					event.Network = &modelpb.Network{}
 				}
@@ -742,7 +742,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 					event.Network.Carrier = &modelpb.NetworkCarrier{}
 				}
 				event.Network.Carrier.Mnc = stringval
-			case semconv.AttributeNetworkCarrierName:
+			case string(semconv.NetworkCarrierNameKey):
 				if event.Network == nil {
 					event.Network = &modelpb.Network{}
 				}
@@ -750,7 +750,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 					event.Network.Carrier = &modelpb.NetworkCarrier{}
 				}
 				event.Network.Carrier.Name = stringval
-			case semconv.AttributeNetworkCarrierIcc:
+			case string(semconv.NetworkCarrierIccKey):
 				if event.Network == nil {
 					event.Network = &modelpb.Network{}
 				}
@@ -771,16 +771,16 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 			// messaging.destination is now called messaging.destination.name in the latest semconv
 			// https://opentelemetry.io/docs/specs/semconv/attributes-registry/messaging
 			// keep both of them for the backward compatibility
-			case semconv16.AttributeMessagingDestination, semconv.AttributeMessagingDestinationName, "message_bus.destination":
+			case string(semconv16.MessagingDestinationKey), string(semconv.MessagingDestinationNameKey), "message_bus.destination":
 				message.QueueName = stringval
 				isMessaging = true
-			case semconv25.AttributeMessagingOperation, semconv.AttributeMessagingOperationType:
+			case string(semconv25.MessagingOperationKey), string(semconv.MessagingOperationTypeKey):
 				messageOperation = stringval
 				isMessaging = true
-			case semconv.AttributeMessagingOperationName:
+			case string(semconv.MessagingOperationNameKey):
 				modelpb.Labels(event.Labels).Set(k, stringval)
 				isMessaging = true
-			case semconv.AttributeMessagingSystem:
+			case string(semconv.MessagingSystemKey):
 				messageSystem = stringval
 				isMessaging = true
 
@@ -789,18 +789,18 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 			// TODO(axw) add RPC fieldset to ECS? Currently we drop these
 			// attributes, and rely on the operation name and span type/subtype
 			// like we do with Elastic APM agents.
-			case semconv.AttributeRPCSystem:
+			case string(semconv.RPCSystemKey):
 				rpcSystem = stringval
 				isRPC = true
-			case semconv.AttributeRPCService:
+			case string(semconv.RPCServiceKey):
 				rpcService = stringval
 				isRPC = true
-			case semconv.AttributeRPCGRPCStatusCode:
+			case string(semconv.RPCGRPCStatusCodeKey):
 				rpcSystem = "grpc"
 				isRPC = true
-			case semconv.AttributeRPCMethod:
+			case string(semconv.RPCMethodKey):
 
-			case semconv.AttributeCodeStacktrace:
+			case string(semconv.CodeStacktraceKey):
 				if event.Code == nil {
 					event.Code = &modelpb.Code{}
 				}
@@ -808,13 +808,13 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				event.Code.Stacktrace = v.Str()
 
 			// gen_ai.*
-			case semconv.AttributeGenAiSystem:
+			case string(semconv.GenAISystemKey):
 				genAiSystem = stringval
 				isGenAi = true
 
 			// miscellaneous
 			case "span.kind": // filter out
-			case semconv.AttributePeerService:
+			case string(semconv.PeerServiceKey):
 				peerService = stringval
 
 			// data_stream.*
@@ -1106,11 +1106,11 @@ func (c *Consumer) convertSpanEvent(
 		var exceptionMessage, exceptionStacktrace, exceptionType string
 		spanEvent.Attributes().Range(func(k string, v pcommon.Value) bool {
 			switch k {
-			case semconv.AttributeExceptionMessage:
+			case string(semconv.ExceptionMessageKey):
 				exceptionMessage = v.Str()
-			case semconv.AttributeExceptionStacktrace:
+			case string(semconv.ExceptionStacktraceKey):
 				exceptionStacktrace = v.Str()
-			case semconv.AttributeExceptionType:
+			case string(semconv.ExceptionTypeKey):
 				exceptionType = v.Str()
 			case "exception.escaped":
 				exceptionEscaped = v.Bool()

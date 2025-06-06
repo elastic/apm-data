@@ -46,7 +46,7 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
-	semconv "go.opentelemetry.io/collector/semconv/v1.27.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 	"golang.org/x/sync/semaphore"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -178,7 +178,7 @@ func TestConsumerConsumeLogs(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			logs := plog.NewLogs()
 			resourceLogs := logs.ResourceLogs().AppendEmpty()
-			logs.ResourceLogs().At(0).Resource().Attributes().PutStr(semconv.AttributeTelemetrySDKLanguage, "go")
+			logs.ResourceLogs().At(0).Resource().Attributes().PutStr(string(semconv.TelemetrySDKLanguageKey), "go")
 			scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
 			record := newLogRecord(tt.body)
 
@@ -269,7 +269,7 @@ func TestConsumerConsumeLogsException(t *testing.T) {
 	logs := plog.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
 	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
-	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKLanguage, "java")
+	resourceAttrs.PutStr(string(semconv.TelemetrySDKLanguageKey), "java")
 	resourceAttrs.PutStr("key0", "zero")
 	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
 
@@ -445,7 +445,7 @@ func TestConsumerConsumeOTelEventLogs(t *testing.T) {
 	logs := plog.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
 	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
-	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKLanguage, "swift")
+	resourceAttrs.PutStr(string(semconv.TelemetrySDKLanguageKey), "swift")
 	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
 
 	record1 := newLogRecord("") // no log body
@@ -480,7 +480,7 @@ func TestConsumerConsumeLogsExceptionAsEvents(t *testing.T) {
 	logs := plog.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
 	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
-	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKLanguage, "java")
+	resourceAttrs.PutStr(string(semconv.TelemetrySDKLanguageKey), "java")
 	resourceAttrs.PutStr("key0", "zero")
 	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
 
@@ -651,7 +651,7 @@ func TestLogsInstrumentationLibrary(t *testing.T) {
 	logs := plog.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
 	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
-	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKLanguage, "java")
+	resourceAttrs.PutStr(string(semconv.TelemetrySDKLanguageKey), "java")
 	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
 	timestamp := pcommon.NewTimestampFromTime(time.UnixMilli(946684800000))
 
@@ -686,7 +686,7 @@ func TestConsumerConsumeOTelLogsWithTimestamp(t *testing.T) {
 	logs := plog.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
 	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
-	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKLanguage, "java")
+	resourceAttrs.PutStr(string(semconv.TelemetrySDKLanguageKey), "java")
 	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
 	timestamp := pcommon.NewTimestampFromTime(time.UnixMilli(946684800000))
 
@@ -719,7 +719,7 @@ func TestConsumerConsumeOTelLogsWithoutTimestamp(t *testing.T) {
 	logs := plog.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
 	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
-	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKLanguage, "java")
+	resourceAttrs.PutStr(string(semconv.TelemetrySDKLanguageKey), "java")
 	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
 	timestamp := pcommon.NewTimestampFromTime(time.UnixMilli(0))
 
@@ -752,7 +752,7 @@ func TestConsumerConsumeOTelLogsWithObservedTimestampWithoutTimestamp(t *testing
 	logs := plog.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
 	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
-	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKLanguage, "java")
+	resourceAttrs.PutStr(string(semconv.TelemetrySDKLanguageKey), "java")
 	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
 	observedTimestamp := pcommon.NewTimestampFromTime(time.UnixMilli(946684800000))
 
@@ -786,7 +786,7 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 	logs := plog.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
 	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
-	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKLanguage, "go")
+	resourceAttrs.PutStr(string(semconv.TelemetrySDKLanguageKey), "go")
 	resourceAttrs.PutStr("key0", "zero")
 	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
 

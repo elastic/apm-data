@@ -43,7 +43,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
-	semconv "go.opentelemetry.io/collector/semconv/v1.27.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -57,7 +57,7 @@ func TestEncodeSpanEventsNonExceptions(t *testing.T) {
 	incompleteExceptionEvent.SetName("exception")
 	incompleteExceptionEvent.Attributes().PutStr(
 		// At least one of exception.message and exception.type is required.
-		semconv.AttributeExceptionStacktrace, "stacktrace",
+		string(semconv.ExceptionStacktraceKey), "stacktrace",
 	)
 
 	_, events := transformTransactionSpanEvents(t, "java", nonExceptionEvent, incompleteExceptionEvent)

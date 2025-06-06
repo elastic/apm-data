@@ -48,7 +48,7 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
-	semconv "go.opentelemetry.io/collector/semconv/v1.27.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -1528,7 +1528,7 @@ func TestSpanEventsDataStream(t *testing.T) {
 			timestamp := time.Unix(123, 0).UTC()
 
 			traces, spans := newTracesSpans()
-			traces.ResourceSpans().At(0).Resource().Attributes().PutStr(semconv.AttributeTelemetrySDKLanguage, "java")
+			traces.ResourceSpans().At(0).Resource().Attributes().PutStr(string(semconv.TelemetrySDKLanguageKey), "java")
 			traces.ResourceSpans().At(0).Resource().Attributes().PutStr("data_stream.dataset", "1")
 			traces.ResourceSpans().At(0).Resource().Attributes().PutStr("data_stream.namespace", "2")
 			otelSpan := spans.Spans().AppendEmpty()
@@ -1598,7 +1598,7 @@ func transformSpanWithAttributes(t *testing.T, attrs map[string]interface{}, con
 
 func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ...ptrace.SpanEvent) (transaction *modelpb.APMEvent, events []*modelpb.APMEvent) {
 	traces, spans := newTracesSpans()
-	traces.ResourceSpans().At(0).Resource().Attributes().PutStr(semconv.AttributeTelemetrySDKLanguage, language)
+	traces.ResourceSpans().At(0).Resource().Attributes().PutStr(string(semconv.TelemetrySDKLanguageKey), language)
 	otelSpan := spans.Spans().AppendEmpty()
 	otelSpan.SetTraceID(pcommon.TraceID{1})
 	otelSpan.SetSpanID(pcommon.SpanID{2})
