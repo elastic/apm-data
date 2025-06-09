@@ -25,8 +25,8 @@ import (
 	"unicode"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
-	semconv26 "go.opentelemetry.io/collector/semconv/v1.26.0"
-	semconv "go.opentelemetry.io/collector/semconv/v1.27.0"
+	semconv26 "go.opentelemetry.io/otel/semconv/v1.26.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -47,17 +47,17 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 	resource.Attributes().Range(func(k string, v pcommon.Value) bool {
 		switch k {
 		// service.*
-		case semconv.AttributeServiceName:
+		case string(semconv.ServiceNameKey):
 			if out.Service == nil {
 				out.Service = &modelpb.Service{}
 			}
 			out.Service.Name = cleanServiceName(v.Str())
-		case semconv.AttributeServiceVersion:
+		case string(semconv.ServiceVersionKey):
 			if out.Service == nil {
 				out.Service = &modelpb.Service{}
 			}
 			out.Service.Version = truncate(v.Str())
-		case semconv.AttributeServiceInstanceID:
+		case string(semconv.ServiceInstanceIDKey):
 			if out.Service == nil {
 				out.Service = &modelpb.Service{}
 			}
@@ -67,24 +67,24 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			out.Service.Node.Name = truncate(v.Str())
 
 		// deployment.*
-		case semconv26.AttributeDeploymentEnvironment, semconv.AttributeDeploymentEnvironmentName:
+		case string(semconv26.DeploymentEnvironmentKey), string(semconv.DeploymentEnvironmentNameKey):
 			if out.Service == nil {
 				out.Service = &modelpb.Service{}
 			}
 			out.Service.Environment = truncate(v.Str())
 
 		// telemetry.sdk.*
-		case semconv.AttributeTelemetrySDKName:
+		case string(semconv.TelemetrySDKNameKey):
 			if out.Agent == nil {
 				out.Agent = &modelpb.Agent{}
 			}
 			out.Agent.Name = truncate(v.Str())
-		case semconv.AttributeTelemetrySDKVersion:
+		case string(semconv.TelemetrySDKVersionKey):
 			if out.Agent == nil {
 				out.Agent = &modelpb.Agent{}
 			}
 			out.Agent.Version = truncate(v.Str())
-		case semconv.AttributeTelemetrySDKLanguage:
+		case string(semconv.TelemetrySDKLanguageKey):
 			if out.Service == nil {
 				out.Service = &modelpb.Service{}
 			}
@@ -94,44 +94,44 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			out.Service.Language.Name = truncate(v.Str())
 
 		// cloud.*
-		case semconv.AttributeCloudProvider:
+		case string(semconv.CloudProviderKey):
 			if out.Cloud == nil {
 				out.Cloud = &modelpb.Cloud{}
 			}
 			out.Cloud.Provider = truncate(v.Str())
-		case semconv.AttributeCloudAccountID:
+		case string(semconv.CloudAccountIDKey):
 			if out.Cloud == nil {
 				out.Cloud = &modelpb.Cloud{}
 			}
 			out.Cloud.AccountId = truncate(v.Str())
-		case semconv.AttributeCloudRegion:
+		case string(semconv.CloudRegionKey):
 			if out.Cloud == nil {
 				out.Cloud = &modelpb.Cloud{}
 			}
 			out.Cloud.Region = truncate(v.Str())
-		case semconv.AttributeCloudAvailabilityZone:
+		case string(semconv.CloudAvailabilityZoneKey):
 			if out.Cloud == nil {
 				out.Cloud = &modelpb.Cloud{}
 			}
 			out.Cloud.AvailabilityZone = truncate(v.Str())
-		case semconv.AttributeCloudPlatform:
+		case string(semconv.CloudPlatformKey):
 			if out.Cloud == nil {
 				out.Cloud = &modelpb.Cloud{}
 			}
 			out.Cloud.ServiceName = truncate(v.Str())
 
 		// container.*
-		case semconv.AttributeContainerName:
+		case string(semconv.ContainerNameKey):
 			if out.Container == nil {
 				out.Container = &modelpb.Container{}
 			}
 			out.Container.Name = truncate(v.Str())
-		case semconv.AttributeContainerID:
+		case string(semconv.ContainerIDKey):
 			if out.Container == nil {
 				out.Container = &modelpb.Container{}
 			}
 			out.Container.Id = truncate(v.Str())
-		case semconv.AttributeContainerImageName:
+		case string(semconv.ContainerImageNameKey):
 			if out.Container == nil {
 				out.Container = &modelpb.Container{}
 			}
@@ -148,39 +148,39 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			out.Container.Runtime = truncate(v.Str())
 
 		// k8s.*
-		case semconv.AttributeK8SNamespaceName:
+		case string(semconv.K8SNamespaceNameKey):
 			if out.Kubernetes == nil {
 				out.Kubernetes = &modelpb.Kubernetes{}
 			}
 			out.Kubernetes.Namespace = truncate(v.Str())
-		case semconv.AttributeK8SNodeName:
+		case string(semconv.K8SNodeNameKey):
 			if out.Kubernetes == nil {
 				out.Kubernetes = &modelpb.Kubernetes{}
 			}
 			out.Kubernetes.NodeName = truncate(v.Str())
-		case semconv.AttributeK8SPodName:
+		case string(semconv.K8SPodNameKey):
 			if out.Kubernetes == nil {
 				out.Kubernetes = &modelpb.Kubernetes{}
 			}
 			out.Kubernetes.PodName = truncate(v.Str())
-		case semconv.AttributeK8SPodUID:
+		case string(semconv.K8SPodUIDKey):
 			if out.Kubernetes == nil {
 				out.Kubernetes = &modelpb.Kubernetes{}
 			}
 			out.Kubernetes.PodUid = truncate(v.Str())
 
 		// host.*
-		case semconv.AttributeHostName:
+		case string(semconv.HostNameKey):
 			if out.Host == nil {
 				out.Host = &modelpb.Host{}
 			}
 			out.Host.Hostname = truncate(v.Str())
-		case semconv.AttributeHostID:
+		case string(semconv.HostIDKey):
 			if out.Host == nil {
 				out.Host = &modelpb.Host{}
 			}
 			out.Host.Id = truncate(v.Str())
-		case semconv.AttributeHostType:
+		case string(semconv.HostTypeKey):
 			if out.Host == nil {
 				out.Host = &modelpb.Host{}
 			}
@@ -190,7 +190,7 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 				out.Host = &modelpb.Host{}
 			}
 			out.Host.Architecture = truncate(v.Str())
-		case semconv.AttributeHostIP:
+		case string(semconv.HostIPKey):
 			if out.Host == nil {
 				out.Host = &modelpb.Host{}
 			}
@@ -205,17 +205,17 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			out.Host.Ip = result
 
 		// process.*
-		case semconv.AttributeProcessPID:
+		case string(semconv.ProcessPIDKey):
 			if out.Process == nil {
 				out.Process = &modelpb.Process{}
 			}
 			out.Process.Pid = uint32(v.Int())
-		case semconv.AttributeProcessCommandLine:
+		case string(semconv.ProcessCommandLineKey):
 			if out.Process == nil {
 				out.Process = &modelpb.Process{}
 			}
 			out.Process.CommandLine = truncate(v.Str())
-		case semconv.AttributeProcessExecutablePath:
+		case string(semconv.ProcessExecutablePathKey):
 			if out.Process == nil {
 				out.Process = &modelpb.Process{}
 			}
@@ -236,14 +236,14 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 				out.Service.Runtime = &modelpb.Runtime{}
 			}
 			out.Service.Runtime.Version = truncate(v.Str())
-		case semconv.AttributeProcessOwner:
+		case string(semconv.ProcessOwnerKey):
 			if out.User == nil {
 				out.User = &modelpb.User{}
 			}
 			out.User.Name = truncate(v.Str())
 
 		// os.*
-		case semconv.AttributeOSType:
+		case string(semconv.OSTypeKey):
 			if out.Host == nil {
 				out.Host = &modelpb.Host{}
 			}
@@ -251,7 +251,7 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 				out.Host.Os = &modelpb.OS{}
 			}
 			out.Host.Os.Platform = strings.ToLower(truncate(v.Str()))
-		case semconv.AttributeOSDescription:
+		case string(semconv.OSDescriptionKey):
 			if out.Host == nil {
 				out.Host = &modelpb.Host{}
 			}
@@ -259,7 +259,7 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 				out.Host.Os = &modelpb.OS{}
 			}
 			out.Host.Os.Full = truncate(v.Str())
-		case semconv.AttributeOSName:
+		case string(semconv.OSNameKey):
 			if out.Host == nil {
 				out.Host = &modelpb.Host{}
 			}
@@ -267,7 +267,7 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 				out.Host.Os = &modelpb.OS{}
 			}
 			out.Host.Os.Name = truncate(v.Str())
-		case semconv.AttributeOSVersion:
+		case string(semconv.OSVersionKey):
 			if out.Host == nil {
 				out.Host = &modelpb.Host{}
 			}
@@ -277,12 +277,12 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 			out.Host.Os.Version = truncate(v.Str())
 
 		// device.*
-		case semconv.AttributeDeviceID:
+		case string(semconv.DeviceIDKey):
 			if out.Device == nil {
 				out.Device = &modelpb.Device{}
 			}
 			out.Device.Id = truncate(v.Str())
-		case semconv.AttributeDeviceModelIdentifier:
+		case string(semconv.DeviceModelIdentifierKey):
 			if out.Device == nil {
 				out.Device = &modelpb.Device{}
 			}
@@ -290,7 +290,7 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 				out.Device.Model = &modelpb.DeviceModel{}
 			}
 			out.Device.Model.Identifier = truncate(v.Str())
-		case semconv.AttributeDeviceModelName:
+		case string(semconv.DeviceModelNameKey):
 			if out.Device == nil {
 				out.Device = &modelpb.Device{}
 			}
