@@ -45,15 +45,17 @@ func HTTPHeadersToStructPb(h http.Header) *structpb.Struct {
 	return nil
 }
 
-func HTTPHeadersToModelpb(h http.Header, out []*modelpb.HTTPHeader) []*modelpb.HTTPHeader {
+func HTTPHeadersToModelpb(h http.Header) []*modelpb.HTTPHeader {
 	if len(h) == 0 {
 		return nil
 	}
-	out = ResliceAndPopulateNil(out, len(h), NewType[modelpb.HTTPHeader])
+	out := make([]*modelpb.HTTPHeader, len(h))
 	i := 0
 	for k, v := range h {
-		out[i].Key = k
-		out[i].Value = v
+		out[i] = &modelpb.HTTPHeader{
+			Key:   k,
+			Value: v,
+		}
 		i++
 	}
 	return out
