@@ -28,7 +28,7 @@ func ToKv(m map[string]any) []*modelpb.KeyValue {
 		return nil
 	}
 
-	out := make([]*modelpb.KeyValue, len(m), len(m))
+	out := make([]*modelpb.KeyValue, len(m))
 
 	i := 0
 	for k, v := range m {

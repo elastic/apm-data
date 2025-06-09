@@ -202,7 +202,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			log.ParamMessage = from.Log.ParamMessage.Val
 		}
 		if len(from.Log.Stacktrace) > 0 {
-			log.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Log.Stacktrace), len(from.Log.Stacktrace))
+			log.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Log.Stacktrace))
 			mapToStacktraceModel(from.Log.Stacktrace, log.Stacktrace)
 		}
 		out.Log = &log
@@ -242,7 +242,7 @@ func mapToExceptionModel(from *errorException, out *modelpb.Exception) {
 		out.Code = modeldecoderutil.ExceptionCodeString(from.Code.Val)
 	}
 	if len(from.Cause) > 0 {
-		out.Cause = make([]*modelpb.Exception, len(from.Cause), len(from.Cause))
+		out.Cause = make([]*modelpb.Exception, len(from.Cause))
 		for i := 0; i < len(from.Cause); i++ {
 			e := &modelpb.Exception{}
 			mapToExceptionModel(&from.Cause[i], e)
@@ -260,7 +260,7 @@ func mapToExceptionModel(from *errorException, out *modelpb.Exception) {
 		out.Module = from.Module.Val
 	}
 	if len(from.Stacktrace) > 0 {
-		out.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Stacktrace), len(from.Stacktrace))
+		out.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Stacktrace))
 		mapToStacktraceModel(from.Stacktrace, out.Stacktrace)
 	}
 	if from.Type.IsSet() {
@@ -629,7 +629,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		out.RepresentativeCount = 1 / from.SampleRate.Val
 	}
 	if len(from.Stacktrace) > 0 {
-		out.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Stacktrace), len(from.Stacktrace))
+		out.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Stacktrace))
 		mapToStacktraceModel(from.Stacktrace, out.Stacktrace)
 	}
 	if from.Sync.IsSet() {
@@ -673,11 +673,11 @@ func mapToStacktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFrame
 			fr.Module = eventFrame.Module.Val
 		}
 		if len(eventFrame.PostContext) > 0 {
-			fr.PostContext = make([]string, len(eventFrame.PostContext), len(eventFrame.PostContext))
+			fr.PostContext = make([]string, len(eventFrame.PostContext))
 			copy(fr.PostContext, eventFrame.PostContext)
 		}
 		if len(eventFrame.PreContext) > 0 {
-			fr.PreContext = make([]string, len(eventFrame.PreContext), len(eventFrame.PreContext))
+			fr.PreContext = make([]string, len(eventFrame.PreContext))
 			copy(fr.PreContext, eventFrame.PreContext)
 		}
 		out[idx] = fr

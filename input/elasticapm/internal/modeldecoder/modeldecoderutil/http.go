@@ -49,7 +49,7 @@ func HTTPHeadersToModelpb(h http.Header) []*modelpb.HTTPHeader {
 	if len(h) == 0 {
 		return nil
 	}
-	out := make([]*modelpb.HTTPHeader, len(h), len(h))
+	out := make([]*modelpb.HTTPHeader, len(h))
 	i := 0
 	for k, v := range h {
 		out[i] = &modelpb.HTTPHeader{

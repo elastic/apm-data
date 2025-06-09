@@ -383,7 +383,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			log.ParamMessage = from.Log.ParamMessage.Val
 		}
 		if len(from.Log.Stacktrace) > 0 {
-			log.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Log.Stacktrace), len(from.Log.Stacktrace))
+			log.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Log.Stacktrace))
 			mapToStracktraceModel(from.Log.Stacktrace, log.Stacktrace)
 		}
 		out.Log = &log
@@ -427,7 +427,7 @@ func mapToExceptionModel(from *errorException, out *modelpb.Exception) {
 		out.Code = modeldecoderutil.ExceptionCodeString(from.Code.Val)
 	}
 	if len(from.Cause) > 0 {
-		out.Cause = make([]*modelpb.Exception, len(from.Cause), len(from.Cause))
+		out.Cause = make([]*modelpb.Exception, len(from.Cause))
 		for i := 0; i < len(from.Cause); i++ {
 			e := &modelpb.Exception{}
 			mapToExceptionModel(&from.Cause[i], e)
@@ -445,7 +445,7 @@ func mapToExceptionModel(from *errorException, out *modelpb.Exception) {
 		out.Module = from.Module.Val
 	}
 	if len(from.Stacktrace) > 0 {
-		out.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Stacktrace), len(from.Stacktrace))
+		out.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Stacktrace))
 		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
 	}
 	if from.Type.IsSet() {
@@ -717,18 +717,18 @@ func mapToMetricsetModel(from *metricset, event *modelpb.APMEvent) bool {
 	}
 
 	if len(from.Samples) > 0 {
-		event.Metricset.Samples = make([]*modelpb.MetricsetSample, len(from.Samples), len(from.Samples))
+		event.Metricset.Samples = make([]*modelpb.MetricsetSample, len(from.Samples))
 		i := 0
 		for name, sample := range from.Samples {
 			ms := &modelpb.MetricsetSample{}
 			if len(sample.Counts) != 0 || len(sample.Values) != 0 {
 				ms.Histogram = &modelpb.Histogram{}
 				if n := len(sample.Values); n > 0 {
-					ms.Histogram.Values = make([]float64, n, n)
+					ms.Histogram.Values = make([]float64, n)
 					copy(ms.Histogram.Values, sample.Values)
 				}
 				if n := len(sample.Counts); n > 0 {
-					ms.Histogram.Counts = make([]uint64, n, n)
+					ms.Histogram.Counts = make([]uint64, n)
 					copy(ms.Histogram.Counts, sample.Counts)
 				}
 			}
@@ -995,7 +995,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		out.Composite = &composite
 	}
 	if len(from.ChildIDs) > 0 {
-		event.ChildIds = make([]string, len(from.ChildIDs), len(from.ChildIDs))
+		event.ChildIds = make([]string, len(from.ChildIDs))
 		copy(event.ChildIds, from.ChildIDs)
 	}
 	if from.Context.Database.IsSet() {
@@ -1192,7 +1192,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		out.RepresentativeCount = 1
 	}
 	if len(from.Stacktrace) > 0 {
-		out.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Stacktrace), len(from.Stacktrace))
+		out.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Stacktrace))
 		mapToStracktraceModel(from.Stacktrace, out.Stacktrace)
 	}
 	if from.Sync.IsSet() {
@@ -1219,7 +1219,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		mapOTelAttributesSpan(from.OTel, event)
 	}
 	if len(from.Links) > 0 {
-		out.Links = make([]*modelpb.SpanLink, len(from.Links), len(from.Links))
+		out.Links = make([]*modelpb.SpanLink, len(from.Links))
 		mapSpanLinks(from.Links, out.Links)
 	}
 	if out.Type == "" {
@@ -1261,11 +1261,11 @@ func mapToStracktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFram
 			fr.Module = eventFrame.Module.Val
 		}
 		if len(eventFrame.PostContext) > 0 {
-			fr.PostContext = make([]string, len(eventFrame.PostContext), len(eventFrame.PostContext))
+			fr.PostContext = make([]string, len(eventFrame.PostContext))
 			copy(fr.PostContext, eventFrame.PostContext)
 		}
 		if len(eventFrame.PreContext) > 0 {
-			fr.PreContext = make([]string, len(eventFrame.PreContext), len(eventFrame.PreContext))
+			fr.PreContext = make([]string, len(eventFrame.PreContext))
 			copy(fr.PreContext, eventFrame.PreContext)
 		}
 		if len(eventFrame.Vars) > 0 {
@@ -1490,7 +1490,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 		if event.Span == nil {
 			event.Span = &modelpb.Span{}
 		}
-		event.Span.Links = make([]*modelpb.SpanLink, len(from.Links), len(from.Links))
+		event.Span.Links = make([]*modelpb.SpanLink, len(from.Links))
 		mapSpanLinks(from.Links, event.Span.Links)
 	}
 	if out.Type == "" {
