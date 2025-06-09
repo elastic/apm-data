@@ -171,7 +171,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			}
 		}
 		if len(from.Context.Custom) > 0 {
-			out.Custom = modeldecoderutil.ToKv(from.Context.Custom, out.Custom)
+			out.Custom = modeldecoderutil.ToKv(from.Context.Custom)
 		}
 	}
 	if from.Culprit.IsSet() {
@@ -202,11 +202,7 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 			log.ParamMessage = from.Log.ParamMessage.Val
 		}
 		if len(from.Log.Stacktrace) > 0 {
-			log.Stacktrace = modeldecoderutil.ResliceAndPopulateNil(
-				log.Stacktrace,
-				len(from.Log.Stacktrace),
-				modeldecoderutil.NewType[modelpb.StacktraceFrame],
-			)
+			log.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Log.Stacktrace))
 			mapToStacktraceModel(from.Log.Stacktrace, log.Stacktrace)
 		}
 		out.Log = &log
@@ -240,19 +236,17 @@ func mapToErrorModel(from *errorEvent, event *modelpb.APMEvent) {
 
 func mapToExceptionModel(from *errorException, out *modelpb.Exception) {
 	if len(from.Attributes) > 0 {
-		out.Attributes = modeldecoderutil.ToKv(from.Attributes, out.Attributes)
+		out.Attributes = modeldecoderutil.ToKv(from.Attributes)
 	}
 	if from.Code.IsSet() {
 		out.Code = modeldecoderutil.ExceptionCodeString(from.Code.Val)
 	}
 	if len(from.Cause) > 0 {
-		out.Cause = modeldecoderutil.ResliceAndPopulateNil(
-			out.Cause,
-			len(from.Cause),
-			modeldecoderutil.NewType[modelpb.Exception],
-		)
+		out.Cause = make([]*modelpb.Exception, len(from.Cause))
 		for i := 0; i < len(from.Cause); i++ {
-			mapToExceptionModel(&from.Cause[i], out.Cause[i])
+			e := &modelpb.Exception{}
+			mapToExceptionModel(&from.Cause[i], e)
+			out.Cause[i] = e
 		}
 	}
 	if from.Handled.IsSet() {
@@ -266,11 +260,7 @@ func mapToExceptionModel(from *errorException, out *modelpb.Exception) {
 		out.Module = from.Module.Val
 	}
 	if len(from.Stacktrace) > 0 {
-		out.Stacktrace = modeldecoderutil.ResliceAndPopulateNil(
-			out.Stacktrace,
-			len(from.Stacktrace),
-			modeldecoderutil.NewType[modelpb.StacktraceFrame],
-		)
+		out.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Stacktrace))
 		mapToStacktraceModel(from.Stacktrace, out.Stacktrace)
 	}
 	if from.Type.IsSet() {
@@ -412,7 +402,7 @@ func mapToTransactionMetricsetModel(from *transactionMetricset, event *modelpb.A
 
 func mapToResponseModel(from contextResponse, out *modelpb.HTTPResponse) {
 	if from.Headers.IsSet() {
-		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val, out.Headers)
+		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
 	}
 	if from.StatusCode.IsSet() {
 		out.StatusCode = uint32(from.StatusCode.Val)
@@ -436,10 +426,10 @@ func mapToRequestModel(from contextRequest, out *modelpb.HTTPRequest) {
 		out.Method = from.Method.Val
 	}
 	if len(from.Env) > 0 {
-		out.Env = modeldecoderutil.ToKv(from.Env, out.Env)
+		out.Env = modeldecoderutil.ToKv(from.Env)
 	}
 	if from.Headers.IsSet() {
-		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val, out.Headers)
+		out.Headers = modeldecoderutil.HTTPHeadersToModelpb(from.Headers.Val)
 	}
 }
 
@@ -639,11 +629,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 		out.RepresentativeCount = 1 / from.SampleRate.Val
 	}
 	if len(from.Stacktrace) > 0 {
-		out.Stacktrace = modeldecoderutil.ResliceAndPopulateNil(
-			out.Stacktrace,
-			len(from.Stacktrace),
-			modeldecoderutil.NewType[modelpb.StacktraceFrame],
-		)
+		out.Stacktrace = make([]*modelpb.StacktraceFrame, len(from.Stacktrace))
 		mapToStacktraceModel(from.Stacktrace, out.Stacktrace)
 	}
 	if from.Sync.IsSet() {
@@ -659,7 +645,7 @@ func mapToSpanModel(from *span, event *modelpb.APMEvent) {
 
 func mapToStacktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFrame) {
 	for idx, eventFrame := range from {
-		fr := out[idx]
+		fr := &modelpb.StacktraceFrame{}
 		if eventFrame.AbsPath.IsSet() {
 			fr.AbsPath = eventFrame.AbsPath.Val
 		}
@@ -687,13 +673,14 @@ func mapToStacktraceModel(from []stacktraceFrame, out []*modelpb.StacktraceFrame
 			fr.Module = eventFrame.Module.Val
 		}
 		if len(eventFrame.PostContext) > 0 {
-			fr.PostContext = modeldecoderutil.Reslice(fr.PostContext, len(eventFrame.PostContext))
+			fr.PostContext = make([]string, len(eventFrame.PostContext))
 			copy(fr.PostContext, eventFrame.PostContext)
 		}
 		if len(eventFrame.PreContext) > 0 {
-			fr.PreContext = modeldecoderutil.Reslice(fr.PreContext, len(eventFrame.PreContext))
+			fr.PreContext = make([]string, len(eventFrame.PreContext))
 			copy(fr.PreContext, eventFrame.PreContext)
 		}
+		out[idx] = fr
 	}
 }
 
@@ -726,7 +713,7 @@ func mapToTransactionModel(from *transaction, event *modelpb.APMEvent) {
 	// map transaction specific data
 	if from.Context.IsSet() {
 		if len(from.Context.Custom) > 0 {
-			out.Custom = modeldecoderutil.ToKv(from.Context.Custom, out.Custom)
+			out.Custom = modeldecoderutil.ToKv(from.Context.Custom)
 		}
 		if len(from.Context.Tags) > 0 {
 			modeldecoderutil.MergeLabels(from.Context.Tags, event)
