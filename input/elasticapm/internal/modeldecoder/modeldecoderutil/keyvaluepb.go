@@ -22,19 +22,21 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-func ToKv(m map[string]any, out []*modelpb.KeyValue) []*modelpb.KeyValue {
+func ToKv(m map[string]any) []*modelpb.KeyValue {
 	m = normalizeMap(m)
 	if len(m) == 0 {
 		return nil
 	}
 
-	out = ResliceAndPopulateNil(out, len(m), NewType[modelpb.KeyValue])
+	out := make([]*modelpb.KeyValue, len(m), len(m))
 
 	i := 0
 	for k, v := range m {
 		value, _ := structpb.NewValue(v)
-		out[i].Key = k
-		out[i].Value = value
+		out[i] = &modelpb.KeyValue{
+			Key:   k,
+			Value: value,
+		}
 		i++
 	}
 
