@@ -257,7 +257,6 @@ func TestResourceConventions(t *testing.T) {
 					Id:           "host_id",
 					Type:         "host_type",
 					Architecture: "host_arch",
-					Ip:           []*modelpb.IP{modelpb.MustParseIP("10.244.0.1")},
 				},
 			},
 		},
