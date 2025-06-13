@@ -241,6 +241,25 @@ func TestResourceConventions(t *testing.T) {
 				},
 			},
 		},
+		"host_ip_invalid_type": {
+			attrs: map[string]interface{}{
+				"host.name": "host_name",
+				"host.id":   "host_id",
+				"host.type": "host_type",
+				"host.arch": "host_arch",
+				"host.ip":   "10.244.0.1",
+			},
+			expected: &modelpb.APMEvent{
+				Agent:   &defaultAgent,
+				Service: &defaultService,
+				Host: &modelpb.Host{
+					Hostname:     "host_name",
+					Id:           "host_id",
+					Type:         "host_type",
+					Architecture: "host_arch",
+				},
+			},
+		},
 		"device": {
 			attrs: map[string]interface{}{
 				"device.id":               "device_id",
