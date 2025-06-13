@@ -241,7 +241,7 @@ func TestResourceConventions(t *testing.T) {
 				},
 			},
 		},
-		"host_string_ip": {
+		"host_ip_invalid_type": {
 			attrs: map[string]interface{}{
 				"host.name": "host_name",
 				"host.id":   "host_id",
