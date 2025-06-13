@@ -195,7 +195,7 @@ func translateResourceMetadata(resource pcommon.Resource, out *modelpb.APMEvent)
 				out.Host = &modelpb.Host{}
 			}
 			if v.Type() != pcommon.ValueTypeSlice {
-				break
+				break // switch
 			}
 			slice := v.Slice()
 			result := make([]*modelpb.IP, 0, slice.Len())
