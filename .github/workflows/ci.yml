@@ -14,7 +14,7 @@ jobs:
         go-version-file: go.mod
         cache: true
     - run: make all
-    - uses: dominikh/staticcheck-action@v1.3.1
+    - uses: dominikh/staticcheck-action@v1.4.0
       with:
         version: "2025.1"
         install-go: false
