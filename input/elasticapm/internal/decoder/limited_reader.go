@@ -18,9 +18,8 @@
 package decoder
 
 import (
+	"errors"
 	"io"
-
-	"github.com/pkg/errors"
 )
 
 // LimitedReader is like io.LimitedReader, but returns a

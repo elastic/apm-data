@@ -84,7 +84,7 @@ for k := range val.%s{
 		// call validation on every item
 		fmt.Fprintf(w, `
 if err := v.validate(); err != nil{
-		return errors.Wrapf(err, "%s")
+	return fmt.Errorf("%s: %%w", err)
 }
 `[1:], jsonName(f))
 	}

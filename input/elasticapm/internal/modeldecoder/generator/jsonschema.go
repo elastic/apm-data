@@ -24,8 +24,6 @@ import (
 	"go/types"
 	"path/filepath"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 // JSONSchemaGenerator holds the parsed package information
@@ -51,11 +49,14 @@ func (g *JSONSchemaGenerator) Generate(idPath string, rootType string) (bytes.Bu
 	typ := propertyType{names: []propertyTypeName{TypeNameObject}, required: true}
 	property := property{Type: &typ, Properties: make(map[string]*property), Description: root.comment}
 	if err := g.generate(root, "", &property); err != nil {
-		return bytes.Buffer{}, errors.Wrap(err, "json-schema generator")
+		return bytes.Buffer{}, fmt.Errorf("json-schema generator: %w", err)
 	}
 	id := filepath.Join(idPath, strings.TrimSuffix(root.name, "Event"))
 	b, err := json.MarshalIndent(schema{ID: id, property: property}, "", "  ")
-	return *bytes.NewBuffer(b), errors.Wrap(err, "json-schema generator")
+	if err != nil {
+		return bytes.Buffer{}, fmt.Errorf("json-schema generator: %w", err)
+	}
+	return *bytes.NewBuffer(b), nil
 }
 
 func (g *JSONSchemaGenerator) generate(st structType, key string, prop *property) error {
@@ -68,7 +69,7 @@ func (g *JSONSchemaGenerator) generate(st structType, key string, prop *property
 		childProp := property{Properties: make(map[string]*property), Type: &propertyType{}, Description: f.comment}
 		tags, err := validationTag(f.tag)
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("%s%s", key, name))
+			return fmt.Errorf("%s%s: %w", key, name, err)
 		}
 		// handle generic tag rules applicable to all types
 		if _, ok := tags[tagRequired]; ok {
@@ -161,11 +162,11 @@ func (g *JSONSchemaGenerator) generate(st structType, key string, prop *property
 			}
 		}
 		if err != nil {
-			return errors.Wrap(err, flattenedName)
+			return fmt.Errorf(flattenedName+": %w", err)
 		}
 		for tagName := range tags {
 			// not all tags have been handled
-			return errors.Wrap(fmt.Errorf("unhandled tag rule %s", tagName), jsonSchemaName(f))
+			return fmt.Errorf("%s: unhandled tag rule %s", jsonSchemaName(f), tagName)
 		}
 	}
 
@@ -175,7 +176,7 @@ func (g *JSONSchemaGenerator) generate(st structType, key string, prop *property
 		for _, required := range prop.AnyOf[i].Required {
 			p, ok := prop.Properties[required]
 			if !ok {
-				return errors.Wrap(fmt.Errorf("unhandled property %s in %s tag", required, tagRequiredAnyOf), key)
+				return fmt.Errorf("%s: unhandled property %s in %s tag", key, required, tagRequiredAnyOf)
 			}
 			prop.AnyOf[i].Properties[required] = &property{Type: &propertyType{required: true, names: p.Type.names}}
 		}
@@ -187,7 +188,7 @@ func (g *JSONSchemaGenerator) generate(st structType, key string, prop *property
 		for _, required := range pAllOf.If.Required {
 			p, ok := prop.Properties[required]
 			if !ok {
-				return errors.Wrap(fmt.Errorf("unhandled property %s in %s tag", required, tagRequiredIfAny), key)
+				return fmt.Errorf("%s: unhandled property %s in %s tag", key, required, tagRequiredIfAny)
 			}
 			prop.AllOf[i].If.Properties[required] = &property{Type: &propertyType{required: true, names: p.Type.names}}
 		}
@@ -196,7 +197,7 @@ func (g *JSONSchemaGenerator) generate(st structType, key string, prop *property
 		for _, required := range pAllOf.Then.Required {
 			p, ok := prop.Properties[required]
 			if !ok {
-				return errors.Wrap(fmt.Errorf("unhandled property %s in %s tag", required, tagRequiredIfAny), key)
+				return fmt.Errorf("%s: unhandled property %s in %s tag", key, required, tagRequiredIfAny)
 			}
 			prop.AllOf[i].Then.Properties[required] = &property{Type: &propertyType{required: true, names: p.Type.names}}
 		}

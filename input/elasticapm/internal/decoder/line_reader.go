@@ -19,9 +19,8 @@ package decoder
 
 import (
 	"bufio"
+	"errors"
 	"io"
-
-	"github.com/pkg/errors"
 )
 
 var ErrLineTooLong = errors.New("Line exceeded permitted length")
