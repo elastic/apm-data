@@ -23,7 +23,7 @@ import (
 	"io"
 )
 
-var ErrLineTooLong = errors.New("Line exceeded permitted length")
+var ErrLineTooLong = errors.New("line exceeded permitted length")
 
 // LineReader reads length-limited lines from streams using a limited amount of memory.
 type LineReader struct {
