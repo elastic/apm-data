@@ -20,14 +20,12 @@ package generator
 import (
 	"fmt"
 	"io"
-
-	"github.com/pkg/errors"
 )
 
 func generateNullableIntValidation(w io.Writer, fields []structField, f structField, _ bool) error {
 	rules, err := validationRules(f.tag)
 	if err != nil {
-		return errors.Wrap(err, "nullableInt")
+		return fmt.Errorf("nullableInt: %w", err)
 	}
 	for _, rule := range rules {
 		switch rule.name {
@@ -36,7 +34,7 @@ func generateNullableIntValidation(w io.Writer, fields []structField, f structFi
 		case tagRequired:
 			ruleNullableRequired(w, f)
 		default:
-			return errors.Wrap(errUnhandledTagRule(rule), "nullableInt")
+			return fmt.Errorf("nullableInt: %w", errUnhandledTagRule(rule))
 		}
 	}
 	return nil

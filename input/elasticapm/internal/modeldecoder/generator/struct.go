@@ -28,7 +28,7 @@ func generateStructValidation(w io.Writer, fields []structField, f structField, 
 		fmt.Fprintf(w, `
 		if val.%s.IsSet() {
 			if err := val.%s.validate(); err != nil {
-				return errors.Wrapf(err, "%s")
+				return fmt.Errorf("%s: %%w", err)
 			}
 		}
 		`[1:], f.Name(), f.Name(), jsonName(f))

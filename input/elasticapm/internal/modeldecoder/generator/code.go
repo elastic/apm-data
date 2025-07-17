@@ -19,14 +19,13 @@ package generator
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/types"
 	"io"
 	"reflect"
 	"sort"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -86,7 +85,6 @@ package %s
 import (
 	"fmt"
 	"encoding/json"
-	"github.com/pkg/errors"
 	"regexp"
 	"unicode/utf8"
 )
@@ -105,7 +103,7 @@ var (
 	// run generator code
 	for _, rootObj := range g.rootObjs {
 		if err := g.generate(rootObj, ""); err != nil {
-			return g.buf, errors.Wrap(err, "code generator")
+			return g.buf, fmt.Errorf("code generator: %w", err)
 		}
 	}
 	return g.buf, nil
@@ -172,7 +170,7 @@ func (val *%s) IsSet() bool {
 		}
 		g.buf.WriteString(prefix)
 		if err := generateIsSet(&g.buf, f, "val."); err != nil {
-			return errors.Wrapf(err, "error generating IsSet() for '%s%s'", key, jsonName(f))
+			return fmt.Errorf("error generating IsSet() for '%s%s': %w", key, jsonName(f), err)
 		}
 		prefix = ` || `
 	}
@@ -240,7 +238,7 @@ func (val *%s) processNestedSource() error {
 			if _, isCustom := g.customStruct(f.Type()); isCustom {
 				fmt.Fprintf(&g.buf, `
 					if err := val.%s.processNestedSource(); err != nil {
-						return errors.Wrapf(err, "%s")
+						return fmt.Errorf("%s: %%w", err)
 					}
 				`[1:], f.Name(), jsonName(f))
 			}
@@ -293,11 +291,11 @@ func (val *%s) validate() error {
 				validation = generateStructValidation
 				_, custom = g.customStruct(f.Type())
 			default:
-				return errors.Wrap(fmt.Errorf("unhandled type %T", t), flattenName(key, f))
+				return fmt.Errorf("%s: unhandled type %T", t, flattenName(key, f))
 			}
 		}
 		if err := validation(&g.buf, structTyp.fields, f, custom); err != nil {
-			return errors.Wrap(err, flattenName(key, f))
+			return fmt.Errorf(flattenName(key, f)+": %w", err)
 		}
 	}
 	fmt.Fprint(&g.buf, `

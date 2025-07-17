@@ -21,14 +21,12 @@ import (
 	"fmt"
 	"io"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 func generateNullableInterfaceValidation(w io.Writer, fields []structField, f structField, _ bool) error {
 	rules, err := validationRules(f.tag)
 	if err != nil {
-		return errors.Wrap(err, "nullableInterface")
+		return fmt.Errorf("nullableInterface: %w", err)
 	}
 	for _, rule := range rules {
 		switch rule.name {
@@ -38,10 +36,10 @@ func generateNullableInterfaceValidation(w io.Writer, fields []structField, f st
 			ruleNullableRequired(w, f)
 		case tagInputTypes:
 			if err := nullableInterfaceRuleTypes(w, f, rules, rule); err != nil {
-				return errors.Wrap(err, "nullableInterface")
+				return fmt.Errorf("nullableInterface: %w", err)
 			}
 		default:
-			return errors.Wrap(errUnhandledTagRule(rule), "nullableInterface")
+			return fmt.Errorf("nullableInterface: %w", errUnhandledTagRule(rule))
 		}
 	}
 	return nil

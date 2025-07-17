@@ -21,8 +21,6 @@ import (
 	"fmt"
 	"io"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 // generateParseFlatFieldCode generates code that parses the JSON tags on a flat field,
@@ -38,7 +36,7 @@ func generateParseFlatFieldCode(w io.Writer, flat structField, nested structFiel
 	}
 	flatFieldType, err := getFlatFieldType(flat)
 	if err != nil {
-		return errors.Wrapf(err, "failed to get type for %s", flat.Name())
+		return fmt.Errorf("failed to get type for %s: %w", flat.Name(), err)
 	}
 	nestedSrc := nested.Name()
 	nestedKey := string(flatTag[len(nestedTag)+1:]) // remove the nested tag prefix

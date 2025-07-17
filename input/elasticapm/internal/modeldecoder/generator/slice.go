@@ -22,8 +22,6 @@ import (
 	"fmt"
 	"go/types"
 	"io"
-
-	"github.com/pkg/errors"
 )
 
 func generateSliceValidation(w io.Writer, fields []structField, f structField, isCustomStruct bool) error {
@@ -35,7 +33,7 @@ for _, elem := range val.%s{
 		return fmt.Errorf("%s slice element required")
 	}
 	if err := elem.validate(); err != nil{
-		return errors.Wrapf(err, "%s")
+		return fmt.Errorf("%s: %%w", err)
 	}
 }
 `[1:], f.Name(), jsonName(f), jsonName(f))
@@ -43,7 +41,7 @@ for _, elem := range val.%s{
 	// handle configured validation rules
 	rules, err := validationRules(f.tag)
 	if err != nil {
-		return errors.Wrap(err, "slice")
+		return fmt.Errorf("slice: %w", err)
 	}
 	for _, rule := range rules {
 		switch rule.name {
@@ -58,10 +56,10 @@ for _, elem := range val.%s{
 		case tagRequiredIfAny:
 			err = ruleRequiredIfAny(w, fields, f, rule.value)
 		default:
-			return errors.Wrap(errUnhandledTagRule(rule), "slice")
+			return fmt.Errorf("slice: %w", errUnhandledTagRule(rule))
 		}
 		if err != nil {
-			return errors.Wrap(err, "slice")
+			return fmt.Errorf("slice: %w", err)
 		}
 	}
 	return nil

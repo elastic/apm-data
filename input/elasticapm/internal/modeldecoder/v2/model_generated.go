@@ -25,8 +25,6 @@ import (
 	"regexp"
 	"strconv"
 	"unicode/utf8"
-
-	"github.com/pkg/errors"
 )
 
 var (
@@ -41,7 +39,7 @@ func (val *metadataRoot) IsSet() bool {
 func (val *metadataRoot) validate() error {
 	if val.Metadata.IsSet() {
 		if err := val.Metadata.validate(); err != nil {
-			return errors.Wrapf(err, "metadata")
+			return fmt.Errorf("metadata: %w", err)
 		}
 	}
 	if !val.Metadata.IsSet() {
@@ -52,7 +50,7 @@ func (val *metadataRoot) validate() error {
 
 func (val *metadataRoot) processNestedSource() error {
 	if err := val.Metadata.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "metadata")
+		return fmt.Errorf("metadata: %w", err)
 	}
 	return nil
 }
@@ -77,7 +75,7 @@ func (val *metadata) validate() error {
 	}
 	if val.Service.IsSet() {
 		if err := val.Service.validate(); err != nil {
-			return errors.Wrapf(err, "service")
+			return fmt.Errorf("service: %w", err)
 		}
 	}
 	if !val.Service.IsSet() {
@@ -85,27 +83,27 @@ func (val *metadata) validate() error {
 	}
 	if val.Cloud.IsSet() {
 		if err := val.Cloud.validate(); err != nil {
-			return errors.Wrapf(err, "cloud")
+			return fmt.Errorf("cloud: %w", err)
 		}
 	}
 	if val.System.IsSet() {
 		if err := val.System.validate(); err != nil {
-			return errors.Wrapf(err, "system")
+			return fmt.Errorf("system: %w", err)
 		}
 	}
 	if val.User.IsSet() {
 		if err := val.User.validate(); err != nil {
-			return errors.Wrapf(err, "user")
+			return fmt.Errorf("user: %w", err)
 		}
 	}
 	if val.Network.IsSet() {
 		if err := val.Network.validate(); err != nil {
-			return errors.Wrapf(err, "network")
+			return fmt.Errorf("network: %w", err)
 		}
 	}
 	if val.Process.IsSet() {
 		if err := val.Process.validate(); err != nil {
-			return errors.Wrapf(err, "process")
+			return fmt.Errorf("process: %w", err)
 		}
 	}
 	return nil
@@ -113,22 +111,22 @@ func (val *metadata) validate() error {
 
 func (val *metadata) processNestedSource() error {
 	if err := val.Service.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "service")
+		return fmt.Errorf("service: %w", err)
 	}
 	if err := val.Cloud.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "cloud")
+		return fmt.Errorf("cloud: %w", err)
 	}
 	if err := val.System.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "system")
+		return fmt.Errorf("system: %w", err)
 	}
 	if err := val.User.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "user")
+		return fmt.Errorf("user: %w", err)
 	}
 	if err := val.Network.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "network")
+		return fmt.Errorf("network: %w", err)
 	}
 	if err := val.Process.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "process")
+		return fmt.Errorf("process: %w", err)
 	}
 	return nil
 }
@@ -140,7 +138,7 @@ func (val *metadataService) IsSet() bool {
 func (val *metadataService) validate() error {
 	if val.Agent.IsSet() {
 		if err := val.Agent.validate(); err != nil {
-			return errors.Wrapf(err, "agent")
+			return fmt.Errorf("agent: %w", err)
 		}
 	}
 	if !val.Agent.IsSet() {
@@ -151,12 +149,12 @@ func (val *metadataService) validate() error {
 	}
 	if val.Framework.IsSet() {
 		if err := val.Framework.validate(); err != nil {
-			return errors.Wrapf(err, "framework")
+			return fmt.Errorf("framework: %w", err)
 		}
 	}
 	if val.Language.IsSet() {
 		if err := val.Language.validate(); err != nil {
-			return errors.Wrapf(err, "language")
+			return fmt.Errorf("language: %w", err)
 		}
 	}
 	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
@@ -173,12 +171,12 @@ func (val *metadataService) validate() error {
 	}
 	if val.Node.IsSet() {
 		if err := val.Node.validate(); err != nil {
-			return errors.Wrapf(err, "node")
+			return fmt.Errorf("node: %w", err)
 		}
 	}
 	if val.Runtime.IsSet() {
 		if err := val.Runtime.validate(); err != nil {
-			return errors.Wrapf(err, "runtime")
+			return fmt.Errorf("runtime: %w", err)
 		}
 	}
 	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
@@ -189,19 +187,19 @@ func (val *metadataService) validate() error {
 
 func (val *metadataService) processNestedSource() error {
 	if err := val.Agent.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "agent")
+		return fmt.Errorf("agent: %w", err)
 	}
 	if err := val.Framework.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "framework")
+		return fmt.Errorf("framework: %w", err)
 	}
 	if err := val.Language.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "language")
+		return fmt.Errorf("language: %w", err)
 	}
 	if err := val.Node.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "node")
+		return fmt.Errorf("node: %w", err)
 	}
 	if err := val.Runtime.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "runtime")
+		return fmt.Errorf("runtime: %w", err)
 	}
 	return nil
 }
@@ -324,7 +322,7 @@ func (val *metadataCloud) IsSet() bool {
 func (val *metadataCloud) validate() error {
 	if val.Account.IsSet() {
 		if err := val.Account.validate(); err != nil {
-			return errors.Wrapf(err, "account")
+			return fmt.Errorf("account: %w", err)
 		}
 	}
 	if val.AvailabilityZone.IsSet() && utf8.RuneCountInString(val.AvailabilityZone.Val) > 1024 {
@@ -332,17 +330,17 @@ func (val *metadataCloud) validate() error {
 	}
 	if val.Instance.IsSet() {
 		if err := val.Instance.validate(); err != nil {
-			return errors.Wrapf(err, "instance")
+			return fmt.Errorf("instance: %w", err)
 		}
 	}
 	if val.Machine.IsSet() {
 		if err := val.Machine.validate(); err != nil {
-			return errors.Wrapf(err, "machine")
+			return fmt.Errorf("machine: %w", err)
 		}
 	}
 	if val.Project.IsSet() {
 		if err := val.Project.validate(); err != nil {
-			return errors.Wrapf(err, "project")
+			return fmt.Errorf("project: %w", err)
 		}
 	}
 	if val.Provider.IsSet() && utf8.RuneCountInString(val.Provider.Val) > 1024 {
@@ -356,7 +354,7 @@ func (val *metadataCloud) validate() error {
 	}
 	if val.Service.IsSet() {
 		if err := val.Service.validate(); err != nil {
-			return errors.Wrapf(err, "service")
+			return fmt.Errorf("service: %w", err)
 		}
 	}
 	return nil
@@ -364,19 +362,19 @@ func (val *metadataCloud) validate() error {
 
 func (val *metadataCloud) processNestedSource() error {
 	if err := val.Account.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "account")
+		return fmt.Errorf("account: %w", err)
 	}
 	if err := val.Instance.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "instance")
+		return fmt.Errorf("instance: %w", err)
 	}
 	if err := val.Machine.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "machine")
+		return fmt.Errorf("machine: %w", err)
 	}
 	if err := val.Project.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "project")
+		return fmt.Errorf("project: %w", err)
 	}
 	if err := val.Service.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "service")
+		return fmt.Errorf("service: %w", err)
 	}
 	return nil
 }
@@ -478,7 +476,7 @@ func (val *metadataSystem) validate() error {
 	}
 	if val.Container.IsSet() {
 		if err := val.Container.validate(); err != nil {
-			return errors.Wrapf(err, "container")
+			return fmt.Errorf("container: %w", err)
 		}
 	}
 	if val.DetectedHostname.IsSet() && utf8.RuneCountInString(val.DetectedHostname.Val) > 1024 {
@@ -489,7 +487,7 @@ func (val *metadataSystem) validate() error {
 	}
 	if val.Kubernetes.IsSet() {
 		if err := val.Kubernetes.validate(); err != nil {
-			return errors.Wrapf(err, "kubernetes")
+			return fmt.Errorf("kubernetes: %w", err)
 		}
 	}
 	if val.Platform.IsSet() && utf8.RuneCountInString(val.Platform.Val) > 1024 {
@@ -503,10 +501,10 @@ func (val *metadataSystem) validate() error {
 
 func (val *metadataSystem) processNestedSource() error {
 	if err := val.Container.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "container")
+		return fmt.Errorf("container: %w", err)
 	}
 	if err := val.Kubernetes.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "kubernetes")
+		return fmt.Errorf("kubernetes: %w", err)
 	}
 	return nil
 }
@@ -536,12 +534,12 @@ func (val *metadataSystemKubernetes) validate() error {
 	}
 	if val.Node.IsSet() {
 		if err := val.Node.validate(); err != nil {
-			return errors.Wrapf(err, "node")
+			return fmt.Errorf("node: %w", err)
 		}
 	}
 	if val.Pod.IsSet() {
 		if err := val.Pod.validate(); err != nil {
-			return errors.Wrapf(err, "pod")
+			return fmt.Errorf("pod: %w", err)
 		}
 	}
 	return nil
@@ -549,10 +547,10 @@ func (val *metadataSystemKubernetes) validate() error {
 
 func (val *metadataSystemKubernetes) processNestedSource() error {
 	if err := val.Node.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "node")
+		return fmt.Errorf("node: %w", err)
 	}
 	if err := val.Pod.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "pod")
+		return fmt.Errorf("pod: %w", err)
 	}
 	return nil
 }
@@ -632,7 +630,7 @@ func (val *network) IsSet() bool {
 func (val *network) validate() error {
 	if val.Connection.IsSet() {
 		if err := val.Connection.validate(); err != nil {
-			return errors.Wrapf(err, "connection")
+			return fmt.Errorf("connection: %w", err)
 		}
 	}
 	return nil
@@ -640,7 +638,7 @@ func (val *network) validate() error {
 
 func (val *network) processNestedSource() error {
 	if err := val.Connection.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "connection")
+		return fmt.Errorf("connection: %w", err)
 	}
 	return nil
 }
@@ -685,7 +683,7 @@ func (val *errorRoot) IsSet() bool {
 func (val *errorRoot) validate() error {
 	if val.Error.IsSet() {
 		if err := val.Error.validate(); err != nil {
-			return errors.Wrapf(err, "error")
+			return fmt.Errorf("error: %w", err)
 		}
 	}
 	if !val.Error.IsSet() {
@@ -696,7 +694,7 @@ func (val *errorRoot) validate() error {
 
 func (val *errorRoot) processNestedSource() error {
 	if err := val.Error.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "error")
+		return fmt.Errorf("error: %w", err)
 	}
 	return nil
 }
@@ -711,7 +709,7 @@ func (val *errorEvent) validate() error {
 	}
 	if val.Log.IsSet() {
 		if err := val.Log.validate(); err != nil {
-			return errors.Wrapf(err, "log")
+			return fmt.Errorf("log: %w", err)
 		}
 	}
 	if val.Culprit.IsSet() && utf8.RuneCountInString(val.Culprit.Val) > 1024 {
@@ -750,17 +748,17 @@ func (val *errorEvent) validate() error {
 	}
 	if val.Exception.IsSet() {
 		if err := val.Exception.validate(); err != nil {
-			return errors.Wrapf(err, "exception")
+			return fmt.Errorf("exception: %w", err)
 		}
 	}
 	if val.Transaction.IsSet() {
 		if err := val.Transaction.validate(); err != nil {
-			return errors.Wrapf(err, "transaction")
+			return fmt.Errorf("transaction: %w", err)
 		}
 	}
 	if val.Context.IsSet() {
 		if err := val.Context.validate(); err != nil {
-			return errors.Wrapf(err, "context")
+			return fmt.Errorf("context: %w", err)
 		}
 	}
 	return nil
@@ -768,16 +766,16 @@ func (val *errorEvent) validate() error {
 
 func (val *errorEvent) processNestedSource() error {
 	if err := val.Log.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "log")
+		return fmt.Errorf("log: %w", err)
 	}
 	if err := val.Exception.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "exception")
+		return fmt.Errorf("exception: %w", err)
 	}
 	if err := val.Transaction.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "transaction")
+		return fmt.Errorf("transaction: %w", err)
 	}
 	if err := val.Context.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "context")
+		return fmt.Errorf("context: %w", err)
 	}
 	return nil
 }
@@ -804,7 +802,7 @@ func (val *errorLog) validate() error {
 			return fmt.Errorf("stacktrace slice element required")
 		}
 		if err := elem.validate(); err != nil {
-			return errors.Wrapf(err, "stacktrace")
+			return fmt.Errorf("stacktrace: %w", err)
 		}
 	}
 	return nil
@@ -856,7 +854,7 @@ func (val *errorException) validate() error {
 			return fmt.Errorf("cause slice element required")
 		}
 		if err := elem.validate(); err != nil {
-			return errors.Wrapf(err, "cause")
+			return fmt.Errorf("cause: %w", err)
 		}
 	}
 	for _, elem := range val.Stacktrace {
@@ -864,7 +862,7 @@ func (val *errorException) validate() error {
 			return fmt.Errorf("stacktrace slice element required")
 		}
 		if err := elem.validate(); err != nil {
-			return errors.Wrapf(err, "stacktrace")
+			return fmt.Errorf("stacktrace: %w", err)
 		}
 	}
 	if val.Module.IsSet() && utf8.RuneCountInString(val.Module.Val) > 1024 {
@@ -918,37 +916,37 @@ func (val *context) validate() error {
 	}
 	if val.Service.IsSet() {
 		if err := val.Service.validate(); err != nil {
-			return errors.Wrapf(err, "service")
+			return fmt.Errorf("service: %w", err)
 		}
 	}
 	if val.Cloud.IsSet() {
 		if err := val.Cloud.validate(); err != nil {
-			return errors.Wrapf(err, "cloud")
+			return fmt.Errorf("cloud: %w", err)
 		}
 	}
 	if val.User.IsSet() {
 		if err := val.User.validate(); err != nil {
-			return errors.Wrapf(err, "user")
+			return fmt.Errorf("user: %w", err)
 		}
 	}
 	if val.Page.IsSet() {
 		if err := val.Page.validate(); err != nil {
-			return errors.Wrapf(err, "page")
+			return fmt.Errorf("page: %w", err)
 		}
 	}
 	if val.Request.IsSet() {
 		if err := val.Request.validate(); err != nil {
-			return errors.Wrapf(err, "request")
+			return fmt.Errorf("request: %w", err)
 		}
 	}
 	if val.Message.IsSet() {
 		if err := val.Message.validate(); err != nil {
-			return errors.Wrapf(err, "message")
+			return fmt.Errorf("message: %w", err)
 		}
 	}
 	if val.Response.IsSet() {
 		if err := val.Response.validate(); err != nil {
-			return errors.Wrapf(err, "response")
+			return fmt.Errorf("response: %w", err)
 		}
 	}
 	return nil
@@ -956,25 +954,25 @@ func (val *context) validate() error {
 
 func (val *context) processNestedSource() error {
 	if err := val.Service.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "service")
+		return fmt.Errorf("service: %w", err)
 	}
 	if err := val.Cloud.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "cloud")
+		return fmt.Errorf("cloud: %w", err)
 	}
 	if err := val.User.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "user")
+		return fmt.Errorf("user: %w", err)
 	}
 	if err := val.Page.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "page")
+		return fmt.Errorf("page: %w", err)
 	}
 	if err := val.Request.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "request")
+		return fmt.Errorf("request: %w", err)
 	}
 	if err := val.Message.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "message")
+		return fmt.Errorf("message: %w", err)
 	}
 	if err := val.Response.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "response")
+		return fmt.Errorf("response: %w", err)
 	}
 	return nil
 }
@@ -986,7 +984,7 @@ func (val *contextService) IsSet() bool {
 func (val *contextService) validate() error {
 	if val.Agent.IsSet() {
 		if err := val.Agent.validate(); err != nil {
-			return errors.Wrapf(err, "agent")
+			return fmt.Errorf("agent: %w", err)
 		}
 	}
 	if val.Environment.IsSet() && utf8.RuneCountInString(val.Environment.Val) > 1024 {
@@ -994,12 +992,12 @@ func (val *contextService) validate() error {
 	}
 	if val.Framework.IsSet() {
 		if err := val.Framework.validate(); err != nil {
-			return errors.Wrapf(err, "framework")
+			return fmt.Errorf("framework: %w", err)
 		}
 	}
 	if val.Language.IsSet() {
 		if err := val.Language.validate(); err != nil {
-			return errors.Wrapf(err, "language")
+			return fmt.Errorf("language: %w", err)
 		}
 	}
 	if val.Name.IsSet() && utf8.RuneCountInString(val.Name.Val) > 1024 {
@@ -1010,22 +1008,22 @@ func (val *contextService) validate() error {
 	}
 	if val.Node.IsSet() {
 		if err := val.Node.validate(); err != nil {
-			return errors.Wrapf(err, "node")
+			return fmt.Errorf("node: %w", err)
 		}
 	}
 	if val.Origin.IsSet() {
 		if err := val.Origin.validate(); err != nil {
-			return errors.Wrapf(err, "origin")
+			return fmt.Errorf("origin: %w", err)
 		}
 	}
 	if val.Runtime.IsSet() {
 		if err := val.Runtime.validate(); err != nil {
-			return errors.Wrapf(err, "runtime")
+			return fmt.Errorf("runtime: %w", err)
 		}
 	}
 	if val.Target.IsSet() {
 		if err := val.Target.validate(); err != nil {
-			return errors.Wrapf(err, "target")
+			return fmt.Errorf("target: %w", err)
 		}
 	}
 	if val.Version.IsSet() && utf8.RuneCountInString(val.Version.Val) > 1024 {
@@ -1036,25 +1034,25 @@ func (val *contextService) validate() error {
 
 func (val *contextService) processNestedSource() error {
 	if err := val.Agent.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "agent")
+		return fmt.Errorf("agent: %w", err)
 	}
 	if err := val.Framework.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "framework")
+		return fmt.Errorf("framework: %w", err)
 	}
 	if err := val.Language.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "language")
+		return fmt.Errorf("language: %w", err)
 	}
 	if err := val.Node.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "node")
+		return fmt.Errorf("node: %w", err)
 	}
 	if err := val.Origin.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "origin")
+		return fmt.Errorf("origin: %w", err)
 	}
 	if err := val.Runtime.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "runtime")
+		return fmt.Errorf("runtime: %w", err)
 	}
 	if err := val.Target.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "target")
+		return fmt.Errorf("target: %w", err)
 	}
 	return nil
 }
@@ -1183,7 +1181,7 @@ func (val *contextCloud) IsSet() bool {
 func (val *contextCloud) validate() error {
 	if val.Origin.IsSet() {
 		if err := val.Origin.validate(); err != nil {
-			return errors.Wrapf(err, "origin")
+			return fmt.Errorf("origin: %w", err)
 		}
 	}
 	return nil
@@ -1191,7 +1189,7 @@ func (val *contextCloud) validate() error {
 
 func (val *contextCloud) processNestedSource() error {
 	if err := val.Origin.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "origin")
+		return fmt.Errorf("origin: %w", err)
 	}
 	return nil
 }
@@ -1203,12 +1201,12 @@ func (val *contextCloudOrigin) IsSet() bool {
 func (val *contextCloudOrigin) validate() error {
 	if val.Account.IsSet() {
 		if err := val.Account.validate(); err != nil {
-			return errors.Wrapf(err, "account")
+			return fmt.Errorf("account: %w", err)
 		}
 	}
 	if val.Service.IsSet() {
 		if err := val.Service.validate(); err != nil {
-			return errors.Wrapf(err, "service")
+			return fmt.Errorf("service: %w", err)
 		}
 	}
 	return nil
@@ -1216,10 +1214,10 @@ func (val *contextCloudOrigin) validate() error {
 
 func (val *contextCloudOrigin) processNestedSource() error {
 	if err := val.Account.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "account")
+		return fmt.Errorf("account: %w", err)
 	}
 	if err := val.Service.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "service")
+		return fmt.Errorf("service: %w", err)
 	}
 	return nil
 }
@@ -1274,7 +1272,7 @@ func (val *contextRequest) validate() error {
 	}
 	if val.URL.IsSet() {
 		if err := val.URL.validate(); err != nil {
-			return errors.Wrapf(err, "url")
+			return fmt.Errorf("url: %w", err)
 		}
 	}
 	if val.HTTPVersion.IsSet() && utf8.RuneCountInString(val.HTTPVersion.Val) > 1024 {
@@ -1288,7 +1286,7 @@ func (val *contextRequest) validate() error {
 	}
 	if val.Socket.IsSet() {
 		if err := val.Socket.validate(); err != nil {
-			return errors.Wrapf(err, "socket")
+			return fmt.Errorf("socket: %w", err)
 		}
 	}
 	return nil
@@ -1296,10 +1294,10 @@ func (val *contextRequest) validate() error {
 
 func (val *contextRequest) processNestedSource() error {
 	if err := val.URL.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "url")
+		return fmt.Errorf("url: %w", err)
 	}
 	if err := val.Socket.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "socket")
+		return fmt.Errorf("socket: %w", err)
 	}
 	return nil
 }
@@ -1373,12 +1371,12 @@ func (val *contextMessage) IsSet() bool {
 func (val *contextMessage) validate() error {
 	if val.Queue.IsSet() {
 		if err := val.Queue.validate(); err != nil {
-			return errors.Wrapf(err, "queue")
+			return fmt.Errorf("queue: %w", err)
 		}
 	}
 	if val.Age.IsSet() {
 		if err := val.Age.validate(); err != nil {
-			return errors.Wrapf(err, "age")
+			return fmt.Errorf("age: %w", err)
 		}
 	}
 	return nil
@@ -1386,10 +1384,10 @@ func (val *contextMessage) validate() error {
 
 func (val *contextMessage) processNestedSource() error {
 	if err := val.Queue.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "queue")
+		return fmt.Errorf("queue: %w", err)
 	}
 	if err := val.Age.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "age")
+		return fmt.Errorf("age: %w", err)
 	}
 	return nil
 }
@@ -1440,7 +1438,7 @@ func (val *metricsetRoot) IsSet() bool {
 func (val *metricsetRoot) validate() error {
 	if val.Metricset.IsSet() {
 		if err := val.Metricset.validate(); err != nil {
-			return errors.Wrapf(err, "metricset")
+			return fmt.Errorf("metricset: %w", err)
 		}
 	}
 	if !val.Metricset.IsSet() {
@@ -1451,7 +1449,7 @@ func (val *metricsetRoot) validate() error {
 
 func (val *metricsetRoot) processNestedSource() error {
 	if err := val.Metricset.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "metricset")
+		return fmt.Errorf("metricset: %w", err)
 	}
 	return nil
 }
@@ -1466,7 +1464,7 @@ func (val *metricset) validate() error {
 	}
 	for k, v := range val.Samples {
 		if err := v.validate(); err != nil {
-			return errors.Wrapf(err, "samples")
+			return fmt.Errorf("samples: %w", err)
 		}
 		if k != "" && !patternNoAsteriskQuoteRegexp.MatchString(k) {
 			return fmt.Errorf("'samples': validation rule 'patternKeys(patternNoAsteriskQuote)' violated")
@@ -1474,7 +1472,7 @@ func (val *metricset) validate() error {
 	}
 	if val.Span.IsSet() {
 		if err := val.Span.validate(); err != nil {
-			return errors.Wrapf(err, "span")
+			return fmt.Errorf("span: %w", err)
 		}
 	}
 	for k, v := range val.Tags {
@@ -1492,17 +1490,17 @@ func (val *metricset) validate() error {
 	}
 	if val.Transaction.IsSet() {
 		if err := val.Transaction.validate(); err != nil {
-			return errors.Wrapf(err, "transaction")
+			return fmt.Errorf("transaction: %w", err)
 		}
 	}
 	if val.Service.IsSet() {
 		if err := val.Service.validate(); err != nil {
-			return errors.Wrapf(err, "service")
+			return fmt.Errorf("service: %w", err)
 		}
 	}
 	if val.FAAS.IsSet() {
 		if err := val.FAAS.validate(); err != nil {
-			return errors.Wrapf(err, "faas")
+			return fmt.Errorf("faas: %w", err)
 		}
 	}
 	return nil
@@ -1510,16 +1508,16 @@ func (val *metricset) validate() error {
 
 func (val *metricset) processNestedSource() error {
 	if err := val.Span.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "span")
+		return fmt.Errorf("span: %w", err)
 	}
 	if err := val.Transaction.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "transaction")
+		return fmt.Errorf("transaction: %w", err)
 	}
 	if err := val.Service.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "service")
+		return fmt.Errorf("service: %w", err)
 	}
 	if err := val.FAAS.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "faas")
+		return fmt.Errorf("faas: %w", err)
 	}
 	return nil
 }
@@ -1610,7 +1608,7 @@ func (val *faas) IsSet() bool {
 func (val *faas) validate() error {
 	if val.Trigger.IsSet() {
 		if err := val.Trigger.validate(); err != nil {
-			return errors.Wrapf(err, "trigger")
+			return fmt.Errorf("trigger: %w", err)
 		}
 	}
 	return nil
@@ -1618,7 +1616,7 @@ func (val *faas) validate() error {
 
 func (val *faas) processNestedSource() error {
 	if err := val.Trigger.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "trigger")
+		return fmt.Errorf("trigger: %w", err)
 	}
 	return nil
 }
@@ -1642,7 +1640,7 @@ func (val *spanRoot) IsSet() bool {
 func (val *spanRoot) validate() error {
 	if val.Span.IsSet() {
 		if err := val.Span.validate(); err != nil {
-			return errors.Wrapf(err, "span")
+			return fmt.Errorf("span: %w", err)
 		}
 	}
 	if !val.Span.IsSet() {
@@ -1653,7 +1651,7 @@ func (val *spanRoot) validate() error {
 
 func (val *spanRoot) processNestedSource() error {
 	if err := val.Span.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "span")
+		return fmt.Errorf("span: %w", err)
 	}
 	return nil
 }
@@ -1668,7 +1666,7 @@ func (val *span) validate() error {
 	}
 	if val.OTel.IsSet() {
 		if err := val.OTel.validate(); err != nil {
-			return errors.Wrapf(err, "otel")
+			return fmt.Errorf("otel: %w", err)
 		}
 	}
 	if val.ID.IsSet() && utf8.RuneCountInString(val.ID.Val) > 1024 {
@@ -1720,7 +1718,7 @@ func (val *span) validate() error {
 			return fmt.Errorf("links slice element required")
 		}
 		if err := elem.validate(); err != nil {
-			return errors.Wrapf(err, "links")
+			return fmt.Errorf("links: %w", err)
 		}
 	}
 	for _, elem := range val.Stacktrace {
@@ -1728,7 +1726,7 @@ func (val *span) validate() error {
 			return fmt.Errorf("stacktrace slice element required")
 		}
 		if err := elem.validate(); err != nil {
-			return errors.Wrapf(err, "stacktrace")
+			return fmt.Errorf("stacktrace: %w", err)
 		}
 	}
 	if val.Type.IsSet() && utf8.RuneCountInString(val.Type.Val) > 1024 {
@@ -1745,12 +1743,12 @@ func (val *span) validate() error {
 	}
 	if val.Composite.IsSet() {
 		if err := val.Composite.validate(); err != nil {
-			return errors.Wrapf(err, "composite")
+			return fmt.Errorf("composite: %w", err)
 		}
 	}
 	if val.Context.IsSet() {
 		if err := val.Context.validate(); err != nil {
-			return errors.Wrapf(err, "context")
+			return fmt.Errorf("context: %w", err)
 		}
 	}
 	if val.Duration.IsSet() && val.Duration.Val < 0 {
@@ -1764,13 +1762,13 @@ func (val *span) validate() error {
 
 func (val *span) processNestedSource() error {
 	if err := val.OTel.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "otel")
+		return fmt.Errorf("otel: %w", err)
 	}
 	if err := val.Composite.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "composite")
+		return fmt.Errorf("composite: %w", err)
 	}
 	if err := val.Context.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "context")
+		return fmt.Errorf("context: %w", err)
 	}
 	return nil
 }
@@ -1858,27 +1856,27 @@ func (val *spanContext) validate() error {
 	}
 	if val.Service.IsSet() {
 		if err := val.Service.validate(); err != nil {
-			return errors.Wrapf(err, "service")
+			return fmt.Errorf("service: %w", err)
 		}
 	}
 	if val.Message.IsSet() {
 		if err := val.Message.validate(); err != nil {
-			return errors.Wrapf(err, "message")
+			return fmt.Errorf("message: %w", err)
 		}
 	}
 	if val.Database.IsSet() {
 		if err := val.Database.validate(); err != nil {
-			return errors.Wrapf(err, "db")
+			return fmt.Errorf("db: %w", err)
 		}
 	}
 	if val.Destination.IsSet() {
 		if err := val.Destination.validate(); err != nil {
-			return errors.Wrapf(err, "destination")
+			return fmt.Errorf("destination: %w", err)
 		}
 	}
 	if val.HTTP.IsSet() {
 		if err := val.HTTP.validate(); err != nil {
-			return errors.Wrapf(err, "http")
+			return fmt.Errorf("http: %w", err)
 		}
 	}
 	return nil
@@ -1886,19 +1884,19 @@ func (val *spanContext) validate() error {
 
 func (val *spanContext) processNestedSource() error {
 	if err := val.Service.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "service")
+		return fmt.Errorf("service: %w", err)
 	}
 	if err := val.Message.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "message")
+		return fmt.Errorf("message: %w", err)
 	}
 	if err := val.Database.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "db")
+		return fmt.Errorf("db: %w", err)
 	}
 	if err := val.Destination.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "destination")
+		return fmt.Errorf("destination: %w", err)
 	}
 	if err := val.HTTP.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "http")
+		return fmt.Errorf("http: %w", err)
 	}
 	return nil
 }
@@ -1925,7 +1923,7 @@ func (val *spanContextDestination) IsSet() bool {
 func (val *spanContextDestination) validate() error {
 	if val.Service.IsSet() {
 		if err := val.Service.validate(); err != nil {
-			return errors.Wrapf(err, "service")
+			return fmt.Errorf("service: %w", err)
 		}
 	}
 	if val.Address.IsSet() && utf8.RuneCountInString(val.Address.Val) > 1024 {
@@ -1936,7 +1934,7 @@ func (val *spanContextDestination) validate() error {
 
 func (val *spanContextDestination) processNestedSource() error {
 	if err := val.Service.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "service")
+		return fmt.Errorf("service: %w", err)
 	}
 	return nil
 }
@@ -1972,7 +1970,7 @@ func (val *spanContextHTTP) IsSet() bool {
 func (val *spanContextHTTP) validate() error {
 	if val.Request.IsSet() {
 		if err := val.Request.validate(); err != nil {
-			return errors.Wrapf(err, "request")
+			return fmt.Errorf("request: %w", err)
 		}
 	}
 	if val.Method.IsSet() && utf8.RuneCountInString(val.Method.Val) > 1024 {
@@ -1980,7 +1978,7 @@ func (val *spanContextHTTP) validate() error {
 	}
 	if val.Response.IsSet() {
 		if err := val.Response.validate(); err != nil {
-			return errors.Wrapf(err, "response")
+			return fmt.Errorf("response: %w", err)
 		}
 	}
 	return nil
@@ -1988,10 +1986,10 @@ func (val *spanContextHTTP) validate() error {
 
 func (val *spanContextHTTP) processNestedSource() error {
 	if err := val.Request.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "request")
+		return fmt.Errorf("request: %w", err)
 	}
 	if err := val.Response.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "response")
+		return fmt.Errorf("response: %w", err)
 	}
 	return nil
 }
@@ -2027,7 +2025,7 @@ func (val *transactionRoot) IsSet() bool {
 func (val *transactionRoot) validate() error {
 	if val.Transaction.IsSet() {
 		if err := val.Transaction.validate(); err != nil {
-			return errors.Wrapf(err, "transaction")
+			return fmt.Errorf("transaction: %w", err)
 		}
 	}
 	if !val.Transaction.IsSet() {
@@ -2038,7 +2036,7 @@ func (val *transactionRoot) validate() error {
 
 func (val *transactionRoot) processNestedSource() error {
 	if err := val.Transaction.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "transaction")
+		return fmt.Errorf("transaction: %w", err)
 	}
 	return nil
 }
@@ -2050,12 +2048,12 @@ func (val *transaction) IsSet() bool {
 func (val *transaction) validate() error {
 	if val.Marks.IsSet() {
 		if err := val.Marks.validate(); err != nil {
-			return errors.Wrapf(err, "marks")
+			return fmt.Errorf("marks: %w", err)
 		}
 	}
 	if val.OTel.IsSet() {
 		if err := val.OTel.validate(); err != nil {
-			return errors.Wrapf(err, "otel")
+			return fmt.Errorf("otel: %w", err)
 		}
 	}
 	for _, elem := range val.Links {
@@ -2063,7 +2061,7 @@ func (val *transaction) validate() error {
 			return fmt.Errorf("links slice element required")
 		}
 		if err := elem.validate(); err != nil {
-			return errors.Wrapf(err, "links")
+			return fmt.Errorf("links: %w", err)
 		}
 	}
 	if val.TraceID.IsSet() && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
@@ -2098,7 +2096,7 @@ func (val *transaction) validate() error {
 			return fmt.Errorf("dropped_spans_stats slice element required")
 		}
 		if err := elem.validate(); err != nil {
-			return errors.Wrapf(err, "dropped_spans_stats")
+			return fmt.Errorf("dropped_spans_stats: %w", err)
 		}
 	}
 	if val.Outcome.Val != "" {
@@ -2115,27 +2113,27 @@ func (val *transaction) validate() error {
 	}
 	if val.FAAS.IsSet() {
 		if err := val.FAAS.validate(); err != nil {
-			return errors.Wrapf(err, "faas")
+			return fmt.Errorf("faas: %w", err)
 		}
 	}
 	if val.Session.IsSet() {
 		if err := val.Session.validate(); err != nil {
-			return errors.Wrapf(err, "session")
+			return fmt.Errorf("session: %w", err)
 		}
 	}
 	if val.Context.IsSet() {
 		if err := val.Context.validate(); err != nil {
-			return errors.Wrapf(err, "context")
+			return fmt.Errorf("context: %w", err)
 		}
 	}
 	if val.UserExperience.IsSet() {
 		if err := val.UserExperience.validate(); err != nil {
-			return errors.Wrapf(err, "experience")
+			return fmt.Errorf("experience: %w", err)
 		}
 	}
 	if val.SpanCount.IsSet() {
 		if err := val.SpanCount.validate(); err != nil {
-			return errors.Wrapf(err, "span_count")
+			return fmt.Errorf("span_count: %w", err)
 		}
 	}
 	if !val.SpanCount.IsSet() {
@@ -2152,25 +2150,25 @@ func (val *transaction) validate() error {
 
 func (val *transaction) processNestedSource() error {
 	if err := val.Marks.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "marks")
+		return fmt.Errorf("marks: %w", err)
 	}
 	if err := val.OTel.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "otel")
+		return fmt.Errorf("otel: %w", err)
 	}
 	if err := val.FAAS.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "faas")
+		return fmt.Errorf("faas: %w", err)
 	}
 	if err := val.Session.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "session")
+		return fmt.Errorf("session: %w", err)
 	}
 	if err := val.Context.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "context")
+		return fmt.Errorf("context: %w", err)
 	}
 	if err := val.UserExperience.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "experience")
+		return fmt.Errorf("experience: %w", err)
 	}
 	if err := val.SpanCount.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "span_count")
+		return fmt.Errorf("span_count: %w", err)
 	}
 	return nil
 }
@@ -2227,7 +2225,7 @@ func (val *transactionDroppedSpanStats) validate() error {
 	}
 	if val.Duration.IsSet() {
 		if err := val.Duration.validate(); err != nil {
-			return errors.Wrapf(err, "duration")
+			return fmt.Errorf("duration: %w", err)
 		}
 	}
 	return nil
@@ -2235,7 +2233,7 @@ func (val *transactionDroppedSpanStats) validate() error {
 
 func (val *transactionDroppedSpanStats) processNestedSource() error {
 	if err := val.Duration.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "duration")
+		return fmt.Errorf("duration: %w", err)
 	}
 	return nil
 }
@@ -2250,7 +2248,7 @@ func (val *transactionDroppedSpansDuration) validate() error {
 	}
 	if val.Sum.IsSet() {
 		if err := val.Sum.validate(); err != nil {
-			return errors.Wrapf(err, "sum")
+			return fmt.Errorf("sum: %w", err)
 		}
 	}
 	return nil
@@ -2258,7 +2256,7 @@ func (val *transactionDroppedSpansDuration) validate() error {
 
 func (val *transactionDroppedSpansDuration) processNestedSource() error {
 	if err := val.Sum.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "sum")
+		return fmt.Errorf("sum: %w", err)
 	}
 	return nil
 }
@@ -2312,7 +2310,7 @@ func (val *transactionUserExperience) validate() error {
 	}
 	if val.Longtask.IsSet() {
 		if err := val.Longtask.validate(); err != nil {
-			return errors.Wrapf(err, "longtask")
+			return fmt.Errorf("longtask: %w", err)
 		}
 	}
 	if val.TotalBlockingTime.IsSet() && val.TotalBlockingTime.Val < 0 {
@@ -2323,7 +2321,7 @@ func (val *transactionUserExperience) validate() error {
 
 func (val *transactionUserExperience) processNestedSource() error {
 	if err := val.Longtask.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "longtask")
+		return fmt.Errorf("longtask: %w", err)
 	}
 	return nil
 }
@@ -2380,7 +2378,7 @@ func (val *logRoot) IsSet() bool {
 func (val *logRoot) validate() error {
 	if val.Log.IsSet() {
 		if err := val.Log.validate(); err != nil {
-			return errors.Wrapf(err, "log")
+			return fmt.Errorf("log: %w", err)
 		}
 	}
 	if !val.Log.IsSet() {
@@ -2391,7 +2389,7 @@ func (val *logRoot) validate() error {
 
 func (val *logRoot) processNestedSource() error {
 	if err := val.Log.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "log")
+		return fmt.Errorf("log: %w", err)
 	}
 	return nil
 }
@@ -2416,22 +2414,22 @@ func (val *log) validate() error {
 	}
 	if val.EcsLogServiceFields.IsSet() {
 		if err := val.EcsLogServiceFields.validate(); err != nil {
-			return errors.Wrapf(err, "ecslogservicefields")
+			return fmt.Errorf("ecslogservicefields: %w", err)
 		}
 	}
 	if val.EcsLogErrorFields.IsSet() {
 		if err := val.EcsLogErrorFields.validate(); err != nil {
-			return errors.Wrapf(err, "ecslogerrorfields")
+			return fmt.Errorf("ecslogerrorfields: %w", err)
 		}
 	}
 	if val.EcsLogEventFields.IsSet() {
 		if err := val.EcsLogEventFields.validate(); err != nil {
-			return errors.Wrapf(err, "ecslogeventfields")
+			return fmt.Errorf("ecslogeventfields: %w", err)
 		}
 	}
 	if val.EcsLogProcessFields.IsSet() {
 		if err := val.EcsLogProcessFields.validate(); err != nil {
-			return errors.Wrapf(err, "ecslogprocessfields")
+			return fmt.Errorf("ecslogprocessfields: %w", err)
 		}
 	}
 	if val.TraceID.IsSet() && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
@@ -2445,12 +2443,12 @@ func (val *log) validate() error {
 	}
 	if val.FAAS.IsSet() {
 		if err := val.FAAS.validate(); err != nil {
-			return errors.Wrapf(err, "faas")
+			return fmt.Errorf("faas: %w", err)
 		}
 	}
 	if val.EcsLogLogFields.IsSet() {
 		if err := val.EcsLogLogFields.validate(); err != nil {
-			return errors.Wrapf(err, "ecsloglogfields")
+			return fmt.Errorf("ecsloglogfields: %w", err)
 		}
 	}
 	return nil
@@ -2458,22 +2456,22 @@ func (val *log) validate() error {
 
 func (val *log) processNestedSource() error {
 	if err := val.EcsLogServiceFields.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "ecslogservicefields")
+		return fmt.Errorf("ecslogservicefields: %w", err)
 	}
 	if err := val.EcsLogErrorFields.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "ecslogerrorfields")
+		return fmt.Errorf("ecslogerrorfields: %w", err)
 	}
 	if err := val.EcsLogEventFields.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "ecslogeventfields")
+		return fmt.Errorf("ecslogeventfields: %w", err)
 	}
 	if err := val.EcsLogProcessFields.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "ecslogprocessfields")
+		return fmt.Errorf("ecslogprocessfields: %w", err)
 	}
 	if err := val.FAAS.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "faas")
+		return fmt.Errorf("faas: %w", err)
 	}
 	if err := val.EcsLogLogFields.processNestedSource(); err != nil {
-		return errors.Wrapf(err, "ecsloglogfields")
+		return fmt.Errorf("ecsloglogfields: %w", err)
 	}
 	return nil
 }

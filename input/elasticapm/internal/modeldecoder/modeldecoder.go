@@ -18,9 +18,9 @@
 package modeldecoder
 
 import (
+	"errors"
+	"fmt"
 	"regexp"
-
-	"github.com/pkg/errors"
 )
 
 // DecoderError represents an error due to JSON decoding.
@@ -29,7 +29,7 @@ type DecoderError struct {
 }
 
 func (e DecoderError) Error() string {
-	return errors.Wrap(e.err, "decode error").Error()
+	return fmt.Errorf("decode error: %w", e.err).Error()
 }
 
 func (e *DecoderError) Unwrap() error {
@@ -42,7 +42,7 @@ type ValidationError struct {
 }
 
 func (e ValidationError) Error() string {
-	return errors.Wrap(e.err, "validation error").Error()
+	return fmt.Errorf("validation error: %w", e.err).Error()
 }
 
 func (e *ValidationError) Unwrap() error {

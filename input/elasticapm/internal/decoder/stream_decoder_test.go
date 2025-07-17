@@ -47,7 +47,7 @@ func TestNDStreamReader(t *testing.T) {
 		},
 		{
 			out:        nil,
-			errPattern: "Line exceeded permitted length",
+			errPattern: "line exceeded permitted length",
 			latestLine: `{"key": "value2", "t`,
 		},
 		{
