@@ -1135,7 +1135,7 @@ func TestConsumeMetricsHistogramWithoutBuckets(t *testing.T) {
 	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(timestamp.Add(-time.Second)))
 	dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 	dp.SetCount(10)
-	dp.SetSum(100)
+	dp.SetSum(200)
 
 	events, _, result, err := transformMetrics(t, metrics)
 	assert.NoError(t, err)
@@ -1154,7 +1154,7 @@ func TestConsumeMetricsHistogramWithoutBuckets(t *testing.T) {
 					Type: modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
 					Histogram: &modelpb.Histogram{
 						Counts: []uint64{10},
-						Values: []float64{10},
+						Values: []float64{20},
 					},
 				},
 			},
