@@ -134,7 +134,7 @@ func TestConsumeMetrics(t *testing.T) {
 	invalidHistogramDP = invalidHistogram.DataPoints().AppendEmpty()
 	invalidHistogramDP.SetTimestamp(pcommon.NewTimestampFromTime(timestamp0))
 	invalidHistogramDP.BucketCounts().Append(1)
-	invalidHistogramDP.ExplicitBounds().Append( /* should be non-empty */ )
+	invalidHistogramDP.ExplicitBounds().Append( /* should be non-empty */)
 	expectDropped++
 
 	events, stats, result, err := transformMetrics(t, metrics)
@@ -1119,6 +1119,50 @@ func TestConsumeMetricsWithOTelRemapper(t *testing.T) {
 			assert.Equal(t, otlp.ConsumeMetricsResult{}, results)
 		})
 	}
+}
+
+func TestConsumeMetricsHistogramWithoutBuckets(t *testing.T) {
+	metrics := pmetric.NewMetrics()
+	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
+	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
+	metricSlice := scopeMetrics.Metrics()
+
+	timestamp := time.Unix(123, 0).UTC()
+	metric := metricSlice.AppendEmpty()
+	metric.SetName("histogram.no.bucket")
+	histogram := metric.SetEmptyHistogram()
+	dp := histogram.DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(timestamp.Add(-time.Second)))
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
+	dp.SetCount(10)
+	dp.SetSum(100)
+
+	events, _, result, err := transformMetrics(t, metrics)
+	assert.NoError(t, err)
+
+	service := modelpb.Service{Name: "unknown", Language: &modelpb.Language{Name: "unknown"}}
+	agent := modelpb.Agent{Name: "otlp", Version: "unknown"}
+	expected := []*modelpb.APMEvent{{
+		Agent:     &agent,
+		Service:   &service,
+		Timestamp: modelpb.FromTime(timestamp),
+		Metricset: &modelpb.Metricset{
+			Name: "app",
+			Samples: []*modelpb.MetricsetSample{
+				{
+					Name: "histogram.no.bucket",
+					Type: modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
+					Histogram: &modelpb.Histogram{
+						Counts: []uint64{10},
+						Values: []float64{10},
+					},
+				},
+			},
+		},
+	}}
+
+	eventsMatch(t, expected, events)
+	assert.Equal(t, otlp.ConsumeMetricsResult{}, result)
 }
 
 func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]*modelpb.APMEvent, otlp.ConsumerStats, otlp.ConsumeMetricsResult, error) {
