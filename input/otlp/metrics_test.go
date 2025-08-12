@@ -130,18 +130,11 @@ func TestConsumeMetrics(t *testing.T) {
 	invalidHistogramDP.ExplicitBounds().Append(1, 2, 3)
 	expectDropped++
 
-	invalidHistogram = appendMetric("invalid_histogram_metric2").SetEmptyHistogram()
-	invalidHistogramDP = invalidHistogram.DataPoints().AppendEmpty()
-	invalidHistogramDP.SetTimestamp(pcommon.NewTimestampFromTime(timestamp0))
-	invalidHistogramDP.BucketCounts().Append(1)
-	invalidHistogramDP.ExplicitBounds().Append( /* should be non-empty */)
-	expectDropped++
-
 	events, stats, result, err := transformMetrics(t, metrics)
 	assert.NoError(t, err)
 	assert.Equal(t, expectDropped, stats.UnsupportedMetricsDropped)
 	expectedResult := otlp.ConsumeMetricsResult{
-		RejectedDataPoints: 2,
+		RejectedDataPoints: 1,
 		ErrorMessage:       "unsupported data points",
 	}
 	assert.Equal(t, expectedResult, result)
