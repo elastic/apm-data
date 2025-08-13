@@ -296,7 +296,7 @@ func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets, remainingData
 		dps := metric.Histogram().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
-			if sample, ok := histogramSample(dp.BucketCounts(), dp.ExplicitBounds()); ok {
+			if sample, ok := histogramSample(dp.BucketCounts(), dp.ExplicitBounds(), dp.Count(), dp.Sum()); ok {
 				sample.Name = metric.Name()
 				ms.upsert(dp.Timestamp().AsTime(), dp.Attributes(), sample)
 				*remainingDataPoints--
@@ -347,12 +347,25 @@ func summarySample(dp pmetric.SummaryDataPoint) *modelpb.MetricsetSample {
 	ms := modelpb.MetricsetSample{}
 	ms.Type = modelpb.MetricType_METRIC_TYPE_SUMMARY
 	ms.Summary = &modelpb.SummaryMetric{}
-	ms.Summary.Count = uint64(dp.Count())
+	ms.Summary.Count = dp.Count()
 	ms.Summary.Sum = dp.Sum()
 	return &ms
 }
 
-func histogramSample(bucketCounts pcommon.UInt64Slice, explicitBounds pcommon.Float64Slice) (*modelpb.MetricsetSample, bool) {
+func histogramSample(bucketCounts pcommon.UInt64Slice, explicitBounds pcommon.Float64Slice, totalCount uint64, totalSum float64) (*modelpb.MetricsetSample, bool) {
+	// No bucket information given, which is valid under OTLP.
+	// See https://opentelemetry.io/docs/specs/otel/metrics/data-model/#histogram.
+	// Simply create a single-bucket histogram from count and sum.
+	if explicitBounds.Len() == 0 {
+		return &modelpb.MetricsetSample{
+			Type: modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
+			Histogram: &modelpb.Histogram{
+				Values: []float64{totalSum / float64(totalCount)},
+				Counts: []uint64{totalCount},
+			},
+		}, true
+	}
+
 	// (From opentelemetry-proto/opentelemetry/proto/metrics/v1/metrics.proto)
 	//
 	// This defines size(explicit_bounds) + 1 (= N) buckets. The boundaries for
@@ -364,7 +377,7 @@ func histogramSample(bucketCounts pcommon.UInt64Slice, explicitBounds pcommon.Fl
 	//
 	// The values in the explicit_bounds array must be strictly increasing.
 	//
-	if bucketCounts.Len() != explicitBounds.Len()+1 || explicitBounds.Len() == 0 {
+	if bucketCounts.Len() != explicitBounds.Len()+1 {
 		return &modelpb.MetricsetSample{}, false
 	}
 
@@ -405,7 +418,7 @@ func histogramSample(bucketCounts pcommon.UInt64Slice, explicitBounds pcommon.Fl
 			value = explicitBounds.At(i-1) + (explicitBounds.At(i)-explicitBounds.At(i-1))/2.0
 		}
 
-		counts = append(counts, uint64(count))
+		counts = append(counts, count)
 		values = append(values, value)
 	}
 	ms := modelpb.MetricsetSample{}
