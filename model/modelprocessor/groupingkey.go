@@ -57,7 +57,11 @@ func (s SetGroupingKey) processError(ctx context.Context, event *modelpb.Error) 
 	}
 	var haveExceptionStacktrace bool
 	if event.Exception != nil {
-		haveExceptionStacktrace = s.hashExceptionTree(event.Exception, hash, s.hashExceptionStacktrace)
+		if s.exceptionTreeHasStackTrace(event.Exception) {
+			haveExceptionStacktrace = s.hashExceptionTree(event.Exception, hash, s.hashExceptionStacktrace)
+		} else {
+			haveExceptionStacktrace = s.hashExceptionTree(event.Exception, hash, s.hashExceptionMessage)
+		}
 		updated = updated || haveExceptionStacktrace
 	}
 	if !haveExceptionStacktrace && event.Log != nil {
@@ -72,8 +76,25 @@ func (s SetGroupingKey) processError(ctx context.Context, event *modelpb.Error) 
 		if !updated && event.Log != nil {
 			s.maybeWriteString(event.Log.Message, hash)
 		}
+		// if all else false hash over stacktrace
+		if !updated {
+			s.maybeWriteString(event.StackTrace, hash)
+		}
 	}
 	event.GroupingKey = hex.EncodeToString(hash.Sum(nil))
+}
+
+func (s SetGroupingKey) exceptionTreeHasStackTrace(e *modelpb.Exception) bool {
+	updated := e.Stacktrace != nil
+	if updated {
+		return updated
+	}
+	for _, cause := range e.Cause {
+		if s.exceptionTreeHasStackTrace(cause) {
+			return true
+		}
+	}
+	return false
 }
 
 func (s SetGroupingKey) hashExceptionTree(e *modelpb.Exception, out hash.Hash, f func(*modelpb.Exception, hash.Hash) bool) bool {
