@@ -30,7 +30,7 @@ jobs:
         team: 'apm'
         GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
     - name: Add safe-to-test label
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       if: steps.checkUserMember.outputs.isTeamMember == 'true'
       with:
         github-token: ${{ steps.get_token.outputs.token }}
