@@ -50,7 +50,7 @@ func NewTracer(n string, p modelpb.BatchProcessor, opts ...ConfigOption) *Tracer
 
 // ProcessBatch runs for each batch run, and emits telemetry
 func (c *Tracer) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
-	ctx, span := c.tracer.Start(ctx, c.spanName)
+	ctx, span := c.tracer.Start(ctx, c.spanName, trace.WithSpanKind(trace.SpanKindInternal))
 	defer span.End()
 
 	err := c.processor.ProcessBatch(ctx, b)
