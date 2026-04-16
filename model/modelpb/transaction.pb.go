@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: transaction.proto
+// source: elastic/apm/v1/transaction.proto
 
 package modelpb
 
@@ -63,7 +63,7 @@ type Transaction struct {
 
 func (x *Transaction) Reset() {
 	*x = Transaction{}
-	mi := &file_transaction_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_transaction_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -75,7 +75,7 @@ func (x *Transaction) String() string {
 func (*Transaction) ProtoMessage() {}
 
 func (x *Transaction) ProtoReflect() protoreflect.Message {
-	mi := &file_transaction_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_transaction_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -88,7 +88,7 @@ func (x *Transaction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Transaction.ProtoReflect.Descriptor instead.
 func (*Transaction) Descriptor() ([]byte, []int) {
-	return file_transaction_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_transaction_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Transaction) GetSpanCount() *SpanCount {
@@ -213,7 +213,7 @@ type SpanCount struct {
 
 func (x *SpanCount) Reset() {
 	*x = SpanCount{}
-	mi := &file_transaction_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_transaction_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -225,7 +225,7 @@ func (x *SpanCount) String() string {
 func (*SpanCount) ProtoMessage() {}
 
 func (x *SpanCount) ProtoReflect() protoreflect.Message {
-	mi := &file_transaction_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_transaction_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -238,7 +238,7 @@ func (x *SpanCount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpanCount.ProtoReflect.Descriptor instead.
 func (*SpanCount) Descriptor() ([]byte, []int) {
-	return file_transaction_proto_rawDescGZIP(), []int{1}
+	return file_elastic_apm_v1_transaction_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *SpanCount) GetDropped() uint32 {
@@ -264,7 +264,7 @@ type TransactionMark struct {
 
 func (x *TransactionMark) Reset() {
 	*x = TransactionMark{}
-	mi := &file_transaction_proto_msgTypes[2]
+	mi := &file_elastic_apm_v1_transaction_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -276,7 +276,7 @@ func (x *TransactionMark) String() string {
 func (*TransactionMark) ProtoMessage() {}
 
 func (x *TransactionMark) ProtoReflect() protoreflect.Message {
-	mi := &file_transaction_proto_msgTypes[2]
+	mi := &file_elastic_apm_v1_transaction_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -289,7 +289,7 @@ func (x *TransactionMark) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransactionMark.ProtoReflect.Descriptor instead.
 func (*TransactionMark) Descriptor() ([]byte, []int) {
-	return file_transaction_proto_rawDescGZIP(), []int{2}
+	return file_elastic_apm_v1_transaction_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *TransactionMark) GetMeasurements() map[string]float64 {
@@ -312,7 +312,7 @@ type DroppedSpanStats struct {
 
 func (x *DroppedSpanStats) Reset() {
 	*x = DroppedSpanStats{}
-	mi := &file_transaction_proto_msgTypes[3]
+	mi := &file_elastic_apm_v1_transaction_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -324,7 +324,7 @@ func (x *DroppedSpanStats) String() string {
 func (*DroppedSpanStats) ProtoMessage() {}
 
 func (x *DroppedSpanStats) ProtoReflect() protoreflect.Message {
-	mi := &file_transaction_proto_msgTypes[3]
+	mi := &file_elastic_apm_v1_transaction_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -337,7 +337,7 @@ func (x *DroppedSpanStats) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DroppedSpanStats.ProtoReflect.Descriptor instead.
 func (*DroppedSpanStats) Descriptor() ([]byte, []int) {
-	return file_transaction_proto_rawDescGZIP(), []int{3}
+	return file_elastic_apm_v1_transaction_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *DroppedSpanStats) GetDestinationServiceResource() string {
@@ -375,11 +375,11 @@ func (x *DroppedSpanStats) GetDuration() *AggregatedDuration {
 	return nil
 }
 
-var File_transaction_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_transaction_proto protoreflect.FileDescriptor
 
-const file_transaction_proto_rawDesc = "" +
+const file_elastic_apm_v1_transaction_proto_rawDesc = "" +
 	"\n" +
-	"\x11transaction.proto\x12\x0eelastic.apm.v1\x1a\x10experience.proto\x1a\rmessage.proto\x1a\x0fmetricset.proto\x1a\x0ekeyvalue.proto\"\xde\x06\n" +
+	" elastic/apm/v1/transaction.proto\x12\x0eelastic.apm.v1\x1a\x1felastic/apm/v1/experience.proto\x1a\x1celastic/apm/v1/message.proto\x1a\x1eelastic/apm/v1/metricset.proto\x1a\x1delastic/apm/v1/keyvalue.proto\"\xde\x06\n" +
 	"\vTransaction\x128\n" +
 	"\n" +
 	"span_count\x18\x01 \x01(\v2\x19.elastic.apm.v1.SpanCountR\tspanCount\x12G\n" +
@@ -423,19 +423,19 @@ const file_transaction_proto_rawDesc = "" +
 	"\bduration\x18\x05 \x01(\v2\".elastic.apm.v1.AggregatedDurationR\bdurationB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_transaction_proto_rawDescOnce sync.Once
-	file_transaction_proto_rawDescData []byte
+	file_elastic_apm_v1_transaction_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_transaction_proto_rawDescData []byte
 )
 
-func file_transaction_proto_rawDescGZIP() []byte {
-	file_transaction_proto_rawDescOnce.Do(func() {
-		file_transaction_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_transaction_proto_rawDesc), len(file_transaction_proto_rawDesc)))
+func file_elastic_apm_v1_transaction_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_transaction_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_transaction_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_transaction_proto_rawDesc), len(file_elastic_apm_v1_transaction_proto_rawDesc)))
 	})
-	return file_transaction_proto_rawDescData
+	return file_elastic_apm_v1_transaction_proto_rawDescData
 }
 
-var file_transaction_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
-var file_transaction_proto_goTypes = []any{
+var file_elastic_apm_v1_transaction_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_elastic_apm_v1_transaction_proto_goTypes = []any{
 	(*Transaction)(nil),        // 0: elastic.apm.v1.Transaction
 	(*SpanCount)(nil),          // 1: elastic.apm.v1.SpanCount
 	(*TransactionMark)(nil),    // 2: elastic.apm.v1.TransactionMark
@@ -449,7 +449,7 @@ var file_transaction_proto_goTypes = []any{
 	(*SummaryMetric)(nil),      // 10: elastic.apm.v1.SummaryMetric
 	(*AggregatedDuration)(nil), // 11: elastic.apm.v1.AggregatedDuration
 }
-var file_transaction_proto_depIdxs = []int32{
+var file_elastic_apm_v1_transaction_proto_depIdxs = []int32{
 	1,  // 0: elastic.apm.v1.Transaction.span_count:type_name -> elastic.apm.v1.SpanCount
 	6,  // 1: elastic.apm.v1.Transaction.user_experience:type_name -> elastic.apm.v1.UserExperience
 	7,  // 2: elastic.apm.v1.Transaction.custom:type_name -> elastic.apm.v1.KeyValue
@@ -468,31 +468,31 @@ var file_transaction_proto_depIdxs = []int32{
 	0,  // [0:11] is the sub-list for field type_name
 }
 
-func init() { file_transaction_proto_init() }
-func file_transaction_proto_init() {
-	if File_transaction_proto != nil {
+func init() { file_elastic_apm_v1_transaction_proto_init() }
+func file_elastic_apm_v1_transaction_proto_init() {
+	if File_elastic_apm_v1_transaction_proto != nil {
 		return
 	}
-	file_experience_proto_init()
-	file_message_proto_init()
-	file_metricset_proto_init()
-	file_keyvalue_proto_init()
-	file_transaction_proto_msgTypes[1].OneofWrappers = []any{}
+	file_elastic_apm_v1_experience_proto_init()
+	file_elastic_apm_v1_message_proto_init()
+	file_elastic_apm_v1_metricset_proto_init()
+	file_elastic_apm_v1_keyvalue_proto_init()
+	file_elastic_apm_v1_transaction_proto_msgTypes[1].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_transaction_proto_rawDesc), len(file_transaction_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_transaction_proto_rawDesc), len(file_elastic_apm_v1_transaction_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_transaction_proto_goTypes,
-		DependencyIndexes: file_transaction_proto_depIdxs,
-		MessageInfos:      file_transaction_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_transaction_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_transaction_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_transaction_proto_msgTypes,
 	}.Build()
-	File_transaction_proto = out.File
-	file_transaction_proto_goTypes = nil
-	file_transaction_proto_depIdxs = nil
+	File_elastic_apm_v1_transaction_proto = out.File
+	file_elastic_apm_v1_transaction_proto_goTypes = nil
+	file_elastic_apm_v1_transaction_proto_depIdxs = nil
 }

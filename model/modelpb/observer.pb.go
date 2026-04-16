@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: observer.proto
+// source: elastic/apm/v1/observer.proto
 
 package modelpb
 
@@ -51,7 +51,7 @@ type Observer struct {
 
 func (x *Observer) Reset() {
 	*x = Observer{}
-	mi := &file_observer_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_observer_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -63,7 +63,7 @@ func (x *Observer) String() string {
 func (*Observer) ProtoMessage() {}
 
 func (x *Observer) ProtoReflect() protoreflect.Message {
-	mi := &file_observer_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_observer_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -76,7 +76,7 @@ func (x *Observer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Observer.ProtoReflect.Descriptor instead.
 func (*Observer) Descriptor() ([]byte, []int) {
-	return file_observer_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_observer_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Observer) GetHostname() string {
@@ -107,11 +107,11 @@ func (x *Observer) GetVersion() string {
 	return ""
 }
 
-var File_observer_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_observer_proto protoreflect.FileDescriptor
 
-const file_observer_proto_rawDesc = "" +
+const file_elastic_apm_v1_observer_proto_rawDesc = "" +
 	"\n" +
-	"\x0eobserver.proto\x12\x0eelastic.apm.v1\"h\n" +
+	"\x1delastic/apm/v1/observer.proto\x12\x0eelastic.apm.v1\"h\n" +
 	"\bObserver\x12\x1a\n" +
 	"\bhostname\x18\x01 \x01(\tR\bhostname\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
@@ -119,22 +119,22 @@ const file_observer_proto_rawDesc = "" +
 	"\aversion\x18\x04 \x01(\tR\aversionB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_observer_proto_rawDescOnce sync.Once
-	file_observer_proto_rawDescData []byte
+	file_elastic_apm_v1_observer_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_observer_proto_rawDescData []byte
 )
 
-func file_observer_proto_rawDescGZIP() []byte {
-	file_observer_proto_rawDescOnce.Do(func() {
-		file_observer_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_observer_proto_rawDesc), len(file_observer_proto_rawDesc)))
+func file_elastic_apm_v1_observer_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_observer_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_observer_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_observer_proto_rawDesc), len(file_elastic_apm_v1_observer_proto_rawDesc)))
 	})
-	return file_observer_proto_rawDescData
+	return file_elastic_apm_v1_observer_proto_rawDescData
 }
 
-var file_observer_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_observer_proto_goTypes = []any{
+var file_elastic_apm_v1_observer_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_elastic_apm_v1_observer_proto_goTypes = []any{
 	(*Observer)(nil), // 0: elastic.apm.v1.Observer
 }
-var file_observer_proto_depIdxs = []int32{
+var file_elastic_apm_v1_observer_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -142,26 +142,26 @@ var file_observer_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_observer_proto_init() }
-func file_observer_proto_init() {
-	if File_observer_proto != nil {
+func init() { file_elastic_apm_v1_observer_proto_init() }
+func file_elastic_apm_v1_observer_proto_init() {
+	if File_elastic_apm_v1_observer_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_observer_proto_rawDesc), len(file_observer_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_observer_proto_rawDesc), len(file_elastic_apm_v1_observer_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_observer_proto_goTypes,
-		DependencyIndexes: file_observer_proto_depIdxs,
-		MessageInfos:      file_observer_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_observer_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_observer_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_observer_proto_msgTypes,
 	}.Build()
-	File_observer_proto = out.File
-	file_observer_proto_goTypes = nil
-	file_observer_proto_depIdxs = nil
+	File_elastic_apm_v1_observer_proto = out.File
+	file_elastic_apm_v1_observer_proto_goTypes = nil
+	file_elastic_apm_v1_observer_proto_depIdxs = nil
 }

@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: headers.proto
+// source: elastic/apm/v1/headers.proto
 
 package modelpb
 
@@ -49,7 +49,7 @@ type HTTPHeader struct {
 
 func (x *HTTPHeader) Reset() {
 	*x = HTTPHeader{}
-	mi := &file_headers_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_headers_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -61,7 +61,7 @@ func (x *HTTPHeader) String() string {
 func (*HTTPHeader) ProtoMessage() {}
 
 func (x *HTTPHeader) ProtoReflect() protoreflect.Message {
-	mi := &file_headers_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_headers_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -74,7 +74,7 @@ func (x *HTTPHeader) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HTTPHeader.ProtoReflect.Descriptor instead.
 func (*HTTPHeader) Descriptor() ([]byte, []int) {
-	return file_headers_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_headers_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *HTTPHeader) GetKey() string {
@@ -91,33 +91,33 @@ func (x *HTTPHeader) GetValue() []string {
 	return nil
 }
 
-var File_headers_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_headers_proto protoreflect.FileDescriptor
 
-const file_headers_proto_rawDesc = "" +
+const file_elastic_apm_v1_headers_proto_rawDesc = "" +
 	"\n" +
-	"\rheaders.proto\x12\x0eelastic.apm.v1\"4\n" +
+	"\x1celastic/apm/v1/headers.proto\x12\x0eelastic.apm.v1\"4\n" +
 	"\n" +
 	"HTTPHeader\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x03(\tR\x05valueB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_headers_proto_rawDescOnce sync.Once
-	file_headers_proto_rawDescData []byte
+	file_elastic_apm_v1_headers_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_headers_proto_rawDescData []byte
 )
 
-func file_headers_proto_rawDescGZIP() []byte {
-	file_headers_proto_rawDescOnce.Do(func() {
-		file_headers_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_headers_proto_rawDesc), len(file_headers_proto_rawDesc)))
+func file_elastic_apm_v1_headers_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_headers_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_headers_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_headers_proto_rawDesc), len(file_elastic_apm_v1_headers_proto_rawDesc)))
 	})
-	return file_headers_proto_rawDescData
+	return file_elastic_apm_v1_headers_proto_rawDescData
 }
 
-var file_headers_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_headers_proto_goTypes = []any{
+var file_elastic_apm_v1_headers_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_elastic_apm_v1_headers_proto_goTypes = []any{
 	(*HTTPHeader)(nil), // 0: elastic.apm.v1.HTTPHeader
 }
-var file_headers_proto_depIdxs = []int32{
+var file_elastic_apm_v1_headers_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -125,26 +125,26 @@ var file_headers_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_headers_proto_init() }
-func file_headers_proto_init() {
-	if File_headers_proto != nil {
+func init() { file_elastic_apm_v1_headers_proto_init() }
+func file_elastic_apm_v1_headers_proto_init() {
+	if File_elastic_apm_v1_headers_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_headers_proto_rawDesc), len(file_headers_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_headers_proto_rawDesc), len(file_elastic_apm_v1_headers_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_headers_proto_goTypes,
-		DependencyIndexes: file_headers_proto_depIdxs,
-		MessageInfos:      file_headers_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_headers_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_headers_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_headers_proto_msgTypes,
 	}.Build()
-	File_headers_proto = out.File
-	file_headers_proto_goTypes = nil
-	file_headers_proto_depIdxs = nil
+	File_elastic_apm_v1_headers_proto = out.File
+	file_elastic_apm_v1_headers_proto_goTypes = nil
+	file_elastic_apm_v1_headers_proto_depIdxs = nil
 }

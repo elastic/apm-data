@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: error.proto
+// source: elastic/apm/v1/error.proto
 
 package modelpb
 
@@ -56,7 +56,7 @@ type Error struct {
 
 func (x *Error) Reset() {
 	*x = Error{}
-	mi := &file_error_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_error_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -68,7 +68,7 @@ func (x *Error) String() string {
 func (*Error) ProtoMessage() {}
 
 func (x *Error) ProtoReflect() protoreflect.Message {
-	mi := &file_error_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_error_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -81,7 +81,7 @@ func (x *Error) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Error.ProtoReflect.Descriptor instead.
 func (*Error) Descriptor() ([]byte, []int) {
-	return file_error_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_error_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Error) GetCustom() []*KeyValue {
@@ -163,7 +163,7 @@ type Exception struct {
 
 func (x *Exception) Reset() {
 	*x = Exception{}
-	mi := &file_error_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_error_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -175,7 +175,7 @@ func (x *Exception) String() string {
 func (*Exception) ProtoMessage() {}
 
 func (x *Exception) ProtoReflect() protoreflect.Message {
-	mi := &file_error_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_error_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -188,7 +188,7 @@ func (x *Exception) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Exception.ProtoReflect.Descriptor instead.
 func (*Exception) Descriptor() ([]byte, []int) {
-	return file_error_proto_rawDescGZIP(), []int{1}
+	return file_elastic_apm_v1_error_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Exception) GetMessage() string {
@@ -260,7 +260,7 @@ type ErrorLog struct {
 
 func (x *ErrorLog) Reset() {
 	*x = ErrorLog{}
-	mi := &file_error_proto_msgTypes[2]
+	mi := &file_elastic_apm_v1_error_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -272,7 +272,7 @@ func (x *ErrorLog) String() string {
 func (*ErrorLog) ProtoMessage() {}
 
 func (x *ErrorLog) ProtoReflect() protoreflect.Message {
-	mi := &file_error_proto_msgTypes[2]
+	mi := &file_elastic_apm_v1_error_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -285,7 +285,7 @@ func (x *ErrorLog) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ErrorLog.ProtoReflect.Descriptor instead.
 func (*ErrorLog) Descriptor() ([]byte, []int) {
-	return file_error_proto_rawDescGZIP(), []int{2}
+	return file_elastic_apm_v1_error_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ErrorLog) GetMessage() string {
@@ -323,11 +323,11 @@ func (x *ErrorLog) GetStacktrace() []*StacktraceFrame {
 	return nil
 }
 
-var File_error_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_error_proto protoreflect.FileDescriptor
 
-const file_error_proto_rawDesc = "" +
+const file_elastic_apm_v1_error_proto_rawDesc = "" +
 	"\n" +
-	"\verror.proto\x12\x0eelastic.apm.v1\x1a\x10stacktrace.proto\x1a\x0ekeyvalue.proto\"\xba\x02\n" +
+	"\x1aelastic/apm/v1/error.proto\x12\x0eelastic.apm.v1\x1a\x1felastic/apm/v1/stacktrace.proto\x1a\x1delastic/apm/v1/keyvalue.proto\"\xba\x02\n" +
 	"\x05Error\x120\n" +
 	"\x06custom\x18\x01 \x03(\v2\x18.elastic.apm.v1.KeyValueR\x06custom\x127\n" +
 	"\texception\x18\x02 \x01(\v2\x19.elastic.apm.v1.ExceptionR\texception\x12*\n" +
@@ -365,26 +365,26 @@ const file_error_proto_rawDesc = "" +
 	"stacktraceB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_error_proto_rawDescOnce sync.Once
-	file_error_proto_rawDescData []byte
+	file_elastic_apm_v1_error_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_error_proto_rawDescData []byte
 )
 
-func file_error_proto_rawDescGZIP() []byte {
-	file_error_proto_rawDescOnce.Do(func() {
-		file_error_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_error_proto_rawDesc), len(file_error_proto_rawDesc)))
+func file_elastic_apm_v1_error_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_error_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_error_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_error_proto_rawDesc), len(file_elastic_apm_v1_error_proto_rawDesc)))
 	})
-	return file_error_proto_rawDescData
+	return file_elastic_apm_v1_error_proto_rawDescData
 }
 
-var file_error_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_error_proto_goTypes = []any{
+var file_elastic_apm_v1_error_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_elastic_apm_v1_error_proto_goTypes = []any{
 	(*Error)(nil),           // 0: elastic.apm.v1.Error
 	(*Exception)(nil),       // 1: elastic.apm.v1.Exception
 	(*ErrorLog)(nil),        // 2: elastic.apm.v1.ErrorLog
 	(*KeyValue)(nil),        // 3: elastic.apm.v1.KeyValue
 	(*StacktraceFrame)(nil), // 4: elastic.apm.v1.StacktraceFrame
 }
-var file_error_proto_depIdxs = []int32{
+var file_elastic_apm_v1_error_proto_depIdxs = []int32{
 	3, // 0: elastic.apm.v1.Error.custom:type_name -> elastic.apm.v1.KeyValue
 	1, // 1: elastic.apm.v1.Error.exception:type_name -> elastic.apm.v1.Exception
 	2, // 2: elastic.apm.v1.Error.log:type_name -> elastic.apm.v1.ErrorLog
@@ -399,29 +399,29 @@ var file_error_proto_depIdxs = []int32{
 	0, // [0:7] is the sub-list for field type_name
 }
 
-func init() { file_error_proto_init() }
-func file_error_proto_init() {
-	if File_error_proto != nil {
+func init() { file_elastic_apm_v1_error_proto_init() }
+func file_elastic_apm_v1_error_proto_init() {
+	if File_elastic_apm_v1_error_proto != nil {
 		return
 	}
-	file_stacktrace_proto_init()
-	file_keyvalue_proto_init()
-	file_error_proto_msgTypes[1].OneofWrappers = []any{}
+	file_elastic_apm_v1_stacktrace_proto_init()
+	file_elastic_apm_v1_keyvalue_proto_init()
+	file_elastic_apm_v1_error_proto_msgTypes[1].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_error_proto_rawDesc), len(file_error_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_error_proto_rawDesc), len(file_elastic_apm_v1_error_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_error_proto_goTypes,
-		DependencyIndexes: file_error_proto_depIdxs,
-		MessageInfos:      file_error_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_error_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_error_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_error_proto_msgTypes,
 	}.Build()
-	File_error_proto = out.File
-	file_error_proto_goTypes = nil
-	file_error_proto_depIdxs = nil
+	File_elastic_apm_v1_error_proto = out.File
+	file_elastic_apm_v1_error_proto_goTypes = nil
+	file_elastic_apm_v1_error_proto_depIdxs = nil
 }

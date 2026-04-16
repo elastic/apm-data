@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: host.proto
+// source: elastic/apm/v1/host.proto
 
 package modelpb
 
@@ -54,7 +54,7 @@ type Host struct {
 
 func (x *Host) Reset() {
 	*x = Host{}
-	mi := &file_host_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_host_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -66,7 +66,7 @@ func (x *Host) String() string {
 func (*Host) ProtoMessage() {}
 
 func (x *Host) ProtoReflect() protoreflect.Message {
-	mi := &file_host_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_host_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -79,7 +79,7 @@ func (x *Host) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Host.ProtoReflect.Descriptor instead.
 func (*Host) Descriptor() ([]byte, []int) {
-	return file_host_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_host_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Host) GetOs() *OS {
@@ -131,12 +131,11 @@ func (x *Host) GetIp() []*IP {
 	return nil
 }
 
-var File_host_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_host_proto protoreflect.FileDescriptor
 
-const file_host_proto_rawDesc = "" +
+const file_elastic_apm_v1_host_proto_rawDesc = "" +
 	"\n" +
-	"\n" +
-	"host.proto\x12\x0eelastic.apm.v1\x1a\bos.proto\x1a\bip.proto\"\xc6\x01\n" +
+	"\x19elastic/apm/v1/host.proto\x12\x0eelastic.apm.v1\x1a\x17elastic/apm/v1/os.proto\x1a\x17elastic/apm/v1/ip.proto\"\xc6\x01\n" +
 	"\x04Host\x12\"\n" +
 	"\x02os\x18\x01 \x01(\v2\x12.elastic.apm.v1.OSR\x02os\x12\x1a\n" +
 	"\bhostname\x18\x02 \x01(\tR\bhostname\x12\x12\n" +
@@ -147,24 +146,24 @@ const file_host_proto_rawDesc = "" +
 	"\x02ip\x18\a \x03(\v2\x12.elastic.apm.v1.IPR\x02ipB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_host_proto_rawDescOnce sync.Once
-	file_host_proto_rawDescData []byte
+	file_elastic_apm_v1_host_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_host_proto_rawDescData []byte
 )
 
-func file_host_proto_rawDescGZIP() []byte {
-	file_host_proto_rawDescOnce.Do(func() {
-		file_host_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_host_proto_rawDesc), len(file_host_proto_rawDesc)))
+func file_elastic_apm_v1_host_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_host_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_host_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_host_proto_rawDesc), len(file_elastic_apm_v1_host_proto_rawDesc)))
 	})
-	return file_host_proto_rawDescData
+	return file_elastic_apm_v1_host_proto_rawDescData
 }
 
-var file_host_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_host_proto_goTypes = []any{
+var file_elastic_apm_v1_host_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_elastic_apm_v1_host_proto_goTypes = []any{
 	(*Host)(nil), // 0: elastic.apm.v1.Host
 	(*OS)(nil),   // 1: elastic.apm.v1.OS
 	(*IP)(nil),   // 2: elastic.apm.v1.IP
 }
-var file_host_proto_depIdxs = []int32{
+var file_elastic_apm_v1_host_proto_depIdxs = []int32{
 	1, // 0: elastic.apm.v1.Host.os:type_name -> elastic.apm.v1.OS
 	2, // 1: elastic.apm.v1.Host.ip:type_name -> elastic.apm.v1.IP
 	2, // [2:2] is the sub-list for method output_type
@@ -174,28 +173,28 @@ var file_host_proto_depIdxs = []int32{
 	0, // [0:2] is the sub-list for field type_name
 }
 
-func init() { file_host_proto_init() }
-func file_host_proto_init() {
-	if File_host_proto != nil {
+func init() { file_elastic_apm_v1_host_proto_init() }
+func file_elastic_apm_v1_host_proto_init() {
+	if File_elastic_apm_v1_host_proto != nil {
 		return
 	}
-	file_os_proto_init()
-	file_ip_proto_init()
+	file_elastic_apm_v1_os_proto_init()
+	file_elastic_apm_v1_ip_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_host_proto_rawDesc), len(file_host_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_host_proto_rawDesc), len(file_elastic_apm_v1_host_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_host_proto_goTypes,
-		DependencyIndexes: file_host_proto_depIdxs,
-		MessageInfos:      file_host_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_host_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_host_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_host_proto_msgTypes,
 	}.Build()
-	File_host_proto = out.File
-	file_host_proto_goTypes = nil
-	file_host_proto_depIdxs = nil
+	File_elastic_apm_v1_host_proto = out.File
+	file_elastic_apm_v1_host_proto_goTypes = nil
+	file_elastic_apm_v1_host_proto_depIdxs = nil
 }

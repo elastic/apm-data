@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: system.proto
+// source: elastic/apm/v1/system.proto
 
 package modelpb
 
@@ -49,7 +49,7 @@ type System struct {
 
 func (x *System) Reset() {
 	*x = System{}
-	mi := &file_system_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_system_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -61,7 +61,7 @@ func (x *System) String() string {
 func (*System) ProtoMessage() {}
 
 func (x *System) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_system_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -74,7 +74,7 @@ func (x *System) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use System.ProtoReflect.Descriptor instead.
 func (*System) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_system_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *System) GetProcess() *SystemProcess {
@@ -102,7 +102,7 @@ type SystemProcess struct {
 
 func (x *SystemProcess) Reset() {
 	*x = SystemProcess{}
-	mi := &file_system_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_system_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -114,7 +114,7 @@ func (x *SystemProcess) String() string {
 func (*SystemProcess) ProtoMessage() {}
 
 func (x *SystemProcess) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_system_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -127,7 +127,7 @@ func (x *SystemProcess) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SystemProcess.ProtoReflect.Descriptor instead.
 func (*SystemProcess) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{1}
+	return file_elastic_apm_v1_system_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *SystemProcess) GetCpu() *SystemProcessCPU {
@@ -160,7 +160,7 @@ type SystemProcessCPU struct {
 
 func (x *SystemProcessCPU) Reset() {
 	*x = SystemProcessCPU{}
-	mi := &file_system_proto_msgTypes[2]
+	mi := &file_elastic_apm_v1_system_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -172,7 +172,7 @@ func (x *SystemProcessCPU) String() string {
 func (*SystemProcessCPU) ProtoMessage() {}
 
 func (x *SystemProcessCPU) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[2]
+	mi := &file_elastic_apm_v1_system_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -185,7 +185,7 @@ func (x *SystemProcessCPU) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SystemProcessCPU.ProtoReflect.Descriptor instead.
 func (*SystemProcessCPU) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{2}
+	return file_elastic_apm_v1_system_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *SystemProcessCPU) GetStartTime() string {
@@ -204,7 +204,7 @@ type SystemFilesystem struct {
 
 func (x *SystemFilesystem) Reset() {
 	*x = SystemFilesystem{}
-	mi := &file_system_proto_msgTypes[3]
+	mi := &file_elastic_apm_v1_system_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -216,7 +216,7 @@ func (x *SystemFilesystem) String() string {
 func (*SystemFilesystem) ProtoMessage() {}
 
 func (x *SystemFilesystem) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[3]
+	mi := &file_elastic_apm_v1_system_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -229,7 +229,7 @@ func (x *SystemFilesystem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SystemFilesystem.ProtoReflect.Descriptor instead.
 func (*SystemFilesystem) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{3}
+	return file_elastic_apm_v1_system_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SystemFilesystem) GetMountPoint() string {
@@ -239,11 +239,11 @@ func (x *SystemFilesystem) GetMountPoint() string {
 	return ""
 }
 
-var File_system_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_system_proto protoreflect.FileDescriptor
 
-const file_system_proto_rawDesc = "" +
+const file_elastic_apm_v1_system_proto_rawDesc = "" +
 	"\n" +
-	"\fsystem.proto\x12\x0eelastic.apm.v1\"\x83\x01\n" +
+	"\x1belastic/apm/v1/system.proto\x12\x0eelastic.apm.v1\"\x83\x01\n" +
 	"\x06System\x127\n" +
 	"\aprocess\x18\x01 \x01(\v2\x1d.elastic.apm.v1.SystemProcessR\aprocess\x12@\n" +
 	"\n" +
@@ -261,25 +261,25 @@ const file_system_proto_rawDesc = "" +
 	"mountPointB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_system_proto_rawDescOnce sync.Once
-	file_system_proto_rawDescData []byte
+	file_elastic_apm_v1_system_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_system_proto_rawDescData []byte
 )
 
-func file_system_proto_rawDescGZIP() []byte {
-	file_system_proto_rawDescOnce.Do(func() {
-		file_system_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_system_proto_rawDesc), len(file_system_proto_rawDesc)))
+func file_elastic_apm_v1_system_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_system_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_system_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_system_proto_rawDesc), len(file_elastic_apm_v1_system_proto_rawDesc)))
 	})
-	return file_system_proto_rawDescData
+	return file_elastic_apm_v1_system_proto_rawDescData
 }
 
-var file_system_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
-var file_system_proto_goTypes = []any{
+var file_elastic_apm_v1_system_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_elastic_apm_v1_system_proto_goTypes = []any{
 	(*System)(nil),           // 0: elastic.apm.v1.System
 	(*SystemProcess)(nil),    // 1: elastic.apm.v1.SystemProcess
 	(*SystemProcessCPU)(nil), // 2: elastic.apm.v1.SystemProcessCPU
 	(*SystemFilesystem)(nil), // 3: elastic.apm.v1.SystemFilesystem
 }
-var file_system_proto_depIdxs = []int32{
+var file_elastic_apm_v1_system_proto_depIdxs = []int32{
 	1, // 0: elastic.apm.v1.System.process:type_name -> elastic.apm.v1.SystemProcess
 	3, // 1: elastic.apm.v1.System.filesystem:type_name -> elastic.apm.v1.SystemFilesystem
 	2, // 2: elastic.apm.v1.SystemProcess.cpu:type_name -> elastic.apm.v1.SystemProcessCPU
@@ -290,26 +290,26 @@ var file_system_proto_depIdxs = []int32{
 	0, // [0:3] is the sub-list for field type_name
 }
 
-func init() { file_system_proto_init() }
-func file_system_proto_init() {
-	if File_system_proto != nil {
+func init() { file_elastic_apm_v1_system_proto_init() }
+func file_elastic_apm_v1_system_proto_init() {
+	if File_elastic_apm_v1_system_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_system_proto_rawDesc), len(file_system_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_system_proto_rawDesc), len(file_elastic_apm_v1_system_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_system_proto_goTypes,
-		DependencyIndexes: file_system_proto_depIdxs,
-		MessageInfos:      file_system_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_system_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_system_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_system_proto_msgTypes,
 	}.Build()
-	File_system_proto = out.File
-	file_system_proto_goTypes = nil
-	file_system_proto_depIdxs = nil
+	File_elastic_apm_v1_system_proto = out.File
+	file_elastic_apm_v1_system_proto_goTypes = nil
+	file_elastic_apm_v1_system_proto_depIdxs = nil
 }

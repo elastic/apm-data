@@ -19,12 +19,14 @@ syntax = "proto3";
 
 package elastic.apm.v1;
 
-import "ip.proto";
+import "elastic/apm/v1/headers.proto";
 
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 
-message Client {
-  IP ip = 1;
-  string domain = 2;
-  uint32 port = 3;
+message Message {
+  string body = 1;
+  repeated HTTPHeader headers = 2;
+  optional uint64 age_millis = 3;
+  string queue_name = 4;
+  string routing_key = 5;
 }

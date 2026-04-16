@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: network.proto
+// source: elastic/apm/v1/network.proto
 
 package modelpb
 
@@ -49,7 +49,7 @@ type Network struct {
 
 func (x *Network) Reset() {
 	*x = Network{}
-	mi := &file_network_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_network_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -61,7 +61,7 @@ func (x *Network) String() string {
 func (*Network) ProtoMessage() {}
 
 func (x *Network) ProtoReflect() protoreflect.Message {
-	mi := &file_network_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_network_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -74,7 +74,7 @@ func (x *Network) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Network.ProtoReflect.Descriptor instead.
 func (*Network) Descriptor() ([]byte, []int) {
-	return file_network_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_network_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Network) GetConnection() *NetworkConnection {
@@ -101,7 +101,7 @@ type NetworkConnection struct {
 
 func (x *NetworkConnection) Reset() {
 	*x = NetworkConnection{}
-	mi := &file_network_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_network_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -113,7 +113,7 @@ func (x *NetworkConnection) String() string {
 func (*NetworkConnection) ProtoMessage() {}
 
 func (x *NetworkConnection) ProtoReflect() protoreflect.Message {
-	mi := &file_network_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_network_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -126,7 +126,7 @@ func (x *NetworkConnection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NetworkConnection.ProtoReflect.Descriptor instead.
 func (*NetworkConnection) Descriptor() ([]byte, []int) {
-	return file_network_proto_rawDescGZIP(), []int{1}
+	return file_elastic_apm_v1_network_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *NetworkConnection) GetType() string {
@@ -155,7 +155,7 @@ type NetworkCarrier struct {
 
 func (x *NetworkCarrier) Reset() {
 	*x = NetworkCarrier{}
-	mi := &file_network_proto_msgTypes[2]
+	mi := &file_elastic_apm_v1_network_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -167,7 +167,7 @@ func (x *NetworkCarrier) String() string {
 func (*NetworkCarrier) ProtoMessage() {}
 
 func (x *NetworkCarrier) ProtoReflect() protoreflect.Message {
-	mi := &file_network_proto_msgTypes[2]
+	mi := &file_elastic_apm_v1_network_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -180,7 +180,7 @@ func (x *NetworkCarrier) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NetworkCarrier.ProtoReflect.Descriptor instead.
 func (*NetworkCarrier) Descriptor() ([]byte, []int) {
-	return file_network_proto_rawDescGZIP(), []int{2}
+	return file_elastic_apm_v1_network_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *NetworkCarrier) GetName() string {
@@ -211,11 +211,11 @@ func (x *NetworkCarrier) GetIcc() string {
 	return ""
 }
 
-var File_network_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_network_proto protoreflect.FileDescriptor
 
-const file_network_proto_rawDesc = "" +
+const file_elastic_apm_v1_network_proto_rawDesc = "" +
 	"\n" +
-	"\rnetwork.proto\x12\x0eelastic.apm.v1\"\x86\x01\n" +
+	"\x1celastic/apm/v1/network.proto\x12\x0eelastic.apm.v1\"\x86\x01\n" +
 	"\aNetwork\x12A\n" +
 	"\n" +
 	"connection\x18\x01 \x01(\v2!.elastic.apm.v1.NetworkConnectionR\n" +
@@ -231,24 +231,24 @@ const file_network_proto_rawDesc = "" +
 	"\x03icc\x18\x04 \x01(\tR\x03iccB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_network_proto_rawDescOnce sync.Once
-	file_network_proto_rawDescData []byte
+	file_elastic_apm_v1_network_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_network_proto_rawDescData []byte
 )
 
-func file_network_proto_rawDescGZIP() []byte {
-	file_network_proto_rawDescOnce.Do(func() {
-		file_network_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_network_proto_rawDesc), len(file_network_proto_rawDesc)))
+func file_elastic_apm_v1_network_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_network_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_network_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_network_proto_rawDesc), len(file_elastic_apm_v1_network_proto_rawDesc)))
 	})
-	return file_network_proto_rawDescData
+	return file_elastic_apm_v1_network_proto_rawDescData
 }
 
-var file_network_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_network_proto_goTypes = []any{
+var file_elastic_apm_v1_network_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_elastic_apm_v1_network_proto_goTypes = []any{
 	(*Network)(nil),           // 0: elastic.apm.v1.Network
 	(*NetworkConnection)(nil), // 1: elastic.apm.v1.NetworkConnection
 	(*NetworkCarrier)(nil),    // 2: elastic.apm.v1.NetworkCarrier
 }
-var file_network_proto_depIdxs = []int32{
+var file_elastic_apm_v1_network_proto_depIdxs = []int32{
 	1, // 0: elastic.apm.v1.Network.connection:type_name -> elastic.apm.v1.NetworkConnection
 	2, // 1: elastic.apm.v1.Network.carrier:type_name -> elastic.apm.v1.NetworkCarrier
 	2, // [2:2] is the sub-list for method output_type
@@ -258,26 +258,26 @@ var file_network_proto_depIdxs = []int32{
 	0, // [0:2] is the sub-list for field type_name
 }
 
-func init() { file_network_proto_init() }
-func file_network_proto_init() {
-	if File_network_proto != nil {
+func init() { file_elastic_apm_v1_network_proto_init() }
+func file_elastic_apm_v1_network_proto_init() {
+	if File_elastic_apm_v1_network_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_network_proto_rawDesc), len(file_network_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_network_proto_rawDesc), len(file_elastic_apm_v1_network_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_network_proto_goTypes,
-		DependencyIndexes: file_network_proto_depIdxs,
-		MessageInfos:      file_network_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_network_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_network_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_network_proto_msgTypes,
 	}.Build()
-	File_network_proto = out.File
-	file_network_proto_goTypes = nil
-	file_network_proto_depIdxs = nil
+	File_elastic_apm_v1_network_proto = out.File
+	file_elastic_apm_v1_network_proto_goTypes = nil
+	file_elastic_apm_v1_network_proto_depIdxs = nil
 }

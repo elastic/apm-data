@@ -19,10 +19,10 @@ syntax = "proto3";
 
 package elastic.apm.v1;
 
-import "experience.proto";
-import "message.proto";
-import "metricset.proto";
-import "keyvalue.proto";
+import "elastic/apm/v1/experience.proto";
+import "elastic/apm/v1/message.proto";
+import "elastic/apm/v1/metricset.proto";
+import "elastic/apm/v1/keyvalue.proto";
 
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 

@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: metricset.proto
+// source: elastic/apm/v1/metricset.proto
 
 package modelpb
 
@@ -78,11 +78,11 @@ func (x MetricType) String() string {
 }
 
 func (MetricType) Descriptor() protoreflect.EnumDescriptor {
-	return file_metricset_proto_enumTypes[0].Descriptor()
+	return file_elastic_apm_v1_metricset_proto_enumTypes[0].Descriptor()
 }
 
 func (MetricType) Type() protoreflect.EnumType {
-	return &file_metricset_proto_enumTypes[0]
+	return &file_elastic_apm_v1_metricset_proto_enumTypes[0]
 }
 
 func (x MetricType) Number() protoreflect.EnumNumber {
@@ -91,7 +91,7 @@ func (x MetricType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use MetricType.Descriptor instead.
 func (MetricType) EnumDescriptor() ([]byte, []int) {
-	return file_metricset_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_metricset_proto_rawDescGZIP(), []int{0}
 }
 
 type Metricset struct {
@@ -106,7 +106,7 @@ type Metricset struct {
 
 func (x *Metricset) Reset() {
 	*x = Metricset{}
-	mi := &file_metricset_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_metricset_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -118,7 +118,7 @@ func (x *Metricset) String() string {
 func (*Metricset) ProtoMessage() {}
 
 func (x *Metricset) ProtoReflect() protoreflect.Message {
-	mi := &file_metricset_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_metricset_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -131,7 +131,7 @@ func (x *Metricset) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Metricset.ProtoReflect.Descriptor instead.
 func (*Metricset) Descriptor() ([]byte, []int) {
-	return file_metricset_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_metricset_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Metricset) GetName() string {
@@ -176,7 +176,7 @@ type MetricsetSample struct {
 
 func (x *MetricsetSample) Reset() {
 	*x = MetricsetSample{}
-	mi := &file_metricset_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_metricset_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -188,7 +188,7 @@ func (x *MetricsetSample) String() string {
 func (*MetricsetSample) ProtoMessage() {}
 
 func (x *MetricsetSample) ProtoReflect() protoreflect.Message {
-	mi := &file_metricset_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_metricset_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -201,7 +201,7 @@ func (x *MetricsetSample) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MetricsetSample.ProtoReflect.Descriptor instead.
 func (*MetricsetSample) Descriptor() ([]byte, []int) {
-	return file_metricset_proto_rawDescGZIP(), []int{1}
+	return file_elastic_apm_v1_metricset_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *MetricsetSample) GetType() MetricType {
@@ -256,7 +256,7 @@ type Histogram struct {
 
 func (x *Histogram) Reset() {
 	*x = Histogram{}
-	mi := &file_metricset_proto_msgTypes[2]
+	mi := &file_elastic_apm_v1_metricset_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -268,7 +268,7 @@ func (x *Histogram) String() string {
 func (*Histogram) ProtoMessage() {}
 
 func (x *Histogram) ProtoReflect() protoreflect.Message {
-	mi := &file_metricset_proto_msgTypes[2]
+	mi := &file_elastic_apm_v1_metricset_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -281,7 +281,7 @@ func (x *Histogram) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Histogram.ProtoReflect.Descriptor instead.
 func (*Histogram) Descriptor() ([]byte, []int) {
-	return file_metricset_proto_rawDescGZIP(), []int{2}
+	return file_elastic_apm_v1_metricset_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Histogram) GetValues() []float64 {
@@ -308,7 +308,7 @@ type SummaryMetric struct {
 
 func (x *SummaryMetric) Reset() {
 	*x = SummaryMetric{}
-	mi := &file_metricset_proto_msgTypes[3]
+	mi := &file_elastic_apm_v1_metricset_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -320,7 +320,7 @@ func (x *SummaryMetric) String() string {
 func (*SummaryMetric) ProtoMessage() {}
 
 func (x *SummaryMetric) ProtoReflect() protoreflect.Message {
-	mi := &file_metricset_proto_msgTypes[3]
+	mi := &file_elastic_apm_v1_metricset_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -333,7 +333,7 @@ func (x *SummaryMetric) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SummaryMetric.ProtoReflect.Descriptor instead.
 func (*SummaryMetric) Descriptor() ([]byte, []int) {
-	return file_metricset_proto_rawDescGZIP(), []int{3}
+	return file_elastic_apm_v1_metricset_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SummaryMetric) GetCount() uint64 {
@@ -361,7 +361,7 @@ type AggregatedDuration struct {
 
 func (x *AggregatedDuration) Reset() {
 	*x = AggregatedDuration{}
-	mi := &file_metricset_proto_msgTypes[4]
+	mi := &file_elastic_apm_v1_metricset_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -373,7 +373,7 @@ func (x *AggregatedDuration) String() string {
 func (*AggregatedDuration) ProtoMessage() {}
 
 func (x *AggregatedDuration) ProtoReflect() protoreflect.Message {
-	mi := &file_metricset_proto_msgTypes[4]
+	mi := &file_elastic_apm_v1_metricset_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -386,7 +386,7 @@ func (x *AggregatedDuration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AggregatedDuration.ProtoReflect.Descriptor instead.
 func (*AggregatedDuration) Descriptor() ([]byte, []int) {
-	return file_metricset_proto_rawDescGZIP(), []int{4}
+	return file_elastic_apm_v1_metricset_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *AggregatedDuration) GetCount() uint64 {
@@ -403,11 +403,11 @@ func (x *AggregatedDuration) GetSum() uint64 {
 	return 0
 }
 
-var File_metricset_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_metricset_proto protoreflect.FileDescriptor
 
-const file_metricset_proto_rawDesc = "" +
+const file_elastic_apm_v1_metricset_proto_rawDesc = "" +
 	"\n" +
-	"\x0fmetricset.proto\x12\x0eelastic.apm.v1\"\x93\x01\n" +
+	"\x1eelastic/apm/v1/metricset.proto\x12\x0eelastic.apm.v1\"\x93\x01\n" +
 	"\tMetricset\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
 	"\binterval\x18\x02 \x01(\tR\binterval\x129\n" +
@@ -438,20 +438,20 @@ const file_metricset_proto_rawDesc = "" +
 	"\x13METRIC_TYPE_SUMMARY\x10\x04B+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_metricset_proto_rawDescOnce sync.Once
-	file_metricset_proto_rawDescData []byte
+	file_elastic_apm_v1_metricset_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_metricset_proto_rawDescData []byte
 )
 
-func file_metricset_proto_rawDescGZIP() []byte {
-	file_metricset_proto_rawDescOnce.Do(func() {
-		file_metricset_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_metricset_proto_rawDesc), len(file_metricset_proto_rawDesc)))
+func file_elastic_apm_v1_metricset_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_metricset_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_metricset_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_metricset_proto_rawDesc), len(file_elastic_apm_v1_metricset_proto_rawDesc)))
 	})
-	return file_metricset_proto_rawDescData
+	return file_elastic_apm_v1_metricset_proto_rawDescData
 }
 
-var file_metricset_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_metricset_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
-var file_metricset_proto_goTypes = []any{
+var file_elastic_apm_v1_metricset_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_elastic_apm_v1_metricset_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_elastic_apm_v1_metricset_proto_goTypes = []any{
 	(MetricType)(0),            // 0: elastic.apm.v1.MetricType
 	(*Metricset)(nil),          // 1: elastic.apm.v1.Metricset
 	(*MetricsetSample)(nil),    // 2: elastic.apm.v1.MetricsetSample
@@ -459,7 +459,7 @@ var file_metricset_proto_goTypes = []any{
 	(*SummaryMetric)(nil),      // 4: elastic.apm.v1.SummaryMetric
 	(*AggregatedDuration)(nil), // 5: elastic.apm.v1.AggregatedDuration
 }
-var file_metricset_proto_depIdxs = []int32{
+var file_elastic_apm_v1_metricset_proto_depIdxs = []int32{
 	2, // 0: elastic.apm.v1.Metricset.samples:type_name -> elastic.apm.v1.MetricsetSample
 	0, // 1: elastic.apm.v1.MetricsetSample.type:type_name -> elastic.apm.v1.MetricType
 	3, // 2: elastic.apm.v1.MetricsetSample.histogram:type_name -> elastic.apm.v1.Histogram
@@ -471,27 +471,27 @@ var file_metricset_proto_depIdxs = []int32{
 	0, // [0:4] is the sub-list for field type_name
 }
 
-func init() { file_metricset_proto_init() }
-func file_metricset_proto_init() {
-	if File_metricset_proto != nil {
+func init() { file_elastic_apm_v1_metricset_proto_init() }
+func file_elastic_apm_v1_metricset_proto_init() {
+	if File_elastic_apm_v1_metricset_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_metricset_proto_rawDesc), len(file_metricset_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_metricset_proto_rawDesc), len(file_elastic_apm_v1_metricset_proto_rawDesc)),
 			NumEnums:      1,
 			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_metricset_proto_goTypes,
-		DependencyIndexes: file_metricset_proto_depIdxs,
-		EnumInfos:         file_metricset_proto_enumTypes,
-		MessageInfos:      file_metricset_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_metricset_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_metricset_proto_depIdxs,
+		EnumInfos:         file_elastic_apm_v1_metricset_proto_enumTypes,
+		MessageInfos:      file_elastic_apm_v1_metricset_proto_msgTypes,
 	}.Build()
-	File_metricset_proto = out.File
-	file_metricset_proto_goTypes = nil
-	file_metricset_proto_depIdxs = nil
+	File_elastic_apm_v1_metricset_proto = out.File
+	file_elastic_apm_v1_metricset_proto_goTypes = nil
+	file_elastic_apm_v1_metricset_proto_depIdxs = nil
 }

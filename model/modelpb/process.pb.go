@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: process.proto
+// source: elastic/apm/v1/process.proto
 
 package modelpb
 
@@ -54,7 +54,7 @@ type Process struct {
 
 func (x *Process) Reset() {
 	*x = Process{}
-	mi := &file_process_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_process_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -66,7 +66,7 @@ func (x *Process) String() string {
 func (*Process) ProtoMessage() {}
 
 func (x *Process) ProtoReflect() protoreflect.Message {
-	mi := &file_process_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_process_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -79,7 +79,7 @@ func (x *Process) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Process.ProtoReflect.Descriptor instead.
 func (*Process) Descriptor() ([]byte, []int) {
-	return file_process_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_process_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Process) GetPpid() uint32 {
@@ -141,7 +141,7 @@ type ProcessThread struct {
 
 func (x *ProcessThread) Reset() {
 	*x = ProcessThread{}
-	mi := &file_process_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_process_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -153,7 +153,7 @@ func (x *ProcessThread) String() string {
 func (*ProcessThread) ProtoMessage() {}
 
 func (x *ProcessThread) ProtoReflect() protoreflect.Message {
-	mi := &file_process_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_process_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -166,7 +166,7 @@ func (x *ProcessThread) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProcessThread.ProtoReflect.Descriptor instead.
 func (*ProcessThread) Descriptor() ([]byte, []int) {
-	return file_process_proto_rawDescGZIP(), []int{1}
+	return file_elastic_apm_v1_process_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ProcessThread) GetName() string {
@@ -183,11 +183,11 @@ func (x *ProcessThread) GetId() uint32 {
 	return 0
 }
 
-var File_process_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_process_proto protoreflect.FileDescriptor
 
-const file_process_proto_rawDesc = "" +
+const file_elastic_apm_v1_process_proto_rawDesc = "" +
 	"\n" +
-	"\rprocess.proto\x12\x0eelastic.apm.v1\"\xd3\x01\n" +
+	"\x1celastic/apm/v1/process.proto\x12\x0eelastic.apm.v1\"\xd3\x01\n" +
 	"\aProcess\x12\x12\n" +
 	"\x04ppid\x18\x01 \x01(\rR\x04ppid\x125\n" +
 	"\x06thread\x18\x02 \x01(\v2\x1d.elastic.apm.v1.ProcessThreadR\x06thread\x12\x14\n" +
@@ -203,23 +203,23 @@ const file_process_proto_rawDesc = "" +
 	"\x02id\x18\x02 \x01(\rR\x02idB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_process_proto_rawDescOnce sync.Once
-	file_process_proto_rawDescData []byte
+	file_elastic_apm_v1_process_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_process_proto_rawDescData []byte
 )
 
-func file_process_proto_rawDescGZIP() []byte {
-	file_process_proto_rawDescOnce.Do(func() {
-		file_process_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_process_proto_rawDesc), len(file_process_proto_rawDesc)))
+func file_elastic_apm_v1_process_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_process_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_process_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_process_proto_rawDesc), len(file_elastic_apm_v1_process_proto_rawDesc)))
 	})
-	return file_process_proto_rawDescData
+	return file_elastic_apm_v1_process_proto_rawDescData
 }
 
-var file_process_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_process_proto_goTypes = []any{
+var file_elastic_apm_v1_process_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_elastic_apm_v1_process_proto_goTypes = []any{
 	(*Process)(nil),       // 0: elastic.apm.v1.Process
 	(*ProcessThread)(nil), // 1: elastic.apm.v1.ProcessThread
 }
-var file_process_proto_depIdxs = []int32{
+var file_elastic_apm_v1_process_proto_depIdxs = []int32{
 	1, // 0: elastic.apm.v1.Process.thread:type_name -> elastic.apm.v1.ProcessThread
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
@@ -228,26 +228,26 @@ var file_process_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_process_proto_init() }
-func file_process_proto_init() {
-	if File_process_proto != nil {
+func init() { file_elastic_apm_v1_process_proto_init() }
+func file_elastic_apm_v1_process_proto_init() {
+	if File_elastic_apm_v1_process_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_process_proto_rawDesc), len(file_process_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_process_proto_rawDesc), len(file_elastic_apm_v1_process_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_process_proto_goTypes,
-		DependencyIndexes: file_process_proto_depIdxs,
-		MessageInfos:      file_process_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_process_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_process_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_process_proto_msgTypes,
 	}.Build()
-	File_process_proto = out.File
-	file_process_proto_goTypes = nil
-	file_process_proto_depIdxs = nil
+	File_elastic_apm_v1_process_proto = out.File
+	file_elastic_apm_v1_process_proto_goTypes = nil
+	file_elastic_apm_v1_process_proto_depIdxs = nil
 }

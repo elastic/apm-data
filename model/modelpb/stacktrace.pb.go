@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: stacktrace.proto
+// source: elastic/apm/v1/stacktrace.proto
 
 package modelpb
 
@@ -63,7 +63,7 @@ type StacktraceFrame struct {
 
 func (x *StacktraceFrame) Reset() {
 	*x = StacktraceFrame{}
-	mi := &file_stacktrace_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_stacktrace_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -75,7 +75,7 @@ func (x *StacktraceFrame) String() string {
 func (*StacktraceFrame) ProtoMessage() {}
 
 func (x *StacktraceFrame) ProtoReflect() protoreflect.Message {
-	mi := &file_stacktrace_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_stacktrace_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -88,7 +88,7 @@ func (x *StacktraceFrame) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StacktraceFrame.ProtoReflect.Descriptor instead.
 func (*StacktraceFrame) Descriptor() ([]byte, []int) {
-	return file_stacktrace_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_stacktrace_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *StacktraceFrame) GetVars() []*KeyValue {
@@ -218,7 +218,7 @@ type Original struct {
 
 func (x *Original) Reset() {
 	*x = Original{}
-	mi := &file_stacktrace_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_stacktrace_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -230,7 +230,7 @@ func (x *Original) String() string {
 func (*Original) ProtoMessage() {}
 
 func (x *Original) ProtoReflect() protoreflect.Message {
-	mi := &file_stacktrace_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_stacktrace_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -243,7 +243,7 @@ func (x *Original) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Original.ProtoReflect.Descriptor instead.
 func (*Original) Descriptor() ([]byte, []int) {
-	return file_stacktrace_proto_rawDescGZIP(), []int{1}
+	return file_elastic_apm_v1_stacktrace_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Original) GetAbsPath() string {
@@ -295,11 +295,11 @@ func (x *Original) GetLibraryFrame() bool {
 	return false
 }
 
-var File_stacktrace_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_stacktrace_proto protoreflect.FileDescriptor
 
-const file_stacktrace_proto_rawDesc = "" +
+const file_elastic_apm_v1_stacktrace_proto_rawDesc = "" +
 	"\n" +
-	"\x10stacktrace.proto\x12\x0eelastic.apm.v1\x1a\x0ekeyvalue.proto\"\xe1\x04\n" +
+	"\x1felastic/apm/v1/stacktrace.proto\x12\x0eelastic.apm.v1\x1a\x1delastic/apm/v1/keyvalue.proto\"\xe1\x04\n" +
 	"\x0fStacktraceFrame\x12,\n" +
 	"\x04vars\x18\x01 \x03(\v2\x18.elastic.apm.v1.KeyValueR\x04vars\x12\x1b\n" +
 	"\x06lineno\x18\x02 \x01(\rH\x00R\x06lineno\x88\x01\x01\x12\x19\n" +
@@ -333,24 +333,24 @@ const file_stacktrace_proto_rawDesc = "" +
 	"\x06_colnoB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_stacktrace_proto_rawDescOnce sync.Once
-	file_stacktrace_proto_rawDescData []byte
+	file_elastic_apm_v1_stacktrace_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_stacktrace_proto_rawDescData []byte
 )
 
-func file_stacktrace_proto_rawDescGZIP() []byte {
-	file_stacktrace_proto_rawDescOnce.Do(func() {
-		file_stacktrace_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_stacktrace_proto_rawDesc), len(file_stacktrace_proto_rawDesc)))
+func file_elastic_apm_v1_stacktrace_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_stacktrace_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_stacktrace_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_stacktrace_proto_rawDesc), len(file_elastic_apm_v1_stacktrace_proto_rawDesc)))
 	})
-	return file_stacktrace_proto_rawDescData
+	return file_elastic_apm_v1_stacktrace_proto_rawDescData
 }
 
-var file_stacktrace_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_stacktrace_proto_goTypes = []any{
+var file_elastic_apm_v1_stacktrace_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_elastic_apm_v1_stacktrace_proto_goTypes = []any{
 	(*StacktraceFrame)(nil), // 0: elastic.apm.v1.StacktraceFrame
 	(*Original)(nil),        // 1: elastic.apm.v1.Original
 	(*KeyValue)(nil),        // 2: elastic.apm.v1.KeyValue
 }
-var file_stacktrace_proto_depIdxs = []int32{
+var file_elastic_apm_v1_stacktrace_proto_depIdxs = []int32{
 	2, // 0: elastic.apm.v1.StacktraceFrame.vars:type_name -> elastic.apm.v1.KeyValue
 	1, // 1: elastic.apm.v1.StacktraceFrame.original:type_name -> elastic.apm.v1.Original
 	2, // [2:2] is the sub-list for method output_type
@@ -360,29 +360,29 @@ var file_stacktrace_proto_depIdxs = []int32{
 	0, // [0:2] is the sub-list for field type_name
 }
 
-func init() { file_stacktrace_proto_init() }
-func file_stacktrace_proto_init() {
-	if File_stacktrace_proto != nil {
+func init() { file_elastic_apm_v1_stacktrace_proto_init() }
+func file_elastic_apm_v1_stacktrace_proto_init() {
+	if File_elastic_apm_v1_stacktrace_proto != nil {
 		return
 	}
-	file_keyvalue_proto_init()
-	file_stacktrace_proto_msgTypes[0].OneofWrappers = []any{}
-	file_stacktrace_proto_msgTypes[1].OneofWrappers = []any{}
+	file_elastic_apm_v1_keyvalue_proto_init()
+	file_elastic_apm_v1_stacktrace_proto_msgTypes[0].OneofWrappers = []any{}
+	file_elastic_apm_v1_stacktrace_proto_msgTypes[1].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_stacktrace_proto_rawDesc), len(file_stacktrace_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_stacktrace_proto_rawDesc), len(file_elastic_apm_v1_stacktrace_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_stacktrace_proto_goTypes,
-		DependencyIndexes: file_stacktrace_proto_depIdxs,
-		MessageInfos:      file_stacktrace_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_stacktrace_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_stacktrace_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_stacktrace_proto_msgTypes,
 	}.Build()
-	File_stacktrace_proto = out.File
-	file_stacktrace_proto_goTypes = nil
-	file_stacktrace_proto_depIdxs = nil
+	File_elastic_apm_v1_stacktrace_proto = out.File
+	file_elastic_apm_v1_stacktrace_proto_goTypes = nil
+	file_elastic_apm_v1_stacktrace_proto_depIdxs = nil
 }
