@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: cloud.proto
+// source: elastic/apm/v1/cloud.proto
 
 package modelpb
 
@@ -59,7 +59,7 @@ type Cloud struct {
 
 func (x *Cloud) Reset() {
 	*x = Cloud{}
-	mi := &file_cloud_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_cloud_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -71,7 +71,7 @@ func (x *Cloud) String() string {
 func (*Cloud) ProtoMessage() {}
 
 func (x *Cloud) ProtoReflect() protoreflect.Message {
-	mi := &file_cloud_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_cloud_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -84,7 +84,7 @@ func (x *Cloud) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Cloud.ProtoReflect.Descriptor instead.
 func (*Cloud) Descriptor() ([]byte, []int) {
-	return file_cloud_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_cloud_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Cloud) GetOrigin() *CloudOrigin {
@@ -183,7 +183,7 @@ type CloudOrigin struct {
 
 func (x *CloudOrigin) Reset() {
 	*x = CloudOrigin{}
-	mi := &file_cloud_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_cloud_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -195,7 +195,7 @@ func (x *CloudOrigin) String() string {
 func (*CloudOrigin) ProtoMessage() {}
 
 func (x *CloudOrigin) ProtoReflect() protoreflect.Message {
-	mi := &file_cloud_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_cloud_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -208,7 +208,7 @@ func (x *CloudOrigin) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CloudOrigin.ProtoReflect.Descriptor instead.
 func (*CloudOrigin) Descriptor() ([]byte, []int) {
-	return file_cloud_proto_rawDescGZIP(), []int{1}
+	return file_elastic_apm_v1_cloud_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *CloudOrigin) GetAccountId() string {
@@ -239,11 +239,11 @@ func (x *CloudOrigin) GetServiceName() string {
 	return ""
 }
 
-var File_cloud_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_cloud_proto protoreflect.FileDescriptor
 
-const file_cloud_proto_rawDesc = "" +
+const file_elastic_apm_v1_cloud_proto_rawDesc = "" +
 	"\n" +
-	"\vcloud.proto\x12\x0eelastic.apm.v1\"\xad\x03\n" +
+	"\x1aelastic/apm/v1/cloud.proto\x12\x0eelastic.apm.v1\"\xad\x03\n" +
 	"\x05Cloud\x123\n" +
 	"\x06origin\x18\x01 \x01(\v2\x1b.elastic.apm.v1.CloudOriginR\x06origin\x12\x1d\n" +
 	"\n" +
@@ -269,23 +269,23 @@ const file_cloud_proto_rawDesc = "" +
 	"\fservice_name\x18\x04 \x01(\tR\vserviceNameB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_cloud_proto_rawDescOnce sync.Once
-	file_cloud_proto_rawDescData []byte
+	file_elastic_apm_v1_cloud_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_cloud_proto_rawDescData []byte
 )
 
-func file_cloud_proto_rawDescGZIP() []byte {
-	file_cloud_proto_rawDescOnce.Do(func() {
-		file_cloud_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_cloud_proto_rawDesc), len(file_cloud_proto_rawDesc)))
+func file_elastic_apm_v1_cloud_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_cloud_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_cloud_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_cloud_proto_rawDesc), len(file_elastic_apm_v1_cloud_proto_rawDesc)))
 	})
-	return file_cloud_proto_rawDescData
+	return file_elastic_apm_v1_cloud_proto_rawDescData
 }
 
-var file_cloud_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_cloud_proto_goTypes = []any{
+var file_elastic_apm_v1_cloud_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_elastic_apm_v1_cloud_proto_goTypes = []any{
 	(*Cloud)(nil),       // 0: elastic.apm.v1.Cloud
 	(*CloudOrigin)(nil), // 1: elastic.apm.v1.CloudOrigin
 }
-var file_cloud_proto_depIdxs = []int32{
+var file_elastic_apm_v1_cloud_proto_depIdxs = []int32{
 	1, // 0: elastic.apm.v1.Cloud.origin:type_name -> elastic.apm.v1.CloudOrigin
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
@@ -294,26 +294,26 @@ var file_cloud_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_cloud_proto_init() }
-func file_cloud_proto_init() {
-	if File_cloud_proto != nil {
+func init() { file_elastic_apm_v1_cloud_proto_init() }
+func file_elastic_apm_v1_cloud_proto_init() {
+	if File_elastic_apm_v1_cloud_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_cloud_proto_rawDesc), len(file_cloud_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_cloud_proto_rawDesc), len(file_elastic_apm_v1_cloud_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_cloud_proto_goTypes,
-		DependencyIndexes: file_cloud_proto_depIdxs,
-		MessageInfos:      file_cloud_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_cloud_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_cloud_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_cloud_proto_msgTypes,
 	}.Build()
-	File_cloud_proto = out.File
-	file_cloud_proto_goTypes = nil
-	file_cloud_proto_depIdxs = nil
+	File_elastic_apm_v1_cloud_proto = out.File
+	file_elastic_apm_v1_cloud_proto_goTypes = nil
+	file_elastic_apm_v1_cloud_proto_depIdxs = nil
 }

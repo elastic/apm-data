@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: device.proto
+// source: elastic/apm/v1/device.proto
 
 package modelpb
 
@@ -50,7 +50,7 @@ type Device struct {
 
 func (x *Device) Reset() {
 	*x = Device{}
-	mi := &file_device_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_device_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -62,7 +62,7 @@ func (x *Device) String() string {
 func (*Device) ProtoMessage() {}
 
 func (x *Device) ProtoReflect() protoreflect.Message {
-	mi := &file_device_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_device_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -75,7 +75,7 @@ func (x *Device) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Device.ProtoReflect.Descriptor instead.
 func (*Device) Descriptor() ([]byte, []int) {
-	return file_device_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_device_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Device) GetId() string {
@@ -109,7 +109,7 @@ type DeviceModel struct {
 
 func (x *DeviceModel) Reset() {
 	*x = DeviceModel{}
-	mi := &file_device_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_device_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -121,7 +121,7 @@ func (x *DeviceModel) String() string {
 func (*DeviceModel) ProtoMessage() {}
 
 func (x *DeviceModel) ProtoReflect() protoreflect.Message {
-	mi := &file_device_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_device_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -134,7 +134,7 @@ func (x *DeviceModel) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeviceModel.ProtoReflect.Descriptor instead.
 func (*DeviceModel) Descriptor() ([]byte, []int) {
-	return file_device_proto_rawDescGZIP(), []int{1}
+	return file_elastic_apm_v1_device_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *DeviceModel) GetName() string {
@@ -151,11 +151,11 @@ func (x *DeviceModel) GetIdentifier() string {
 	return ""
 }
 
-var File_device_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_device_proto protoreflect.FileDescriptor
 
-const file_device_proto_rawDesc = "" +
+const file_elastic_apm_v1_device_proto_rawDesc = "" +
 	"\n" +
-	"\fdevice.proto\x12\x0eelastic.apm.v1\"o\n" +
+	"\x1belastic/apm/v1/device.proto\x12\x0eelastic.apm.v1\"o\n" +
 	"\x06Device\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x121\n" +
 	"\x05model\x18\x02 \x01(\v2\x1b.elastic.apm.v1.DeviceModelR\x05model\x12\"\n" +
@@ -167,23 +167,23 @@ const file_device_proto_rawDesc = "" +
 	"identifierB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_device_proto_rawDescOnce sync.Once
-	file_device_proto_rawDescData []byte
+	file_elastic_apm_v1_device_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_device_proto_rawDescData []byte
 )
 
-func file_device_proto_rawDescGZIP() []byte {
-	file_device_proto_rawDescOnce.Do(func() {
-		file_device_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_device_proto_rawDesc), len(file_device_proto_rawDesc)))
+func file_elastic_apm_v1_device_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_device_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_device_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_device_proto_rawDesc), len(file_elastic_apm_v1_device_proto_rawDesc)))
 	})
-	return file_device_proto_rawDescData
+	return file_elastic_apm_v1_device_proto_rawDescData
 }
 
-var file_device_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_device_proto_goTypes = []any{
+var file_elastic_apm_v1_device_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_elastic_apm_v1_device_proto_goTypes = []any{
 	(*Device)(nil),      // 0: elastic.apm.v1.Device
 	(*DeviceModel)(nil), // 1: elastic.apm.v1.DeviceModel
 }
-var file_device_proto_depIdxs = []int32{
+var file_elastic_apm_v1_device_proto_depIdxs = []int32{
 	1, // 0: elastic.apm.v1.Device.model:type_name -> elastic.apm.v1.DeviceModel
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
@@ -192,26 +192,26 @@ var file_device_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_device_proto_init() }
-func file_device_proto_init() {
-	if File_device_proto != nil {
+func init() { file_elastic_apm_v1_device_proto_init() }
+func file_elastic_apm_v1_device_proto_init() {
+	if File_elastic_apm_v1_device_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_device_proto_rawDesc), len(file_device_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_device_proto_rawDesc), len(file_elastic_apm_v1_device_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_device_proto_goTypes,
-		DependencyIndexes: file_device_proto_depIdxs,
-		MessageInfos:      file_device_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_device_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_device_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_device_proto_msgTypes,
 	}.Build()
-	File_device_proto = out.File
-	file_device_proto_goTypes = nil
-	file_device_proto_depIdxs = nil
+	File_elastic_apm_v1_device_proto = out.File
+	file_elastic_apm_v1_device_proto_goTypes = nil
+	file_elastic_apm_v1_device_proto_depIdxs = nil
 }

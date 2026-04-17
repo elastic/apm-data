@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: span.proto
+// source: elastic/apm/v1/span.proto
 
 package modelpb
 
@@ -72,11 +72,11 @@ func (x CompressionStrategy) String() string {
 }
 
 func (CompressionStrategy) Descriptor() protoreflect.EnumDescriptor {
-	return file_span_proto_enumTypes[0].Descriptor()
+	return file_elastic_apm_v1_span_proto_enumTypes[0].Descriptor()
 }
 
 func (CompressionStrategy) Type() protoreflect.EnumType {
-	return &file_span_proto_enumTypes[0]
+	return &file_elastic_apm_v1_span_proto_enumTypes[0]
 }
 
 func (x CompressionStrategy) Number() protoreflect.EnumNumber {
@@ -85,7 +85,7 @@ func (x CompressionStrategy) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use CompressionStrategy.Descriptor instead.
 func (CompressionStrategy) EnumDescriptor() ([]byte, []int) {
-	return file_span_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_span_proto_rawDescGZIP(), []int{0}
 }
 
 type Span struct {
@@ -111,7 +111,7 @@ type Span struct {
 
 func (x *Span) Reset() {
 	*x = Span{}
-	mi := &file_span_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_span_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -123,7 +123,7 @@ func (x *Span) String() string {
 func (*Span) ProtoMessage() {}
 
 func (x *Span) ProtoReflect() protoreflect.Message {
-	mi := &file_span_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_span_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -136,7 +136,7 @@ func (x *Span) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Span.ProtoReflect.Descriptor instead.
 func (*Span) Descriptor() ([]byte, []int) {
-	return file_span_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_span_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Span) GetMessage() *Message {
@@ -258,7 +258,7 @@ type DB struct {
 
 func (x *DB) Reset() {
 	*x = DB{}
-	mi := &file_span_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_span_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -270,7 +270,7 @@ func (x *DB) String() string {
 func (*DB) ProtoMessage() {}
 
 func (x *DB) ProtoReflect() protoreflect.Message {
-	mi := &file_span_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_span_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -283,7 +283,7 @@ func (x *DB) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DB.ProtoReflect.Descriptor instead.
 func (*DB) Descriptor() ([]byte, []int) {
-	return file_span_proto_rawDescGZIP(), []int{1}
+	return file_elastic_apm_v1_span_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *DB) GetRowsAffected() uint32 {
@@ -340,7 +340,7 @@ type DestinationService struct {
 
 func (x *DestinationService) Reset() {
 	*x = DestinationService{}
-	mi := &file_span_proto_msgTypes[2]
+	mi := &file_elastic_apm_v1_span_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -352,7 +352,7 @@ func (x *DestinationService) String() string {
 func (*DestinationService) ProtoMessage() {}
 
 func (x *DestinationService) ProtoReflect() protoreflect.Message {
-	mi := &file_span_proto_msgTypes[2]
+	mi := &file_elastic_apm_v1_span_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -365,7 +365,7 @@ func (x *DestinationService) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DestinationService.ProtoReflect.Descriptor instead.
 func (*DestinationService) Descriptor() ([]byte, []int) {
-	return file_span_proto_rawDescGZIP(), []int{2}
+	return file_elastic_apm_v1_span_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *DestinationService) GetType() string {
@@ -407,7 +407,7 @@ type Composite struct {
 
 func (x *Composite) Reset() {
 	*x = Composite{}
-	mi := &file_span_proto_msgTypes[3]
+	mi := &file_elastic_apm_v1_span_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -419,7 +419,7 @@ func (x *Composite) String() string {
 func (*Composite) ProtoMessage() {}
 
 func (x *Composite) ProtoReflect() protoreflect.Message {
-	mi := &file_span_proto_msgTypes[3]
+	mi := &file_elastic_apm_v1_span_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -432,7 +432,7 @@ func (x *Composite) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Composite.ProtoReflect.Descriptor instead.
 func (*Composite) Descriptor() ([]byte, []int) {
-	return file_span_proto_rawDescGZIP(), []int{3}
+	return file_elastic_apm_v1_span_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Composite) GetCompressionStrategy() CompressionStrategy {
@@ -466,7 +466,7 @@ type SpanLink struct {
 
 func (x *SpanLink) Reset() {
 	*x = SpanLink{}
-	mi := &file_span_proto_msgTypes[4]
+	mi := &file_elastic_apm_v1_span_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -478,7 +478,7 @@ func (x *SpanLink) String() string {
 func (*SpanLink) ProtoMessage() {}
 
 func (x *SpanLink) ProtoReflect() protoreflect.Message {
-	mi := &file_span_proto_msgTypes[4]
+	mi := &file_elastic_apm_v1_span_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -491,7 +491,7 @@ func (x *SpanLink) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpanLink.ProtoReflect.Descriptor instead.
 func (*SpanLink) Descriptor() ([]byte, []int) {
-	return file_span_proto_rawDescGZIP(), []int{4}
+	return file_elastic_apm_v1_span_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SpanLink) GetTraceId() string {
@@ -508,12 +508,11 @@ func (x *SpanLink) GetSpanId() string {
 	return ""
 }
 
-var File_span_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_span_proto protoreflect.FileDescriptor
 
-const file_span_proto_rawDesc = "" +
+const file_elastic_apm_v1_span_proto_rawDesc = "" +
 	"\n" +
-	"\n" +
-	"span.proto\x12\x0eelastic.apm.v1\x1a\rmessage.proto\x1a\x0fmetricset.proto\x1a\x10stacktrace.proto\"\xf0\x04\n" +
+	"\x19elastic/apm/v1/span.proto\x12\x0eelastic.apm.v1\x1a\x1celastic/apm/v1/message.proto\x1a\x1eelastic/apm/v1/metricset.proto\x1a\x1felastic/apm/v1/stacktrace.proto\"\xf0\x04\n" +
 	"\x04Span\x121\n" +
 	"\amessage\x18\x01 \x01(\v2\x17.elastic.apm.v1.MessageR\amessage\x127\n" +
 	"\tcomposite\x18\x02 \x01(\v2\x19.elastic.apm.v1.CompositeR\tcomposite\x12S\n" +
@@ -560,20 +559,20 @@ const file_span_proto_rawDesc = "" +
 	"\x1eCOMPRESSION_STRATEGY_SAME_KIND\x10\x02B+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_span_proto_rawDescOnce sync.Once
-	file_span_proto_rawDescData []byte
+	file_elastic_apm_v1_span_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_span_proto_rawDescData []byte
 )
 
-func file_span_proto_rawDescGZIP() []byte {
-	file_span_proto_rawDescOnce.Do(func() {
-		file_span_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_span_proto_rawDesc), len(file_span_proto_rawDesc)))
+func file_elastic_apm_v1_span_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_span_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_span_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_span_proto_rawDesc), len(file_elastic_apm_v1_span_proto_rawDesc)))
 	})
-	return file_span_proto_rawDescData
+	return file_elastic_apm_v1_span_proto_rawDescData
 }
 
-var file_span_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_span_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
-var file_span_proto_goTypes = []any{
+var file_elastic_apm_v1_span_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_elastic_apm_v1_span_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_elastic_apm_v1_span_proto_goTypes = []any{
 	(CompressionStrategy)(0),   // 0: elastic.apm.v1.CompressionStrategy
 	(*Span)(nil),               // 1: elastic.apm.v1.Span
 	(*DB)(nil),                 // 2: elastic.apm.v1.DB
@@ -584,7 +583,7 @@ var file_span_proto_goTypes = []any{
 	(*StacktraceFrame)(nil),    // 7: elastic.apm.v1.StacktraceFrame
 	(*AggregatedDuration)(nil), // 8: elastic.apm.v1.AggregatedDuration
 }
-var file_span_proto_depIdxs = []int32{
+var file_elastic_apm_v1_span_proto_depIdxs = []int32{
 	6, // 0: elastic.apm.v1.Span.message:type_name -> elastic.apm.v1.Message
 	4, // 1: elastic.apm.v1.Span.composite:type_name -> elastic.apm.v1.Composite
 	3, // 2: elastic.apm.v1.Span.destination_service:type_name -> elastic.apm.v1.DestinationService
@@ -601,32 +600,32 @@ var file_span_proto_depIdxs = []int32{
 	0, // [0:9] is the sub-list for field type_name
 }
 
-func init() { file_span_proto_init() }
-func file_span_proto_init() {
-	if File_span_proto != nil {
+func init() { file_elastic_apm_v1_span_proto_init() }
+func file_elastic_apm_v1_span_proto_init() {
+	if File_elastic_apm_v1_span_proto != nil {
 		return
 	}
-	file_message_proto_init()
-	file_metricset_proto_init()
-	file_stacktrace_proto_init()
-	file_span_proto_msgTypes[0].OneofWrappers = []any{}
-	file_span_proto_msgTypes[1].OneofWrappers = []any{}
+	file_elastic_apm_v1_message_proto_init()
+	file_elastic_apm_v1_metricset_proto_init()
+	file_elastic_apm_v1_stacktrace_proto_init()
+	file_elastic_apm_v1_span_proto_msgTypes[0].OneofWrappers = []any{}
+	file_elastic_apm_v1_span_proto_msgTypes[1].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_span_proto_rawDesc), len(file_span_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_span_proto_rawDesc), len(file_elastic_apm_v1_span_proto_rawDesc)),
 			NumEnums:      1,
 			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_span_proto_goTypes,
-		DependencyIndexes: file_span_proto_depIdxs,
-		EnumInfos:         file_span_proto_enumTypes,
-		MessageInfos:      file_span_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_span_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_span_proto_depIdxs,
+		EnumInfos:         file_elastic_apm_v1_span_proto_enumTypes,
+		MessageInfos:      file_elastic_apm_v1_span_proto_msgTypes,
 	}.Build()
-	File_span_proto = out.File
-	file_span_proto_goTypes = nil
-	file_span_proto_depIdxs = nil
+	File_elastic_apm_v1_span_proto = out.File
+	file_elastic_apm_v1_span_proto_goTypes = nil
+	file_elastic_apm_v1_span_proto_depIdxs = nil
 }

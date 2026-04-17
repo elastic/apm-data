@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: http.proto
+// source: elastic/apm/v1/http.proto
 
 package modelpb
 
@@ -51,7 +51,7 @@ type HTTP struct {
 
 func (x *HTTP) Reset() {
 	*x = HTTP{}
-	mi := &file_http_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_http_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -63,7 +63,7 @@ func (x *HTTP) String() string {
 func (*HTTP) ProtoMessage() {}
 
 func (x *HTTP) ProtoReflect() protoreflect.Message {
-	mi := &file_http_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_http_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -76,7 +76,7 @@ func (x *HTTP) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HTTP.ProtoReflect.Descriptor instead.
 func (*HTTP) Descriptor() ([]byte, []int) {
-	return file_http_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_http_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *HTTP) GetRequest() *HTTPRequest {
@@ -115,7 +115,7 @@ type HTTPRequest struct {
 
 func (x *HTTPRequest) Reset() {
 	*x = HTTPRequest{}
-	mi := &file_http_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_http_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -127,7 +127,7 @@ func (x *HTTPRequest) String() string {
 func (*HTTPRequest) ProtoMessage() {}
 
 func (x *HTTPRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_http_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_http_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -140,7 +140,7 @@ func (x *HTTPRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HTTPRequest.ProtoReflect.Descriptor instead.
 func (*HTTPRequest) Descriptor() ([]byte, []int) {
-	return file_http_proto_rawDescGZIP(), []int{1}
+	return file_elastic_apm_v1_http_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *HTTPRequest) GetBody() *structpb.Value {
@@ -207,7 +207,7 @@ type HTTPResponse struct {
 
 func (x *HTTPResponse) Reset() {
 	*x = HTTPResponse{}
-	mi := &file_http_proto_msgTypes[2]
+	mi := &file_elastic_apm_v1_http_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -219,7 +219,7 @@ func (x *HTTPResponse) String() string {
 func (*HTTPResponse) ProtoMessage() {}
 
 func (x *HTTPResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_http_proto_msgTypes[2]
+	mi := &file_elastic_apm_v1_http_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -232,7 +232,7 @@ func (x *HTTPResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HTTPResponse.ProtoReflect.Descriptor instead.
 func (*HTTPResponse) Descriptor() ([]byte, []int) {
-	return file_http_proto_rawDescGZIP(), []int{2}
+	return file_elastic_apm_v1_http_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *HTTPResponse) GetHeaders() []*HTTPHeader {
@@ -284,12 +284,11 @@ func (x *HTTPResponse) GetStatusCode() uint32 {
 	return 0
 }
 
-var File_http_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_http_proto protoreflect.FileDescriptor
 
-const file_http_proto_rawDesc = "" +
+const file_elastic_apm_v1_http_proto_rawDesc = "" +
 	"\n" +
-	"\n" +
-	"http.proto\x12\x0eelastic.apm.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\rheaders.proto\x1a\x0ekeyvalue.proto\"\x91\x01\n" +
+	"\x19elastic/apm/v1/http.proto\x12\x0eelastic.apm.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1celastic/apm/v1/headers.proto\x1a\x1delastic/apm/v1/keyvalue.proto\"\x91\x01\n" +
 	"\x04HTTP\x125\n" +
 	"\arequest\x18\x01 \x01(\v2\x1b.elastic.apm.v1.HTTPRequestR\arequest\x128\n" +
 	"\bresponse\x18\x02 \x01(\v2\x1c.elastic.apm.v1.HTTPResponseR\bresponse\x12\x18\n" +
@@ -318,19 +317,19 @@ const file_http_proto_rawDesc = "" +
 	"\x12_decoded_body_sizeB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_http_proto_rawDescOnce sync.Once
-	file_http_proto_rawDescData []byte
+	file_elastic_apm_v1_http_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_http_proto_rawDescData []byte
 )
 
-func file_http_proto_rawDescGZIP() []byte {
-	file_http_proto_rawDescOnce.Do(func() {
-		file_http_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_http_proto_rawDesc), len(file_http_proto_rawDesc)))
+func file_elastic_apm_v1_http_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_http_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_http_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_http_proto_rawDesc), len(file_elastic_apm_v1_http_proto_rawDesc)))
 	})
-	return file_http_proto_rawDescData
+	return file_elastic_apm_v1_http_proto_rawDescData
 }
 
-var file_http_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_http_proto_goTypes = []any{
+var file_elastic_apm_v1_http_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_elastic_apm_v1_http_proto_goTypes = []any{
 	(*HTTP)(nil),           // 0: elastic.apm.v1.HTTP
 	(*HTTPRequest)(nil),    // 1: elastic.apm.v1.HTTPRequest
 	(*HTTPResponse)(nil),   // 2: elastic.apm.v1.HTTPResponse
@@ -338,7 +337,7 @@ var file_http_proto_goTypes = []any{
 	(*HTTPHeader)(nil),     // 4: elastic.apm.v1.HTTPHeader
 	(*KeyValue)(nil),       // 5: elastic.apm.v1.KeyValue
 }
-var file_http_proto_depIdxs = []int32{
+var file_elastic_apm_v1_http_proto_depIdxs = []int32{
 	1, // 0: elastic.apm.v1.HTTP.request:type_name -> elastic.apm.v1.HTTPRequest
 	2, // 1: elastic.apm.v1.HTTP.response:type_name -> elastic.apm.v1.HTTPResponse
 	3, // 2: elastic.apm.v1.HTTPRequest.body:type_name -> google.protobuf.Value
@@ -353,29 +352,29 @@ var file_http_proto_depIdxs = []int32{
 	0, // [0:7] is the sub-list for field type_name
 }
 
-func init() { file_http_proto_init() }
-func file_http_proto_init() {
-	if File_http_proto != nil {
+func init() { file_elastic_apm_v1_http_proto_init() }
+func file_elastic_apm_v1_http_proto_init() {
+	if File_elastic_apm_v1_http_proto != nil {
 		return
 	}
-	file_headers_proto_init()
-	file_keyvalue_proto_init()
-	file_http_proto_msgTypes[2].OneofWrappers = []any{}
+	file_elastic_apm_v1_headers_proto_init()
+	file_elastic_apm_v1_keyvalue_proto_init()
+	file_elastic_apm_v1_http_proto_msgTypes[2].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_http_proto_rawDesc), len(file_http_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_http_proto_rawDesc), len(file_elastic_apm_v1_http_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_http_proto_goTypes,
-		DependencyIndexes: file_http_proto_depIdxs,
-		MessageInfos:      file_http_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_http_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_http_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_http_proto_msgTypes,
 	}.Build()
-	File_http_proto = out.File
-	file_http_proto_goTypes = nil
-	file_http_proto_depIdxs = nil
+	File_elastic_apm_v1_http_proto = out.File
+	file_elastic_apm_v1_http_proto_goTypes = nil
+	file_elastic_apm_v1_http_proto_depIdxs = nil
 }

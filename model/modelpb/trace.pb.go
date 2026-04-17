@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: trace.proto
+// source: elastic/apm/v1/trace.proto
 
 package modelpb
 
@@ -48,7 +48,7 @@ type Trace struct {
 
 func (x *Trace) Reset() {
 	*x = Trace{}
-	mi := &file_trace_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_trace_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -60,7 +60,7 @@ func (x *Trace) String() string {
 func (*Trace) ProtoMessage() {}
 
 func (x *Trace) ProtoReflect() protoreflect.Message {
-	mi := &file_trace_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_trace_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -73,7 +73,7 @@ func (x *Trace) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Trace.ProtoReflect.Descriptor instead.
 func (*Trace) Descriptor() ([]byte, []int) {
-	return file_trace_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_trace_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Trace) GetId() string {
@@ -83,31 +83,31 @@ func (x *Trace) GetId() string {
 	return ""
 }
 
-var File_trace_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_trace_proto protoreflect.FileDescriptor
 
-const file_trace_proto_rawDesc = "" +
+const file_elastic_apm_v1_trace_proto_rawDesc = "" +
 	"\n" +
-	"\vtrace.proto\x12\x0eelastic.apm.v1\"\x17\n" +
+	"\x1aelastic/apm/v1/trace.proto\x12\x0eelastic.apm.v1\"\x17\n" +
 	"\x05Trace\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02idB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_trace_proto_rawDescOnce sync.Once
-	file_trace_proto_rawDescData []byte
+	file_elastic_apm_v1_trace_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_trace_proto_rawDescData []byte
 )
 
-func file_trace_proto_rawDescGZIP() []byte {
-	file_trace_proto_rawDescOnce.Do(func() {
-		file_trace_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_trace_proto_rawDesc), len(file_trace_proto_rawDesc)))
+func file_elastic_apm_v1_trace_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_trace_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_trace_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_trace_proto_rawDesc), len(file_elastic_apm_v1_trace_proto_rawDesc)))
 	})
-	return file_trace_proto_rawDescData
+	return file_elastic_apm_v1_trace_proto_rawDescData
 }
 
-var file_trace_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_trace_proto_goTypes = []any{
+var file_elastic_apm_v1_trace_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_elastic_apm_v1_trace_proto_goTypes = []any{
 	(*Trace)(nil), // 0: elastic.apm.v1.Trace
 }
-var file_trace_proto_depIdxs = []int32{
+var file_elastic_apm_v1_trace_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -115,26 +115,26 @@ var file_trace_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_trace_proto_init() }
-func file_trace_proto_init() {
-	if File_trace_proto != nil {
+func init() { file_elastic_apm_v1_trace_proto_init() }
+func file_elastic_apm_v1_trace_proto_init() {
+	if File_elastic_apm_v1_trace_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_trace_proto_rawDesc), len(file_trace_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_trace_proto_rawDesc), len(file_elastic_apm_v1_trace_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_trace_proto_goTypes,
-		DependencyIndexes: file_trace_proto_depIdxs,
-		MessageInfos:      file_trace_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_trace_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_trace_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_trace_proto_msgTypes,
 	}.Build()
-	File_trace_proto = out.File
-	file_trace_proto_goTypes = nil
-	file_trace_proto_depIdxs = nil
+	File_elastic_apm_v1_trace_proto = out.File
+	file_elastic_apm_v1_trace_proto_goTypes = nil
+	file_elastic_apm_v1_trace_proto_depIdxs = nil
 }

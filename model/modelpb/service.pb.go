@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: service.proto
+// source: elastic/apm/v1/service.proto
 
 package modelpb
 
@@ -56,7 +56,7 @@ type Service struct {
 
 func (x *Service) Reset() {
 	*x = Service{}
-	mi := &file_service_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_service_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -68,7 +68,7 @@ func (x *Service) String() string {
 func (*Service) ProtoMessage() {}
 
 func (x *Service) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_service_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -81,7 +81,7 @@ func (x *Service) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Service.ProtoReflect.Descriptor instead.
 func (*Service) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_service_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Service) GetOrigin() *ServiceOrigin {
@@ -158,7 +158,7 @@ type ServiceOrigin struct {
 
 func (x *ServiceOrigin) Reset() {
 	*x = ServiceOrigin{}
-	mi := &file_service_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_service_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -170,7 +170,7 @@ func (x *ServiceOrigin) String() string {
 func (*ServiceOrigin) ProtoMessage() {}
 
 func (x *ServiceOrigin) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_service_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -183,7 +183,7 @@ func (x *ServiceOrigin) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServiceOrigin.ProtoReflect.Descriptor instead.
 func (*ServiceOrigin) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{1}
+	return file_elastic_apm_v1_service_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ServiceOrigin) GetId() string {
@@ -217,7 +217,7 @@ type ServiceTarget struct {
 
 func (x *ServiceTarget) Reset() {
 	*x = ServiceTarget{}
-	mi := &file_service_proto_msgTypes[2]
+	mi := &file_elastic_apm_v1_service_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -229,7 +229,7 @@ func (x *ServiceTarget) String() string {
 func (*ServiceTarget) ProtoMessage() {}
 
 func (x *ServiceTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[2]
+	mi := &file_elastic_apm_v1_service_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -242,7 +242,7 @@ func (x *ServiceTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServiceTarget.ProtoReflect.Descriptor instead.
 func (*ServiceTarget) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{2}
+	return file_elastic_apm_v1_service_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ServiceTarget) GetName() string {
@@ -269,7 +269,7 @@ type Language struct {
 
 func (x *Language) Reset() {
 	*x = Language{}
-	mi := &file_service_proto_msgTypes[3]
+	mi := &file_elastic_apm_v1_service_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -281,7 +281,7 @@ func (x *Language) String() string {
 func (*Language) ProtoMessage() {}
 
 func (x *Language) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[3]
+	mi := &file_elastic_apm_v1_service_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -294,7 +294,7 @@ func (x *Language) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Language.ProtoReflect.Descriptor instead.
 func (*Language) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{3}
+	return file_elastic_apm_v1_service_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Language) GetName() string {
@@ -321,7 +321,7 @@ type Runtime struct {
 
 func (x *Runtime) Reset() {
 	*x = Runtime{}
-	mi := &file_service_proto_msgTypes[4]
+	mi := &file_elastic_apm_v1_service_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -333,7 +333,7 @@ func (x *Runtime) String() string {
 func (*Runtime) ProtoMessage() {}
 
 func (x *Runtime) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[4]
+	mi := &file_elastic_apm_v1_service_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -346,7 +346,7 @@ func (x *Runtime) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Runtime.ProtoReflect.Descriptor instead.
 func (*Runtime) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{4}
+	return file_elastic_apm_v1_service_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Runtime) GetName() string {
@@ -373,7 +373,7 @@ type Framework struct {
 
 func (x *Framework) Reset() {
 	*x = Framework{}
-	mi := &file_service_proto_msgTypes[5]
+	mi := &file_elastic_apm_v1_service_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -385,7 +385,7 @@ func (x *Framework) String() string {
 func (*Framework) ProtoMessage() {}
 
 func (x *Framework) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[5]
+	mi := &file_elastic_apm_v1_service_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -398,7 +398,7 @@ func (x *Framework) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Framework.ProtoReflect.Descriptor instead.
 func (*Framework) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{5}
+	return file_elastic_apm_v1_service_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Framework) GetName() string {
@@ -424,7 +424,7 @@ type ServiceNode struct {
 
 func (x *ServiceNode) Reset() {
 	*x = ServiceNode{}
-	mi := &file_service_proto_msgTypes[6]
+	mi := &file_elastic_apm_v1_service_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -436,7 +436,7 @@ func (x *ServiceNode) String() string {
 func (*ServiceNode) ProtoMessage() {}
 
 func (x *ServiceNode) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[6]
+	mi := &file_elastic_apm_v1_service_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -449,7 +449,7 @@ func (x *ServiceNode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServiceNode.ProtoReflect.Descriptor instead.
 func (*ServiceNode) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{6}
+	return file_elastic_apm_v1_service_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ServiceNode) GetName() string {
@@ -459,11 +459,11 @@ func (x *ServiceNode) GetName() string {
 	return ""
 }
 
-var File_service_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_service_proto protoreflect.FileDescriptor
 
-const file_service_proto_rawDesc = "" +
+const file_elastic_apm_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\rservice.proto\x12\x0eelastic.apm.v1\"\x9a\x03\n" +
+	"\x1celastic/apm/v1/service.proto\x12\x0eelastic.apm.v1\"\x9a\x03\n" +
 	"\aService\x125\n" +
 	"\x06origin\x18\x01 \x01(\v2\x1d.elastic.apm.v1.ServiceOriginR\x06origin\x125\n" +
 	"\x06target\x18\x02 \x01(\v2\x1d.elastic.apm.v1.ServiceTargetR\x06target\x124\n" +
@@ -494,19 +494,19 @@ const file_service_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04nameB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_service_proto_rawDescOnce sync.Once
-	file_service_proto_rawDescData []byte
+	file_elastic_apm_v1_service_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_service_proto_rawDescData []byte
 )
 
-func file_service_proto_rawDescGZIP() []byte {
-	file_service_proto_rawDescOnce.Do(func() {
-		file_service_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_service_proto_rawDesc), len(file_service_proto_rawDesc)))
+func file_elastic_apm_v1_service_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_service_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_service_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_service_proto_rawDesc), len(file_elastic_apm_v1_service_proto_rawDesc)))
 	})
-	return file_service_proto_rawDescData
+	return file_elastic_apm_v1_service_proto_rawDescData
 }
 
-var file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
-var file_service_proto_goTypes = []any{
+var file_elastic_apm_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_elastic_apm_v1_service_proto_goTypes = []any{
 	(*Service)(nil),       // 0: elastic.apm.v1.Service
 	(*ServiceOrigin)(nil), // 1: elastic.apm.v1.ServiceOrigin
 	(*ServiceTarget)(nil), // 2: elastic.apm.v1.ServiceTarget
@@ -515,7 +515,7 @@ var file_service_proto_goTypes = []any{
 	(*Framework)(nil),     // 5: elastic.apm.v1.Framework
 	(*ServiceNode)(nil),   // 6: elastic.apm.v1.ServiceNode
 }
-var file_service_proto_depIdxs = []int32{
+var file_elastic_apm_v1_service_proto_depIdxs = []int32{
 	1, // 0: elastic.apm.v1.Service.origin:type_name -> elastic.apm.v1.ServiceOrigin
 	2, // 1: elastic.apm.v1.Service.target:type_name -> elastic.apm.v1.ServiceTarget
 	3, // 2: elastic.apm.v1.Service.language:type_name -> elastic.apm.v1.Language
@@ -529,26 +529,26 @@ var file_service_proto_depIdxs = []int32{
 	0, // [0:6] is the sub-list for field type_name
 }
 
-func init() { file_service_proto_init() }
-func file_service_proto_init() {
-	if File_service_proto != nil {
+func init() { file_elastic_apm_v1_service_proto_init() }
+func file_elastic_apm_v1_service_proto_init() {
+	if File_elastic_apm_v1_service_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_service_proto_rawDesc), len(file_service_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_service_proto_rawDesc), len(file_elastic_apm_v1_service_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_service_proto_goTypes,
-		DependencyIndexes: file_service_proto_depIdxs,
-		MessageInfos:      file_service_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_service_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_service_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_service_proto_msgTypes,
 	}.Build()
-	File_service_proto = out.File
-	file_service_proto_goTypes = nil
-	file_service_proto_depIdxs = nil
+	File_elastic_apm_v1_service_proto = out.File
+	file_elastic_apm_v1_service_proto_goTypes = nil
+	file_elastic_apm_v1_service_proto_depIdxs = nil
 }

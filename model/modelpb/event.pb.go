@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: event.proto
+// source: elastic/apm/v1/event.proto
 
 package modelpb
 
@@ -60,7 +60,7 @@ type Event struct {
 
 func (x *Event) Reset() {
 	*x = Event{}
-	mi := &file_event_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_event_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -72,7 +72,7 @@ func (x *Event) String() string {
 func (*Event) ProtoMessage() {}
 
 func (x *Event) ProtoReflect() protoreflect.Message {
-	mi := &file_event_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_event_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -85,7 +85,7 @@ func (x *Event) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Event.ProtoReflect.Descriptor instead.
 func (*Event) Descriptor() ([]byte, []int) {
-	return file_event_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_event_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Event) GetOutcome() string {
@@ -165,11 +165,11 @@ func (x *Event) GetModule() string {
 	return ""
 }
 
-var File_event_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_event_proto protoreflect.FileDescriptor
 
-const file_event_proto_rawDesc = "" +
+const file_elastic_apm_v1_event_proto_rawDesc = "" +
 	"\n" +
-	"\vevent.proto\x12\x0eelastic.apm.v1\x1a\x0fmetricset.proto\"\xc7\x02\n" +
+	"\x1aelastic/apm/v1/event.proto\x12\x0eelastic.apm.v1\x1a\x1eelastic/apm/v1/metricset.proto\"\xc7\x02\n" +
 	"\x05Event\x12\x18\n" +
 	"\aoutcome\x18\x01 \x01(\tR\aoutcome\x12\x16\n" +
 	"\x06action\x18\x02 \x01(\tR\x06action\x12\x18\n" +
@@ -185,23 +185,23 @@ const file_event_proto_rawDesc = "" +
 	"\x06module\x18\v \x01(\tR\x06moduleB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_event_proto_rawDescOnce sync.Once
-	file_event_proto_rawDescData []byte
+	file_elastic_apm_v1_event_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_event_proto_rawDescData []byte
 )
 
-func file_event_proto_rawDescGZIP() []byte {
-	file_event_proto_rawDescOnce.Do(func() {
-		file_event_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_event_proto_rawDesc), len(file_event_proto_rawDesc)))
+func file_elastic_apm_v1_event_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_event_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_event_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_event_proto_rawDesc), len(file_elastic_apm_v1_event_proto_rawDesc)))
 	})
-	return file_event_proto_rawDescData
+	return file_elastic_apm_v1_event_proto_rawDescData
 }
 
-var file_event_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_event_proto_goTypes = []any{
+var file_elastic_apm_v1_event_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_elastic_apm_v1_event_proto_goTypes = []any{
 	(*Event)(nil),         // 0: elastic.apm.v1.Event
 	(*SummaryMetric)(nil), // 1: elastic.apm.v1.SummaryMetric
 }
-var file_event_proto_depIdxs = []int32{
+var file_elastic_apm_v1_event_proto_depIdxs = []int32{
 	1, // 0: elastic.apm.v1.Event.success_count:type_name -> elastic.apm.v1.SummaryMetric
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
@@ -210,27 +210,27 @@ var file_event_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_event_proto_init() }
-func file_event_proto_init() {
-	if File_event_proto != nil {
+func init() { file_elastic_apm_v1_event_proto_init() }
+func file_elastic_apm_v1_event_proto_init() {
+	if File_elastic_apm_v1_event_proto != nil {
 		return
 	}
-	file_metricset_proto_init()
+	file_elastic_apm_v1_metricset_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_event_proto_rawDesc), len(file_event_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_event_proto_rawDesc), len(file_elastic_apm_v1_event_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_event_proto_goTypes,
-		DependencyIndexes: file_event_proto_depIdxs,
-		MessageInfos:      file_event_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_event_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_event_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_event_proto_msgTypes,
 	}.Build()
-	File_event_proto = out.File
-	file_event_proto_goTypes = nil
-	file_event_proto_depIdxs = nil
+	File_elastic_apm_v1_event_proto = out.File
+	file_elastic_apm_v1_event_proto_goTypes = nil
+	file_elastic_apm_v1_event_proto_depIdxs = nil
 }

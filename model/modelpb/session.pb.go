@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: session.proto
+// source: elastic/apm/v1/session.proto
 
 package modelpb
 
@@ -49,7 +49,7 @@ type Session struct {
 
 func (x *Session) Reset() {
 	*x = Session{}
-	mi := &file_session_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_session_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -61,7 +61,7 @@ func (x *Session) String() string {
 func (*Session) ProtoMessage() {}
 
 func (x *Session) ProtoReflect() protoreflect.Message {
-	mi := &file_session_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_session_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -74,7 +74,7 @@ func (x *Session) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Session.ProtoReflect.Descriptor instead.
 func (*Session) Descriptor() ([]byte, []int) {
-	return file_session_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_session_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Session) GetId() string {
@@ -91,32 +91,32 @@ func (x *Session) GetSequence() uint64 {
 	return 0
 }
 
-var File_session_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_session_proto protoreflect.FileDescriptor
 
-const file_session_proto_rawDesc = "" +
+const file_elastic_apm_v1_session_proto_rawDesc = "" +
 	"\n" +
-	"\rsession.proto\x12\x0eelastic.apm.v1\"5\n" +
+	"\x1celastic/apm/v1/session.proto\x12\x0eelastic.apm.v1\"5\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\bsequence\x18\x02 \x01(\x04R\bsequenceB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_session_proto_rawDescOnce sync.Once
-	file_session_proto_rawDescData []byte
+	file_elastic_apm_v1_session_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_session_proto_rawDescData []byte
 )
 
-func file_session_proto_rawDescGZIP() []byte {
-	file_session_proto_rawDescOnce.Do(func() {
-		file_session_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_session_proto_rawDesc), len(file_session_proto_rawDesc)))
+func file_elastic_apm_v1_session_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_session_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_session_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_session_proto_rawDesc), len(file_elastic_apm_v1_session_proto_rawDesc)))
 	})
-	return file_session_proto_rawDescData
+	return file_elastic_apm_v1_session_proto_rawDescData
 }
 
-var file_session_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_session_proto_goTypes = []any{
+var file_elastic_apm_v1_session_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_elastic_apm_v1_session_proto_goTypes = []any{
 	(*Session)(nil), // 0: elastic.apm.v1.Session
 }
-var file_session_proto_depIdxs = []int32{
+var file_elastic_apm_v1_session_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -124,26 +124,26 @@ var file_session_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_session_proto_init() }
-func file_session_proto_init() {
-	if File_session_proto != nil {
+func init() { file_elastic_apm_v1_session_proto_init() }
+func file_elastic_apm_v1_session_proto_init() {
+	if File_elastic_apm_v1_session_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_session_proto_rawDesc), len(file_session_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_session_proto_rawDesc), len(file_elastic_apm_v1_session_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_session_proto_goTypes,
-		DependencyIndexes: file_session_proto_depIdxs,
-		MessageInfos:      file_session_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_session_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_session_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_session_proto_msgTypes,
 	}.Build()
-	File_session_proto = out.File
-	file_session_proto_goTypes = nil
-	file_session_proto_depIdxs = nil
+	File_elastic_apm_v1_session_proto = out.File
+	file_elastic_apm_v1_session_proto_goTypes = nil
+	file_elastic_apm_v1_session_proto_depIdxs = nil
 }

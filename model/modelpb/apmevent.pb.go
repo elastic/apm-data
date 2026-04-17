@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: apmevent.proto
+// source: elastic/apm/v1/apmevent.proto
 
 package modelpb
 
@@ -87,7 +87,7 @@ type APMEvent struct {
 
 func (x *APMEvent) Reset() {
 	*x = APMEvent{}
-	mi := &file_apmevent_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_apmevent_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -99,7 +99,7 @@ func (x *APMEvent) String() string {
 func (*APMEvent) ProtoMessage() {}
 
 func (x *APMEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_apmevent_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_apmevent_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -112,7 +112,7 @@ func (x *APMEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use APMEvent.ProtoReflect.Descriptor instead.
 func (*APMEvent) Descriptor() ([]byte, []int) {
-	return file_apmevent_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_apmevent_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *APMEvent) GetTimestamp() uint64 {
@@ -360,17 +360,11 @@ func (x *APMEvent) GetSystem() *System {
 	return nil
 }
 
-var File_apmevent_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_apmevent_proto protoreflect.FileDescriptor
 
-const file_apmevent_proto_rawDesc = "" +
+const file_elastic_apm_v1_apmevent_proto_rawDesc = "" +
 	"\n" +
-	"\x0eapmevent.proto\x12\x0eelastic.apm.v1\x1a\vagent.proto\x1a\fclient.proto\x1a\vcloud.proto\x1a\n" +
-	"code.proto\x1a\x0fcontainer.proto\x1a\x10datastream.proto\x1a\x11destination.proto\x1a\fdevice.proto\x1a\verror.proto\x1a\vevent.proto\x1a\n" +
-	"faas.proto\x1a\n" +
-	"host.proto\x1a\n" +
-	"http.proto\x1a\x10kubernetes.proto\x1a\flabels.proto\x1a\tlog.proto\x1a\x0fmetricset.proto\x1a\rnetwork.proto\x1a\x0eobserver.proto\x1a\rprocess.proto\x1a\rservice.proto\x1a\rsession.proto\x1a\fsource.proto\x1a\n" +
-	"span.proto\x1a\fsystem.proto\x1a\vtrace.proto\x1a\x11transaction.proto\x1a\turl.proto\x1a\n" +
-	"user.proto\x1a\x0fuseragent.proto\"\xda\x0e\n" +
+	"\x1delastic/apm/v1/apmevent.proto\x12\x0eelastic.apm.v1\x1a\x1aelastic/apm/v1/agent.proto\x1a\x1belastic/apm/v1/client.proto\x1a\x1aelastic/apm/v1/cloud.proto\x1a\x19elastic/apm/v1/code.proto\x1a\x1eelastic/apm/v1/container.proto\x1a\x1felastic/apm/v1/datastream.proto\x1a elastic/apm/v1/destination.proto\x1a\x1belastic/apm/v1/device.proto\x1a\x1aelastic/apm/v1/error.proto\x1a\x1aelastic/apm/v1/event.proto\x1a\x19elastic/apm/v1/faas.proto\x1a\x19elastic/apm/v1/host.proto\x1a\x19elastic/apm/v1/http.proto\x1a\x1felastic/apm/v1/kubernetes.proto\x1a\x1belastic/apm/v1/labels.proto\x1a\x18elastic/apm/v1/log.proto\x1a\x1eelastic/apm/v1/metricset.proto\x1a\x1celastic/apm/v1/network.proto\x1a\x1delastic/apm/v1/observer.proto\x1a\x1celastic/apm/v1/process.proto\x1a\x1celastic/apm/v1/service.proto\x1a\x1celastic/apm/v1/session.proto\x1a\x1belastic/apm/v1/source.proto\x1a\x19elastic/apm/v1/span.proto\x1a\x1belastic/apm/v1/system.proto\x1a\x1aelastic/apm/v1/trace.proto\x1a elastic/apm/v1/transaction.proto\x1a\x18elastic/apm/v1/url.proto\x1a\x19elastic/apm/v1/user.proto\x1a\x1eelastic/apm/v1/useragent.proto\"\xda\x0e\n" +
 	"\bAPMEvent\x12\x1c\n" +
 	"\ttimestamp\x18\x01 \x01(\x04R\ttimestamp\x12(\n" +
 	"\x04span\x18\x02 \x01(\v2\x14.elastic.apm.v1.SpanR\x04span\x12R\n" +
@@ -420,19 +414,19 @@ const file_apmevent_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\v2\x1a.elastic.apm.v1.LabelValueR\x05value:\x028\x01B+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_apmevent_proto_rawDescOnce sync.Once
-	file_apmevent_proto_rawDescData []byte
+	file_elastic_apm_v1_apmevent_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_apmevent_proto_rawDescData []byte
 )
 
-func file_apmevent_proto_rawDescGZIP() []byte {
-	file_apmevent_proto_rawDescOnce.Do(func() {
-		file_apmevent_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_apmevent_proto_rawDesc), len(file_apmevent_proto_rawDesc)))
+func file_elastic_apm_v1_apmevent_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_apmevent_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_apmevent_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_apmevent_proto_rawDesc), len(file_elastic_apm_v1_apmevent_proto_rawDesc)))
 	})
-	return file_apmevent_proto_rawDescData
+	return file_elastic_apm_v1_apmevent_proto_rawDescData
 }
 
-var file_apmevent_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_apmevent_proto_goTypes = []any{
+var file_elastic_apm_v1_apmevent_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_elastic_apm_v1_apmevent_proto_goTypes = []any{
 	(*APMEvent)(nil),          // 0: elastic.apm.v1.APMEvent
 	nil,                       // 1: elastic.apm.v1.APMEvent.NumericLabelsEntry
 	nil,                       // 2: elastic.apm.v1.APMEvent.LabelsEntry
@@ -468,7 +462,7 @@ var file_apmevent_proto_goTypes = []any{
 	(*NumericLabelValue)(nil), // 32: elastic.apm.v1.NumericLabelValue
 	(*LabelValue)(nil),        // 33: elastic.apm.v1.LabelValue
 }
-var file_apmevent_proto_depIdxs = []int32{
+var file_elastic_apm_v1_apmevent_proto_depIdxs = []int32{
 	3,  // 0: elastic.apm.v1.APMEvent.span:type_name -> elastic.apm.v1.Span
 	1,  // 1: elastic.apm.v1.APMEvent.numeric_labels:type_name -> elastic.apm.v1.APMEvent.NumericLabelsEntry
 	2,  // 2: elastic.apm.v1.APMEvent.labels:type_name -> elastic.apm.v1.APMEvent.LabelsEntry
@@ -509,56 +503,56 @@ var file_apmevent_proto_depIdxs = []int32{
 	0,  // [0:33] is the sub-list for field type_name
 }
 
-func init() { file_apmevent_proto_init() }
-func file_apmevent_proto_init() {
-	if File_apmevent_proto != nil {
+func init() { file_elastic_apm_v1_apmevent_proto_init() }
+func file_elastic_apm_v1_apmevent_proto_init() {
+	if File_elastic_apm_v1_apmevent_proto != nil {
 		return
 	}
-	file_agent_proto_init()
-	file_client_proto_init()
-	file_cloud_proto_init()
-	file_code_proto_init()
-	file_container_proto_init()
-	file_datastream_proto_init()
-	file_destination_proto_init()
-	file_device_proto_init()
-	file_error_proto_init()
-	file_event_proto_init()
-	file_faas_proto_init()
-	file_host_proto_init()
-	file_http_proto_init()
-	file_kubernetes_proto_init()
-	file_labels_proto_init()
-	file_log_proto_init()
-	file_metricset_proto_init()
-	file_network_proto_init()
-	file_observer_proto_init()
-	file_process_proto_init()
-	file_service_proto_init()
-	file_session_proto_init()
-	file_source_proto_init()
-	file_span_proto_init()
-	file_system_proto_init()
-	file_trace_proto_init()
-	file_transaction_proto_init()
-	file_url_proto_init()
-	file_user_proto_init()
-	file_useragent_proto_init()
+	file_elastic_apm_v1_agent_proto_init()
+	file_elastic_apm_v1_client_proto_init()
+	file_elastic_apm_v1_cloud_proto_init()
+	file_elastic_apm_v1_code_proto_init()
+	file_elastic_apm_v1_container_proto_init()
+	file_elastic_apm_v1_datastream_proto_init()
+	file_elastic_apm_v1_destination_proto_init()
+	file_elastic_apm_v1_device_proto_init()
+	file_elastic_apm_v1_error_proto_init()
+	file_elastic_apm_v1_event_proto_init()
+	file_elastic_apm_v1_faas_proto_init()
+	file_elastic_apm_v1_host_proto_init()
+	file_elastic_apm_v1_http_proto_init()
+	file_elastic_apm_v1_kubernetes_proto_init()
+	file_elastic_apm_v1_labels_proto_init()
+	file_elastic_apm_v1_log_proto_init()
+	file_elastic_apm_v1_metricset_proto_init()
+	file_elastic_apm_v1_network_proto_init()
+	file_elastic_apm_v1_observer_proto_init()
+	file_elastic_apm_v1_process_proto_init()
+	file_elastic_apm_v1_service_proto_init()
+	file_elastic_apm_v1_session_proto_init()
+	file_elastic_apm_v1_source_proto_init()
+	file_elastic_apm_v1_span_proto_init()
+	file_elastic_apm_v1_system_proto_init()
+	file_elastic_apm_v1_trace_proto_init()
+	file_elastic_apm_v1_transaction_proto_init()
+	file_elastic_apm_v1_url_proto_init()
+	file_elastic_apm_v1_user_proto_init()
+	file_elastic_apm_v1_useragent_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_apmevent_proto_rawDesc), len(file_apmevent_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_apmevent_proto_rawDesc), len(file_elastic_apm_v1_apmevent_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_apmevent_proto_goTypes,
-		DependencyIndexes: file_apmevent_proto_depIdxs,
-		MessageInfos:      file_apmevent_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_apmevent_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_apmevent_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_apmevent_proto_msgTypes,
 	}.Build()
-	File_apmevent_proto = out.File
-	file_apmevent_proto_goTypes = nil
-	file_apmevent_proto_depIdxs = nil
+	File_elastic_apm_v1_apmevent_proto = out.File
+	file_elastic_apm_v1_apmevent_proto_goTypes = nil
+	file_elastic_apm_v1_apmevent_proto_depIdxs = nil
 }

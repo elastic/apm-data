@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: useragent.proto
+// source: elastic/apm/v1/useragent.proto
 
 package modelpb
 
@@ -49,7 +49,7 @@ type UserAgent struct {
 
 func (x *UserAgent) Reset() {
 	*x = UserAgent{}
-	mi := &file_useragent_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_useragent_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -61,7 +61,7 @@ func (x *UserAgent) String() string {
 func (*UserAgent) ProtoMessage() {}
 
 func (x *UserAgent) ProtoReflect() protoreflect.Message {
-	mi := &file_useragent_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_useragent_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -74,7 +74,7 @@ func (x *UserAgent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserAgent.ProtoReflect.Descriptor instead.
 func (*UserAgent) Descriptor() ([]byte, []int) {
-	return file_useragent_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_useragent_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *UserAgent) GetOriginal() string {
@@ -91,32 +91,32 @@ func (x *UserAgent) GetName() string {
 	return ""
 }
 
-var File_useragent_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_useragent_proto protoreflect.FileDescriptor
 
-const file_useragent_proto_rawDesc = "" +
+const file_elastic_apm_v1_useragent_proto_rawDesc = "" +
 	"\n" +
-	"\x0fuseragent.proto\x12\x0eelastic.apm.v1\";\n" +
+	"\x1eelastic/apm/v1/useragent.proto\x12\x0eelastic.apm.v1\";\n" +
 	"\tUserAgent\x12\x1a\n" +
 	"\boriginal\x18\x01 \x01(\tR\boriginal\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04nameB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_useragent_proto_rawDescOnce sync.Once
-	file_useragent_proto_rawDescData []byte
+	file_elastic_apm_v1_useragent_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_useragent_proto_rawDescData []byte
 )
 
-func file_useragent_proto_rawDescGZIP() []byte {
-	file_useragent_proto_rawDescOnce.Do(func() {
-		file_useragent_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_useragent_proto_rawDesc), len(file_useragent_proto_rawDesc)))
+func file_elastic_apm_v1_useragent_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_useragent_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_useragent_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_useragent_proto_rawDesc), len(file_elastic_apm_v1_useragent_proto_rawDesc)))
 	})
-	return file_useragent_proto_rawDescData
+	return file_elastic_apm_v1_useragent_proto_rawDescData
 }
 
-var file_useragent_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_useragent_proto_goTypes = []any{
+var file_elastic_apm_v1_useragent_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_elastic_apm_v1_useragent_proto_goTypes = []any{
 	(*UserAgent)(nil), // 0: elastic.apm.v1.UserAgent
 }
-var file_useragent_proto_depIdxs = []int32{
+var file_elastic_apm_v1_useragent_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -124,26 +124,26 @@ var file_useragent_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_useragent_proto_init() }
-func file_useragent_proto_init() {
-	if File_useragent_proto != nil {
+func init() { file_elastic_apm_v1_useragent_proto_init() }
+func file_elastic_apm_v1_useragent_proto_init() {
+	if File_elastic_apm_v1_useragent_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_useragent_proto_rawDesc), len(file_useragent_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_useragent_proto_rawDesc), len(file_elastic_apm_v1_useragent_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_useragent_proto_goTypes,
-		DependencyIndexes: file_useragent_proto_depIdxs,
-		MessageInfos:      file_useragent_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_useragent_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_useragent_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_useragent_proto_msgTypes,
 	}.Build()
-	File_useragent_proto = out.File
-	file_useragent_proto_goTypes = nil
-	file_useragent_proto_depIdxs = nil
+	File_elastic_apm_v1_useragent_proto = out.File
+	file_elastic_apm_v1_useragent_proto_goTypes = nil
+	file_elastic_apm_v1_useragent_proto_depIdxs = nil
 }

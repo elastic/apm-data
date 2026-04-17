@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: experience.proto
+// source: elastic/apm/v1/experience.proto
 
 package modelpb
 
@@ -51,7 +51,7 @@ type UserExperience struct {
 
 func (x *UserExperience) Reset() {
 	*x = UserExperience{}
-	mi := &file_experience_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_experience_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -63,7 +63,7 @@ func (x *UserExperience) String() string {
 func (*UserExperience) ProtoMessage() {}
 
 func (x *UserExperience) ProtoReflect() protoreflect.Message {
-	mi := &file_experience_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_experience_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -76,7 +76,7 @@ func (x *UserExperience) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserExperience.ProtoReflect.Descriptor instead.
 func (*UserExperience) Descriptor() ([]byte, []int) {
-	return file_experience_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_experience_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *UserExperience) GetCumulativeLayoutShift() float64 {
@@ -118,7 +118,7 @@ type LongtaskMetrics struct {
 
 func (x *LongtaskMetrics) Reset() {
 	*x = LongtaskMetrics{}
-	mi := &file_experience_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_experience_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -130,7 +130,7 @@ func (x *LongtaskMetrics) String() string {
 func (*LongtaskMetrics) ProtoMessage() {}
 
 func (x *LongtaskMetrics) ProtoReflect() protoreflect.Message {
-	mi := &file_experience_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_experience_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -143,7 +143,7 @@ func (x *LongtaskMetrics) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LongtaskMetrics.ProtoReflect.Descriptor instead.
 func (*LongtaskMetrics) Descriptor() ([]byte, []int) {
-	return file_experience_proto_rawDescGZIP(), []int{1}
+	return file_elastic_apm_v1_experience_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *LongtaskMetrics) GetCount() uint64 {
@@ -167,11 +167,11 @@ func (x *LongtaskMetrics) GetMax() float64 {
 	return 0
 }
 
-var File_experience_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_experience_proto protoreflect.FileDescriptor
 
-const file_experience_proto_rawDesc = "" +
+const file_elastic_apm_v1_experience_proto_rawDesc = "" +
 	"\n" +
-	"\x10experience.proto\x12\x0eelastic.apm.v1\"\xe2\x01\n" +
+	"\x1felastic/apm/v1/experience.proto\x12\x0eelastic.apm.v1\"\xe2\x01\n" +
 	"\x0eUserExperience\x126\n" +
 	"\x17cumulative_layout_shift\x18\x01 \x01(\x01R\x15cumulativeLayoutShift\x12*\n" +
 	"\x11first_input_delay\x18\x02 \x01(\x01R\x0ffirstInputDelay\x12.\n" +
@@ -183,23 +183,23 @@ const file_experience_proto_rawDesc = "" +
 	"\x03max\x18\x03 \x01(\x01R\x03maxB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_experience_proto_rawDescOnce sync.Once
-	file_experience_proto_rawDescData []byte
+	file_elastic_apm_v1_experience_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_experience_proto_rawDescData []byte
 )
 
-func file_experience_proto_rawDescGZIP() []byte {
-	file_experience_proto_rawDescOnce.Do(func() {
-		file_experience_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_experience_proto_rawDesc), len(file_experience_proto_rawDesc)))
+func file_elastic_apm_v1_experience_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_experience_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_experience_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_experience_proto_rawDesc), len(file_elastic_apm_v1_experience_proto_rawDesc)))
 	})
-	return file_experience_proto_rawDescData
+	return file_elastic_apm_v1_experience_proto_rawDescData
 }
 
-var file_experience_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_experience_proto_goTypes = []any{
+var file_elastic_apm_v1_experience_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_elastic_apm_v1_experience_proto_goTypes = []any{
 	(*UserExperience)(nil),  // 0: elastic.apm.v1.UserExperience
 	(*LongtaskMetrics)(nil), // 1: elastic.apm.v1.LongtaskMetrics
 }
-var file_experience_proto_depIdxs = []int32{
+var file_elastic_apm_v1_experience_proto_depIdxs = []int32{
 	1, // 0: elastic.apm.v1.UserExperience.long_task:type_name -> elastic.apm.v1.LongtaskMetrics
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
@@ -208,26 +208,26 @@ var file_experience_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_experience_proto_init() }
-func file_experience_proto_init() {
-	if File_experience_proto != nil {
+func init() { file_elastic_apm_v1_experience_proto_init() }
+func file_elastic_apm_v1_experience_proto_init() {
+	if File_elastic_apm_v1_experience_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_experience_proto_rawDesc), len(file_experience_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_experience_proto_rawDesc), len(file_elastic_apm_v1_experience_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_experience_proto_goTypes,
-		DependencyIndexes: file_experience_proto_depIdxs,
-		MessageInfos:      file_experience_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_experience_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_experience_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_experience_proto_msgTypes,
 	}.Build()
-	File_experience_proto = out.File
-	file_experience_proto_goTypes = nil
-	file_experience_proto_depIdxs = nil
+	File_elastic_apm_v1_experience_proto = out.File
+	file_elastic_apm_v1_experience_proto_goTypes = nil
+	file_elastic_apm_v1_experience_proto_depIdxs = nil
 }

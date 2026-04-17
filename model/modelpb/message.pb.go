@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: message.proto
+// source: elastic/apm/v1/message.proto
 
 package modelpb
 
@@ -52,7 +52,7 @@ type Message struct {
 
 func (x *Message) Reset() {
 	*x = Message{}
-	mi := &file_message_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_message_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -64,7 +64,7 @@ func (x *Message) String() string {
 func (*Message) ProtoMessage() {}
 
 func (x *Message) ProtoReflect() protoreflect.Message {
-	mi := &file_message_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_message_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -77,7 +77,7 @@ func (x *Message) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Message.ProtoReflect.Descriptor instead.
 func (*Message) Descriptor() ([]byte, []int) {
-	return file_message_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_message_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Message) GetBody() string {
@@ -115,11 +115,11 @@ func (x *Message) GetRoutingKey() string {
 	return ""
 }
 
-var File_message_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_message_proto protoreflect.FileDescriptor
 
-const file_message_proto_rawDesc = "" +
+const file_elastic_apm_v1_message_proto_rawDesc = "" +
 	"\n" +
-	"\rmessage.proto\x12\x0eelastic.apm.v1\x1a\rheaders.proto\"\xc6\x01\n" +
+	"\x1celastic/apm/v1/message.proto\x12\x0eelastic.apm.v1\x1a\x1celastic/apm/v1/headers.proto\"\xc6\x01\n" +
 	"\aMessage\x12\x12\n" +
 	"\x04body\x18\x01 \x01(\tR\x04body\x124\n" +
 	"\aheaders\x18\x02 \x03(\v2\x1a.elastic.apm.v1.HTTPHeaderR\aheaders\x12\"\n" +
@@ -132,23 +132,23 @@ const file_message_proto_rawDesc = "" +
 	"\v_age_millisB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_message_proto_rawDescOnce sync.Once
-	file_message_proto_rawDescData []byte
+	file_elastic_apm_v1_message_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_message_proto_rawDescData []byte
 )
 
-func file_message_proto_rawDescGZIP() []byte {
-	file_message_proto_rawDescOnce.Do(func() {
-		file_message_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_message_proto_rawDesc), len(file_message_proto_rawDesc)))
+func file_elastic_apm_v1_message_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_message_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_message_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_message_proto_rawDesc), len(file_elastic_apm_v1_message_proto_rawDesc)))
 	})
-	return file_message_proto_rawDescData
+	return file_elastic_apm_v1_message_proto_rawDescData
 }
 
-var file_message_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_message_proto_goTypes = []any{
+var file_elastic_apm_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_elastic_apm_v1_message_proto_goTypes = []any{
 	(*Message)(nil),    // 0: elastic.apm.v1.Message
 	(*HTTPHeader)(nil), // 1: elastic.apm.v1.HTTPHeader
 }
-var file_message_proto_depIdxs = []int32{
+var file_elastic_apm_v1_message_proto_depIdxs = []int32{
 	1, // 0: elastic.apm.v1.Message.headers:type_name -> elastic.apm.v1.HTTPHeader
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
@@ -157,28 +157,28 @@ var file_message_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_message_proto_init() }
-func file_message_proto_init() {
-	if File_message_proto != nil {
+func init() { file_elastic_apm_v1_message_proto_init() }
+func file_elastic_apm_v1_message_proto_init() {
+	if File_elastic_apm_v1_message_proto != nil {
 		return
 	}
-	file_headers_proto_init()
-	file_message_proto_msgTypes[0].OneofWrappers = []any{}
+	file_elastic_apm_v1_headers_proto_init()
+	file_elastic_apm_v1_message_proto_msgTypes[0].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_message_proto_rawDesc), len(file_message_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_message_proto_rawDesc), len(file_elastic_apm_v1_message_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_message_proto_goTypes,
-		DependencyIndexes: file_message_proto_depIdxs,
-		MessageInfos:      file_message_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_message_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_message_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_message_proto_msgTypes,
 	}.Build()
-	File_message_proto = out.File
-	file_message_proto_goTypes = nil
-	file_message_proto_depIdxs = nil
+	File_elastic_apm_v1_message_proto = out.File
+	file_elastic_apm_v1_message_proto_goTypes = nil
+	file_elastic_apm_v1_message_proto_depIdxs = nil
 }

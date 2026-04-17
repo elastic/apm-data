@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: labels.proto
+// source: elastic/apm/v1/labels.proto
 
 package modelpb
 
@@ -50,7 +50,7 @@ type LabelValue struct {
 
 func (x *LabelValue) Reset() {
 	*x = LabelValue{}
-	mi := &file_labels_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_labels_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -62,7 +62,7 @@ func (x *LabelValue) String() string {
 func (*LabelValue) ProtoMessage() {}
 
 func (x *LabelValue) ProtoReflect() protoreflect.Message {
-	mi := &file_labels_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_labels_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -75,7 +75,7 @@ func (x *LabelValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LabelValue.ProtoReflect.Descriptor instead.
 func (*LabelValue) Descriptor() ([]byte, []int) {
-	return file_labels_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_labels_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *LabelValue) GetValue() string {
@@ -110,7 +110,7 @@ type NumericLabelValue struct {
 
 func (x *NumericLabelValue) Reset() {
 	*x = NumericLabelValue{}
-	mi := &file_labels_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_labels_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -122,7 +122,7 @@ func (x *NumericLabelValue) String() string {
 func (*NumericLabelValue) ProtoMessage() {}
 
 func (x *NumericLabelValue) ProtoReflect() protoreflect.Message {
-	mi := &file_labels_proto_msgTypes[1]
+	mi := &file_elastic_apm_v1_labels_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -135,7 +135,7 @@ func (x *NumericLabelValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NumericLabelValue.ProtoReflect.Descriptor instead.
 func (*NumericLabelValue) Descriptor() ([]byte, []int) {
-	return file_labels_proto_rawDescGZIP(), []int{1}
+	return file_elastic_apm_v1_labels_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *NumericLabelValue) GetValues() []float64 {
@@ -159,11 +159,11 @@ func (x *NumericLabelValue) GetGlobal() bool {
 	return false
 }
 
-var File_labels_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_labels_proto protoreflect.FileDescriptor
 
-const file_labels_proto_rawDesc = "" +
+const file_elastic_apm_v1_labels_proto_rawDesc = "" +
 	"\n" +
-	"\flabels.proto\x12\x0eelastic.apm.v1\"R\n" +
+	"\x1belastic/apm/v1/labels.proto\x12\x0eelastic.apm.v1\"R\n" +
 	"\n" +
 	"LabelValue\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\x12\x16\n" +
@@ -175,23 +175,23 @@ const file_labels_proto_rawDesc = "" +
 	"\x06global\x18\x03 \x01(\bR\x06globalB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_labels_proto_rawDescOnce sync.Once
-	file_labels_proto_rawDescData []byte
+	file_elastic_apm_v1_labels_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_labels_proto_rawDescData []byte
 )
 
-func file_labels_proto_rawDescGZIP() []byte {
-	file_labels_proto_rawDescOnce.Do(func() {
-		file_labels_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_labels_proto_rawDesc), len(file_labels_proto_rawDesc)))
+func file_elastic_apm_v1_labels_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_labels_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_labels_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_labels_proto_rawDesc), len(file_elastic_apm_v1_labels_proto_rawDesc)))
 	})
-	return file_labels_proto_rawDescData
+	return file_elastic_apm_v1_labels_proto_rawDescData
 }
 
-var file_labels_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_labels_proto_goTypes = []any{
+var file_elastic_apm_v1_labels_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_elastic_apm_v1_labels_proto_goTypes = []any{
 	(*LabelValue)(nil),        // 0: elastic.apm.v1.LabelValue
 	(*NumericLabelValue)(nil), // 1: elastic.apm.v1.NumericLabelValue
 }
-var file_labels_proto_depIdxs = []int32{
+var file_elastic_apm_v1_labels_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -199,26 +199,26 @@ var file_labels_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_labels_proto_init() }
-func file_labels_proto_init() {
-	if File_labels_proto != nil {
+func init() { file_elastic_apm_v1_labels_proto_init() }
+func file_elastic_apm_v1_labels_proto_init() {
+	if File_elastic_apm_v1_labels_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_labels_proto_rawDesc), len(file_labels_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_labels_proto_rawDesc), len(file_elastic_apm_v1_labels_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_labels_proto_goTypes,
-		DependencyIndexes: file_labels_proto_depIdxs,
-		MessageInfos:      file_labels_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_labels_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_labels_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_labels_proto_msgTypes,
 	}.Build()
-	File_labels_proto = out.File
-	file_labels_proto_goTypes = nil
-	file_labels_proto_depIdxs = nil
+	File_elastic_apm_v1_labels_proto = out.File
+	file_elastic_apm_v1_labels_proto_goTypes = nil
+	file_elastic_apm_v1_labels_proto_depIdxs = nil
 }

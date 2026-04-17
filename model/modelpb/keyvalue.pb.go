@@ -19,7 +19,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.28.3
-// source: keyvalue.proto
+// source: elastic/apm/v1/keyvalue.proto
 
 package modelpb
 
@@ -50,7 +50,7 @@ type KeyValue struct {
 
 func (x *KeyValue) Reset() {
 	*x = KeyValue{}
-	mi := &file_keyvalue_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_keyvalue_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -62,7 +62,7 @@ func (x *KeyValue) String() string {
 func (*KeyValue) ProtoMessage() {}
 
 func (x *KeyValue) ProtoReflect() protoreflect.Message {
-	mi := &file_keyvalue_proto_msgTypes[0]
+	mi := &file_elastic_apm_v1_keyvalue_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -75,7 +75,7 @@ func (x *KeyValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KeyValue.ProtoReflect.Descriptor instead.
 func (*KeyValue) Descriptor() ([]byte, []int) {
-	return file_keyvalue_proto_rawDescGZIP(), []int{0}
+	return file_elastic_apm_v1_keyvalue_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *KeyValue) GetKey() string {
@@ -92,33 +92,33 @@ func (x *KeyValue) GetValue() *structpb.Value {
 	return nil
 }
 
-var File_keyvalue_proto protoreflect.FileDescriptor
+var File_elastic_apm_v1_keyvalue_proto protoreflect.FileDescriptor
 
-const file_keyvalue_proto_rawDesc = "" +
+const file_elastic_apm_v1_keyvalue_proto_rawDesc = "" +
 	"\n" +
-	"\x0ekeyvalue.proto\x12\x0eelastic.apm.v1\x1a\x1cgoogle/protobuf/struct.proto\"J\n" +
+	"\x1delastic/apm/v1/keyvalue.proto\x12\x0eelastic.apm.v1\x1a\x1cgoogle/protobuf/struct.proto\"J\n" +
 	"\bKeyValue\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12,\n" +
 	"\x05value\x18\x02 \x01(\v2\x16.google.protobuf.ValueR\x05valueB+Z)github.com/elastic/apm-data/model/modelpbb\x06proto3"
 
 var (
-	file_keyvalue_proto_rawDescOnce sync.Once
-	file_keyvalue_proto_rawDescData []byte
+	file_elastic_apm_v1_keyvalue_proto_rawDescOnce sync.Once
+	file_elastic_apm_v1_keyvalue_proto_rawDescData []byte
 )
 
-func file_keyvalue_proto_rawDescGZIP() []byte {
-	file_keyvalue_proto_rawDescOnce.Do(func() {
-		file_keyvalue_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_keyvalue_proto_rawDesc), len(file_keyvalue_proto_rawDesc)))
+func file_elastic_apm_v1_keyvalue_proto_rawDescGZIP() []byte {
+	file_elastic_apm_v1_keyvalue_proto_rawDescOnce.Do(func() {
+		file_elastic_apm_v1_keyvalue_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_keyvalue_proto_rawDesc), len(file_elastic_apm_v1_keyvalue_proto_rawDesc)))
 	})
-	return file_keyvalue_proto_rawDescData
+	return file_elastic_apm_v1_keyvalue_proto_rawDescData
 }
 
-var file_keyvalue_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_keyvalue_proto_goTypes = []any{
+var file_elastic_apm_v1_keyvalue_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_elastic_apm_v1_keyvalue_proto_goTypes = []any{
 	(*KeyValue)(nil),       // 0: elastic.apm.v1.KeyValue
 	(*structpb.Value)(nil), // 1: google.protobuf.Value
 }
-var file_keyvalue_proto_depIdxs = []int32{
+var file_elastic_apm_v1_keyvalue_proto_depIdxs = []int32{
 	1, // 0: elastic.apm.v1.KeyValue.value:type_name -> google.protobuf.Value
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
@@ -127,26 +127,26 @@ var file_keyvalue_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_keyvalue_proto_init() }
-func file_keyvalue_proto_init() {
-	if File_keyvalue_proto != nil {
+func init() { file_elastic_apm_v1_keyvalue_proto_init() }
+func file_elastic_apm_v1_keyvalue_proto_init() {
+	if File_elastic_apm_v1_keyvalue_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_keyvalue_proto_rawDesc), len(file_keyvalue_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_elastic_apm_v1_keyvalue_proto_rawDesc), len(file_elastic_apm_v1_keyvalue_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_keyvalue_proto_goTypes,
-		DependencyIndexes: file_keyvalue_proto_depIdxs,
-		MessageInfos:      file_keyvalue_proto_msgTypes,
+		GoTypes:           file_elastic_apm_v1_keyvalue_proto_goTypes,
+		DependencyIndexes: file_elastic_apm_v1_keyvalue_proto_depIdxs,
+		MessageInfos:      file_elastic_apm_v1_keyvalue_proto_msgTypes,
 	}.Build()
-	File_keyvalue_proto = out.File
-	file_keyvalue_proto_goTypes = nil
-	file_keyvalue_proto_depIdxs = nil
+	File_elastic_apm_v1_keyvalue_proto = out.File
+	file_elastic_apm_v1_keyvalue_proto_goTypes = nil
+	file_elastic_apm_v1_keyvalue_proto_depIdxs = nil
 }
