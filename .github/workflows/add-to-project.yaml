@@ -23,7 +23,7 @@ jobs:
           permission-organization-projects: write
           permission-issues: read
 
-      - uses: actions/add-to-project@v1.0.2
+      - uses: actions/add-to-project@v2.0.0
         with:
           project-url: https://github.com/orgs/elastic/projects/1286
           github-token: ${{ steps.get_token.outputs.token }}
