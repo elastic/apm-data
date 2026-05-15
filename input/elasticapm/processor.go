@@ -119,8 +119,7 @@ func (p *Processor) readMetadata(reader *streamReader, out *modelpb.APMEvent) er
 				return errEmptyBody
 			}
 			return &InvalidInputError{
-				Message:  "EOF while reading metadata",
-				Document: string(reader.LatestLine()),
+				Message: "EOF while reading metadata",
 			}
 		}
 		return reader.wrapError(err)
@@ -136,8 +135,7 @@ func (p *Processor) readMetadata(reader *streamReader, out *modelpb.APMEvent) er
 		}
 	default:
 		return &InvalidInputError{
-			Message:  fmt.Sprintf("%q or %q required", v2MetadataKey, rumv3MetadataKey),
-			Document: string(reader.LatestLine()),
+			Message: fmt.Sprintf("%q or %q required", v2MetadataKey, rumv3MetadataKey),
 		}
 	}
 	return nil
@@ -223,8 +221,7 @@ func (p *Processor) readBatch(
 		}
 		if err != nil && err != io.EOF {
 			result.addError(&InvalidInputError{
-				Message:  err.Error(),
-				Document: string(reader.LatestLine()),
+				Message: err.Error(),
 			})
 		}
 	}
@@ -274,8 +271,7 @@ func (p *Processor) HandleStream(
 			return fmt.Errorf("cannot read metadata in stream: %w", err)
 		}
 		return &InvalidInputError{
-			Message:  err.Error(),
-			Document: string(sr.LatestLine()),
+			Message: err.Error(),
 		}
 	}
 
@@ -351,8 +347,7 @@ type streamReader struct {
 func (sr *streamReader) wrapError(err error) error {
 	if _, ok := err.(decoder.JSONDecodeError); ok {
 		return &InvalidInputError{
-			Message:  err.Error(),
-			Document: string(sr.LatestLine()),
+			Message: err.Error(),
 		}
 	}
 
@@ -364,7 +359,6 @@ func (sr *streamReader) wrapError(err error) error {
 		return &InvalidInputError{
 			TooLarge: true,
 			Message:  "event exceeded the permitted size",
-			Document: string(sr.LatestLine()),
 		}
 	}
 	return err
