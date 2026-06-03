@@ -3,7 +3,7 @@ module github.com/elastic/apm-data
 go 1.26.0
 
 require (
-	github.com/elastic/opentelemetry-lib v0.39.0
+	github.com/elastic/opentelemetry-lib v0.40.0
 	github.com/google/go-cmp v0.7.0
 	github.com/jaegertracing/jaeger-idl v0.9.0
 	github.com/json-iterator/go v1.1.12
@@ -14,11 +14,11 @@ require (
 	go.elastic.co/fastjson v1.5.1
 	go.opentelemetry.io/collector/consumer v1.59.0
 	go.opentelemetry.io/collector/pdata v1.59.0
-	go.opentelemetry.io/otel v1.43.0
-	go.opentelemetry.io/otel/metric v1.43.0
-	go.opentelemetry.io/otel/sdk v1.43.0
-	go.opentelemetry.io/otel/sdk/metric v1.43.0
-	go.opentelemetry.io/otel/trace v1.43.0
+	go.opentelemetry.io/otel v1.44.0
+	go.opentelemetry.io/otel/metric v1.44.0
+	go.opentelemetry.io/otel/sdk v1.44.0
+	go.opentelemetry.io/otel/sdk/metric v1.44.0
+	go.opentelemetry.io/otel/trace v1.44.0
 	go.uber.org/zap v1.28.0
 	golang.org/x/sync v0.20.0
 	golang.org/x/tools v0.45.0
