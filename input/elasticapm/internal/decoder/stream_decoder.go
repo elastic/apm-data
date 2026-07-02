@@ -90,6 +90,8 @@ func (dec *NDJSONStreamDecoder) resetLatestLineReader() {
 func (dec *NDJSONStreamDecoder) IsEOF() bool { return dec.isEOF }
 
 // LatestLine returns the latest line read as []byte
+//
+// Deprecated
 func (dec *NDJSONStreamDecoder) LatestLine() []byte { return dec.latestLine }
 
 // JSONDecodeError is a custom error that can occur during JSON decoding
