@@ -26,7 +26,7 @@ import (
 )
 
 func semAcquire(ctx context.Context, tracer trace.Tracer, sem input.Semaphore, i int64) error {
-	ctx, sp := tracer.Start(ctx, "Semaphore.Acquire")
+	ctx, sp := tracer.Start(ctx, "Semaphore.Acquire", trace.WithSpanKind(trace.SpanKindInternal))
 	defer sp.End()
 
 	return sem.Acquire(ctx, i)

@@ -19,8 +19,8 @@ syntax = "proto3";
 
 package elastic.apm.v1;
 
-import "os.proto";
-import "ip.proto";
+import "elastic/apm/v1/os.proto";
+import "elastic/apm/v1/ip.proto";
 
 option go_package = "github.com/elastic/apm-data/model/modelpb";
 

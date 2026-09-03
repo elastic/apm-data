@@ -179,7 +179,7 @@ func (p *Processor) readBatch(
 	reader *streamReader,
 	result *Result,
 ) (int, error) {
-	_, sp := p.tracer.Start(ctx, "readBatch")
+	_, sp := p.tracer.Start(ctx, "readBatch", trace.WithSpanKind(trace.SpanKindInternal))
 	defer sp.End()
 
 	// input events are decoded and appended to the batch
@@ -250,7 +250,7 @@ func (p *Processor) HandleStream(
 	processor modelpb.BatchProcessor,
 	result *Result,
 ) error {
-	ctx, sp := p.tracer.Start(ctx, "Stream")
+	ctx, sp := p.tracer.Start(ctx, "Stream", trace.WithSpanKind(trace.SpanKindInternal))
 	defer sp.End()
 	// Limit the number of concurrent batch decodes.
 	//
@@ -336,7 +336,7 @@ func (p *Processor) getStreamReader(r io.Reader) *streamReader {
 }
 
 func (p *Processor) semAcquire(ctx context.Context) error {
-	ctx, sp := p.tracer.Start(ctx, "Semaphore.Acquire")
+	ctx, sp := p.tracer.Start(ctx, "Semaphore.Acquire", trace.WithSpanKind(trace.SpanKindInternal))
 	defer sp.End()
 
 	return p.sem.Acquire(ctx, 1)

@@ -8,4 +8,4 @@ PATH="${TOOLS_DIR}/build/bin:${PATH}" protoc \
     --go_opt=module=github.com/elastic/apm-data \
     --go-vtproto_out=. \
     --go-vtproto_opt=features=marshal+unmarshal+size+clone,module=github.com/elastic/apm-data \
-    ./model/proto/*.proto
+    ./model/proto/elastic/apm/v1/*.proto
