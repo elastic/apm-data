@@ -1,6 +1,6 @@
 module github.com/elastic/apm-data
 
-go 1.24.0
+go 1.25
 
 require (
 	github.com/elastic/opentelemetry-lib v0.21.0
@@ -27,7 +27,7 @@ require (
 )
 
 require (
-	github.com/apache/thrift v0.21.0 // indirect
+	github.com/apache/thrift v0.24.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
