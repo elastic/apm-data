@@ -5,14 +5,14 @@ go 1.26.0
 require (
 	github.com/elastic/opentelemetry-lib v0.49.0
 	github.com/google/go-cmp v0.7.0
-	github.com/jaegertracing/jaeger-idl v0.10.0
+	github.com/jaegertracing/jaeger-idl v0.14.0
 	github.com/json-iterator/go v1.1.12
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.158.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.163.0
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10
 	github.com/stretchr/testify v1.12.1
 	github.com/xeipuuv/gojsonschema v1.2.0
 	go.elastic.co/fastjson v1.5.1
-	go.opentelemetry.io/collector/consumer v1.64.0
+	go.opentelemetry.io/collector/consumer v1.69.0
 	go.opentelemetry.io/collector/pdata v1.69.0
 	go.opentelemetry.io/otel v1.47.0
 	go.opentelemetry.io/otel/metric v1.47.0
@@ -36,8 +36,8 @@ require (
 	github.com/hashicorp/go-version v1.9.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.158.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.158.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.163.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.163.0 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
