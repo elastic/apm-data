@@ -61,11 +61,12 @@ jobs:
           --benchmem
           --debug
     - name: Publish benchstat to job summary
+      if: always() && steps.benchdiff.outputs.benchstat_output != ''
       env:
         BENCHSTAT_OUTPUT: ${{ steps.benchdiff.outputs.benchstat_output }}
       run: |
         {
           echo "### benchdiff"
           echo
-          echo "${BENCHSTAT_OUTPUT}"
+          printf '%s\n' "$BENCHSTAT_OUTPUT"
         } >> "$GITHUB_STEP_SUMMARY"
