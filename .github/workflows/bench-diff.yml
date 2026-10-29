@@ -1,8 +1,9 @@
 name: bench-diff
 on:
   push:
-  pull_request_target:
-    types: [labeled, synchronize]
+  # Forks only (see the job condition): same-repo PRs are covered by the push trigger.
+  # Runs with a read-only token and no secrets, so fork code never gets write access.
+  pull_request:
 
 permissions:
   contents: read
@@ -10,21 +11,24 @@ permissions:
 jobs:
   run-benchdiff:
     runs-on: ubuntu-latest
-    # Support for branches, non-forked-prs or forked-prs with a label
+    # Branches (push) or forked PRs. Same-repo PRs already run on push for the same sha.
     if: |
-      contains(github.event.pull_request.labels.*.name, 'safe-to-test') ||
-      ! startsWith(github.event_name, 'pull_request') ||
-      (startsWith(github.event_name, 'pull_request') && github.event.pull_request.head.repo.fork == false)
+      github.event_name == 'push' ||
+      github.event.pull_request.head.repo.fork == true
     permissions:
       checks: write
     steps:
     - name: Get sha commit
       id: event
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        EVENT_SHA: ${{ github.sha }}
+        PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       run: |
-        echo "DEBUG: event type(${{ github.event_name }})"
-        ref="${{ github.sha }}"
-        if [ "${{ startsWith(github.event_name, 'pull_request') }}" = "true" ] ; then
-          ref="${{ github.event.pull_request.head.sha }}"
+        echo "DEBUG: event type(${EVENT_NAME})"
+        ref="${EVENT_SHA}"
+        if [ "${EVENT_NAME}" = "pull_request" ] ; then
+          ref="${PR_HEAD_SHA}"
         fi
         echo "ref=${ref}" >> "$GITHUB_OUTPUT"
     - uses: actions/checkout@v7
@@ -40,6 +44,8 @@ jobs:
       id: benchdiff
       with:
         benchdiff_version: 0.9.1
+        # Forks get a read-only token: skip the check-run and use the job summary instead.
+        report_status: ${{ github.event_name == 'push' }}
         status_sha: ${{ steps.event.outputs.ref }}
         status_name: benchdiff-result
         status_on_degraded: neutral
@@ -54,3 +60,13 @@ jobs:
           --tolerance=20
           --benchmem
           --debug
+    - name: Publish benchstat to job summary
+      if: always() && steps.benchdiff.outputs.benchstat_output != ''
+      env:
+        BENCHSTAT_OUTPUT: ${{ steps.benchdiff.outputs.benchstat_output }}
+      run: |
+        {
+          echo "### benchdiff"
+          echo
+          printf '%s\n' "$BENCHSTAT_OUTPUT"
+        } >> "$GITHUB_STEP_SUMMARY"
