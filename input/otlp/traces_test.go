@@ -48,7 +48,10 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	semconv12 "go.opentelemetry.io/otel/semconv/v1.12.0"
+	semconv25 "go.opentelemetry.io/otel/semconv/v1.25.0"
 	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
+	semconv33 "go.opentelemetry.io/otel/semconv/v1.33.0"
 	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -659,6 +662,78 @@ func TestDatabaseSpanWithServerAttributes(t *testing.T) {
 		Address: "shopdb.example.com",
 		Port:    3306,
 	}, event.Destination)
+}
+
+func TestSemConvCompatibility(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		old  map[string]interface{}
+		new  map[string]interface{}
+	}{
+		{
+			name: "HTTPMethodKey (v1.25) -> HTTPRequestMethodKey (v1.27)",
+			old:  map[string]interface{}{string(semconv25.HTTPMethodKey): "GET"},
+			new:  map[string]interface{}{string(semconv.HTTPRequestMethodKey): "GET"},
+		},
+		{
+			name: "HTTPURLKey (v1.25) -> URLFullKey (v1.27)",
+			old:  map[string]interface{}{string(semconv25.HTTPURLKey): "http://example.com/foo"},
+			new:  map[string]interface{}{string(semconv.URLFullKey): "http://example.com/foo"},
+		},
+		{
+			name: "HTTPSchemeKey (v1.25) -> URLSchemeKey (v1.27)",
+			old:  map[string]interface{}{string(semconv25.HTTPSchemeKey): "https"},
+			new:  map[string]interface{}{string(semconv.URLSchemeKey): "https"},
+		},
+		{
+			name: "DBStatementKey (v1.25) -> DBQueryTextKey (v1.27)",
+			old:  map[string]interface{}{string(semconv25.DBStatementKey): "SELECT 1"},
+			new:  map[string]interface{}{string(semconv.DBQueryTextKey): "SELECT 1"},
+		},
+		{
+			name: "DBNameKey (v1.25) -> DBNamespaceKey (v1.27)",
+			old:  map[string]interface{}{string(semconv25.DBNameKey): "ShopDb"},
+			new:  map[string]interface{}{string(semconv.DBNamespaceKey): "ShopDb"},
+		},
+		{
+			// db.system was renamed to db.system.name as part of the database
+			// semantic conventions stabilization in semconv v1.30:
+			// https://opentelemetry.io/docs/specs/semconv/non-normative/db-migration/
+			name: "DBSystemKey (v1.27) -> DBSystemNameKey (v1.33)",
+			old:  map[string]interface{}{string(semconv.DBSystemKey): "mysql"},
+			new:  map[string]interface{}{string(semconv33.DBSystemNameKey): "mysql"},
+		},
+		{
+			name: "NetPeerNameKey (v1.25) -> ServerAddressKey (v1.27)",
+			old:  map[string]interface{}{string(semconv25.NetPeerNameKey): "example.com"},
+			new:  map[string]interface{}{string(semconv.ServerAddressKey): "example.com"},
+		},
+		{
+			name: "NetPeerPortKey (v1.25) -> ServerPortKey (v1.27)",
+			old:  map[string]interface{}{string(semconv25.NetPeerPortKey): 8080},
+			new:  map[string]interface{}{string(semconv.ServerPortKey): 8080},
+		},
+		{
+			name: "NetPeerIPKey (v1.12) -> NetworkPeerAddressKey (v1.27)",
+			old:  map[string]interface{}{string(semconv12.NetPeerIPKey): "10.0.0.1"},
+			new:  map[string]interface{}{string(semconv.NetworkPeerAddressKey): "10.0.0.1"},
+		},
+		{
+			name: "MessagingOperationKey (v1.25) -> MessagingOperationTypeKey (v1.27)",
+			old:  map[string]interface{}{string(semconv25.MessagingOperationKey): "process"},
+			new:  map[string]interface{}{string(semconv.MessagingOperationTypeKey): "process"},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			oldEvent := transformSpanWithAttributes(t, tc.old)
+			newEvent := transformSpanWithAttributes(t, tc.new)
+			// event.received is set from time.Now() independently on each call;
+			// it is irrelevant to attribute-mapping equivalence.
+			oldEvent.Event.Received = 0
+			newEvent.Event.Received = 0
+			assert.Empty(t, cmp.Diff(oldEvent, newEvent, protocmp.Transform()))
+		})
+	}
 }
 
 func TestInstrumentationLibrary(t *testing.T) {

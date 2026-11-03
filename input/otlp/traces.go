@@ -53,6 +53,7 @@ import (
 	semconv18 "go.opentelemetry.io/otel/semconv/v1.18.0"
 	semconv25 "go.opentelemetry.io/otel/semconv/v1.25.0"
 	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
+	semconv33 "go.opentelemetry.io/otel/semconv/v1.33.0"
 	"google.golang.org/grpc/codes"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -696,7 +697,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 			case string(semconv25.DBNameKey), string(semconv.DBNamespaceKey), "db.instance", attributeDbElasticsearchClusterName:
 				db.Instance = stringval
 				isDatabase = true
-			case string(semconv.DBSystemKey), "db.type":
+			case string(semconv.DBSystemKey), string(semconv33.DBSystemNameKey), "db.type":
 				db.Type = stringval
 				isDatabase = true
 			case string(semconv25.DBUserKey): //removed after 1.25 (experimental)
