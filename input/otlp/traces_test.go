@@ -52,6 +52,7 @@ import (
 	semconv25 "go.opentelemetry.io/otel/semconv/v1.25.0"
 	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 	semconv33 "go.opentelemetry.io/otel/semconv/v1.33.0"
+	semconv43 "go.opentelemetry.io/otel/semconv/v1.43.0"
 	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -666,9 +667,10 @@ func TestDatabaseSpanWithServerAttributes(t *testing.T) {
 
 func TestSemConvCompatibility(t *testing.T) {
 	for _, tc := range []struct {
-		name string
-		old  map[string]interface{}
-		new  map[string]interface{}
+		name          string
+		old           map[string]interface{}
+		new           map[string]interface{}
+		isTransaction bool
 	}{
 		{
 			name: "HTTPMethodKey (v1.25) -> HTTPRequestMethodKey (v1.27)",
@@ -723,10 +725,35 @@ func TestSemConvCompatibility(t *testing.T) {
 			old:  map[string]interface{}{string(semconv25.MessagingOperationKey): "process"},
 			new:  map[string]interface{}{string(semconv.MessagingOperationTypeKey): "process"},
 		},
+		{
+			name: "RPCSystemKey (v1.27) -> RPCSystemNameKey (v1.43)",
+			old:  map[string]interface{}{string(semconv.RPCSystemKey): "grpc"},
+			new:  map[string]interface{}{string(semconv43.RPCSystemNameKey): "grpc"},
+		},
+		{
+			name: "PeerServiceKey (v1.27) -> ServicePeerNameKey (v1.43)",
+			old:  map[string]interface{}{string(semconv.PeerServiceKey): "my-service"},
+			new:  map[string]interface{}{string(semconv43.ServicePeerNameKey): "my-service"},
+		},
+		{
+			name: "GenAISystemKey (v1.27) -> gen_ai.provider.name (v1.43)",
+			old:  map[string]interface{}{string(semconv.GenAISystemKey): "openai"},
+			new:  map[string]interface{}{"gen_ai.provider.name": "openai"},
+		},
+		{
+			name:          "RPCGRPCStatusCodeKey (v1.27) -> RPCResponseStatusCodeKey (v1.43)",
+			old:           map[string]interface{}{string(semconv.RPCGRPCStatusCodeKey): int64(0)},
+			new:           map[string]interface{}{string(semconv43.RPCResponseStatusCodeKey): "OK"},
+			isTransaction: true,
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			oldEvent := transformSpanWithAttributes(t, tc.old)
-			newEvent := transformSpanWithAttributes(t, tc.new)
+			transform := transformSpanWithAttributes
+			if tc.isTransaction {
+				transform = transformTransactionWithAttributes
+			}
+			oldEvent := transform(t, tc.old)
+			newEvent := transform(t, tc.new)
 			// event.received is set from time.Now() independently on each call;
 			// it is irrelevant to attribute-mapping equivalence.
 			oldEvent.Event.Received = 0
