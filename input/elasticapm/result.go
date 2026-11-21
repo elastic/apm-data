@@ -72,7 +72,8 @@ func (r *Result) addError(err error) {
 }
 
 type InvalidInputError struct {
-	Message  string
+	Message string
+	// Deprecated
 	Document string
 	TooLarge bool
 }

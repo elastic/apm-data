@@ -135,8 +135,7 @@ func TestHandleStreamErrors(t *testing.T) {
 		invalid: 1,
 		errors: []error{
 			&InvalidInputError{
-				Message:  `decode error: data read error: v2.transactionRoot.Transaction: v2.transaction.ID: ReadString: expects " or n,`,
-				Document: invalidEvent,
+				Message: `decode error: data read error: v2.transactionRoot.Transaction: v2.transaction.ID: ReadString: expects " or n,`,
 			},
 		},
 	}, {
@@ -145,30 +144,26 @@ func TestHandleStreamErrors(t *testing.T) {
 		invalid: 1,
 		errors: []error{
 			&InvalidInputError{
-				Message:  `did not recognize object type: "invalid-json"`,
-				Document: invalidJSONEvent,
+				Message: `did not recognize object type: "invalid-json"`,
 			},
 		},
 	}, {
 		name:    "InvalidJSONMetadata",
 		payload: invalidJSONMetadata + "\n",
 		err: &InvalidInputError{
-			Message:  "decode error: data read error: v2.metadataRoot.Metadata: v2.metadata.readFieldHash: expect :,",
-			Document: invalidJSONMetadata,
+			Message: "decode error: data read error: v2.metadataRoot.Metadata: v2.metadata.readFieldHash: expect :,",
 		},
 	}, {
 		name:    "InvalidMetadata",
 		payload: invalidMetadata + "\n",
 		err: &InvalidInputError{
-			Message:  "validation error: 'metadata' required",
-			Document: invalidMetadata,
+			Message: "validation error: 'metadata' required",
 		},
 	}, {
 		name:    "InvalidMetadata2",
 		payload: invalidMetadata2 + "\n",
 		err: fmt.Errorf("cannot read metadata in stream: %w", &InvalidInputError{
-			Message:  `"metadata" or "m" required`,
-			Document: invalidMetadata2,
+			Message: `"metadata" or "m" required`,
 		}),
 	}, {
 		name:    "UnrecognizedEvent",
@@ -176,8 +171,7 @@ func TestHandleStreamErrors(t *testing.T) {
 		invalid: 1,
 		errors: []error{
 			&InvalidInputError{
-				Message:  `did not recognize object type: "tennis-court"`,
-				Document: invalidEventType,
+				Message: `did not recognize object type: "tennis-court"`,
 			},
 		},
 	}, {
@@ -190,7 +184,6 @@ func TestHandleStreamErrors(t *testing.T) {
 			&InvalidInputError{
 				TooLarge: true,
 				Message:  "event exceeded the permitted size",
-				Document: tooLargeEvent[:len(validMetadata)+1],
 			},
 		},
 	}} {
