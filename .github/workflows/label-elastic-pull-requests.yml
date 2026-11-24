@@ -12,21 +12,21 @@ jobs:
     steps:
     - name: Get token
       id: get_token
-      uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+      uses: actions/create-github-app-token@v3
       with:
         app-id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
         private-key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
         permission-members: read
         permission-pull-requests: write
     - name: Check team membership for user
-      uses: elastic/get-user-teams-membership@5fa8d08135326e44d74d0ec4ef8705d8e36df12d # 1.1.0
+      uses: elastic/get-user-teams-membership@1.1.0
       id: checkUserMember
       with:
         username: ${{ github.actor }}
         team: 'apm'
         GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
     - name: Add safe-to-test label
-      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      uses: actions/github-script@v9
       if: steps.checkUserMember.outputs.isTeamMember == 'true'
       with:
         github-token: ${{ steps.get_token.outputs.token }}
