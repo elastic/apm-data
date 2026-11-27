@@ -54,6 +54,7 @@ import (
 	semconv25 "go.opentelemetry.io/otel/semconv/v1.25.0"
 	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 	semconv33 "go.opentelemetry.io/otel/semconv/v1.33.0"
+	semconv43 "go.opentelemetry.io/otel/semconv/v1.43.0"
 	"google.golang.org/grpc/codes"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -72,6 +73,10 @@ const (
 	attributeDbElasticsearchClusterName = "db.elasticsearch.cluster.name"
 	attributeDataStreamDataset          = "data_stream.dataset"
 	attributeDataStreamNamespace        = "data_stream.namespace"
+
+	// gen_ai.system was deprecated in v1.37.0 and instead
+	// need use this specific attribute. This is to ensure 1.37+ adhere to this change
+	attributeGenAIProviderName = "gen_ai.provider.name"
 )
 
 // ConsumeTracesResult contains the number of rejected spans and error message for partial success response.
@@ -442,10 +447,13 @@ func TranslateTransaction(
 			// TODO(axw) add RPC fieldset to ECS? Currently we drop these
 			// attributes, and rely on the operation name like we do with
 			// Elastic APM agents.
-			case string(semconv.RPCSystemKey):
+			case string(semconv.RPCSystemKey), string(semconv43.RPCSystemNameKey):
 				isRPC = true
 			case string(semconv.RPCGRPCStatusCodeKey):
 				isRPC = true
+			case string(semconv43.RPCResponseStatusCodeKey):
+				isRPC = true
+				event.Transaction.Result = stringval
 			case string(semconv.RPCServiceKey):
 			case string(semconv.RPCMethodKey):
 
@@ -790,7 +798,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 			// TODO(axw) add RPC fieldset to ECS? Currently we drop these
 			// attributes, and rely on the operation name and span type/subtype
 			// like we do with Elastic APM agents.
-			case string(semconv.RPCSystemKey):
+			case string(semconv.RPCSystemKey), string(semconv43.RPCSystemNameKey):
 				rpcSystem = stringval
 				isRPC = true
 			case string(semconv.RPCServiceKey):
@@ -798,6 +806,8 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				isRPC = true
 			case string(semconv.RPCGRPCStatusCodeKey):
 				rpcSystem = "grpc"
+				isRPC = true
+			case string(semconv43.RPCResponseStatusCodeKey):
 				isRPC = true
 			case string(semconv.RPCMethodKey):
 
@@ -809,13 +819,13 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				event.Code.Stacktrace = v.Str()
 
 			// gen_ai.*
-			case string(semconv.GenAISystemKey):
+			case string(semconv.GenAISystemKey), attributeGenAIProviderName:
 				genAiSystem = stringval
 				isGenAi = true
 
 			// miscellaneous
 			case "span.kind": // filter out
-			case string(semconv.PeerServiceKey):
+			case string(semconv.PeerServiceKey), string(semconv43.ServicePeerNameKey):
 				peerService = stringval
 
 			// data_stream.*
