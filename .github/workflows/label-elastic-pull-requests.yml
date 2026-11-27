@@ -4,8 +4,7 @@ on:
   pull_request_target:
     types: [opened]
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   safe-to-test:
@@ -32,7 +31,7 @@ jobs:
       with:
         github-token: ${{ steps.get_token.outputs.token }}
         script: |
-          github.rest.issues.addLabels({
+          await github.rest.issues.addLabels({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
